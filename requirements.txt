@@ -1,0 +1,14 @@
+# Superseded by environment.yml / pyproject.toml (kept for pip users): pip install -e .
+numpy>=2.0
+pandas>=2.2
+xarray>=2024.1
+netCDF4>=1.6
+pyyaml>=6.0
+pyproj>=3.6
+shapely>=2.0
+matplotlib>=3.8
+pyarrow>=15
+zarr>=2.18
+plotly>=6.0
+streamlit>=1.50
+pytest>=8.0

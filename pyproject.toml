@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cmlpipe"
+dynamic = ["version"]
+description = "Data pipeline, release and access API for commercial microwave link (CML) rain research (OpenMRG)"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Yonatan Haber" }, { name = "Yehonatan Tsitseluk" }]
+dependencies = [
+    "numpy>=2.0", "pandas>=2.2", "xarray>=2024.1", "netCDF4>=1.6", "pyyaml>=6.0", "pyproj>=3.6",
+    "shapely>=2.0", "matplotlib>=3.8", "pyarrow>=15", "zarr>=2.18", "plotly>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "nbformat", "nbclient", "ipykernel"]
+explorer = ["streamlit>=1.50"]   # the GUI in apps/explorer (python -m cmlpipe explore)
+
+[project.scripts]
+cmlpipe = "cmlpipe.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "cmlpipe.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["data", "_archive", ".git", "*.egg-info", "__pycache__"]
+markers = ["data: needs the real OpenMRG data or the work / release products on this machine (run with: -m data)"]
+# real-data tests are skipped by default; `python -m pytest -m data` runs only them, `-m ""` runs everything
+addopts = "-m 'not data'"

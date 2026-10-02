@@ -1,0 +1,33 @@
+#!/bin/sh
+# Refresh the generated blocks of README.md and add it to the commit.
+# Enabled once per clone with:  git config core.hooksPath .githooks
+# This hook never blocks a commit: on any problem it prints a warning and exits 0.
+
+cd "$(git rev-parse --show-toplevel)" || exit 0
+
+# Find a Python that has the project's packages (netCDF4 is the one that usually is missing).
+# Set CMLPIPE_PYTHON to force a specific interpreter.
+# On Windows HOME can point somewhere else (e.g. AppData), so USERPROFILE is tried too.
+WINHOME=""
+[ -n "$USERPROFILE" ] && WINHOME=$(cygpath -u "$USERPROFILE" 2>/dev/null || echo "$USERPROFILE")
+PY=""
+for cand in "$CMLPIPE_PYTHON" "$WINHOME/miniconda3/python.exe" "$HOME/miniconda3/python.exe" "$HOME/miniconda3/bin/python" python python3 py; do
+    [ -z "$cand" ] && continue
+    if "$cand" -c "import netCDF4" >/dev/null 2>&1; then PY="$cand"; break; fi
+done
+
+if [ -z "$PY" ]; then
+    # No Python with the packages: still refresh the README, but skip the tests.
+    for cand in python python3 py; do
+        if "$cand" -c "import sys" >/dev/null 2>&1; then PY="$cand"; break; fi
+    done
+    [ -z "$PY" ] && { echo "pre-commit: no Python found, README not refreshed" >&2; exit 0; }
+    echo "pre-commit: no Python with netCDF4 found, README refreshed without running tests" >&2
+    "$PY" tools/update_readme.py --no-tests || { echo "pre-commit: update_readme failed (commit continues)" >&2; exit 0; }
+else
+    echo "pre-commit: refreshing README.md with $PY (runs the tests, ~10 s)"
+    "$PY" tools/update_readme.py || { echo "pre-commit: update_readme failed (commit continues)" >&2; exit 0; }
+fi
+
+git add README.md
+exit 0

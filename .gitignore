@@ -1,0 +1,37 @@
+# ---- Raw and derived data: too large for GitHub (limit 100 MB per file) ----
+data/
+data_processed/
+
+# ---- Python ----
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# ---- PyCharm ----
+.idea/
+
+# ---- Jupyter ----
+.ipynb_checkpoints/
+
+# ---- Julia / PySR temporary output ----
+hall_of_fame*.csv
+hall_of_fame*.pkl
+outputs/
+
+# ---- Large data formats (safety net) ----
+*.nc
+*.zip
+
+# ---- Windows ----
+Thumbs.db
+desktop.ini
+
+# ---- Test cache and quick check figures ----
+.pytest_cache/
+check_*.png
+
+# ---- Archived development material (kept locally, not in git) ----
+_archive/
+*.egg-info/

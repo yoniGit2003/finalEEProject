@@ -1,0 +1,454 @@
+# Pipeline configuration for the OpenMRG dataset (Gothenburg, JJA 2015).
+#
+# Every threshold and path used by the pipeline lives here, so a run is fully
+# described by this file. The config hash (sha256 of this content) is written into
+# every output file; if you change anything here, outputs are rebuilt on the next
+# run (days with a different hash are not skipped).
+#
+# All paths are relative to the repository root (the folder that holds CLAUDE.md).
+# Dates and durations are quoted strings on purpose: YAML would otherwise turn
+# them into date objects, which would make the config hash less predictable.
+
+dataset:
+  name: openmrg
+  title: "OpenMRG: Open data from Microwave links, Radar, and Gauges (Gothenburg, JJA 2015)"
+  # DOI of the dataset version we use (v1.1). The raw cml.nc itself carries
+  # doi = 10.5281/zenodo.6673750 in its attributes; that value is copied into the
+  # L1 files as raw_file_doi. See docs/data_notes/openmrg_cml_inspection.md.
+  source_doi: "10.5281/zenodo.7107689"
+  source: "SMHI, Ericsson and Hi3G via Andersson et al. (2022), ESSD 14, 5411-5426"
+  licence: "CC-BY-SA-4.0"
+
+paths:
+  raw_cml: "data/raw/openmrg/cml/cml.nc"
+  raw_cml_metadata: "data/raw/openmrg/cml/cml_metadata.csv"
+  raw_city_gauges: "data/raw/openmrg/gauges/city/CityGauges-2015JJA.csv"
+  raw_city_gauges_metadata: "data/raw/openmrg/gauges/city/CityGauges-metadata.csv"
+  raw_smhi: "data/raw/openmrg/gauges/smhi/GbgA-71420-2015JJA.csv"
+  raw_smhi_metadata: "data/raw/openmrg/gauges/smhi/GbgA-71420-metadata.csv"
+  raw_radar: "data/raw/openmrg/radar/radar.nc"
+  # Used only by the acceptance checks (event window and gauge series of the paper's Fig. 11).
+  raw_torslanda_zip: "data/raw/openmrg/Torslanda-event-2015-07-28/Torslanda-interactive-time-series.zip"
+  output_root: "data/work/openmrg"
+  release_root: "data/release"           # relative to the repository root (not to output_root)
+  # The following are relative to output_root.
+  l1_cml_dir: "L1_standard/cml"
+  l1_gauges_dir: "L1_standard/gauges"
+  l1_met_dir: "L1_standard/met"
+  l1_radar_dir: "L1_standard/radar"
+  l2_qc_dir: "L2_qc"
+  l3_geometry_dir: "L3_products/geometry"
+  l3_cml_dir: "L3_products/cml"          # + /<res>/cml_<res>_YYYY-MM-DD.nc
+  l3_gauges_dir: "L3_products/gauges"
+  l3_radar_dir: "L3_products/radar"
+  l3_events_dir: "L3_products/events"
+  l3_cml_consolidated: "L3_products/cml/consolidated"
+  inventory_dir: "tables/inventory"      # relative to output_root
+  reports_dir: "reports"
+  tables_dir: "tables"
+  logs_dir: "logs"
+  manifest: "run_manifest.json"
+
+period:
+  # Inclusive UTC days processed by --all. The raw file also holds 6 steps on
+  # 2015-05-31 and 1 step on 2015-09-01; those are outside the period and ignored.
+  start: "2015-06-01"
+  end: "2015-08-31"
+  # Period window for the reference data, per kind of time stamp. Let T1 = 2015-09-01 00:00.
+  #   interval_start: [start 00:00, T1)  A stamp labels the START of an interval. A value stamped
+  #                   T1 would describe [T1, T1 + interval), which lies after JJA. (CML, gauges after
+  #                   their shift.)
+  #   instant:        [start 00:00, T1]  A stamp is the moment of a measurement. A measurement taken
+  #                   exactly at T1 closes the period and is real data, so it is kept. (Radar, SMHI weather.)
+  # In both cases L1 time axes run only from the first to the last raw stamp inside the window:
+  # steps are inserted (NaN, counted) only BETWEEN real stamps, never before the first or after the last.
+  window_end_inclusive:
+    interval_start: false
+    instant: true
+
+cml:
+  sampling_interval: "10s"
+  # Value used in the raw file for "no data" (it is also the _FillValue there).
+  raw_missing_value: 1.0e10
+  # What one CML timestamp means. Copied into every L1 file.
+  time_meaning: >-
+    UTC start of the 10 s SNMP sampling window (the actual sample was taken
+    within a ~7 s window, nodes within about +-1 s); SMHI rounded timestamps
+    to the nearest 10 s. Source: OpenMRG readme.txt and Andersson et al. (2022).
+  # Raw Direction code -> L1 sublink_id. Near/Far in the raw metadata is the
+  # transmitter/receiver of each sub-link, so site_0 is defined as the
+  # transmitter (Near) of sublink_1 and site_1 as its receiver (Far).
+  direction_to_sublink:
+    A: sublink_1
+    B: sublink_2
+  # Raw polarization spellings (compared after strip + lower case) -> "v" / "h".
+  polarization_map:
+    vertical: v
+    vert: v
+    v: v
+    horizontal: h
+    hor: h
+    h: h
+
+# ---------------------------------------------------------------------------
+# Reference data: gauges, weather, radar (facts in docs/data_notes/openmrg_reference_inspection.md)
+#
+# Pipeline time convention: UTC, tz-naive, each value labelled by the START of
+# its interval ([time, time + interval)). A source labelled at the END of its
+# interval is shifted back by one interval. A source whose values are
+# instantaneous (or whose meaning is mixed) keeps the file's time; its
+# attributes say so. time_shift_s is ADDED to the raw time.
+# ---------------------------------------------------------------------------
+reference:
+  # Projected CRS used for distances in the geometry step (SWEREF 99 TM, metres).
+  metric_crs: "EPSG:3006"
+  # CRS of the lon/lat in the raw files (the readme says WGS84 for gauges and CML;
+  # for radar lon/lat this is our assumption, see the inspection note).
+  lonlat_crs: "EPSG:4326"
+
+city_gauges:
+  interval: "1min"
+  stamp_kind: interval_start  # after the -60 s shift
+  time_shift_s: -60
+  time_meaning_original: >-
+    Time_UTC is the END of the measurement interval; the interval starts on second 01
+    of the preceding minute. Tipping-bucket volumes were assumed to fall during the
+    preceding minute. Source: OpenMRG readme.txt.
+  na_tokens: ["NA"]
+  # Raw "Type" (compared after strip + lower case) -> L1 gauge_type
+  gauge_type_map:
+    weighing: weighing
+    tipping-bucket: tipping_bucket
+  height_m: 1.5
+  height_source: >-
+    Andersson et al. (2022), Sect. 2.2: altitude unknown, typically about 1.5 m above ground.
+
+smhi_gauge:
+  id: "GbgA"
+  interval: "15min"
+  stamp_kind: interval_start  # after the -900 s shift
+  time_shift_s: -900
+  time_meaning_original: >-
+    Pvol: the measurement interval starts 15 min before Time_UTC and ends at Time_UTC.
+    Source: OpenMRG readme.txt and GbgA-71420-metadata.csv.
+  na_tokens: ["NA", ""]
+  # Not in the SMHI metadata file; from Andersson et al. (2022), Sect. 2.2 (Geonor weighing gauge, 0.1 mm).
+  gauge_type: weighing
+  quantization_mm: 0.1
+  # SMHI quality codes -> uint8 stored in qc_code. 0 = no code in the file.
+  qc_codes:
+    G: 1
+    Y: 2
+  qc_meanings:
+    G: "quality controlled and approved values"
+    Y: "uncontrolled real-time data or crudely controlled archive data or suspicious data or aggregated values"
+
+smhi_met:
+  interval: "1h"
+  # Stamp = moment of the observation (the wind means / gust max END at it): window includes 2015-09-01 00:00.
+  stamp_kind: instant
+  time_shift_s: 0
+  # raw column -> L1 name, units (CF style), meaning of the timestamp (from GbgA-71420-metadata.csv)
+  variables:
+    Ta_C:       {name: temperature,    units: degC,   qc: Ta_QC,    meaning: "instantaneous value at Time_UTC (once per hour)"}
+    RH_%:       {name: humidity,       units: "%",    qc: RH_QC,    meaning: "instantaneous value at Time_UTC (once per hour)"}
+    Pmsl_hPa:   {name: pressure,       units: hPa,    qc: Pmsl_QC,  meaning: "instantaneous value at Time_UTC, reduced to sea level"}
+    Vmean_m/s:  {name: wind_speed,     units: m s-1,  qc: Vmean_QC, meaning: "average over the 10 min before Time_UTC"}
+    Vdir_deg:   {name: wind_direction, units: degree, qc: Vdir_QC,  meaning: "average over the 10 min before Time_UTC (degrees true)"}
+    Vg_m/s:     {name: wind_gust,      units: m s-1,  qc: Vg_QC,    meaning: "maximum over the hour before Time_UTC"}
+
+radar:
+  interval: "5min"
+  time_shift_s: 0
+  # Stamp = instant: the period window includes 2015-09-01 00:00 (see period.window_end_inclusive).
+  stamp_kind: instant
+  time_meaning_original: >-
+    "represents the timestamp on which the reflectivity was sampled" (OpenMRG readme.txt).
+    Whether this is the start or end of the scan, or of a 5 min composite window, is not documented.
+    Empirical check (pipeline/inspection/radar_timing_lag.py): gauge 5-min sums (interval start) vs
+    radar stamped t + k*5 min, mean correlation over the 10 City gauges: k=-2 0.404, k=-1 0.471,
+    k=0 0.513, k=+1 0.410, k=+2 0.323. Peak at k=0, no evidence of an end-of-interval label, so no
+    shift is applied. Resolution is limited to 5 min and to point-vs-pixel comparison.
+  # Used only if the file lacks zr_a / zr_b (a warning is logged). SMHI summer values.
+  zr_fallback: {a: 200.0, b: 1.5}
+
+reference_validation:
+  lat_deg: [50.0, 70.0]
+  lon_deg: [5.0, 25.0]
+  # Warn (values kept) when an amount exceeds this rate, converted to the interval.
+  rain_rate_plausible_max_mm_h: 300.0
+  dbz_plausible: [-35.0, 75.0]
+  # rain_rate must equal the Z-R formula applied to dbz within this relative tolerance.
+  zr_rel_tolerance: 1.0e-5
+
+# ---------------------------------------------------------------------------
+# QC flags (L2) for the CML data. FLAG, DON'T FIX: L1 is never modified; flags go to
+# separate L2 files. QC uses only the CML signals and metadata (never radar/gauges/weather).
+# Thresholds are calibrated in docs/data_notes/openmrg_qc_calibration.md.
+# ---------------------------------------------------------------------------
+qc:
+  # Hours of the neighbouring L1 days read on each side of a day, so runs (floor plateaus,
+  # flatlines, spike windows) that cross midnight are judged on their full length.
+  context_hours: 12
+  # Flags that aggregation will drop later. L2 itself drops nothing.
+  blocking_flags: [missing_rsl, missing_tsl, out_of_range, rx_floor, spike, network_gap]
+  stats:
+    # A sub-link is "alive" on a day when at least this fraction of its rsl samples are valid.
+    alive_min_valid_fraction: 0.5
+    # Robust floor level per sub-link = the LOWEST observed rsl value L such that at least
+    # floor_min_samples samples of the period lie in [L, L + floor_window_db]. A single low sample
+    # (e.g. a spike) cannot set it. (A low percentile does not work here: p0.1 is never within
+    # 20 dB of the median; it is a rain-fade level, not the receiver floor. Calibration note, Sect. 1.)
+    floor_min_samples: 30       # 5 min of samples in total over the period
+    floor_window_db: 1.0
+  flags:
+    valid_range:                # safety net: the paper's extremes are rsl -93.7..-25.3, tsl -10..26 dBm
+      rsl_dbm: [-100.0, -20.0]
+      tsl_dbm: [-15.0, 30.0]
+    rx_floor:
+      margin_db: 1.0            # flagged when rsl <= floor level + 1 dB (about 3 quantization steps)
+      depth_db: 20.0            # the floor must lie >= 20 dB below the sub-link median ...
+      receiver_floor_max_dbm: -87.0  # ... and at the receiver limit: floor levels are -87.8..-93.7 dBm on
+                                     # 13 sub-links, all others -82.1 dBm or higher (calibration Sect. 1)
+      min_duration: "10min"     # a fade that touches the floor for < 10 min is not clipping
+    spike:
+      window: "5min"            # centred rolling median over 31 samples
+      n_mad: 6.0
+      min_abs_db: 5.0           # 12x the 0.3/0.4 dB quantization step; |delta rsl| p99.99 = 5.1-5.6 dB
+      max_len: 3                # at most 3 samples (30 s): longer excursions are signal, not spikes
+      neighbour_agree_db: 1.5   # samples before and after the run agree: the signal returns
+      neighbour_max_dev_db: 1.5 # ... to a CALM level: both neighbours within 1.5 dB of the rolling median
+                                # (the quantization jitter is 0.3-0.7 dB). Without it the sharp bottoms of
+                                # rain fades were flagged (pilot gallery, first run).
+    flatline:
+      min_duration: "12h"       # counted in VALID samples; see calibration Sect. 3 for the distribution
+    tsl_step:
+      min_db: 1.0               # the TSL quantum
+    network_gap:
+      fraction: 0.05            # per-step NaN share of alive sub-links: p99 1.8 %, p99.9 8 %; 5 % catches
+                                # the 4.3 h partial outage on 2015-08-27 that 20 % misses (Sect. 5)
+  summary:
+    # Rolling median subtracted from rsl before the pair correlation (removes slow drifts).
+    pair_corr_detrend_window: "10min"
+  status:
+    degraded_flagged_pct: 5.0
+    unusable_flagged_pct: 20.0
+    unusable_rx_floor_pct: 20.0
+    unusable_completeness_pct: 50.0
+
+# ---------------------------------------------------------------------------
+# Geometry: positions of links, gauges and radar cells and how they relate. No time series.
+# Every length and distance is in METRES (keys end in _m). Code: cmlpipe/geometry.py.
+# ---------------------------------------------------------------------------
+geometry:
+  # Projected CRS for ALL lengths and distances (SWEREF 99 TM, metres). Must equal reference.metric_crs,
+  # which the radar L1 x_3006 / y_3006 were computed with (the stage checks this).
+  crs_metric: "EPSG:3006"
+  # Copy of the radar file's proj_string. The path/cell intersection is done in this projection, the only
+  # one where the cells are exact 2 km squares. The stage fails if the radar L1 files carry another string.
+  radar_proj_string: "+proj=stere +lat_ts=60 +ellps=bessel +lon_0=14 +lat_0=90"
+  # Link ends closer than this are one physical site (mast). Antennas on one mast are a few metres apart.
+  site_merge_tol_m: 10
+  # A (link, gauge) row is written only if the gauge is at most this far from the link PATH.
+  gauge_match_max_m: 5000
+  # Boolean columns within_<r>m in link_gauge_matches.csv, one per radius.
+  gauge_flag_radii_m: [500, 1000, 2000]
+  # Two links are neighbours when their PATHS come within this distance.
+  neighbour_max_m: 5000
+  # length_mismatch = True when computed and metadata length differ by MORE than both limits:
+  # the relative limit alone would flag 100 m links for a few metres, the absolute one 10 km links for 0.3 %.
+  length_mismatch_tol:
+    relative: 0.02
+    absolute_m: 30
+
+# ---------------------------------------------------------------------------
+# Aggregation (L3): CML statistics, gauge sums and radar along links at common resolutions.
+# Time convention of EVERY L3 product: UTC, tz-naive, a bin [t, t + dt) is labelled by its START t.
+# Code: cmlpipe/aggregate.py (reductions), cmlpipe/aggregate_runner.py (stages), cmlpipe/access.py (reading).
+# ---------------------------------------------------------------------------
+aggregate:
+  time_convention: interval_start
+  # Every resolution divides 24 h, so each day is aggregated on its own (no bin crosses midnight).
+  resolutions: ["1min", "5min", "15min", "1h"]
+  # Share of the expected samples in a bin that must be valid; below it ALL statistics of that variable are
+  # NaN in that bin. n_valid_<v> is always kept, so a stricter or looser rule can be applied later.
+  min_valid_fraction: 0.8
+  # L2 flags that EXCLUDE a sample from the statistics of a variable. tl uses the union (a sample is valid
+  # for tl only if it is valid for rsl AND tsl). tsl_step and flatline are informational: never excluded,
+  # but visible in flags_or and n_tsl_step.
+  blocking_flags:
+    rsl: [missing_rsl, out_of_range, rx_floor, spike, network_gap]
+    tsl: [missing_tsl, out_of_range, network_gap]
+  # Statistics per variable. std uses ddof=0 (population std of the samples in the bin). The median is
+  # stored on purpose: an isolated unflagged dip barely moves it, while it pulls the mean.
+  stats:
+    default:
+      tl: [mean, median, min, max, std]
+      rsl: [mean, median, min, max, std]
+      tsl: [mean, min, max]
+    1min:                       # 6 samples per bin: std says little and costs space
+      tl: [mean, median, min, max, std]
+      rsl: [mean, median, min, max]
+      tsl: [mean, min, max]
+  # Storage of the dB statistics. float32 was chosen after measuring the pilot day (projected 92-day total
+  # below 6 GB, docs/acceptance/step5_aggregation.md). The alternative is int16 with scale_factor 0.01
+  # (max error 0.005 dB, far below the 0.3 dB RSL quantum); the writer verifies the round trip either way.
+  encoding:
+    db_dtype: float32           # float32 | int16
+    int16_scale_factor: 0.01
+    int16_max_error_db: 0.005
+    zlib: true
+    complevel: 4
+  gauges:
+    # Strict by default: a bin with a missing minute would under-count the sum, so it is NaN (not filled).
+    min_valid_fraction: 1.0
+    city_resolutions: ["1min", "5min", "15min", "1h"]
+    smhi_resolutions: ["15min", "1h"]   # 15 min native: never disaggregated
+  radar:
+    resolutions: ["5min", "15min", "1h"]  # 5 min native: never interpolated to 1 min
+    # dBZ below this -> rain rate 0 (NaN stays NaN). The lowest radar level (-30 dBZ, "no echo") becomes 0.0003
+    # mm/h through Z = 200 R^1.5 and accumulates to phantom rain everywhere; the paper treats < 0 dBZ as
+    # no rain (about 0.03 mm/h) and clutter peaks near -15 dBZ.
+    min_dbz: 0.0
+    wet_threshold_mmh: 0.1          # wet_fraction = path weight in cells above this rate
+    min_valid_weight_fraction: 0.5  # a stamp is valid for a link if >= half its path weight has radar data
+    min_valid_fraction: 0.6         # share of a bin's stamps that must be valid (15 min: 2 of 3, 1 h: 8 of 12)
+    time_chunk: 288                 # stamps read at once by apply_weights (1 day)
+
+# ---------------------------------------------------------------------------
+# Rain events, dry periods, event x link table, frozen split. Events are defined from the REFERENCES only
+# (radar + the 10 City gauges), never from CML; SMHI GbgA is kept as the independent check.
+# Calibration (numbers behind every value): docs/data_notes/openmrg_event_calibration.md.
+# ---------------------------------------------------------------------------
+events:
+  resolution: "5min"
+  # Domain = radar cells whose centre is within this distance of any link path (EPSG:3006).
+  domain_buffer_m: 3000
+  # A cell is wet at >= this floored rain rate (0.1 mm/h = about 8 dBZ with Z = 200 R^1.5, above the clutter peak
+  # near -15 dBZ; cells below 0 dBZ are 0 after the floor of aggregate.radar.min_dbz).
+  wet_threshold_mmh: 0.1
+  # The radar of a bin is "valid" when at least this share of the domain cells has data.
+  radar_min_valid_cell_fraction: 0.5
+  # Radar wet when the wet share of the VALID domain cells reaches this.
+  min_wet_area_fraction: 0.01
+  # A City gauge is wet in a 5 min bin with at least this amount (the 0.1 mm quantum of the weighing gauges;
+  # a tipping bucket reports 0.2 mm, so one tip always counts).
+  city_gauge_wet_amount_mm: 0.1
+  min_gauges_wet: 1
+  # Wet runs separated by less than this much non-wet time are one event.
+  min_dry_gap_h: 2
+  # Events shorter than this (first to last wet bin) are dropped and counted.
+  min_event_duration_min: 15
+  # Certified dry: radar valid, no gauge wet, wet-area fraction <= dry_max_wet_area_fraction, and more than
+  # dry_margin_min away from any wet bin. Dry periods are runs of that lasting >= dry_min_duration_h.
+  dry_max_wet_area_fraction: 0.0
+  dry_margin_min: 30
+  dry_min_duration_h: 6
+  # dry_before_h / dry_after_h in events.csv are capped at this.
+  dry_context_cap_h: 48
+  # Sensitivity grid reported by the calibration (tables/event_calibration.csv).
+  calibration_grid:
+    min_wet_area_fraction: [0.002, 0.005, 0.01, 0.02, 0.05]
+    min_dry_gap_h: [1, 2, 3, 6]
+  # Dry-weather statistics need at least this many dry days for the diurnal range and the daily drift.
+  dry_stats_min_days: 5
+  # The few CML variables this step reads, consolidated into ONE file per resolution (fast to read on Windows).
+  cml_core_vars: [tl_mean, tl_std, n_valid_tl, rsl_mean, rsl_std, flags_or]
+
+event_links:
+  pad_before_h: 3                 # pre-event window [start - 3 h, start)
+  pad_after_h: 3                  # post-event window [end, end + 3 h)
+  gauge_match_max_m: 2000         # nearest gauge within this distance of the path is "the matched gauge"
+  reference_gauge_max_m: 1000     # has_reference_gauge / n_gauges_within_1km
+  min_valid_fraction: 0.8         # cml_ok_* : share of valid tl_mean bins in the window
+
+split:
+  seed: 42
+  event_fractions: {train: 0.6, val: 0.2, test: 0.2}
+  link_fractions: {train: 0.8, test: 0.2}
+  length_classes_km: [1, 3]       # <1, 1-3, >3 km
+  frequency_split_ghz: 25         # sublink_1 frequency band: <25 and >=25 GHz
+
+# ---------------------------------------------------------------------------
+# Step 7 (additive; events.csv, the split files and L1/L2/L3 are never changed).
+# event_significance is a SEPARATE section on purpose: a key under `events:` would change the events
+# stage hash and make the next `--steps events` run rebuild the frozen event tables.
+# ---------------------------------------------------------------------------
+event_significance:
+  # Physics-based (drizzle vs rain), NOT tuned on CML. An event is significant if ANY holds.
+  city_total_mean_mm: 1.0        # mean over the 10 City gauges of the event total
+  radar_domain_total_mm: 1.0     # domain-mean radar accumulation over the event (mm averaged over the 720 cells)
+  city_max_5min_rate_mmh: 5.0    # largest 5 min rate at any City gauge
+  # rain_class "heavy": significant AND (city_total_mean_mm >= heavy_total_mm OR max 5 min rate >= heavy_rate_mmh)
+  heavy_total_mm: 10.0
+  heavy_rate_mmh: 30.0
+  # A wet run inside an event is significant by the same rule with both totals lowered to run_total_mm.
+  run_total_mm: 0.5
+  min_significant_per_split: 6   # warn in the acceptance table when val or test has fewer
+
+inventory:
+  # TSL behaviour classes from the 10 s TSL (rules applied in this order; counts in docs/data_notes/openmrg_inventory.md)
+  tsl:
+    toggling_step_fraction: 0.01      # changes in > 1 % of valid samples (log histogram is bimodal: gap 1e-3 .. 3e-2)
+    constant_top_share: 0.99          # >= 99 % of valid samples at one value ...
+    constant_max_steps_per_day: 0.1   # ... and at most ~9 steps in the season
+    rare_max_steps_per_day: 2.0       # rare_steps: up to 2 steps per day, else frequent_steps
+    # DESCRIPTIVE ONLY (never used for QC or splitting): tsl_follows_fades = step rate inside events is at least
+    # this many times the rate in dry periods, with at least follows_min_steps steps in events.
+    follows_rate_ratio: 3.0
+    follows_min_steps: 5
+  # Quality status (new, separate from qc.status). unusable is checked first, then degraded.
+  status:
+    unusable_completeness_tl_pct: 50.0   # JJA valid tl
+    unusable_flagged_pct: 20.0           # samples PRESENT (valid rsl and tsl) but blocking-flagged
+    unusable_rx_floor_pct: 20.0
+    degraded_month_completeness_tl_pct: 80.0   # any month below
+    degraded_rx_floor_pct: 5.0
+    degraded_flag_caps_pct: {spike: 0.1, flatline: 10.0, tsl_step: 1.0}
+    degraded_dry_noise_quantile: 0.95    # tl std of the dry 5 min means above the network p95
+    degraded_baseline_range_quantile: 0.95  # p90-p10 of the dry-period medians above the network p95
+  gauge_radii_m: [250, 500, 1000]
+  core_vars_1h: [tl_mean, rsl_mean, tsl_mean, flags_or, n_valid_tl]
+
+# ---------------------------------------------------------------------------
+# Per-link reference state at 5 min (step 8.4): wet / dry / unknown for every link and bin, from the references
+# only (radar along the path + gauges near the path), never from CML. Its own section: no other stage hash covers it.
+# ---------------------------------------------------------------------------
+link_state:
+  radar_wet_mmh: 0.1          # wet if the wettest cell under the path (R_max, floored) reaches this
+  gauge_wet_mm: 0.1           # ... or a gauge near the path has at least this amount in the 5 min bin
+  gauge_max_dist_m: 1000      # "near": gauge within this distance of the path (link_gauge_matches)
+  margin_min: 30              # dry needs R_max == 0 and all near gauges == 0 in the bin and +-30 min around it
+
+quicklooks:
+  n_links: 12
+  per_cell: 2                 # links per (length class x frequency band) cell, then filled round-robin
+  pad_h: 12
+  workers: 4
+
+link_cards:
+  workers: 4
+
+encoding:
+  # int16 with scale 0.1 dB is lossless ONLY because the inspection showed all
+  # rsl/tsl values are exact multiples of 0.1 dB. The writer still re-opens every
+  # file and fails if it is not lossless. Set signal_dtype to float32 to disable.
+  signal_dtype: int16
+  scale_factor: 0.1
+  fill_value: -32768
+  zlib: true
+  complevel: 4
+  # Largest allowed |written - in-memory| difference in dB. It only allows for
+  # float32 representation error (~1e-6), far below the 0.1 dB quantum.
+  roundtrip_atol_db: 1.0e-5
+
+validation:
+  frequency_ghz: [1.0, 100.0]
+  length_km: [0.01, 50.0]
+  lat_deg: [-90.0, 90.0]
+  lon_deg: [-180.0, 180.0]
+  # Outside these ranges only a warning is raised (values are kept).
+  rsl_plausible_dbm: [-110.0, -10.0]
+  tsl_plausible_dbm: [-20.0, 40.0]
+  # Allowed |tl - (tsl - rsl)| in dB (float rounding only).
+  tl_tolerance_db: 1.0e-3
