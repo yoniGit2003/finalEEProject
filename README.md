@@ -2,7 +2,7 @@
 
 Final-year EE project, CellEnMon lab (opportunistic environmental sensing).
 Team: Yonatan Haber and Yehonatan Tsitseluk.
-*[Placeholder: supervisor, project dates.]*
+
 
 ## The question
 
