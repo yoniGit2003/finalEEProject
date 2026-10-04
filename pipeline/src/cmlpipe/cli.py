@@ -25,7 +25,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from cmlpipe.config import DEFAULT_CONFIG, Config, load_config
+from cmlpipe.config import DEFAULT_CONFIG, PIPELINE_ROOT, Config, load_config
 from cmlpipe.logging_utils import new_run_id, setup_logging
 from cmlpipe.provenance import append_to_manifest, display_path, git_commit, utc_now_iso
 
@@ -127,7 +127,7 @@ def main(argv=None) -> int:
             for p in guide.write_guide(cfg, release):
                 print(f"wrote {p}")
             return 0
-        app = cfg.repo_root / "apps" / "explorer" / "app.py"
+        app = PIPELINE_ROOT / "apps" / "explorer" / "app.py"
         cmd = [sys.executable, "-m", "streamlit", "run", str(app), "--server.port", str(args.port),
                "--server.headless", "true" if args.headless else "false",
                "--server.address", "localhost",          # only this computer can open it

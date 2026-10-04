@@ -1,7 +1,7 @@
 # Data guide: openmrg v1
 
 Generated from `catalog.json` (code 211f942743ac, built 2026-10-02T17:42:28Z). Column-level
-details: `DATA_DICTIONARY.md`. Methods: `docs/methods.md` in the cmlpipe repository.
+details: `DATA_DICTIONARY.md`. Methods: `pipeline/docs/methods.md` in the repository.
 **Licence:** CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/), derived from OpenMRG (Andersson et al. 2022, https://doi.org/10.5281/zenodo.7107689); see LICENSE.txt.
 
 ## 1. What this is
@@ -13,7 +13,16 @@ details: `DATA_DICTIONARY.md`. Methods: `docs/methods.md` in the cmlpipe reposit
   only, never from CML), per-link wet / dry reference state, a quality status and a frozen train / test split.
 - Source: Andersson, J. C. M., Olsson, J., van de Beek, R. (C. Z.), and Hansryd, J. (2022): OpenMRG: Open data from Microwave links, Radar, and Gauges for rainfall quantification in Gothenburg, Sweden, Earth Syst. Sci. Data, 14, 5411-5426, https://doi.org/10.5194/essd-14-5411-2022. Data: https://doi.org/10.5281/zenodo.7107689 (CC BY-SA 4.0).
 
-## 2. Folder map
+## 2. How to get it
+
+- **A. Rebuild** from the public raw OpenMRG data (Zenodo, https://doi.org/10.5281/zenodo.7107689): unpack it into `data/raw/openmrg/`
+  of the repository, then `python -m cmlpipe run all` (see `pipeline/README.md`); the last stage writes this release.
+- **B. Download** the finished release `openmrg_v1_release.zip` (1.6 GB, CC BY-SA 4.0) from the repository's Releases page:
+  https://github.com/yoniGit2003/finalEEProject/releases/tag/data-openmrg-v1 (the repository is private: a GitHub login with access is needed). Unzip it into `data/release/` so that
+  `data/release/openmrg_v1/catalog.json` exists. Check the download first (PowerShell):
+  `(Get-FileHash openmrg_v1_release.zip -Algorithm SHA256).Hash` must be `17E9A9048AD0DAE51166C59BA0D3FA760C2E090B4757D70A0B2CDD033AC009F2`.
+
+## 3. Folder map
 
 ```
 openmrg_v1/
@@ -62,7 +71,7 @@ openmrg_v1/
     link_reference_state_5min per-link reference state (wet / dry / unknown) and reasons, from references only; dims time=26496, cml_id=364
 ```
 
-## 3. Conventions that cause mistakes
+## 4. Conventions that cause mistakes
 
 - **time** (catalog): UTC, tz-naive; every value is labelled by the START of its interval [t, t + dt) ('interval_start'); radar stamps are instants assigned to [t, t + 5 min)
 - **keys** (catalog): cml_id (int, link); sublink_id (str '<cml_id>_<1|2>'; sub-link 1 transmits site_0 -> site_1); gauge_id (City station name or 'GbgA'); event_id ('E' + start, e.g. E20150728_1455); run_id ('<event_id>_Rnn')
@@ -84,7 +93,7 @@ openmrg_v1/
 - **Radar** rain rates below 0 dBZ are set to 0 (no phantom drizzle). `R_mean` = path-weighted mean, `R_max` = wettest cell.
 - **NaN** always means "unknown", never zero rain or zero loss.
 
-## 4. Open it without cmlpipe
+## 5. Open it without cmlpipe
 
 ```python
 import pandas as pd, xarray as xr
@@ -96,7 +105,7 @@ radar = xr.open_dataset(f"{R}/timeseries/radar_along_links_5min.zarr", engine="z
 ```
 Select before you load (`.sel(...)` then `.values`): the stores are lazy and only the needed chunks are read.
 
-## 5. Open it with cmlpipe (`pip install -e .` in the repository)
+## 6. Open it with cmlpipe (`pip install -e pipeline` in the repository)
 
 ```python
 from cmlpipe.api import CMLData
@@ -109,7 +118,7 @@ d.event_pairs(split=("train", "train"))                            # event x lin
 d.describe("tl_mean")                                              # unit + description of any variable
 ```
 
-## 6. Definitions in short
+## 7. Definitions in short
 
 - **Wet 5 min bin (network)**: >= 1% of the radar cells near the links have >= 0.1 mm/h, or a City gauge has >= 0.1 mm.
 - **Event**: wet bins merged across gaps shorter than 2 h; events shorter than 15 min dropped. `event_runs` are the wet runs before merging.
@@ -119,20 +128,20 @@ d.describe("tl_mean")                                              # unit + desc
 - **Split (frozen)**: events {'train': 0.6, 'val': 0.2, 'test': 0.2} stratified by intensity; links {'train': 0.8, 'test': 0.2} stratified by length class x band (< / >= 25 GHz), parallel links together, seed 42. Train on train events x train links; the link split is not spatially independent.
 - **Status per sub-link**: good / degraded / unusable (completeness, flag shares, dry noise); `links.status_best` is the better of the two.
 
-## 7. Known limitations
+## 8. Known limitations
 
 - The radar is gauge-adjusted (not independent of the gauges) and below the gauge totals at most gauge pixels.
 - Many links are short and lie in one 2 km radar cell; only some links have a gauge within 1 km.
 - Link length and frequency are correlated; most events are drizzle.
 - Not in this release: baseline, attenuation A(t), CML wet / dry classification, wet-antenna correction, rain retrieval.
 
-## 8. Which file do I need?
+## 9. Which file do I need?
 
 | I want | Use |
 |---|---|
 | one link, all summer | `timeseries/cml_1h.zarr` or `cml_15min.zarr`, `.sel(sublink_id=["<id>_1", "<id>_2"])` |
 | all links, one event | `tables/events` for start / end, then `cml_5min.zarr` `.sel(time=slice(start, end))` |
-| QC flags | `cml_10s.zarr` variable `flags` (or `flags_or` in the aggregates); bits in section 3 |
+| QC flags | `cml_10s.zarr` variable `flags` (or `flags_or` in the aggregates); bits in section 4 |
 | radar along a path | `radar_along_links_<res>.zarr`, dim `cml_id` |
 | gauges near a link | `tables/link_gauge_matches` (distance to path), then `gauges_city_*` / `gauges_smhi_*` |
 | train / test split | `tables/split_events`, `tables/split_links` (frozen) |

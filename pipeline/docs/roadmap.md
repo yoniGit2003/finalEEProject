@@ -1,8 +1,8 @@
 # Roadmap
 
-What is done and what is left, following the plan in `CLAUDE.md` and the work scope in `docs/proposal.md` (section 6).
-Tick an item by changing `- [ ]` to `- [x]`. The README "Progress" section is built from this file on every commit
-(`tools/update_readme.py`), so this is the only place where progress is edited by hand.
+What is done and what is left, following the plan in `CLAUDE.md` and the work scope in `docs/proposal.md` (section 6), both at the repository root.
+Tick an item by changing `- [ ]` to `- [x]`. The "Progress" section of `pipeline/README.md` is built from this file on
+every commit (`pipeline/tools/update_readme.py`), so this is the only place where progress is edited by hand.
 
 ## 1. Pipeline (data)
 - [x] Inspect the raw OpenMRG CML file (`_archive/docs/data_notes/openmrg_cml_inspection.md`, local only)

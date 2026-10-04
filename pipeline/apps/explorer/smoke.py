@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import data as X  # noqa: E402
+from cmlpipe.config import REPO_ROOT  # noqa: E402
 from cmlpipe.viz import explorer as V  # noqa: E402
 
 LAYERS = dict(tl=True, rsl=True, tsl=True, radar=True, gauge=True, gauge_cum=True, met=True, flags=True, state=True,
@@ -36,7 +37,7 @@ def scenarios(d):
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--release", default=str(Path(__file__).resolve().parents[2] / "data/release/openmrg_v1"))
+    ap.add_argument("--release", default=str(REPO_ROOT / "data" / "release" / "openmrg_v1"))
     a = ap.parse_args()
     t = time.perf_counter()
     d = X.open_release(a.release)

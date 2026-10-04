@@ -1,4 +1,6 @@
-# conda env create -f environment.yml && conda activate cmlpipe && pip install -e ".[dev]"
+# From the repository root:  conda env create -f pipeline/environment.yml  then  conda activate cmlpipe
+# This also installs the cmlpipe package itself (editable, = pip install -e "pipeline[dev,explorer]"): conda runs the
+# pip section below from the folder of this file (pipeline/), so "." is pipeline/.
 # Versions tested on 2026-10-02 (Windows 10, Python 3.12). No dask: every reader slices before loading.
 name: cmlpipe
 channels:
@@ -22,3 +24,5 @@ dependencies:
   - nbclient
   - ipykernel
   - pip
+  - pip:
+      - -e ".[dev,explorer]"

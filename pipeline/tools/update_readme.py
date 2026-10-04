@@ -7,7 +7,8 @@ README.md has hand-written text and generated blocks. A generated block sits bet
     <!-- /AUTO:name -->
 
 Only the text between the markers is replaced; everything else is left as it is.
-The script runs on every commit through the git hook in .githooks/pre-commit, and can also be run by hand:
+The script refreshes pipeline/README.md on every commit through the git hook pipeline/tools/githooks/pre-commit
+(enable once per clone: git config core.hooksPath pipeline/tools/githooks), and can also be run by hand:
 
     python tools/update_readme.py              # also runs the tests (under a minute)
     python tools/update_readme.py --no-tests   # faster, the test line says "not run"
@@ -28,22 +29,23 @@ import subprocess
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[1]          # pipeline/ (this README, the code, the tests)
+ROOT = REPO.parent                                   # repository root (data/)
 README = REPO / "README.md"
 ROADMAP = REPO / "docs" / "roadmap.md"
 PACKAGE = REPO / "src" / "cmlpipe"
 RUN_PY = PACKAGE / "cli.py"
 SCHEMA_PY = PACKAGE / "io" / "schema.py"
 TESTS = REPO / "tests"
-L1_CML_DIR = REPO / "data" / "work" / "openmrg" / "L1_standard" / "cml"
-MANIFEST = REPO / "data" / "work" / "openmrg" / "run_manifest.json"
+L1_CML_DIR = ROOT / "data" / "work" / "openmrg" / "L1_standard" / "cml"
+MANIFEST = ROOT / "data" / "work" / "openmrg" / "run_manifest.json"
 
 
 # ---------------------------------------------------------------- small helpers
 
 def rel(path: Path) -> str:
     """Path relative to the repository root, with forward slashes (as shown on GitHub)."""
-    return path.relative_to(REPO).as_posix()
+    return path.relative_to(ROOT).as_posix()
 
 
 def parse(path: Path) -> ast.Module:

@@ -30,7 +30,7 @@ import xarray as xr
 
 import cmlpipe
 from cmlpipe.aggregate import stage as aggregate_stage
-from cmlpipe.config import STAGE_CONFIG_KEYS, Config
+from cmlpipe.config import PIPELINE_ROOT, STAGE_CONFIG_KEYS, Config
 from cmlpipe.events import link_state as link_state_stage
 from cmlpipe.events import stage as events_stage
 from cmlpipe.io.netcdf import file_attrs
@@ -301,7 +301,7 @@ Without cmlpipe: tables are Parquet / CSV (`pandas.read_parquet`), time series a
 """ + "\n".join(f"- **{k}**: {v}" for k, v in catalog["conventions"].items()) + f"""
 
 Every product, variable, unit and time span is listed in `catalog.json` and `DATA_DICTIONARY.md`; `verification.json`
-holds the checks run when the release was built. Methods: docs/methods.md of the cmlpipe repository.
+holds the checks run when the release was built. Methods: pipeline/docs/methods.md of the cmlpipe repository.
 
 ## Citation
 
@@ -368,7 +368,7 @@ def run_release(cfg: Config, force: bool, log, records: list[dict], version: str
     cat_path_tmp.write_text(json.dumps(catalog, indent=2, default=str), encoding="utf-8")
     dd = data_dictionary(catalog)
     (tmp / "DATA_DICTIONARY.md").write_text(dd, encoding="utf-8")
-    (cfg.repo_root / "docs" / "data_dictionary.md").write_text(dd, encoding="utf-8")
+    (PIPELINE_ROOT / "docs" / "data_dictionary.md").write_text(dd, encoding="utf-8")
     (tmp / "README.md").write_text(readme(catalog), encoding="utf-8")
     (tmp / "LICENSE.txt").write_text(metadata.data_license_text(catalog["name"], version), encoding="utf-8")
     if out.exists():  # only reached with --force

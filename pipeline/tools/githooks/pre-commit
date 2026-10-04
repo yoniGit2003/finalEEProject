@@ -1,6 +1,6 @@
 #!/bin/sh
-# Refresh the generated blocks of README.md and add it to the commit.
-# Enabled once per clone with:  git config core.hooksPath .githooks
+# Refresh the generated blocks of pipeline/README.md and add it to the commit.
+# Enabled once per clone with:  git config core.hooksPath pipeline/tools/githooks
 # This hook never blocks a commit: on any problem it prints a warning and exits 0.
 
 cd "$(git rev-parse --show-toplevel)" || exit 0
@@ -23,11 +23,11 @@ if [ -z "$PY" ]; then
     done
     [ -z "$PY" ] && { echo "pre-commit: no Python found, README not refreshed" >&2; exit 0; }
     echo "pre-commit: no Python with netCDF4 found, README refreshed without running tests" >&2
-    "$PY" tools/update_readme.py --no-tests || { echo "pre-commit: update_readme failed (commit continues)" >&2; exit 0; }
+    "$PY" pipeline/tools/update_readme.py --no-tests || { echo "pre-commit: update_readme failed (commit continues)" >&2; exit 0; }
 else
-    echo "pre-commit: refreshing README.md with $PY (runs the tests, ~10 s)"
-    "$PY" tools/update_readme.py || { echo "pre-commit: update_readme failed (commit continues)" >&2; exit 0; }
+    echo "pre-commit: refreshing pipeline/README.md with $PY"
+    "$PY" pipeline/tools/update_readme.py || { echo "pre-commit: update_readme failed (commit continues)" >&2; exit 0; }
 fi
 
-git add README.md
+git add pipeline/README.md
 exit 0

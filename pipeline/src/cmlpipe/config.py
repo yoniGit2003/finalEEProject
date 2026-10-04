@@ -18,9 +18,13 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
-# src/cmlpipe/config.py -> parents[0] = cmlpipe, [1] = src, [2] = repository root.
-REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_CONFIG = REPO_ROOT / "configs" / "openmrg.yaml"
+# pipeline/src/cmlpipe/config.py -> parents[0] = cmlpipe, [1] = src, [2] = pipeline/, [3] = repository root.
+# The code, configs, apps and pipeline docs live in pipeline/; data/ stays at the REPOSITORY root, and every
+# relative path in the config (data/raw/..., data/work/..., data/release) is resolved against REPO_ROOT.
+# Dataset paths are never part of a stage hash, so moving the code did not change any hash.
+PIPELINE_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = PIPELINE_ROOT.parent
+DEFAULT_CONFIG = PIPELINE_ROOT / "configs" / "openmrg.yaml"
 
 
 def config_hash(data: dict) -> str:

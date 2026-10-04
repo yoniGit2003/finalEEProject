@@ -4,8 +4,8 @@ Research code goes here (baselines, WAA, models, notebooks, figures, thesis). It
 `cmlpipe.api.CMLData` and a pinned release version (`research/config.yaml`: `release: openmrg_v1`). It must not
 import cmlpipe internals and cmlpipe must never import research.
 
-`cmlpipe.viz` (plotting helpers) may also be imported. The rule is checked by `python tools/check_boundaries.py`
-(also run by the test suite).
+`cmlpipe.viz` (plotting helpers) may also be imported. The rule is checked by `python pipeline/tools/check_boundaries.py`
+(also run by the pipeline test suite). Data: see `pipeline/docs/DATA_GUIDE.md`.
 
 ```python
 import yaml

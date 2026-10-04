@@ -32,13 +32,14 @@ import pandas as pd  # noqa: E402
 import pytest  # noqa: E402
 import yaml  # noqa: E402
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-SRC_DIR = REPO_ROOT / "src"
+PIPELINE_ROOT = Path(__file__).resolve().parents[1]   # pipeline/: code, configs, tools
+REPO_ROOT = PIPELINE_ROOT.parent                        # repository root: data/ lives here
+SRC_DIR = PIPELINE_ROOT / "src"
 sys.path.insert(0, str(SRC_DIR))  # also works without `pip install -e .`
 
 from cmlpipe.config import load_config  # noqa: E402
 
-REAL_CONFIG = REPO_ROOT / "configs" / "openmrg.yaml"
+REAL_CONFIG = PIPELINE_ROOT / "configs" / "openmrg.yaml"
 DAY = pd.Timestamp("2015-07-28")
 SENTINEL = np.float32(1e10)
 

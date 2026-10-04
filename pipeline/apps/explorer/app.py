@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import data as X  # noqa: E402
 from cmlpipe.viz import explorer as V  # noqa: E402
 
-REPO = Path(__file__).resolve().parents[2]
+from cmlpipe.config import REPO_ROOT as REPO  # noqa: E402  (repository root: data/ lives there)
 
 
 def _release() -> str:
@@ -355,7 +355,7 @@ def tab_export(frame, info):
                       S.g_radius), language="python")
     st.info("**About this data.** OpenMRG (Gothenburg, JJA 2015): 364 links / 728 sub-links at 10 s, radar along each "
             "path, City and SMHI gauges, weather. Times are UTC and label the START of each interval; TL = TSL - RSL; "
-            "NaN = unknown. Full explanation: `DATA_GUIDE.md` in the release folder (also `docs/DATA_GUIDE.md`).")
+            "NaN = unknown. Full explanation: `DATA_GUIDE.md` in the release folder (also `pipeline/docs/DATA_GUIDE.md`).")
 
 
 # ------------------------------------------------------------------------------------------- main

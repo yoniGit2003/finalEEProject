@@ -14,8 +14,15 @@ import os
 import stat
 from pathlib import Path
 
-from cmlpipe.config import Config
+from cmlpipe.config import PIPELINE_ROOT, Config
 from cmlpipe.release import metadata
+
+
+# Download of the published release (GitHub Releases of the project repository). Update for a new release version.
+DOWNLOAD = {"zip": "openmrg_v1_release.zip", "size": "1.6 GB",
+            "url": "https://github.com/yoniGit2003/finalEEProject/releases/tag/data-openmrg-v1",
+            "sha256": "17E9A9048AD0DAE51166C59BA0D3FA760C2E090B4757D70A0B2CDD033AC009F2",
+            "doi": "10.5281/zenodo.7107689"}
 
 
 def _rules(cfg: Config) -> dict:
@@ -58,10 +65,11 @@ def data_guide(catalog: dict, cfg: Config) -> str:
 
     conv = "\n".join(f"- **{k}** (catalog): {v}" for k, v in catalog["conventions"].items())
     pct = f"{r['min_valid']:.0%}"
+    DOI, ZIP, ZIP_SIZE, URL, SHA = (DOWNLOAD[k] for k in ("doi", "zip", "size", "url", "sha256"))
     return f"""# Data guide: {catalog['name']} {catalog['version']}
 
 Generated from `catalog.json` (code {catalog['code_version'][:12]}, built {catalog['created_utc']}). Column-level
-details: `DATA_DICTIONARY.md`. Methods: `docs/methods.md` in the cmlpipe repository.
+details: `DATA_DICTIONARY.md`. Methods: `pipeline/docs/methods.md` in the repository.
 **Licence:** {metadata.DATA_LICENSE_SHORT}.
 
 ## 1. What this is
@@ -73,13 +81,22 @@ details: `DATA_DICTIONARY.md`. Methods: `docs/methods.md` in the cmlpipe reposit
   only, never from CML), per-link wet / dry reference state, a quality status and a frozen train / test split.
 - Source: {catalog['citation']}
 
-## 2. Folder map
+## 2. How to get it
+
+- **A. Rebuild** from the public raw OpenMRG data (Zenodo, https://doi.org/{DOI}): unpack it into `data/raw/openmrg/`
+  of the repository, then `python -m cmlpipe run all` (see `pipeline/README.md`); the last stage writes this release.
+- **B. Download** the finished release `{ZIP}` ({ZIP_SIZE}, CC BY-SA 4.0) from the repository's Releases page:
+  {URL} (the repository is private: a GitHub login with access is needed). Unzip it into `data/release/` so that
+  `data/release/{rel}/catalog.json` exists. Check the download first (PowerShell):
+  `(Get-FileHash {ZIP} -Algorithm SHA256).Hash` must be `{SHA}`.
+
+## 3. Folder map
 
 ```
 {chr(10).join(folder)}
 ```
 
-## 3. Conventions that cause mistakes
+## 4. Conventions that cause mistakes
 
 {conv}
 - **Signals**: `tsl` transmitted and `rsl` received level (dBm); `tl = tsl - rsl` total loss (dB). Rain makes `tl`
@@ -97,7 +114,7 @@ details: `DATA_DICTIONARY.md`. Methods: `docs/methods.md` in the cmlpipe reposit
 - **Radar** rain rates below 0 dBZ are set to 0 (no phantom drizzle). `R_mean` = path-weighted mean, `R_max` = wettest cell.
 - **NaN** always means "unknown", never zero rain or zero loss.
 
-## 4. Open it without cmlpipe
+## 5. Open it without cmlpipe
 
 ```python
 import pandas as pd, xarray as xr
@@ -109,7 +126,7 @@ radar = xr.open_dataset(f"{{R}}/timeseries/radar_along_links_5min.zarr", engine=
 ```
 Select before you load (`.sel(...)` then `.values`): the stores are lazy and only the needed chunks are read.
 
-## 5. Open it with cmlpipe (`pip install -e .` in the repository)
+## 6. Open it with cmlpipe (`pip install -e pipeline` in the repository)
 
 ```python
 from cmlpipe.api import CMLData
@@ -122,7 +139,7 @@ d.event_pairs(split=("train", "train"))                            # event x lin
 d.describe("tl_mean")                                              # unit + description of any variable
 ```
 
-## 6. Definitions in short
+## 7. Definitions in short
 
 - **Wet 5 min bin (network)**: >= {r['wet_area']:.0%} of the radar cells near the links have >= {r['wet_mmh']} mm/h, or a City gauge has >= {r['gauge_wet']} mm.
 - **Event**: wet bins merged across gaps shorter than {r['gap_h']} h; events shorter than {r['min_ev']} min dropped. `event_runs` are the wet runs before merging.
@@ -132,26 +149,34 @@ d.describe("tl_mean")                                              # unit + desc
 - **Split (frozen)**: events {r['ev_frac']} stratified by intensity; links {r['link_frac']} stratified by length class x band (< / >= {r['f_split']} GHz), parallel links together, seed {r['seed']}. Train on train events x train links; the link split is not spatially independent.
 - **Status per sub-link**: good / degraded / unusable (completeness, flag shares, dry noise); `links.status_best` is the better of the two.
 
-## 7. Known limitations
+## 8. Known limitations
 
 - The radar is gauge-adjusted (not independent of the gauges) and below the gauge totals at most gauge pixels.
 - Many links are short and lie in one 2 km radar cell; only some links have a gauge within 1 km.
 - Link length and frequency are correlated; most events are drizzle.
 - Not in this release: baseline, attenuation A(t), CML wet / dry classification, wet-antenna correction, rain retrieval.
 
-## 8. Which file do I need?
+## 9. Which file do I need?
 
 | I want | Use |
 |---|---|
 | one link, all summer | `timeseries/cml_1h.zarr` or `cml_15min.zarr`, `.sel(sublink_id=["<id>_1", "<id>_2"])` |
 | all links, one event | `tables/events` for start / end, then `cml_5min.zarr` `.sel(time=slice(start, end))` |
-| QC flags | `cml_10s.zarr` variable `flags` (or `flags_or` in the aggregates); bits in section 3 |
+| QC flags | `cml_10s.zarr` variable `flags` (or `flags_or` in the aggregates); bits in section 4 |
 | radar along a path | `radar_along_links_<res>.zarr`, dim `cml_id` |
 | gauges near a link | `tables/link_gauge_matches` (distance to path), then `gauges_city_*` / `gauges_smhi_*` |
 | train / test split | `tables/split_events`, `tables/split_links` (frozen) |
 | dry periods for a baseline | `tables/dry_periods` (+ `sublink_dry_stats` for per-sub-link dry statistics) |
 | event x link quality | `tables/event_links`, `event_links_flags_extra` (or `CMLData.event_pairs`) |
 """
+
+
+def write_docs_guide(cfg: Config, release_path: Path) -> Path:
+    """Write only pipeline/docs/DATA_GUIDE.md (the files inside the release folder are left as they are)."""
+    catalog = json.loads((Path(release_path) / "catalog.json").read_text(encoding="utf-8"))
+    p = PIPELINE_ROOT / "docs" / "DATA_GUIDE.md"
+    p.write_text(data_guide(catalog, cfg), encoding="utf-8")
+    return p
 
 
 def write_guide(cfg: Config, release_path: Path, log=None) -> list[Path]:
@@ -161,7 +186,7 @@ def write_guide(cfg: Config, release_path: Path, log=None) -> list[Path]:
     release_path = Path(release_path)
     catalog = json.loads((release_path / "catalog.json").read_text(encoding="utf-8"))
     guide = data_guide(catalog, cfg)
-    files = {release_path / "DATA_GUIDE.md": guide, cfg.repo_root / "docs" / "DATA_GUIDE.md": guide,
+    files = {release_path / "DATA_GUIDE.md": guide, PIPELINE_ROOT / "docs" / "DATA_GUIDE.md": guide,
              release_path / "LICENSE.txt": metadata.data_license_text(catalog["name"], catalog["version"]),
              release_path / "README.md": build.readme(catalog)}
     out = []

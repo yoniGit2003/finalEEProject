@@ -2,10 +2,10 @@
 
 Rules:
   * a file under research/ may import from cmlpipe only cmlpipe.api and cmlpipe.viz (never other internals);
-  * no file under src/ or apps/ may import research.
+  * no file under pipeline/ (code, explorer, tests, tools) may import research: the dependency goes one way only.
 Imports are read with ast (the files are never run).
 
-    python tools/check_boundaries.py
+    python pipeline/tools/check_boundaries.py
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ import ast
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]   # repository root (pipeline/tools/check_boundaries.py)
 ALLOWED = ("cmlpipe.api", "cmlpipe.viz")
 
 
@@ -42,11 +42,10 @@ def violations(repo: Path = REPO) -> list[str]:
         for line, mod in imports(f):
             if _is(mod, "cmlpipe") and not any(_is(mod, a) for a in ALLOWED):
                 bad.append(f"{f.relative_to(repo)}:{line}: research imports {mod} (allowed: {', '.join(ALLOWED)})")
-    for top in ("src", "apps"):
-        for f in sorted((repo / top).rglob("*.py")):
-            for line, mod in imports(f):
-                if _is(mod, "research"):
-                    bad.append(f"{f.relative_to(repo)}:{line}: {top}/ imports {mod}")
+    for f in sorted((repo / "pipeline").rglob("*.py")):
+        for line, mod in imports(f):
+            if _is(mod, "research"):
+                bad.append(f"{f.relative_to(repo)}:{line}: pipeline imports {mod}")
     return bad
 
 
@@ -55,9 +54,9 @@ def main() -> int:
     for b in bad:
         print(b)
     n_r = len(list((REPO / "research").rglob("*.py")))
-    n_s = len(list((REPO / "src").rglob("*.py"))) + len(list((REPO / "apps").rglob("*.py")))
+    n_s = len(list((REPO / "pipeline").rglob("*.py")))
     print(f"check_boundaries: {'FAIL' if bad else 'OK'} ({len(bad)} violations; {n_r} research files, "
-          f"{n_s} src/apps files checked)")
+          f"{n_s} pipeline files checked)")
     return 1 if bad else 0
 
 
