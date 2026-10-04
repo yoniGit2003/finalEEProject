@@ -1,17 +1,20 @@
-"""Refresh the generated parts of README.md.
+"""Refresh the generated parts of the three READMEs (root, pipeline/, research/).
 
-README.md has hand-written text and generated blocks. A generated block sits between two markers:
+Each README has hand-written text and generated blocks. A generated block sits between two markers:
 
     <!-- AUTO:name -->
     ... replaced by this script ...
     <!-- /AUTO:name -->
 
-Only the text between the markers is replaced; everything else is left as it is.
-The script refreshes pipeline/README.md on every commit through the git hook pipeline/tools/githooks/pre-commit
-(enable once per clone: git config core.hooksPath pipeline/tools/githooks), and can also be run by hand:
+Only the text between the markers is replaced; everything else is left as it is. Blocks (see TARGETS):
+    README.md            AUTO:status    one line per part, from the two roadmaps
+    pipeline/README.md   AUTO:data      processed data on this computer; AUTO:progress from pipeline/docs/roadmap.md
+    research/README.md   AUTO:progress  from research/ROADMAP.md
+Progress is edited by hand ONLY in the two roadmap files (tick boxes, and the "Status:" line under the title).
+The script runs on every commit through the git hook pipeline/tools/githooks/pre-commit (enable once per clone:
+git config core.hooksPath pipeline/tools/githooks), and can also be run by hand:
 
-    python tools/update_readme.py              # also runs the tests (under a minute)
-    python tools/update_readme.py --no-tests   # faster, the test line says "not run"
+    python pipeline/tools/update_readme.py
 
 It uses only the Python standard library, so any Python 3.9+ can run it. Facts about the code are read
 by parsing the source files (ast), not by importing them, so numpy/xarray are not needed here. Only the
@@ -24,6 +27,7 @@ import argparse
 import ast
 import datetime as dt
 import json
+import os
 import re
 import subprocess
 import sys
@@ -32,7 +36,9 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]          # pipeline/ (this README, the code, the tests)
 ROOT = REPO.parent                                   # repository root (data/)
 README = REPO / "README.md"
-ROADMAP = REPO / "docs" / "roadmap.md"
+ROADMAP = REPO / "docs" / "roadmap.md"                # pipeline roadmap
+RESEARCH = ROOT / "research"
+RESEARCH_ROADMAP = RESEARCH / "ROADMAP.md"
 PACKAGE = REPO / "src" / "cmlpipe"
 RUN_PY = PACKAGE / "cli.py"
 SCHEMA_PY = PACKAGE / "io" / "schema.py"
@@ -147,33 +153,54 @@ def block_data() -> str:
     return "\n".join(lines)
 
 
-def block_progress() -> str:
-    if not ROADMAP.exists():
-        return f"`{rel(ROADMAP)}` is missing."
-    sections: list[tuple[str, list[tuple[bool, str]]]] = []
-    for line in ROADMAP.read_text(encoding="utf-8").splitlines():
-        if line.startswith("## "):
+def read_roadmap(roadmap: Path) -> tuple[str, list[tuple[str, list[tuple[bool, str]]]]]:
+    """(hand-written 'Status:' line, [(section title, [(done, text), ...]), ...]) of a roadmap file."""
+    status, sections = "", []
+    for line in roadmap.read_text(encoding="utf-8").splitlines():
+        if line.startswith("Status:"):
+            status = line[len("Status:"):].strip()
+        elif line.startswith("## "):
             sections.append((line[3:].strip(), []))
         elif (m := re.match(r"\s*- \[([ xX])\] (.+)", line)) and sections:
             sections[-1][1].append((m.group(1) != " ", m.group(2).strip()))
+    return status, sections
 
+
+def link(target: Path, base: Path) -> str:
+    """Relative link from a README folder `base` to `target` (forward slashes)."""
+    return Path(os.path.relpath(target, base)).as_posix()
+
+
+def block_progress(roadmap: Path, base: Path, n_next: int = 6) -> str:
+    """Status / next steps of ONE part, from its own roadmap (links relative to the README folder `base`)."""
+    if not roadmap.exists():
+        return f"`{rel(roadmap)}` is missing."
+    status, sections = read_roadmap(roadmap)
     done = sum(d for _, items in sections for d, _ in items)
     total = sum(len(items) for _, items in sections)
-    lines = [f"Overall: **{done} / {total}** items done. Edit `{rel(ROADMAP)}` to tick items.", "",
-             "| Part | Done |", "|---|---|"]
-    for title, items in sections:
-        n = sum(d for d, _ in items)
-        lines.append(f"| {title} | {n} / {len(items)}{' ✔' if items and n == len(items) else ''} |")
-
-    lines += ["", "**Next up** (first open items):", ""]
-    todo = [(title, text) for title, items in sections for d, text in items if not d]
-    lines += [f"- [ ] {text} *({title})*" for title, text in todo[:5]] or ["- nothing left!"]
-
-    lines += ["", "<details><summary>Full checklist</summary>", ""]
-    for title, items in sections:
-        lines += [f"**{title}**", ""] + [f"- [{'x' if d else ' '}] {t}" for d, t in items] + [""]
-    lines.append("</details>")
+    r = link(roadmap, base)
+    lines = [f"Status: **{status or 'not set'}**; {done} / {total} roadmap items done (tick items in [`{r}`]({r})).", ""]
+    if len(sections) > 1:
+        lines += [f"- {title}: {sum(d for d, _ in items)} / {len(items)}" for title, items in sections] + [""]
+    todo = [text for _, items in sections for d, text in items if not d]
+    lines.append("Next steps:" if todo else "Next steps: none left.")
+    lines += [f"- [ ] {t}" for t in todo[:n_next]]
+    if len(todo) > n_next:
+        lines.append(f"- ... and {len(todo) - n_next} more in the roadmap")
     return "\n".join(lines)
+
+
+def block_status() -> str:
+    """Root README: one line per part (status from each roadmap's 'Status:' line, counts from its boxes)."""
+    out = []
+    for name, roadmap, readme in (("Pipeline (data layer)", ROADMAP, README),
+                                  ("Research", RESEARCH_ROADMAP, RESEARCH / "README.md")):
+        status, sections = read_roadmap(roadmap) if roadmap.exists() else ("roadmap missing", [])
+        done = sum(d for _, items in sections for d, _ in items)
+        total = sum(len(items) for _, items in sections)
+        r = link(readme, ROOT)
+        out.append(f"- **{name}**: {status}; {done} / {total} roadmap items. Details: [`{r}`]({r})")
+    return "\n".join(out)
 
 
 # ---------------------------------------------------------------- main
@@ -189,20 +216,28 @@ def replace_block(text: str, name: str, make_body) -> str:
 
 def main(argv=None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    p.add_argument("--no-tests", action="store_true", help="do not run pytest")
+    p.add_argument("--no-tests", action="store_true", help="do not run pytest (only used by an AUTO:implemented block)")
     args = p.parse_args(argv)
-
-    text = README.read_text(encoding="utf-8")
-    new = text
-    new = replace_block(new, "updated", lambda: f"*Status blocks last refreshed: {dt.date.today():%Y-%m-%d}*")
-    new = replace_block(new, "implemented", lambda: block_implemented(run_tests=not args.no_tests))
-    new = replace_block(new, "data", block_data)
-    new = replace_block(new, "progress", block_progress)
-    if new != text:
-        README.write_text(new, encoding="utf-8", newline="\n")
-        print("update_readme: README.md refreshed")
-    else:
-        print("update_readme: README.md already up to date")
+    targets = {
+        ROOT / "README.md": {"status": block_status},
+        README: {"updated": lambda: f"*Status blocks last refreshed: {dt.date.today():%Y-%m-%d}*",
+                 "implemented": lambda: block_implemented(run_tests=not args.no_tests),
+                 "data": block_data, "progress": lambda: block_progress(ROADMAP, REPO)},
+        RESEARCH / "README.md": {"progress": lambda: block_progress(RESEARCH_ROADMAP, RESEARCH)},
+    }
+    for path, blocks in targets.items():
+        if not path.exists():
+            print(f"update_readme: {rel(path)} missing, skipped")
+            continue
+        text = path.read_text(encoding="utf-8")
+        new = text
+        for name, make in blocks.items():
+            new = replace_block(new, name, make)
+        if new != text:
+            path.write_text(new, encoding="utf-8", newline="\n")
+            print(f"update_readme: {rel(path)} refreshed")
+        else:
+            print(f"update_readme: {rel(path)} already up to date")
     return 0
 
 

@@ -17,7 +17,8 @@ English technical terms. The proposal and the dataset summary are imported here:
 ```
 README.md, LICENSE (MIT), CLAUDE.md, .gitignore, .gitattributes
 docs/        project-level material only (proposal, report / figures)
-research/    research code; uses ONLY cmlpipe.api (+ cmlpipe.viz) and the release pinned in research/config.yaml
+research/    research code; uses ONLY cmlpipe.api (+ cmlpipe.viz) and the release pinned in research/config.yaml;
+             research/ROADMAP.md = research tasks (pipeline tasks: pipeline/docs/roadmap.md)
 pipeline/    the data layer: src/cmlpipe (io, qc, geometry, aggregate, events, inventory, release, api, viz, cli),
              apps/explorer (Streamlit GUI), configs/openmrg.yaml, tests/, tools/ (update_readme, check_boundaries,
              githooks), docs/ (DATA_GUIDE, methods, data_dictionary, howto_access, roadmap, openmrg_summary, papers),
@@ -31,6 +32,7 @@ Config paths (`data/...`) resolve against the repository root (`cmlpipe.config.R
 
 ## How to run (Windows; use `C:\Users\yoni\miniconda3\python.exe`, not the Anaconda `python`)
 - Install: `conda env create -f pipeline/environment.yml` or `pip install -e "pipeline[dev,explorer]"`; hook: `git config core.hooksPath pipeline/tools/githooks`.
+- READMEs: root = front door, `pipeline/README.md` = data layer, `research/README.md` = research; their status blocks are generated from the two roadmaps by `python pipeline/tools/update_readme.py` (also the pre-commit hook). Edit progress only in the roadmaps.
 - Pipeline: `python -m cmlpipe run all --workers 4` (up-to-date stages skip), `python -m cmlpipe stages`, `python -m cmlpipe guide`.
 - Data access: `from cmlpipe.api import CMLData; d = CMLData.open("data/release/openmrg_v1")` (see pipeline/docs/howto_access.md).
 - Explorer: `python -m cmlpipe explore` (localhost:8501) or `pipeline/start_explorer.bat`; check: `python pipeline/apps/explorer/smoke.py`.

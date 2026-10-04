@@ -1,45 +1,47 @@
 # Discovering the Laws of Microwave-Link Attenuation
 
-Data-driven discovery of rain-induced and wet-antenna attenuation laws in commercial microwave links (CML).
-Cellular backhaul links lose signal when it rains; we learn readable equations for how that loss depends on rain,
-link length and the wetting and drying of the antennas (weak-form SINDy, PySR), using open CML, radar and gauge data.
-Final-year EE project, CellEnMon lab, by Yonatan Haber and Yehonatan Tsitseluk. **Research in progress.**
+Final-year EE project, CellEnMon lab (opportunistic environmental sensing).
+Team: Yonatan Haber and Yehonatan Tsitseluk.
+*[Placeholder: supervisor, project dates.]*
 
-## Where to start
+## The question
 
-- [`research/`](research/): the research (models, experiments, figures). Uses the data only through a fixed API.
-- [`pipeline/`](pipeline/): how the data was prepared (code, explorer GUI, tests). Start with the plain-language
-  data guide [`pipeline/docs/DATA_GUIDE.md`](pipeline/docs/DATA_GUIDE.md).
+When it rains, the microwave links that connect cellular towers lose signal, so the phone network can be used as a
+rain sensor. The usual model says the rain loss is A_rain = a·R̄^b·L: a power of the average rain rate R̄ along the
+link, times the link length L. That is exact only when the rain is uniform along the path, and real links of
+different lengths do not always follow it. A second effect, wet-antenna attenuation (WAA), comes from water on the
+antenna covers: it does not grow with L and it stays for a while after the rain stops. We ask how the loss really
+depends on the link: A_rain = a·R̄^b·f(L, R̄, Z), where uniform rain gives f = L and Z stands for path and link
+features. We keep the known physics and learn only the missing parts as readable equations (a gray-box approach):
+a dynamic WAA model first, then the correction f, and finally rain estimates from the combined model.
+
+## How the repository is organized
+
+- [`pipeline/`](pipeline/): the data layer. Turns the raw OpenMRG data into a versioned, read-only data release.
+- [`research/`](research/): the research code (simulator, WAA, path law, evaluation).
 - [`docs/`](docs/): project documents (proposal, report material).
+- `data/`: raw data, work files and the release. Not in git; see [`pipeline/README.md`](pipeline/README.md).
 
-## Get the data
+## Status
 
-The processed data release `openmrg_v1` (OpenMRG, Gothenburg, summer 2015: 364 links at 10 s, radar, gauges,
-weather) is not in git. It must end up in `data/release/openmrg_v1/` (so that `data/release/openmrg_v1/catalog.json`
-exists). Either:
+<!-- AUTO:status -->
+- **Pipeline (data layer)**: done (release openmrg_v1 built and published; the open items are extensions); 21 / 27 roadmap items. Details: [`pipeline/README.md`](pipeline/README.md)
+- **Research**: in progress (not started in code yet); 0 / 18 roadmap items. Details: [`research/README.md`](research/README.md)
+<!-- /AUTO:status -->
 
-- **Option A, rebuild it** from the public raw OpenMRG data (Zenodo, https://doi.org/10.5281/zenodo.7107689):
-  unpack it into `data/raw/openmrg/` and run `python -m cmlpipe run all` (details: [`pipeline/README.md`](pipeline/README.md)).
-- **Option B, download it**: `openmrg_v1_release.zip` (1.6 GB, CC BY-SA 4.0) from the Releases page,
-  https://github.com/yoniGit2003/finalEEProject/releases/tag/data-openmrg-v1 (the repository is private: a GitHub
-  login with access is needed). Check it, then unzip it into `data/release/`:
+## Boundary rule
 
-  ```powershell
-  (Get-FileHash openmrg_v1_release.zip -Algorithm SHA256).Hash
-  # must be 17E9A9048AD0DAE51166C59BA0D3FA760C2E090B4757D70A0B2CDD033AC009F2
-  ```
+Research code reads data only through `cmlpipe.api.CMLData` and the release pinned in `research/config.yaml`, and the
+pipeline never imports research; `python pipeline/tools/check_boundaries.py` checks this.
 
-## Quick start (Windows, conda)
+## Setup
 
-```powershell
-conda env create -f pipeline/environment.yml     # Python 3.12 + all packages + cmlpipe itself (editable)
-conda activate cmlpipe                           # (or, in an existing env: pip install -e "pipeline[dev,explorer]")
-python -m cmlpipe explore                        # data explorer in the browser (http://localhost:8501)
-```
-In Python: `from cmlpipe.api import CMLData; d = CMLData.open("data/release/openmrg_v1")`.
+Windows with conda: `conda env create -f pipeline/environment.yml`, then `conda activate cmlpipe`. This installs
+Python 3.12, all packages and the `cmlpipe` package. How to get or build the data: [`pipeline/README.md`](pipeline/README.md).
 
-## Licences
+## Licence and citation
 
-Code: MIT ([`LICENSE`](LICENSE)). Data release: CC BY-SA 4.0, derived from OpenMRG (Andersson et al. 2022,
-https://doi.org/10.5194/essd-14-5411-2022), with attribution to the original authors
-([`pipeline/LICENSE-DATA.md`](pipeline/LICENSE-DATA.md)).
+Code: MIT ([`LICENSE`](LICENSE)). Data release: CC BY-SA 4.0 ([`pipeline/LICENSE-DATA.md`](pipeline/LICENSE-DATA.md)).
+It is derived from OpenMRG: Andersson, J. C. M., Olsson, J., van de Beek, R. (C. Z.), and Hansryd, J. (2022),
+*Earth Syst. Sci. Data*, 14, 5411-5426, https://doi.org/10.5194/essd-14-5411-2022 (data:
+https://doi.org/10.5281/zenodo.7107689).
