@@ -1,2 +1,95 @@
+# Settings for all research code: ONE file, one section per part of the research. Scripts read their section from
+# here instead of hard-coding numbers, so every result can be traced to the settings that made it.
+
 # Pinned data version for all research code (change only on purpose, and note it in the results).
 release: openmrg_v1
+
+# ---------------------------------------------------------------------------------------------------------------
+# Current baseline method (research/baseline_estm/baseline.py, run_sample.py). Unit: hours and dB.
+# ---------------------------------------------------------------------------------------------------------------
+baseline:
+  version: v2          # v1 (first method, kept for comparison) or v2 (current); see baseline_estm/METHOD.md
+  skip_h: 1.0          # usable dry slot: at least this long after the end of the last wet slot of the link
+  min_dry_h: 1.0       # a window needs at least this much usable dry time, else fallback / "missing"
+  excursion_db: 1.0    # window value further than this from the sub-link's summer dry median -> flag
+  v1:
+    window_h: 6.0      # before / after windows, MEAN of the 5 min tl_mean
+    diff_db: 0.5       # |after - before| above this -> straight line (method B)
+  v2:
+    window_h: 24.0     # MEDIAN of usable dry 5 min tl_mean in the 24 h before the event start ...
+    fallback_window_h: 48.0   # ... or in the 48 h before, if the 24 h window has < min_dry_h; else missing
+    humidity_exclusion: false # drop dry slots in dew-risk hours; NOT adopted by the R1b rule (p90 |offset| at humid
+                              # starts 0.392 -> 0.408 dB, i.e. worse; see validation/out/REPORT_v2.md)
+  dew:
+    rh_pct: 90.0       # dew risk: RH >= this ...
+    dpd_c: 2.0         # ... or dew-point depression (T - Td, Magnus) < this
+    window_share: 0.25 # flag dew_risk_in_window if more than this share of the window's dry slots is at dew risk
+    night_sun_elev_deg: -0.833  # night: sun centre below this elevation (standard sunrise / sunset) at mid-hour
+    site_lat: 57.7089  # Gothenburg
+    site_lon: 11.9746
+  daily_cycle_large_db: 0.4   # flag daily_cycle_large if the R1 C3 amplitude of the sub-link is above this
+  sample:              # the first sample run (run_sample.py)
+    links_per_class: 3
+    seed: 0
+
+# ---------------------------------------------------------------------------------------------------------------
+# R1: validation of the baseline (research/baseline_estm/validation/). Measures only; does not change the method.
+# ---------------------------------------------------------------------------------------------------------------
+baseline_validation:
+  seed: 42
+  sample: FULL                    # FULL = all good train sub-links; DEV = the 24 sub-links below (quick runs)
+  dev_sublinks: ["10011_1", "10011_2", "10025_1", "10025_2", "10116_1", "10116_2", "10155_1", "10155_2",   # quoted:
+                 "10206_1", "10206_2", "10215_1", "10215_2", "10267_1", "10267_2", "10281_1", "10281_2",   # YAML reads
+                 "10310_1", "10310_2", "10320_1", "10320_2", "10324_1", "10324_2", "10338_1", "10338_2"]   # 10011_1 as a number
+  skip_h: 1.0                     # default skip S
+  variants:                       # all use only dry, non-skipped slots
+    M1_window_h: 24               # M1 rolling median before t0
+    M2_window_h: 6                # M2 (mean) / M2b (median) before t0
+    min_dry_h: 1.0                # M1, M2, M2b, M3: missing if less usable dry time in the window
+  c1:                             # fake events in certified dry weather (truth A = 0)
+    durations_h: [1, 3, 6, 12, 24, 40]
+    max_events_per_sublink: 20
+    time_bins_h: [0, 1, 3, 6, 12, 24, 40]
+    short_max_h: 6                # "D <= 6 h"
+    long_h: 24                    # "D = 24 h"
+  c2:                             # does the after window carry a drying signal?
+    k_h: [1, 2, 3, 6, 12, 24]
+    level_window_h: 1.0
+    min_dry_level_h: 0.5
+  c3:                             # daily cycle in dry weather
+    anomaly_window_h: 24          # centred window for the local median
+    anomaly_min_slots: 24         # at least 2 h of dry slots in that window
+    amplitude_thresholds_db: [0.2, 0.4]
+    n_typical: 3
+    n_largest: 3
+  c4:                             # dry-day jumps
+    excess_db: 1.0
+    min_duration_h: 3.0
+    max_gap_min: 15
+    overlap_share: 0.5
+    neighbour_km: 5.0
+    high_rh_pct: 90
+  c5:                             # the flagged cases of the sample run
+    plot_before_h: 12
+    plot_after_h: 24
+    after_met_h: 6                # humidity / dew-point depression averaged over this long after the rain
+    high_delta_db: 0.5            # "high" after the rain: Delta at k = 1 h at least this
+    shrink_share: 0.5             # "shrinks": Delta at the last k >= 6 h below this share of Delta at k = 1 h
+  c6:                             # sensitivity of M2b
+    durations_h: [1, 6, 24]
+    window_h: [3, 6, 12, 24]
+    skip_h: [1, 3, 6]
+    stats: [mean, median]
+  r1b:                            # event-level validation of v2 (fixed before the run)
+    humid_start_rh_pct: 90        # humid start: RH >= this at t0
+    adopt_min_gain_db: 0.05       # adopt the humidity exclusion if p90 |offset| at humid starts improves by >= this
+    adopt_max_missing_rise: 0.02  # ... and the overall missing share rises by <= this (2 percentage points)
+    pass_fail:                    # per good train sub-link, offsets of v2 as adopted
+      median_abs_db: 0.1          # |median offset| at D <= 6 h
+      p90_abs_db: 0.25            # p90 |offset| at D <= 6 h
+      extra_p90_24h_db: 0.15      # p90 |offset| at 24 h minus at D <= 6 h
+  pass_fail:                      # R1 (slot level), fixed before seeing results
+    median_abs_db: 0.1
+    p10_min_db: -0.3
+    p90_max_db: 0.3
+    extra_p90_24h_db: 0.2

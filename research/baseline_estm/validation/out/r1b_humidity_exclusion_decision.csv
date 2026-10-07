@@ -1,0 +1,2 @@
+humid_start_events,p90_abs_humid_without,p90_abs_humid_with,gain_db,missing_without,missing_with,missing_rise,rule_min_gain_db,rule_max_missing_rise,adopt
+570,0.39196033212873677,0.4076767709520128,-0.015716438823276058,8.122157244964262e-05,8.122157244964262e-05,0.0,0.05,0.02,False
