@@ -1,6 +1,6 @@
 # Baseline method (v2) — FROZEN
 
-**Status: frozen on 2026-10-07 (R1c), commit: see the line "Frozen at commit" at the end of this file.** No method
+**Status: frozen on 2026-10-07 (R1c), commit `ebf122b`.** No method
 change after this point without a new version (v3) and a new validation. v1 stays runnable for comparison.
 
 A(t) = TL(t) - A_baseline(t), with TL = TSL - RSL (5 min `tl_mean`). The baseline is the TL a sub-link would show
@@ -108,4 +108,4 @@ Build order: `validation/run_all.py` -> `make_dew_products.py` -> `make_baseline
 R1 (v1 and variants, slot level): `validation/out/REPORT.md`. R1b (v2, event level, adoption decision, PASS/FAIL,
 real-event coverage): `validation/out/REPORT_v2.md`.
 
-Frozen at commit: (filled in by the commit that follows the R1c commit)
+Frozen at commit: `ebf122b` (Research R1c: freeze baseline v2, baseline table and uncertainty products), 2026-10-07.
