@@ -204,13 +204,12 @@ def flags_v2(value, window_first, i0, state, ok_plain, dew, summer_median, cycle
 
 
 # =================================================================================================== products
-HERE = __import__("pathlib").Path(__file__).resolve().parent
-PRODUCTS = HERE / "products"
+import baseline_estm_paths as P                  # all file locations (this folder is on sys.path when baseline is imported)
 
 
 def dew_hourly():
-    """products/dew_risk_hourly.csv (built by make_dew_products.py), indexed by the UTC hour start."""
-    return pd.read_csv(PRODUCTS / "dew_risk_hourly.csv", parse_dates=["time_utc", "time_local"]).set_index("time_utc")
+    """outputs/products/dew_risk_hourly.csv (built by make_dew_products.py), indexed by the UTC hour start."""
+    return pd.read_csv(P.DEW_RISK_HOURLY, parse_dates=["time_utc", "time_local"]).set_index("time_utc")
 
 
 def dew_mask_5min(index):
@@ -222,9 +221,8 @@ def dew_mask_5min(index):
 def _open_release():
     import yaml
     from cmlpipe.api import CMLData
-    repo = HERE.parents[1]
-    cfg = yaml.safe_load(open(repo / "research" / "config.yaml", encoding="utf-8"))
-    return CMLData.open(repo / "data" / "release" / cfg["release"])
+    cfg = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
+    return CMLData.open(P.REPO / "data" / "release" / cfg["release"])
 
 
 _TABLE = None
@@ -232,7 +230,7 @@ _TABLE = None
 
 def a_of_t(cml_id, event_id, res="5min", pad="0h", d=None):
     """A(t) = tl_mean(t) - baseline for both sub-links of one link during one event, at any CML resolution
-    ("1min", "5min", ...). The baseline comes from products/baselines_v2.csv (A(t) itself is never stored).
+    ("1min", "5min", ...). The baseline comes from outputs/products/baselines.csv (A(t) itself is never stored).
 
     Returns a DataFrame (index: time UTC, interval start) with one column per sub-link (A in dB, NaN if the pair has no
     baseline) over [event start - pad, event end + pad). `d` = an open CMLData (opened from the config if None).
@@ -240,10 +238,10 @@ def a_of_t(cml_id, event_id, res="5min", pad="0h", d=None):
     """
     global _TABLE
     if _TABLE is None:
-        _TABLE = pd.read_csv(PRODUCTS / "baselines_v2.csv", parse_dates=["event_start", "event_end"])
+        _TABLE = pd.read_csv(P.BASELINES, parse_dates=["event_start", "event_end"])
     rows = _TABLE[(_TABLE.cml_id == int(cml_id)) & (_TABLE.event_id == event_id)]
     if rows.empty:
-        raise KeyError(f"no baseline rows for cml_id {cml_id} and event {event_id} in products/baselines_v2.csv")
+        raise KeyError(f"no baseline rows for cml_id {cml_id} and event {event_id} in {P.BASELINES.name}")
     d = d or _open_release()
     t0 = rows.event_start.iloc[0] - pd.Timedelta(pad)
     t1 = rows.event_end.iloc[0] + pd.Timedelta(pad)
@@ -254,5 +252,5 @@ def a_of_t(cml_id, event_id, res="5min", pad="0h", d=None):
     out = tl[base.index] - base                                   # broadcast: one baseline per sub-link column
     out.columns.name = "sublink_id"
     out.attrs.update({"cml_id": int(cml_id), "event_id": event_id, "res": res, "unit": "dB",
-                      "definition": "A(t) = tl_mean(t) - baseline v2 (products/baselines_v2.csv)"})
+                      "definition": "A(t) = tl_mean(t) - baseline v2 (outputs/products/baselines.csv)"})
     return out

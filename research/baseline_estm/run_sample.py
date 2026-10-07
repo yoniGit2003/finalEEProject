@@ -2,11 +2,13 @@
 the outputs). The method itself is in baseline.py.
 
 Run from anywhere: python research/baseline_estm/run_sample.py
-Writes:  results/baselines.csv     one row per sub-link x event (main run, X = 1 h)
-         results/sensitivity_X.csv the same for X = 0.5, 1, 2, 3 h
-         results/summary.md        the quality numbers
-         figures/overview.png      the quality numbers as plots
-         figures/examples/*.png    a few sub-link x event examples
+Writes (method v1 = "two-window"; locations in baseline_estm_paths.py, described in CATALOG.md):
+         outputs/tables/sample_two_window_baselines.csv      one row per sub-link x event (main run, X = 1 h)
+         outputs/tables/sample_two_window_sensitivity_X.csv  the same for X = 0.5, 1, 2, 3 h
+         outputs/reports/sample_two_window_summary.md        the quality numbers
+         outputs/figures/sample_two_window_overview.png      the quality numbers as plots
+         outputs/figures/sample_two_window_examples/*.png    a few sub-link x event examples
+         (method v2 = "pre-event": outputs/tables/sample_pre_event_baselines.csv only)
 """
 from pathlib import Path
 import sys
@@ -21,9 +23,10 @@ from cmlpipe.api import CMLData
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import baseline as bl                                                          # noqa: E402  (this folder)
+import baseline_estm_paths as P                                                # noqa: E402  (all file locations)
 
-REPO = HERE.parents[1]
-CONFIG = yaml.safe_load(open(REPO / "research" / "config.yaml"))     # all settings: research/config.yaml
+REPO = P.REPO
+CONFIG = yaml.safe_load(open(P.CONFIG_FILE))     # all settings: research/config.yaml
 RELEASE = CONFIG["release"]
 B = CONFIG["baseline"]
 CFG = {"X_H": B["skip_h"],          # usable dry: at least this many hours after the last wet bin
@@ -35,9 +38,8 @@ X_VALUES = (0.5, 1.0, 2.0, 3.0)    # sensitivity check of X (this script only)
 LINKS_PER_CLASS = B["sample"]["links_per_class"]   # train links per (length class x frequency band)
 SEED = B["sample"]["seed"]
 
-RES, FIG = HERE / "results", HERE / "figures"
-(FIG / "examples").mkdir(parents=True, exist_ok=True)
-RES.mkdir(exist_ok=True)
+for folder in (P.TABLES, P.REPORTS, P.SAMPLE_TWO_WINDOW_EXAMPLES):
+    folder.mkdir(parents=True, exist_ok=True)
 d = CMLData.open(REPO / "data" / "release" / RELEASE)
 period = d.catalog["period"]
 
@@ -57,15 +59,13 @@ VERSION = sys.argv[1] if len(sys.argv) > 1 else B["version"]     # v1 | v2 (defa
 
 
 def run_v2():
-    """v2 on the same sample: one flat baseline per sub-link x event, with its flags -> results_v2/baselines.csv."""
-    out = HERE / "results_v2"
-    out.mkdir(exist_ok=True)
+    """v2 on the same sample: one flat baseline per sub-link x event, with its flags -> outputs/tables/sample_pre_event_baselines.csv."""
     T = data[sublinks[0]].index
     met = d.store("met_1h").load()
     m = pd.DataFrame({v: met[v].isel(gauge_id=0).to_series() for v in ("temperature", "humidity")})
     m = m.reindex(T.floor("1h"))
     dew = bl.dew_risk(m.humidity, m.temperature - bl.dew_point(m.temperature, m.humidity), B["dew"])
-    f_amp = HERE / "validation" / "out" / "c3_daily_cycle_per_sublink.csv"      # R1 C3 amplitudes
+    f_amp = P.C3_DAILY_CYCLE                                                     # R1 C3 amplitudes
     amp = pd.read_csv(f_amp).set_index("sublink_id").amplitude_db if f_amp.exists() else pd.Series(dtype=float)
     st = d.sublinks().set_index("sublink_id").tsl_behaviour
     status = d.status().set_index("sublink_id").status
@@ -84,7 +84,7 @@ def run_v2():
                          **bl.flags_v2(value, a, i0, state, ok_plain, dew, summer, amp.get(s, np.nan),
                                        status[s] == "degraded", st[s] == "toggling", B)})
     r = pd.DataFrame(rows)
-    r.to_csv(out / "baselines.csv", index=False)
+    r.to_csv(P.SAMPLE_PRE_EVENT_BASELINES, index=False)
     print(f"v2 sample: {len(r)} pairs, missing {r.missing.mean():.1%}, 48 h fallback {(r.window_h == 48).mean():.1%}, "
           f"excursion {r.excursion.mean():.1%}, dew_risk_in_window {r.dew_risk_in_window.mean():.1%}, "
           f"daily_cycle_large {r.daily_cycle_large.mean():.1%}")
@@ -113,9 +113,9 @@ def run(x_hours):
 
 runs = {x: run(x) for x in X_VALUES}
 main = runs[CFG["X_H"]]
-main.to_csv(RES / "baselines.csv", index=False)
+main.to_csv(P.SAMPLE_TWO_WINDOW_BASELINES, index=False)
 sens = pd.concat(runs.values(), ignore_index=True)
-sens.to_csv(RES / "sensitivity_X.csv", index=False)
+sens.to_csv(P.SAMPLE_TWO_WINDOW_SENSITIVITY, index=False)
 
 
 def md(df):
@@ -157,7 +157,7 @@ lines += ["", "## 6. By link class (median |closure| and median in-event dry A, 
           md(has.groupby(["length_class", "frequency_band"]).agg(
               pairs=("method", "size"), abs_closure=("closure_db", lambda s: s.abs().median()),
               in_event_dry_A=("in_event_dry_A_mean_db", "median")).round(2))]
-(RES / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+P.SAMPLE_TWO_WINDOW_SUMMARY.write_text("\n".join(lines) + "\n", encoding="utf-8")
 print("\n".join(lines))
 
 # ---- overview figure ------------------------------------------------------------------------------------------
@@ -190,7 +190,7 @@ ax[1, 2].set_title(f"5. sensitivity: |before(X) - before({CFG['X_H']:g} h)|")
 ax[1, 2].set_ylabel("dB")
 fig.suptitle(f"Baseline estimation, sample: {len(sublinks)} sub-links x {len(events)} train events (X = {CFG['X_H']:g} h)")
 fig.tight_layout()
-fig.savefig(FIG / "overview.png", dpi=110)
+fig.savefig(P.SAMPLE_TWO_WINDOW_OVERVIEW, dpi=110)
 plt.close(fig)
 
 
@@ -227,14 +227,14 @@ def plot_example(r):
     a2.set_ylabel("A = TL - baseline [dB]")
     a2.set_xlabel("time (UTC)")
     fig.tight_layout()
-    fig.savefig(FIG / "examples" / f"{r.sublink_id}_{r.event_id}.png", dpi=100)
+    fig.savefig(P.SAMPLE_TWO_WINDOW_EXAMPLES / f"{r.sublink_id}_{r.event_id}.png", dpi=100)
     plt.close(fig)
 
 
-for f in (FIG / "examples").glob("*.png"):
+for f in P.SAMPLE_TWO_WINDOW_EXAMPLES.glob("*.png"):
     f.unlink()                                                          # only the current run's examples
 cat = has.assign(cat=has.method + "|" + has["flags"])
 picks = cat.sample(frac=1, random_state=SEED).groupby("cat").head(2)
 for r in picks.itertuples():
     plot_example(r)
-print(f"saved {len(picks)} example figures, overview.png, results/*.csv, summary.md")
+print(f"saved {len(picks)} example figures, the overview figure, the tables and the summary (sample_two_window_* in outputs/)")

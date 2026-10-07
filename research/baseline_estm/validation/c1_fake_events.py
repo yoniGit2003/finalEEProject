@@ -263,14 +263,14 @@ def main():
         ps = per_sublink(ev, slots, sl)
         ps.to_csv(OUT / "c1d_M2b_per_sublink.csv", index=False)
         pf = pass_fail(ps)
-        pf.to_csv(OUT / "pass_fail_per_sublink.csv", index=False)
+        pf.to_csv(OUT / "c1_pass_fail_per_sublink.csv", index=False)
         main_pf = pf[pf.group == "main"]
         summ = pd.concat([pf_summary(main_pf).assign(split="all main"),
                           pf_summary(main_pf, ["length_class", "frequency_band"]).assign(split="length / frequency"),
                           pf_summary(main_pf, "tsl_behaviour").assign(split="TSL class"),
                           pf_summary(pf[pf.is_degraded]).assign(split="degraded (separate)"),
                           pf_summary(pf[pf.is_toggling]).assign(split="toggling (separate)")])
-        summ.to_csv(OUT / "pass_fail_summary.csv", index=False)
+        summ.to_csv(OUT / "c1_pass_fail_summary.csv", index=False)
         print(summ.round(3).to_string())
 
 

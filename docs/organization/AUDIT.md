@@ -74,7 +74,7 @@ caches.
 | `run_sample.py [v1\|v2]` | sample run (24 sub-links x 18 events); default version from `config.yaml` (v2) | release; v2 also `validation/out/c3_daily_cycle_per_sublink.csv` (silently empty if missing) | v1: `results/{baselines,sensitivity_X}.csv`, `results/summary.md`, `figures/overview.png`, `figures/examples/*.png`; v2: `results_v2/baselines.csv` |
 | `validation/common.py` | shared helpers; defines `OUT`, `FIG`, `CACHE` | release | cache `validation/_cache/` |
 | `validation/c1_fake_events.py` ... `c6_sensitivity.py`, `r1b_event_level.py` | the scientific checks C1-C6 (R1) and R1b | see dependency map | `validation/out/*.csv(.gz)`, `validation/out/figures/*.png` |
-| `validation/run_all.py` | runs C1..C6, R1b in order (~3.5 min) | | `validation/out/runtimes.csv` (appended) |
+| `validation/run_all.py` | runs C1..C6, R1b in order (~3.5 min) | | `validation/out/runtimes.csv` (one row per step, replaced on re-run) |
 | `make_dew_products.py` | dew products | release, `validation/out/c4_jumps.csv` | `products/dew_risk_hourly.csv`, `products/dry_jumps.csv` |
 | `make_baseline_table.py` | the frozen v2 products | release, `products/dew_risk_hourly.csv`, `validation/out/{c1_fake_events.csv.gz, c3_daily_cycle_per_sublink.csv, r1b_fake_event_offsets.csv.gz}` | `products/{baselines_v2,baseline_uncertainty}.csv` |
 
@@ -92,7 +92,7 @@ All code is used (no legacy code). Output paths are hard-coded in five files (`r
 | `validation/out/c1*` + `pass_fail_*` | 13 tables + 2 figures | `c1_fake_events.py` | C2, C6, R1b, `make_baseline_table.py`, REPORT.md | current (R1) |
 | `validation/out/c2_*`...`c6_*` | 14 tables + 5 figures + 13 `c5_*` figures | `c2_...c6_*.py` | C5 (c4_jumps), R1b (c3), `run_sample.py v2` (c3), `make_dew_products.py` (c4), `make_baseline_table.py` (c3), REPORT.md | current (R1) |
 | `validation/out/r1b_*` | 10 tables + 2 figures | `r1b_event_level.py` | `make_baseline_table.py` (offsets), REPORT_v2.md | current (R1b) |
-| `validation/out/runtimes.csv` | runtimes | `common.Timer` (appends) | REPORT.md | current |
+| `validation/out/runtimes.csv` | runtimes | `common.Timer` (replaces its step's row) | REPORT.md | current |
 | `validation/out/REPORT.md`, `REPORT_v2.md` | reports | **hand-written** (no script writes them) | METHOD.md, README, config.yaml comment | current, both |
 | `validation/_cache/` | cache (untracked, ignored) | `common.load_panel`, C1 | validation | cache |
 
@@ -160,8 +160,11 @@ next to what they check (fine). There are no tests for research code (none neede
 
 ## 7. Things noticed (not changed)
 
+- The committed `validation/out/r1b_real_events_v2.csv.gz` is older than the current code: it was written in
+  `a378802`, before R1c (`ebf122b`) added the flags `dew_risk_during_event` / `dew_share_during_event`. A re-run
+  (during the reorganization) gives the same rows and values plus these two columns. Kept as committed; open question.
+
 - Root `.gitignore` rule `outputs/` (for PySR) would hide every `outputs/` folder in the repo.
-- `common.Timer` **appends** to `runtimes.csv`: running a single check twice adds duplicate rows.
 - `run_sample.py v2` silently uses empty daily-cycle amplitudes (all `daily_cycle_large = False`) if C3 has not been
   run yet.
 - C5 depends on the v1 sample run (`results/baselines.csv`); if v1 were removed, C5 would break.

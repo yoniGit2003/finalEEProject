@@ -1,4 +1,4 @@
-"""C5: the flagged cases of the first sample run (results/baselines.csv, flags excursion_before / excursion_after).
+"""C5: the flagged cases of the first sample run (outputs/tables/sample_two_window_baselines.csv, method v1; flags excursion_before / excursion_after).
 
 For each case: before / after of the sample run, Delta_k (C2 definition: level in [end + k, end + k + 1 h) minus
 the M2b before) for this sub-link and the other direction, humidity and dew-point depression after the rain,
@@ -16,7 +16,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from common import (V, OUT, FIG, SPH, HERE, Timer, open_data, sublink_table, load_panel, usable, window, stat)
+from common import (V, P, OUT, FIG, SPH, HERE, Timer, open_data, sublink_table, load_panel, usable, window, stat)
 from c2_after_window import deltas
 
 C = V["c5"]
@@ -51,7 +51,7 @@ def main():
         tl, state, cert, met = load_panel(d, sl)
         allsl = d.sublinks()
         T = tl.index
-        res = pd.read_csv(HERE.parent / "results" / "baselines.csv", parse_dates=["event_start", "event_end"])
+        res = pd.read_csv(P.SAMPLE_TWO_WINDOW_BASELINES, parse_dates=["event_start", "event_end"])   # method v1 sample
         cases = res[res["flags"].fillna("").str.contains("excursion")]
         jumps = pd.read_csv(OUT / "c4_jumps.csv", parse_dates=["start", "end"])
         rows = []

@@ -193,7 +193,7 @@ def plots(tab, o, cv):
     ax.legend(fontsize=8)
     ax.set_title("R1b: after-window level vs v2 baseline (median, band p10-p90)")
     fig.tight_layout()
-    fig.savefig(FIG / "r1b_c2_delta_v2.png", dpi=110)
+    fig.savefig(FIG / "r1b_c2_delta.png", dpi=110)
     plt.close(fig)
 
 
@@ -213,7 +213,7 @@ def main():
         o["cls"] = o.length_class + " / " + o.frequency_band
         splits = pd.concat([table(o, slots, v, by).assign(split=by) for v in ("v2_hx", "v2_nohx")
                             for by in ("humid_start", "daily_cycle_large", "cls")])
-        splits.to_csv(OUT / "r1b_v2_splits.csv", index=False)
+        splits.to_csv(OUT / "r1b_splits.csv", index=False)
         dec = adoption(o)
         dec.to_csv(OUT / "r1b_humidity_exclusion_decision.csv", index=False)
         adopted = "v2_hx" if dec.adopt.iloc[0] else "v2_nohx"
@@ -226,7 +226,7 @@ def main():
         pfs.to_csv(OUT / "r1b_pass_fail_summary.csv", index=False)
         # real events: all train sub-links (good + degraded), numbers reported for good (main)
         re_ = real_events(d, sl, tl, state, dew, amp, adopted == "v2_hx")      # flags come from bl.flags_v2
-        re_.to_csv(OUT / "r1b_real_events_v2.csv.gz", index=False)
+        re_.to_csv(OUT / "r1b_real_events.csv.gz", index=False)
         cov = []
         for gname, g in (("good (main)", re_[re_.group == "main"]), ("degraded", re_[re_.is_degraded]),
                          ("toggling", re_[re_.is_toggling])):
@@ -247,7 +247,7 @@ def main():
                 if not np.isnan(b0):
                     ctrl.append({"D_h": e.D_h, **deltas(x, okp, b0, e.i0 + int(e.D_h * SPH))})
         cv = curve(rm, pd.DataFrame(ctrl), "all main, v2")
-        cv.to_csv(OUT / "r1b_c2_delta_v2.csv", index=False)
+        cv.to_csv(OUT / "r1b_c2_delta.csv", index=False)
         plots(tab, o, cv)
         print(dec.round(3).T.to_string(), "\n", tab.round(3).to_string(), "\n", pfs.round(3).to_string(), "\n",
               pd.DataFrame(cov).round(3).to_string(), "\n", cv.round(3).to_string())

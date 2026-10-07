@@ -3,10 +3,12 @@ variants and small statistics helpers. Every check script (c1_ ... c6_) imports 
 
 Settings: section `baseline_validation` (and `baseline`) of research/config.yaml.
 Data: only through cmlpipe.api.CMLData, on the release pinned in research/config.yaml.
-Outputs: research/baseline_estm/validation/out/ (FULL sample) or out_dev/ (DEV sample).
+Outputs: research/baseline_estm/outputs/tables/ and outputs/figures/ (FULL sample) or .cache/dev/ (DEV sample);
+locations in baseline_estm_paths.py, every file described in CATALOG.md.
 """
 import os
 from pathlib import Path
+import sys
 import time
 import numpy as np
 import pandas as pd
@@ -14,17 +16,18 @@ import yaml
 from cmlpipe.api import CMLData
 
 HERE = Path(__file__).resolve().parent                     # research/baseline_estm/validation
-REPO = HERE.parents[2]
-CONFIG = yaml.safe_load(open(REPO / "research" / "config.yaml", encoding="utf-8"))
+sys.path.insert(0, str(HERE.parent))
+import baseline_estm_paths as P                            # noqa: E402  (all file locations)
+REPO = P.REPO
+CONFIG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
 V = CONFIG["baseline_validation"]                          # this step's settings
 B = CONFIG["baseline"]                                     # the current method's settings (M3)
 V["sample"] = os.environ.get("BV_SAMPLE", V["sample"])     # quick runs: set BV_SAMPLE=DEV (config stays FULL)
 SPH = 12                                                   # 5 min slots per hour
 VARIANTS = ["M0", "M1", "M2", "M2b", "M3"]
 
-OUT = HERE / ("out" if V["sample"] == "FULL" else "out_dev")
-FIG = OUT / "figures"
-CACHE = HERE / "_cache"                                    # local only (gitignored): loaded data
+OUT, FIG = P.validation_dirs(V["sample"])                  # tables, figures (FULL: outputs/; DEV: .cache/dev/)
+CACHE = P.CACHE                                            # local only (gitignored): loaded data
 for p in (OUT, FIG, CACHE):
     p.mkdir(parents=True, exist_ok=True)
 
@@ -34,7 +37,7 @@ def open_data():
 
 
 class Timer:
-    """with Timer("C1"): ...  -> prints the runtime and appends it to OUT/runtimes.csv"""
+    """with Timer("C1"): ...  -> prints the runtime and appends it to OUT/validation_runtimes.csv"""
     def __init__(self, name):
         self.name = name
 
@@ -45,7 +48,7 @@ class Timer:
     def __exit__(self, *exc):
         dt = time.perf_counter() - self.t0
         print(f"[{self.name}] runtime {dt:.1f} s")
-        f = OUT / "runtimes.csv"
+        f = OUT / "validation_runtimes.csv"
         old = pd.read_csv(f) if f.exists() else pd.DataFrame(columns=["step", "seconds"])
         old = old[old.step != self.name]
         pd.concat([old, pd.DataFrame([{"step": self.name, "seconds": round(dt, 1)}])]).to_csv(f, index=False)
@@ -83,7 +86,7 @@ def load_panel(d, sl):
     """All time series needed, on the common 5 min grid of the season:
     tl (time x sublink_id, 5 min tl_mean), state (time x cml_id: 0 dry, 1 wet, -1 unknown), cert (network
     certified dry period), met (temperature, humidity, wind_speed, dew point, dew-point depression; hourly SMHI
-    values forward-filled within the hour). Cached in _cache/ because loading takes a while."""
+    values forward-filled within the hour). Cached in .cache/ because loading takes a while."""
     p = d.catalog["period"]
     t0, t1 = p["start"], p["end_exclusive"]
     f_tl = CACHE / "tl_5min.parquet"

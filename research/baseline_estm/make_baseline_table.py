@@ -1,16 +1,17 @@
-"""Frozen baseline v2 -> products (R1c). Method: METHOD.md; settings: research/config.yaml (section baseline).
+"""Frozen baseline v2 -> outputs/products/ (R1c). Method: METHOD.md; settings: research/config.yaml (section baseline).
 
-products/baseline_uncertainty.csv : per good or degraded train sub-link, the spread of the v2 baseline error on the
+baseline_uncertainty.csv : per good or degraded train sub-link, the spread of the v2 baseline error on the
                                     C1 fake events (certified dry weather): offset_std, offset_p90_abs (D <= 6 h),
                                     offset_p90_abs_24h; and the same without fake events that start humid.
                                     Meant as WEIGHTS for later stages, not as a pass / fail.
-products/baselines_v2.csv         : one row per (event, sub-link) for TRAIN and VAL events (significant or not) on
+baselines.csv            : one row per (event, sub-link) for TRAIN and VAL events (significant or not) on
                                     train links (good and degraded sub-links): the baseline, its window, the number of
                                     usable slots, all flags, the sub-link's uncertainty and use_in_waa_main.
 A(t) is not stored: baseline.a_of_t(cml_id, event_id, res) computes it through CMLData.
 
-Needs: products/dew_risk_hourly.csv (make_dew_products.py), validation/out/c1_fake_events.csv.gz and
-validation/out/c3_daily_cycle_per_sublink.csv (validation/run_all.py).
+Needs: outputs/products/dew_risk_hourly.csv (make_dew_products.py), outputs/tables/c1_fake_events.csv.gz,
+c3_daily_cycle_per_sublink.csv and r1b_fake_event_offsets.csv.gz (validation/run_all.py).
+Locations: baseline_estm_paths.py; columns: CATALOG.md.
 Run: python research/baseline_estm/make_baseline_table.py
 """
 from pathlib import Path
@@ -23,14 +24,14 @@ from cmlpipe.api import CMLData
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import baseline as bl                                                          # noqa: E402
+import baseline_estm_paths as P                                                # noqa: E402  (all file locations)
 
-REPO = HERE.parents[1]
-CONFIG = yaml.safe_load(open(REPO / "research" / "config.yaml", encoding="utf-8"))
+REPO = P.REPO
+CONFIG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
 B = CONFIG["baseline"]
 SPH = bl.SPH
 HUMID_RH = CONFIG["baseline_validation"]["r1b"]["humid_start_rh_pct"]
 SHORT_MAX_H, LONG_H = CONFIG["baseline_validation"]["c1"]["short_max_h"], CONFIG["baseline_validation"]["c1"]["long_h"]
-VAL = HERE / "validation" / "out"
 assert B["version"] == "v2", "the products are made with baseline v2 (set baseline.version: v2)"
 
 
@@ -45,7 +46,7 @@ def load(d):
                variables=["tl_mean"]).tl_mean.to_pandas()
     state = d.store("link_reference_state_5min").state.load().to_pandas().reindex(tl.index)
     dew = bl.dew_mask_5min(tl.index)
-    amp = pd.read_csv(VAL / "c3_daily_cycle_per_sublink.csv").set_index("sublink_id").amplitude_db
+    amp = pd.read_csv(P.C3_DAILY_CYCLE).set_index("sublink_id").amplitude_db
     return s, tl, state, dew, amp
 
 
@@ -57,7 +58,7 @@ def masks(state_col, dew):
 
 def uncertainty(s, tl, state, dew):
     """v2 offsets (mean error over each C1 fake event) and their per-sub-link spread."""
-    ev = pd.read_csv(VAL / "c1_fake_events.csv.gz", parse_dates=["t0"])
+    ev = pd.read_csv(P.C1_FAKE_EVENTS, parse_dates=["t0"])
     ev = ev[ev.sublink_id.isin(s.sublink_id)]
     rh = bl.dew_hourly().humidity
     ev["humid_start"] = rh.reindex(ev.t0.dt.floor("1h")).to_numpy() >= HUMID_RH
@@ -127,14 +128,14 @@ def main():
     s, tl, state, dew, amp = load(d)
     unc, ev = uncertainty(s, tl, state, dew)
     # consistency with R1b (main sub-links, v2 as adopted): the offsets must be identical
-    r1b = pd.read_csv(VAL / "r1b_fake_event_offsets.csv.gz", parse_dates=["t0"])
+    r1b = pd.read_csv(P.R1B_FAKE_EVENT_OFFSETS, parse_dates=["t0"])
     col = "off_v2_hx" if B["v2"]["humidity_exclusion"] else "off_v2_nohx"
     chk = ev.merge(r1b[["sublink_id", "D_h", "i0", col]], on=["sublink_id", "D_h", "i0"])
     print(f"check vs R1b: {len(chk)} fake events, max |difference| {np.nanmax(np.abs(chk.offset - chk[col])):.2e} dB")
-    unc.round(4).to_csv(bl.PRODUCTS / "baseline_uncertainty.csv", index=False)
+    unc.round(4).to_csv(P.BASELINE_UNCERTAINTY, index=False)
     t = table(d, s, tl, state, dew, amp, unc)
-    t.round(4).to_csv(bl.PRODUCTS / "baselines_v2.csv", index=False)
-    print(f"baselines_v2: {len(t)} rows; by split:", t.split_event.value_counts().to_dict())
+    t.round(4).to_csv(P.BASELINES, index=False)
+    print(f"baselines (v2): {len(t)} rows; by split:", t.split_event.value_counts().to_dict())
 
 
 if __name__ == "__main__":
