@@ -15,10 +15,10 @@ env/
 # ---- Jupyter ----
 .ipynb_checkpoints/
 
-# ---- Julia / PySR temporary output ----
+# ---- Julia / PySR temporary output (PySR runs: set output_directory to the module's .cache/) ----
 hall_of_fame*.csv
 hall_of_fame*.pkl
-outputs/
+/outputs/
 
 # ---- Large data formats (safety net) ----
 *.nc
@@ -28,7 +28,9 @@ outputs/
 Thumbs.db
 desktop.ini
 
-# ---- Test cache and quick check figures ----
+# ---- Caches (regenerable; one .cache/ per research module) ----
+.cache/
+_cache/
 .pytest_cache/
 check_*.png
 
@@ -36,5 +38,8 @@ check_*.png
 _archive/
 *.egg-info/
 
-# ---- VibeWise learning notes (local only; delete research/.vibe-wise/ when done) ----
+# ---- VibeWise plugin notes (created by a plugin; never commit, never move or delete) ----
 research/.vibe-wise/
+
+# ---- Reorganization: untracked files held for review instead of being deleted ----
+_review/
