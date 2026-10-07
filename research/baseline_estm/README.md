@@ -18,8 +18,8 @@ use. Method v1 ("two-window") stays runnable for comparison.
 python research/baseline_estm/run_sample.py v1          # v1 sample run (C5 reads it)                ~ 20 s
 python research/baseline_estm/validation/run_all.py     # R1 checks C1-C6 and R1b                     ~ 4 min
 python research/baseline_estm/run_sample.py             # v2 sample run (needs C3)                    ~ 5 s
-python research/baseline_estm/make_dew_products.py      # dew products (needs C4)
-python research/baseline_estm/make_baseline_table.py    # the frozen v2 products (needs C1, C3, R1b)
+python research/baseline_estm/make_dew_products.py      # dew products (needs C4)                     ~ 3 s
+python research/baseline_estm/make_baseline_table.py    # the frozen v2 products (needs C1, C3, R1b)  ~ 40 s
 ```
 
 `BV_SAMPLE=DEV` before `run_all.py` gives a quick validation run on 24 sub-links; it writes to `.cache/dev/`, not to

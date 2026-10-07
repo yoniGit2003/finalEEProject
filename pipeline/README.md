@@ -79,7 +79,7 @@ src/cmlpipe/    io, qc, geometry, aggregate, events, inventory, release, api (CM
 apps/explorer/  the explorer GUI (app.py, data.py, smoke.py)
 configs/        openmrg.yaml (all settings)
 docs/           DATA_GUIDE, methods, data_dictionary, howto_access, roadmap, OpenMRG notes and paper
-tests/          pytest suite        tools/   update_readme.py, check_boundaries.py, githooks/
+tests/          pytest suite        tools/   update_readme.py, check_boundaries.py, check_organization.py, githooks/
 examples/       quickstart notebook
 ```
 
