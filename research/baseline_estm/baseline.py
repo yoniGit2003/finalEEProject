@@ -182,13 +182,77 @@ def baseline_v2(tl, ok, i0, B):
     return np.nan, 0.0, i0
 
 
-def flags_v2(value, window_first, i0, state, ok_plain, dew, summer_median, cycle_amp, is_degraded, is_toggling, B):
+def flags_v2(value, window_first, i0, state, ok_plain, dew, summer_median, cycle_amp, is_degraded, is_toggling, B,
+             event_end_pos=None):
     """The v2 flags of one (event, sub-link). ok_plain = usable mask WITHOUT humidity exclusion (the window's dry
-    slots); dew = dew-risk slots; cycle_amp = the sub-link's daily-cycle amplitude (R1 C3)."""
+    slots); dew = dew-risk slots (5 min, hourly values); cycle_amp = the sub-link's daily-cycle amplitude (R1 C3);
+    event_end_pos = end of the link's last wet slot of the event (slot index; added in R1c): the event's time is
+    [i0, event_end_pos + 1 h), and dew_risk_during_event is set if more than dew.window_share of it is dew risk."""
     dry = ok_plain[window_first:i0]
     share = float(dew[window_first:i0][dry].mean()) if dry.any() else np.nan
-    return {"excursion": bool(abs(value - summer_median) > B["excursion_db"]) if not np.isnan(value) else False,
+    ev_share = np.nan
+    if event_end_pos is not None:
+        span = dew[i0:min(event_end_pos + SPH, len(dew))]
+        ev_share = float(span.mean()) if len(span) else np.nan
+    return {"dew_risk_during_event": bool(ev_share > B["dew"]["window_share"]) if not np.isnan(ev_share) else False,
+            "dew_share_during_event": ev_share,
+            "excursion": bool(abs(value - summer_median) > B["excursion_db"]) if not np.isnan(value) else False,
             "dew_risk_in_window": bool(share > B["dew"]["window_share"]) if not np.isnan(share) else False,
             "dew_share_in_window": share,
             "daily_cycle_large": bool(cycle_amp > B["daily_cycle_large_db"]) if not np.isnan(cycle_amp) else False,
             "degraded": bool(is_degraded), "toggling": bool(is_toggling)}
+
+
+# =================================================================================================== products
+HERE = __import__("pathlib").Path(__file__).resolve().parent
+PRODUCTS = HERE / "products"
+
+
+def dew_hourly():
+    """products/dew_risk_hourly.csv (built by make_dew_products.py), indexed by the UTC hour start."""
+    return pd.read_csv(PRODUCTS / "dew_risk_hourly.csv", parse_dates=["time_utc", "time_local"]).set_index("time_utc")
+
+
+def dew_mask_5min(index):
+    """Dew-risk flag on a 5 min time index: each slot carries the dew_risk of its hour (False where unknown)."""
+    h = dew_hourly().dew_risk
+    return h.reindex(pd.DatetimeIndex(index).floor("1h")).fillna(False).to_numpy(bool)
+
+
+def _open_release():
+    import yaml
+    from cmlpipe.api import CMLData
+    repo = HERE.parents[1]
+    cfg = yaml.safe_load(open(repo / "research" / "config.yaml", encoding="utf-8"))
+    return CMLData.open(repo / "data" / "release" / cfg["release"])
+
+
+_TABLE = None
+
+
+def a_of_t(cml_id, event_id, res="5min", pad="0h", d=None):
+    """A(t) = tl_mean(t) - baseline for both sub-links of one link during one event, at any CML resolution
+    ("1min", "5min", ...). The baseline comes from products/baselines_v2.csv (A(t) itself is never stored).
+
+    Returns a DataFrame (index: time UTC, interval start) with one column per sub-link (A in dB, NaN if the pair has no
+    baseline) over [event start - pad, event end + pad). `d` = an open CMLData (opened from the config if None).
+    Example:  A = a_of_t(10227, "E20150727_2140", res="1min", pad="6h")
+    """
+    global _TABLE
+    if _TABLE is None:
+        _TABLE = pd.read_csv(PRODUCTS / "baselines_v2.csv", parse_dates=["event_start", "event_end"])
+    rows = _TABLE[(_TABLE.cml_id == int(cml_id)) & (_TABLE.event_id == event_id)]
+    if rows.empty:
+        raise KeyError(f"no baseline rows for cml_id {cml_id} and event {event_id} in products/baselines_v2.csv")
+    d = d or _open_release()
+    t0 = rows.event_start.iloc[0] - pd.Timedelta(pad)
+    t1 = rows.event_end.iloc[0] + pd.Timedelta(pad)
+    p = d.catalog["period"]
+    t0, t1 = max(t0, pd.Timestamp(p["start"])), min(t1, pd.Timestamp(p["end_exclusive"]))
+    tl = d.cml(rows.sublink_id.tolist(), t0, t1, res=res, variables=["tl_mean"]).tl_mean.to_pandas()
+    base = rows.set_index("sublink_id").baseline_db
+    out = tl[base.index] - base                                   # broadcast: one baseline per sub-link column
+    out.columns.name = "sublink_id"
+    out.attrs.update({"cml_id": int(cml_id), "event_id": event_id, "res": res, "unit": "dB",
+                      "definition": "A(t) = tl_mean(t) - baseline v2 (products/baselines_v2.csv)"})
+    return out

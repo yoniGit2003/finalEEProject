@@ -1,0 +1,141 @@
+"""Frozen baseline v2 -> products (R1c). Method: METHOD.md; settings: research/config.yaml (section baseline).
+
+products/baseline_uncertainty.csv : per good or degraded train sub-link, the spread of the v2 baseline error on the
+                                    C1 fake events (certified dry weather): offset_std, offset_p90_abs (D <= 6 h),
+                                    offset_p90_abs_24h; and the same without fake events that start humid.
+                                    Meant as WEIGHTS for later stages, not as a pass / fail.
+products/baselines_v2.csv         : one row per (event, sub-link) for TRAIN and VAL events (significant or not) on
+                                    train links (good and degraded sub-links): the baseline, its window, the number of
+                                    usable slots, all flags, the sub-link's uncertainty and use_in_waa_main.
+A(t) is not stored: baseline.a_of_t(cml_id, event_id, res) computes it through CMLData.
+
+Needs: products/dew_risk_hourly.csv (make_dew_products.py), validation/out/c1_fake_events.csv.gz and
+validation/out/c3_daily_cycle_per_sublink.csv (validation/run_all.py).
+Run: python research/baseline_estm/make_baseline_table.py
+"""
+from pathlib import Path
+import sys
+import numpy as np
+import pandas as pd
+import yaml
+from cmlpipe.api import CMLData
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import baseline as bl                                                          # noqa: E402
+
+REPO = HERE.parents[1]
+CONFIG = yaml.safe_load(open(REPO / "research" / "config.yaml", encoding="utf-8"))
+B = CONFIG["baseline"]
+SPH = bl.SPH
+HUMID_RH = CONFIG["baseline_validation"]["r1b"]["humid_start_rh_pct"]
+SHORT_MAX_H, LONG_H = CONFIG["baseline_validation"]["c1"]["short_max_h"], CONFIG["baseline_validation"]["c1"]["long_h"]
+VAL = HERE / "validation" / "out"
+assert B["version"] == "v2", "the products are made with baseline v2 (set baseline.version: v2)"
+
+
+def load(d):
+    """Train sub-links (good or degraded), their 5 min tl_mean, the per-link state, dew-risk mask, daily-cycle amp."""
+    s = d.sublinks()
+    s = s[s.split_link == "train"].copy()
+    s["status"] = s.sublink_id.map(d.status().set_index("sublink_id").status)
+    s = s[s.status.isin(["good", "degraded"])].reset_index(drop=True)
+    p = d.catalog["period"]
+    tl = d.cml(s.sublink_id.tolist(), p["start"], p["end_exclusive"], res="5min",
+               variables=["tl_mean"]).tl_mean.to_pandas()
+    state = d.store("link_reference_state_5min").state.load().to_pandas().reindex(tl.index)
+    dew = bl.dew_mask_5min(tl.index)
+    amp = pd.read_csv(VAL / "c3_daily_cycle_per_sublink.csv").set_index("sublink_id").amplitude_db
+    return s, tl, state, dew, amp
+
+
+def masks(state_col, dew):
+    ok_plain = bl.usable_mask(state_col.to_numpy(), B["skip_h"])
+    ok = bl.usable_mask(state_col.to_numpy(), B["skip_h"], dew) if B["v2"]["humidity_exclusion"] else ok_plain
+    return ok_plain, ok
+
+
+def uncertainty(s, tl, state, dew):
+    """v2 offsets (mean error over each C1 fake event) and their per-sub-link spread."""
+    ev = pd.read_csv(VAL / "c1_fake_events.csv.gz", parse_dates=["t0"])
+    ev = ev[ev.sublink_id.isin(s.sublink_id)]
+    rh = bl.dew_hourly().humidity
+    ev["humid_start"] = rh.reindex(ev.t0.dt.floor("1h")).to_numpy() >= HUMID_RH
+    off = np.full(len(ev), np.nan)
+    for sid, g in ev.groupby("sublink_id"):
+        c = int(sid.split("_")[0])
+        x = tl[sid].to_numpy()
+        _, ok = masks(state[c], dew)
+        for k, e in zip(g.index, g.itertuples()):
+            n = int(e.D_h * SPH)
+            b = bl.baseline_v2(x, ok, e.i0, B)[0]
+            seg = x[e.i0:e.i0 + n] - b
+            off[ev.index.get_loc(k)] = np.nanmean(seg) if np.isfinite(seg).any() else np.nan
+    ev["offset"] = off
+    rows = []
+    for sid, g in ev.groupby("sublink_id"):
+        r = {"sublink_id": sid}
+        for tag, gg in (("", g), ("_no_humid_start", g[~g.humid_start])):
+            sh = gg[gg.D_h <= SHORT_MAX_H].offset.dropna()
+            lg = gg[gg.D_h == LONG_H].offset.dropna()
+            r.update({f"n_fake_short{tag}": len(sh), f"n_fake_24h{tag}": len(lg),
+                      f"offset_median{tag}": sh.median() if len(sh) else np.nan,
+                      f"offset_std{tag}": sh.std() if len(sh) > 1 else np.nan,
+                      f"offset_p90_abs{tag}": sh.abs().quantile(0.9) if len(sh) else np.nan,
+                      f"offset_p90_abs_24h{tag}": lg.abs().quantile(0.9) if len(lg) else np.nan})
+        rows.append(r)
+    u = pd.DataFrame(rows)
+    return s[["sublink_id", "cml_id", "status", "tsl_behaviour", "length_class", "frequency_band"]].merge(
+        u, on="sublink_id", how="left"), ev
+
+
+def table(d, s, tl, state, dew, amp, unc):
+    ev = d.events()
+    ev = ev[ev.split_event.isin(["train", "val"])]
+    T = tl.index
+    u = unc.set_index("sublink_id")
+    rows = []
+    for r in s.itertuples():
+        c = r.cml_id
+        x, st = tl[r.sublink_id].to_numpy(), state[c].to_numpy()
+        ok_plain, ok = masks(state[c], dew)
+        summer = float(np.median(x[ok_plain & ~np.isnan(x)]))
+        wet = st == 1
+        for e in ev.itertuples():
+            i0, i1 = T.searchsorted(pd.Timestamp(e.start)), T.searchsorted(pd.Timestamp(e.end))
+            value, w, a = bl.baseline_v2(x, ok, i0, B)
+            n_use = int((ok[a:i0] & ~np.isnan(x[a:i0])).sum())
+            wp = np.nonzero(wet[i0:i1])[0]
+            end_pos = i0 + wp[-1] + 1 if len(wp) else i1          # no wet slot of the link: the event end
+            fl = bl.flags_v2(value, a, i0, st, ok_plain, dew, summer, amp.get(r.sublink_id, np.nan),
+                             r.status == "degraded", r.tsl_behaviour == "toggling", B, event_end_pos=end_pos)
+            rows.append({"event_id": e.event_id, "split_event": e.split_event, "significant": e.significant,
+                         "run_count": e.n_runs, "event_start": e.start, "event_end": e.end,
+                         "link_has_wet_slot": bool(len(wp)), "last_wet_end": T[min(end_pos, len(T) - 1)],
+                         "sublink_id": r.sublink_id, "cml_id": c, "status": r.status,
+                         "baseline_db": value, "window_h": w, "n_usable_slots": n_use,
+                         "missing": bool(np.isnan(value)), "summer_dry_median_db": summer, **fl,
+                         "offset_std": u.offset_std.get(r.sublink_id, np.nan),
+                         "offset_p90_abs": u.offset_p90_abs.get(r.sublink_id, np.nan)})
+    t = pd.DataFrame(rows)
+    t["use_in_waa_main"] = ~(t.missing | t.daily_cycle_large | t.degraded | t.toggling)
+    return t
+
+
+def main():
+    d = CMLData.open(REPO / "data" / "release" / CONFIG["release"])
+    s, tl, state, dew, amp = load(d)
+    unc, ev = uncertainty(s, tl, state, dew)
+    # consistency with R1b (main sub-links, v2 as adopted): the offsets must be identical
+    r1b = pd.read_csv(VAL / "r1b_fake_event_offsets.csv.gz", parse_dates=["t0"])
+    col = "off_v2_hx" if B["v2"]["humidity_exclusion"] else "off_v2_nohx"
+    chk = ev.merge(r1b[["sublink_id", "D_h", "i0", col]], on=["sublink_id", "D_h", "i0"])
+    print(f"check vs R1b: {len(chk)} fake events, max |difference| {np.nanmax(np.abs(chk.offset - chk[col])):.2e} dB")
+    unc.round(4).to_csv(bl.PRODUCTS / "baseline_uncertainty.csv", index=False)
+    t = table(d, s, tl, state, dew, amp, unc)
+    t.round(4).to_csv(bl.PRODUCTS / "baselines_v2.csv", index=False)
+    print(f"baselines_v2: {len(t)} rows; by split:", t.split_event.value_counts().to_dict())
+
+
+if __name__ == "__main__":
+    main()
