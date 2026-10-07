@@ -32,7 +32,9 @@ and v1 (`python research/baseline_estm/run_sample.py v1`).
 | `degraded` | the sub-link's quality status is "degraded" |
 | `toggling` | the sub-link's TSL class is "toggling" |
 
-`use_in_waa_main` = not (missing or daily_cycle_large or degraded or toggling): the pairs for the main WAA analysis.
+`use_in_waa_main` = not (missing or excursion or daily_cycle_large or degraded or toggling): the pairs for the main WAA
+analysis. `excursion` was added to this rule after R1c (the learners' earlier decision: skip pairs whose baseline was
+taken during a dry jump, and test them later with the WAA model); the baseline itself is unchanged.
 
 ## Changes v1 -> v2
 
@@ -73,7 +75,7 @@ duration D, i.e. the baseline error of that event.
 Columns: `event_id`, `split_event`, `significant`, `run_count` (wet runs of the event), `event_start`, `event_end`,
 `link_has_wet_slot`, `last_wet_end`, `sublink_id`, `cml_id`, `status`, `baseline_db`, `window_h` (24, 48 or 0 =
 missing), `n_usable_slots`, `missing`, `summer_dry_median_db`, the flags above with `dew_share_in_window` and
-`dew_share_during_event`, `offset_std`, `offset_p90_abs` (from the uncertainty table) and `use_in_waa_main`.
+`dew_share_during_event`, `offset_std`, `offset_p90_abs` (from the uncertainty table) and `use_in_waa_main` (rule above).
 **A(t) is not stored**: `baseline.a_of_t(cml_id, event_id, res="1min" | "5min", pad="6h")` returns A(t) for both
 sub-links of the link through CMLData.
 

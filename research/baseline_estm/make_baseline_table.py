@@ -118,7 +118,7 @@ def table(d, s, tl, state, dew, amp, unc):
                          "offset_std": u.offset_std.get(r.sublink_id, np.nan),
                          "offset_p90_abs": u.offset_p90_abs.get(r.sublink_id, np.nan)})
     t = pd.DataFrame(rows)
-    t["use_in_waa_main"] = ~(t.missing | t.daily_cycle_large | t.degraded | t.toggling)
+    t["use_in_waa_main"] = ~(t.missing | t.excursion | t.daily_cycle_large | t.degraded | t.toggling)
     return t
 
 
