@@ -42,16 +42,21 @@ Allowed imports from the pipeline: `cmlpipe.api` and `cmlpipe.viz` only, and the
 (checked by `python pipeline/tools/check_boundaries.py`). What the data contains and how to get it:
 [`../pipeline/docs/DATA_GUIDE.md`](../pipeline/docs/DATA_GUIDE.md).
 
-## Planned layout
+## Layout
 
 ```
-baseline/     dry-weather baseline per sub-link and the attenuation A(t)
-waa/          Stage 1: drying tails, literature fits, weak-form SINDy
-path_law/     Stage 2: f(L, R̄, Z) with PySR
-evaluation/   rain estimation, metrics, baselines
-notebooks/    exploration (results that matter go into scripts)
-figures/      figures for the report
+config.yaml        all research settings (one section per module) and the pinned release
+ROADMAP.md         research progress (the status block below is generated from it)
+baseline_estm/     dry-weather baseline per sub-link and A(t)          (done: method v2 frozen)
+waa/               Stage 1: drying tails, literature fits, weak-form SINDy        (planned)
+path_law/          Stage 2: f(L, R̄, Z) with PySR                                  (planned)
+evaluation/        rain estimation, metrics, comparisons                          (planned)
+explorations/      playground: try ideas here; results that matter move into a module
 ```
+
+Every module has the same layout (`README.md`, `METHOD.md`, `CATALOG.md`, `<module>_paths.py`, code, `validation/`,
+`outputs/{products,tables,figures,reports}/`, git-ignored `.cache/`). The rules: [`../ORGANIZATION.md`](../ORGANIZATION.md);
+what every output file means: the module's `CATALOG.md` (index: [`../CATALOG.md`](../CATALOG.md)).
 
 ## Conventions
 
