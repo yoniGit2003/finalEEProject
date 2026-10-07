@@ -18,15 +18,15 @@ a dynamic WAA model first, then the correction f, and finally rain estimates fro
 ## How the repository is organized
 
 - [`pipeline/`](pipeline/): the data layer. Turns the raw OpenMRG data into a versioned, read-only data release.
-- [`research/`](research/): the research code (simulator, WAA, path law, evaluation).
+- [`research/`](research/): the research code (baseline, WAA, path law, evaluation).
 - [`docs/`](docs/): project documents (proposal, report material).
 - `data/`: raw data, work files and the release. Not in git; see [`pipeline/README.md`](pipeline/README.md).
 
 ## Status
 
 <!-- AUTO:status -->
-- **Pipeline (data layer)**: done (release openmrg_v1 built and published; the open items are extensions); 21 / 27 roadmap items. Details: [`pipeline/README.md`](pipeline/README.md)
-- **Research**: in progress (not started in code yet); 0 / 18 roadmap items. Details: [`research/README.md`](research/README.md)
+- **Pipeline (data layer)**: done (release openmrg_v1 built and published; the open items are extensions); 21 / 26 roadmap items. Details: [`pipeline/README.md`](pipeline/README.md)
+- **Research**: in progress (not started in code yet); 0 / 16 roadmap items. Details: [`research/README.md`](research/README.md)
 <!-- /AUTO:status -->
 
 ## Boundary rule

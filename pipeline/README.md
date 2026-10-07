@@ -86,10 +86,9 @@ examples/       quickstart notebook
 ## Status and next steps *(auto, from [`docs/roadmap.md`](docs/roadmap.md))*
 
 <!-- AUTO:progress -->
-Status: **done (release openmrg_v1 built and published; the open items are extensions)**; 21 / 27 roadmap items done (tick items in [`docs/roadmap.md`](docs/roadmap.md)).
+Status: **done (release openmrg_v1 built and published; the open items are extensions)**; 21 / 26 roadmap items done (tick items in [`docs/roadmap.md`](docs/roadmap.md)).
 
 Next steps:
-- [ ] Baseline estimation [8]
 - [ ] Wet/dry classification from the CML signal itself
 - [ ] Noise and outlier handling beyond QC flags (level shifts, pair mismatch)
 - [ ] Link selection for Stage 1 and Stage 2

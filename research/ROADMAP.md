@@ -7,25 +7,23 @@ of `research/README.md` and the one-line summary in the root `README.md` are gen
 
 Status: in progress (not started in code yet)
 
-## 2. Simulator (known ground truth)
-- [ ] Rain fields with controlled cell size
-- [ ] Exact path integral of a·R(x,t)^b along each link
-- [ ] Known WAA model (wetting and drying)
-- [ ] Noise and quantization (RSL 0.3 dB, TSL 1 dB)
+## 1. Baseline and attenuation A(t)
+- [ ] Baseline per sub-link from the certified dry periods (constant / rolling) and the dynamic minimum-attenuation method [8]
+- [ ] Check that the baseline does not follow the drying tail (otherwise WAA ends up in the baseline)
+- [ ] Baseline residual in dry periods: size and spread per sub-link (the noise floor of δ(t))
+- [ ] A(t) = TSL(t) - RSL(t) - baseline per sub-link, as the input of the next stages
 
-## 3. Stage 1: WAA
+## 2. Stage 1: WAA
 - [ ] Find links with a drying tail after rain ends
 - [ ] Fit literature WAA models [1], [9] per link
-- [ ] Learn a dynamic WAA model with weak-form SINDy (rain as input), first in simulation
+- [ ] Learn a dynamic WAA model with weak-form SINDy (rain as input)
 - [ ] Compare the learned models across links (same form, different coefficients?)
 - [ ] Drying time from SINDy vs drying time measured directly from tails
 
-## 4. Stage 2: path law f(L, R̄, Z)
-- [ ] Simulation: exact integral vs the linear law a·R̄^b·L
-- [ ] Learn f(L, R̄, Z) with PySR in simulation
-- [ ] Real data with radar along the path as reference (WAA removed first)
+## 3. Stage 2: path law f(L, R̄, Z)
+- [ ] Learn f(L, R̄, Z) with PySR, radar along the path as reference (WAA removed first)
 
-## 5. Rain estimation and evaluation
+## 4. Rain estimation and evaluation
 - [ ] Invert the combined model (A_rain + WAA) to get rain
 - [ ] Normalized bias and normalized RMSE vs gauges and radar, split by link length
 - [ ] Define and compute the false-rain-after-event metric

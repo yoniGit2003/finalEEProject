@@ -14,12 +14,14 @@ physics (gray-box), not only good predictions. Background: [`../docs/proposal.md
 
 ## Plan
 
-1. **Simulator** with known ground truth: rain fields with a controlled cell size, the exact path integral for every
-   link, a known WAA model, noise and quantization (RSL 0.3 dB, TSL 1 dB). Every method is tested here first.
+1. **Baseline and A(t).** Estimate the dry-weather level of every sub-link from the certified dry periods of the
+   release and with the minimum-attenuation method [8], then A(t) = TSL(t) - RSL(t) - baseline. This comes first:
+   every later step uses A(t). The baseline must not follow the drying tail after rain, or the WAA disappears into it;
+   what is left of the baseline in dry weather is part of δ(t).
 2. **Stage 1, WAA.** Use the drying tail after rain ends (path attenuation is zero there, so what is left is WAA).
    Fit the literature models [1], [9]; learn a dynamic model with weak-form SINDy [10], rain as input; compare links.
-3. **Stage 2, path law.** Compare the exact integral with a·R̄^b·L in simulation, learn f(L, R̄, Z) with PySR [7],
-   then use real data with radar along the path as the reference (WAA removed first).
+3. **Stage 2, path law.** Learn f(L, R̄, Z) with PySR [7], with radar along the path as the reference (WAA removed
+   first).
 4. **Rain estimation and evaluation.** Invert the combined model on events not used for training; normalized bias
    and RMSE against gauges and radar by link length; false rain after events; comparison with the power law, the
    literature WAA models and an RNN baseline [11]; stability of the learned terms (bootstrap).
@@ -43,7 +45,7 @@ Allowed imports from the pipeline: `cmlpipe.api` and `cmlpipe.viz` only, and the
 ## Planned layout
 
 ```
-simulator/    rain fields, path integral, WAA, noise and quantization
+baseline/     dry-weather baseline per sub-link and the attenuation A(t)
 waa/          Stage 1: drying tails, literature fits, weak-form SINDy
 path_law/     Stage 2: f(L, R̄, Z) with PySR
 evaluation/   rain estimation, metrics, baselines
@@ -60,19 +62,19 @@ figures/      figures for the report
 ## Status and next steps *(auto, from [`ROADMAP.md`](ROADMAP.md))*
 
 <!-- AUTO:progress -->
-Status: **in progress (not started in code yet)**; 0 / 18 roadmap items done (tick items in [`ROADMAP.md`](ROADMAP.md)).
+Status: **in progress (not started in code yet)**; 0 / 16 roadmap items done (tick items in [`ROADMAP.md`](ROADMAP.md)).
 
-- 2. Simulator (known ground truth): 0 / 4
-- 3. Stage 1: WAA: 0 / 5
-- 4. Stage 2: path law f(L, R̄, Z): 0 / 3
-- 5. Rain estimation and evaluation: 0 / 6
+- 1. Baseline and attenuation A(t): 0 / 4
+- 2. Stage 1: WAA: 0 / 5
+- 3. Stage 2: path law f(L, R̄, Z): 0 / 1
+- 4. Rain estimation and evaluation: 0 / 6
 
 Next steps:
-- [ ] Rain fields with controlled cell size
-- [ ] Exact path integral of a·R(x,t)^b along each link
-- [ ] Known WAA model (wetting and drying)
-- [ ] Noise and quantization (RSL 0.3 dB, TSL 1 dB)
+- [ ] Baseline per sub-link from the certified dry periods (constant / rolling) and the dynamic minimum-attenuation method [8]
+- [ ] Check that the baseline does not follow the drying tail (otherwise WAA ends up in the baseline)
+- [ ] Baseline residual in dry periods: size and spread per sub-link (the noise floor of δ(t))
+- [ ] A(t) = TSL(t) - RSL(t) - baseline per sub-link, as the input of the next stages
 - [ ] Find links with a drying tail after rain ends
 - [ ] Fit literature WAA models [1], [9] per link
-- ... and 12 more in the roadmap
+- ... and 10 more in the roadmap
 <!-- /AUTO:progress -->

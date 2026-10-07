@@ -11,7 +11,7 @@ English technical terms. The proposal and the dataset summary are imported here:
 - A(t) = TSL(t) - RSL(t) - baseline = A_rain(t) + δ(t); δ(t) = non-rain terms (WAA, baseline residual).
 - A_rain = ∫₀ᴸ a·R(x,t)^b dx ≈ a·R̄^b·L (exact only for uniform rain); extended model A_rain = a·R̄^b·f(L, R̄, Z), uniform rain gives f = L.
 - WAA is local, dynamic (wetting / drying), does not scale with L; a constant WAA looks like f = L + L0, so isolate WAA (drying tails) before learning f. Never select links by how well the power law fits (circular).
-- Methods: weak-form SINDy for WAA (rain as input), PySR for f; every method first in a simulator with known truth. Gray-box: readable equations; the RNN [11] is only a baseline. Radar along the path is the preferred rain reference.
+- Methods: weak-form SINDy for WAA (rain as input), PySR for f; real data only (no simulator). Baseline is research and comes first. Gray-box: readable equations; the RNN [11] is only a baseline. Radar along the path is the preferred rain reference.
 
 ## Layout
 ```

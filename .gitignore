@@ -35,3 +35,6 @@ check_*.png
 # ---- Archived development material (kept locally, not in git) ----
 _archive/
 *.egg-info/
+
+# ---- VibeWise learning notes (local only; delete research/.vibe-wise/ when done) ----
+research/.vibe-wise/
