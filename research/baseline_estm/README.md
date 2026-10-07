@@ -1,80 +1,54 @@
-# baseline_estm: baseline estimation per sub-link and rain event
+# baseline_estm: the dry-weather baseline of every sub-link, and A(t)
+
+## Purpose
 
 A(t) = TL(t) - A_baseline(t), with TL = TSL - RSL. The baseline is the TL a sub-link would show without rain. Every
-later step (WAA, the path law) uses A(t), so the baseline comes first, and it must NOT follow the drying tail.
+later step (WAA, the path law) uses A(t), so the baseline comes first, and it must NOT follow the drying tail after
+the rain (otherwise the WAA disappears into it).
 
-Status: **sample run** (12 train links / 24 sub-links x 18 significant train events). All sub-links come after the
-sample has been analysed.
+## Status
 
-## The method (decided in the research discussion)
+**Method v2 frozen** (2026-10-07, commit `ebf122b`): 24 h median of usable dry time before the event, flat, with
+flags. Validated by R1 (slot level) and R1b (event level). The products in `outputs/products/` are what later modules
+use. Method v1 ("two-window") stays runnable for comparison.
 
-| Rule | Value | Why |
-|---|---|---|
-| Use dry samples only | link_state == dry (radar + gauges, never CML) | the baseline is the no-rain TL |
-| ... at least X after the last wet bin | X = 1 h | keeps the start of a drying tail out of the baseline |
-| Before / after windows | 6 h before the event start, 6 h after its end | dry TL there is the baseline we can see |
-| Window value | mean of the 10 s TL (not median) | the mean sits between the 0.3 dB quantization levels |
-| Method A (default) | constant = before | cannot follow anything that happens in the event |
-| Method B | line from before to after, if \|after - before\| > 0.5 dB | follows a slow drift over a long event |
-| No B if a window is an excursion | window mean > 1 dB from the sub-link's usual dry level | an extreme dry shift must not tilt the line |
-| Missing | < 1 h of usable dry samples in the before window | no guessing |
+## How to run (in this order; settings: sections `baseline` and `baseline_validation` of `research/config.yaml`)
 
-Not decided by the learners (filled in by Claude, open for discussion): an excursion in the BEFORE window still uses
-A, but the pair is flagged `excursion_before`.
-
-> **Current method: v2** (24 h median before the event, flat, flags), see [`METHOD.md`](METHOD.md). The text below
-> describes v1, the first version, which stays runnable for comparison (`run_sample.py v1`). Dew products for later
-> research code: `products/` (built by `make_dew_products.py`).
-
-## Validation (R1, R1b)
-
-`validation/` measures how good the baseline is (fake events in dry weather, the after window on real events, daily
-cycle, dry-day jumps, the flagged cases, sensitivity) without changing the method. Settings: section
-`baseline_validation` of `research/config.yaml`. Run `python research/baseline_estm/validation/run_all.py` (~2.5 min;
-`BV_SAMPLE=DEV` for a quick run on 24 sub-links). Results and the reports: `validation/out/REPORT.md` (R1, v1 and
-variants) and `validation/out/REPORT_v2.md` (R1b, v2 at event level).
-
-## Files
-
-```
-baseline.py            the method (functions, commented)
-run_sample.py          runs the sample, writes everything below; settings: section `baseline` of research/config.yaml
-results/baselines.csv  one row per sub-link x event (main run, X = 1 h)
-results/sensitivity_X.csv   the same for X = 0.5, 1, 2, 3 h (column X_h)
-results/summary.md     the quality numbers (rerun overwrites)
-figures/overview.png   the quality numbers as plots
-figures/examples/      a few sub-link x event pictures, two per (method, flag) kind
+```powershell
+python research/baseline_estm/run_sample.py v1          # v1 sample run (C5 reads it)                ~ 20 s
+python research/baseline_estm/validation/run_all.py     # R1 checks C1-C6 and R1b                     ~ 4 min
+python research/baseline_estm/run_sample.py             # v2 sample run (needs C3)                    ~ 5 s
+python research/baseline_estm/make_dew_products.py      # dew products (needs C4)
+python research/baseline_estm/make_baseline_table.py    # the frozen v2 products (needs C1, C3, R1b)
 ```
 
-Rerun: `python research/baseline_estm/run_sample.py` (about a minute).
+`BV_SAMPLE=DEV` before `run_all.py` gives a quick validation run on 24 sub-links; it writes to `.cache/dev/`, not to
+`outputs/`. Using the products from another module: `baseline.a_of_t(cml_id, event_id, res="1min", pad="6h")`
+returns A(t) of both sub-links of a link (A(t) itself is never stored).
 
-## How to read the results
+## Code
 
-There is no "true" baseline to compare with, so a result is judged by checks that should hold if the baseline is right.
+| file | what it does |
+|---|---|
+| `baseline.py` | the method (v1 and v2 functions, dew helpers, `a_of_t`) |
+| `baseline_estm_paths.py` | every folder and shared file location of this module |
+| `run_sample.py [v1\|v2]` | the sample run (12 links / 24 sub-links x 18 significant train events) |
+| `make_dew_products.py`, `make_baseline_table.py` | build `outputs/products/` |
+| `validation/` | the scientific checks C1-C6 (R1) and R1b; `common.py` holds the shared pieces |
 
-**baselines.csv columns.** `before_db` / `after_db`: window means (dB); `*_hours`: how much usable dry data each
-window had; `*_std_db`: spread of the 5 min TL in the window; `usual_level_db`: the sub-link's median dry TL over the
-season; `closure_db` = after - before; `method` A / B / missing; `flags` (below); `in_event_dry_*`: the out-of-sample
-check (below); `A_max_db`: the largest A(t) in the event (how strong the rain signal was, for context).
+## Outputs
 
-**Flags.** `no_before`: no baseline (method missing). `no_after`: A used, nothing to compare the end with.
-`excursion_before` / `excursion_after`: a window is more than 1 dB from the usual level. That can be a dry-time
-baseline shift OR a drying tail longer than X (both look the same here), so look at the example figure.
+`outputs/products/` (used by later modules), `outputs/tables/`, `outputs/figures/`, `outputs/reports/`. Every file
+is described in [`CATALOG.md`](CATALOG.md): columns, units, producer and the command that rebuilds it. The two
+validation reports: [`outputs/reports/R1_validation.md`](outputs/reports/R1_validation.md) and
+[`outputs/reports/R1b_validation.md`](outputs/reports/R1b_validation.md).
 
-**The five checks (overview.png, summary.md):**
+## Method
 
-1. **Coverage.** Share of pairs with a baseline. "missing" pairs cannot be used later.
-2. **Precision.** Std of the dry TL in the before window. Small compared to the 0.3 dB RSL step = the window is calm,
-   and its mean is a stable number.
-3. **Closure (after - before).** How much the dry level moved during the event. For method A it IS the baseline error
-   at the event end. Mostly within +-0.5 dB = a constant baseline is reasonable; the tails are where B or flags apply.
-4. **Out-of-sample A.** Some dry bins inside the event (gaps between showers, >= X after rain) were NOT used to make
-   the baseline, so A there should be about 0. Two readings when it is not:
-   positive = baseline too low OR a drying tail still present (this is WAA, what we want to study next);
-   negative = baseline too high (A cannot really be negative for long).
-5. **Sensitivity to X.** How much `before_db` changes when X is 0.5, 2 or 3 h instead of 1 h. Near 0 = the choice of
-   X does not matter for the baseline.
+[`METHOD.md`](METHOD.md): the v2 rules and flags, the changes v1 -> v2, the known accuracy, the products, and the v1
+method ("two-window").
 
-**Example figures.** Top: TL (blue line), usable dry samples (green dots), before / after windows (green bands), the
-baseline (red), usual dry level (dotted), event start / end (dashed); background blue = wet, grey = unknown.
-Bottom: A(t) = TL - baseline, which should return to ~0 when the rain and the tail are over.
+## Open issues
+
+- Is method v1 (and C5, which reads the v1 sample) still needed now that v2 is frozen? See
+  `docs/organization/REPORT.md`, open questions.

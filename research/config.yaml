@@ -19,7 +19,7 @@ baseline:
     window_h: 24.0     # MEDIAN of usable dry 5 min tl_mean in the 24 h before the event start ...
     fallback_window_h: 48.0   # ... or in the 48 h before, if the 24 h window has < min_dry_h; else missing
     humidity_exclusion: false # drop dry slots in dew-risk hours; NOT adopted by the R1b rule (p90 |offset| at humid
-                              # starts 0.392 -> 0.408 dB, i.e. worse; see validation/out/REPORT_v2.md)
+                              # starts 0.392 -> 0.408 dB, i.e. worse; see outputs/reports/R1b_validation.md)
   dew:
     rh_pct: 90.0       # dew risk: RH >= this ...
     dpd_c: 2.0         # ... or dew-point depression (T - Td, Magnus) < this

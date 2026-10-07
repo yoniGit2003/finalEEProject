@@ -14,7 +14,7 @@ and v1 (`python research/baseline_estm/run_sample.py v1`).
 1. **Usable dry slot.** A 5 min slot is usable if the per-link reference state is dry (radar along the path and
    gauges within 1 km show no rain in it or in the 30 min around it; the link's own signal is never used) and it is
    at least `skip_h` = 1 h after the end of the last wet slot of the link. Optional **humidity exclusion**: also drop
-   slots in an hour at dew risk (below). **Not adopted** (R1b rule, see `validation/out/REPORT_v2.md`), so
+   slots in an hour at dew risk (below). **Not adopted** (R1b rule, see `outputs/reports/R1b_validation.md`), so
    `baseline.v2.humidity_exclusion: false`.
 2. **Baseline.** Flat over the event: the **median** of the usable 5 min `tl_mean` values in the **24 h** before the
    event start. If that window has less than `min_dry_h` = 1 h of usable slots, the **48 h** window is used.
@@ -27,7 +27,7 @@ and v1 (`python research/baseline_estm/run_sample.py v1`).
 |---|---|
 | `excursion` | the baseline is more than `excursion_db` = 1 dB from the sub-link's summer dry median (as in v1) |
 | `dew_risk_in_window` | more than `dew.window_share` = 25 % of the window's dry slots are in dew-risk hours |
-| `dew_risk_during_event` | more than 25 % of the event's time is in dew-risk hours; the event's time runs from the event start to 1 h after the end of the link's last wet slot (the event end if the link had no wet slot); each 5 min slot carries its hour's `dew_risk` from `products/dew_risk_hourly.csv`. **Added in R1c.** Rain itself makes the air humid, so this flag is common (53 % of significant-event pairs): it marks where dew may add to the drying, it is not a rejection rule |
+| `dew_risk_during_event` | more than 25 % of the event's time is in dew-risk hours; the event's time runs from the event start to 1 h after the end of the link's last wet slot (the event end if the link had no wet slot); each 5 min slot carries its hour's `dew_risk` from `outputs/products/dew_risk_hourly.csv`. **Added in R1c.** Rain itself makes the air humid, so this flag is common (53 % of significant-event pairs): it marks where dew may add to the drying, it is not a rejection rule |
 | `daily_cycle_large` | the sub-link's dry-weather daily cycle (R1 C3 amplitude) is above `daily_cycle_large_db` = 0.4 dB (amplitude known for good sub-links only; False for degraded ones) |
 | `degraded` | the sub-link's quality status is "degraded" |
 | `toggling` | the sub-link's TSL class is "toggling" |
@@ -68,9 +68,9 @@ duration D, i.e. the baseline error of that event.
   dry-weather control (medians): k = 1 h +0.050 vs +0.010 dB; k = 6 h +0.025 vs +0.010 dB; k = 12 h +0.010 vs
   +0.010 dB. The small excess at k <= 6 h is the drying signal that remains in A(t), as intended.
 
-## Products (`products/`)
+## Products (`outputs/products/`)
 
-**`baselines_v2.csv`** (`make_baseline_table.py`): one row per (event, sub-link) for TRAIN and VAL events
+**`baselines.csv`** (`make_baseline_table.py`; called `baselines_v2.csv` before 2026-10-07): one row per (event, sub-link) for TRAIN and VAL events
 (significant or not) on train links, good and degraded sub-links (test events and test links are never included).
 Columns: `event_id`, `split_event`, `significant`, `run_count` (wet runs of the event), `event_start`, `event_end`,
 `link_has_wet_slot`, `last_wet_end`, `sublink_id`, `cml_id`, `status`, `baseline_db`, `window_h` (24, 48 or 0 =
@@ -107,7 +107,43 @@ Build order: `validation/run_all.py` -> `make_dew_products.py` -> `make_baseline
 
 ## Where the numbers are
 
-R1 (v1 and variants, slot level): `validation/out/REPORT.md`. R1b (v2, event level, adoption decision, PASS/FAIL,
-real-event coverage): `validation/out/REPORT_v2.md`.
+R1 (v1 and variants, slot level): `outputs/reports/R1_validation.md`. R1b (v2, event level, adoption decision,
+PASS/FAIL, real-event coverage): `outputs/reports/R1b_validation.md`. Every output file: [`CATALOG.md`](CATALOG.md).
 
 Frozen at commit: `ebf122b` (Research R1c: freeze baseline v2, baseline table and uncertainty products), 2026-10-07.
+
+## Method v1 ("two-window"), kept for comparison
+
+The first method, decided in the research discussion. It is still runnable (`python
+research/baseline_estm/run_sample.py v1`, outputs `sample_two_window_*`) and validation C5 reads its sample run.
+(Moved here from README.md on 2026-10-07; the window value there said "10 s TL", but the code uses the 5 min
+`tl_mean`, as written below.)
+
+| Rule | Value | Why |
+|---|---|---|
+| Use dry samples only | link_state == dry (radar + gauges, never CML) | the baseline is the no-rain TL |
+| ... at least X after the last wet bin | X = 1 h | keeps the start of a drying tail out of the baseline |
+| Before / after windows | 6 h before the event start, 6 h after its end | dry TL there is the baseline we can see |
+| Window value | mean of the 5 min `tl_mean` (not median) | the mean sits between the 0.3 dB quantization levels |
+| Method A (default) | constant = before | cannot follow anything that happens in the event |
+| Method B | line from before to after, if \|after - before\| > 0.5 dB | follows a slow drift over a long event |
+| No B if a window is an excursion | window mean > 1 dB from the sub-link's usual dry level | an extreme dry shift must not tilt the line |
+| Missing | < 1 h of usable dry samples in the before window | no guessing |
+
+Not decided by the learners (filled in by Claude, open for discussion): an excursion in the BEFORE window still uses
+A, but the pair is flagged `excursion_before`.
+
+**How the v1 sample run is judged** (`outputs/reports/sample_two_window_summary.md`, figure
+`sample_two_window_overview.png`). There is no "true" baseline, so the result is judged by checks that should hold if
+the baseline is right:
+
+1. **Coverage.** Share of pairs with a baseline. "missing" pairs cannot be used later.
+2. **Precision.** Std of the dry TL in the before window. Small compared to the 0.3 dB RSL step = the window is calm,
+   and its mean is a stable number.
+3. **Closure (after - before).** How much the dry level moved during the event. For method A it IS the baseline error
+   at the event end. Mostly within +-0.5 dB = a constant baseline is reasonable; the tails are where B or flags apply.
+4. **Out-of-sample A.** Some dry bins inside the event (gaps between showers, >= X after rain) were NOT used to make
+   the baseline, so A there should be about 0. Positive = baseline too low OR a drying tail still present (WAA);
+   negative = baseline too high (A cannot really be negative for long).
+5. **Sensitivity to X.** How much `before_db` changes when X is 0.5, 2 or 3 h instead of 1 h. Near 0 = the choice of
+   X does not matter for the baseline.
