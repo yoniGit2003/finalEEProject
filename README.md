@@ -22,6 +22,9 @@ a dynamic WAA model first, then the correction f, and finally rain estimates fro
 - [`docs/`](docs/): project documents (proposal, report material).
 - `data/`: raw data, work files and the release. Not in git; see [`pipeline/README.md`](pipeline/README.md).
 
+Where new files go and how they are named: [`ORGANIZATION.md`](ORGANIZATION.md). What every output file means and how
+to regenerate it: [`CATALOG.md`](CATALOG.md).
+
 ## Status
 
 <!-- AUTO:status -->
