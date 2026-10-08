@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 from common import (V, OUT, FIG, SPH, Timer, open_data, sublink_table, groups, load_panel, usable, hours_since_wet,
                     link_midpoints)
+from research.common.outputs import save_output
 
 C = V["c4"]
 
@@ -103,7 +104,7 @@ def plots(j, dry_w, met):
         ax.set_title(f"{sign} jumps (n = {len(g)})")
     fig.suptitle("C4: start hour of dry-day jumps, main sub-links")
     fig.tight_layout()
-    fig.savefig(FIG / "c4_start_hour.png", dpi=110)
+    save_output(fig, FIG / "c4_start_hour.png", "diag", "C4 start hour of dry jumps", dpi=110)
     plt.close(fig)
 
     fig, axes = plt.subplots(1, 2, figsize=(13, 4))
@@ -121,7 +122,8 @@ def plots(j, dry_w, met):
         ax.legend(fontsize=8)
     fig.suptitle("C4: weather during dry-day jumps vs all dry slots, main sub-links")
     fig.tight_layout()
-    fig.savefig(FIG / "c4_humidity_dewpoint.png", dpi=110)
+    save_output(fig, FIG / "c4_humidity_dewpoint.png", "key",
+                "dry jumps vs humidity and dew-point depression (dew?)", dpi=110)
     plt.close(fig)
 
 
@@ -145,10 +147,11 @@ def main():
         j.attrs["mid"] = link_midpoints(d)
         j = overlaps(j).merge(sl[["sublink_id", "group", "is_degraded", "is_toggling", "length_class",
                                   "frequency_band", "tsl_behaviour"]], on="sublink_id", how="left")
-        j.drop(columns=["a", "b"]).to_csv(OUT / "c4_jumps.csv", index=False)
+        save_output(j.drop(columns=["a", "b"]), OUT / "c4_jumps.csv", "product",
+                    "C4 dry-day jumps (read by C5, make_dew_products)", index=False)
         G = groups(sl)
         summ = pd.concat([summarise(j[j.sublink_id.isin(ids)], g) for g, ids in G.items()])
-        summ.to_csv(OUT / "c4_summary.csv", index=False)
+        save_output(summ, OUT / "c4_summary.csv", "diag", "C4 jump counts and shares", index=False)
         # slot weights for the weather distributions: how many main sub-links are dry / in a jump at each time
         main_ids = set(G["main"])
         jm = j[j.sublink_id.isin(main_ids)]

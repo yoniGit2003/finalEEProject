@@ -36,6 +36,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
+from research.common.outputs import save_output
 
 S = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))["waa"]["selection"]
 WET, DRY, UNKNOWN = 1, 0, -1
@@ -163,7 +164,8 @@ sel["in_main_set"] = ok & (sel.A_start_db >= S["main_a_start_db"]) & (sel.usable
 sel["in_alt_set"] = ok & (sel.A_start_db >= S["alt_a_start_db"]) & (sel.usable_min >= S["min_usable_min"])
 sel["in_control"] = ok & (sel.A_start_db < S["control_max_a_start_db"]) & (sel.usable_min > 0)
 num = sel.select_dtypes('number').columns                          # round numbers only (keeps the file small)
-sel.assign(**sel[num].round(4)).to_csv(P.TAILS_SELECTED, index=False)
+save_output(sel.assign(**sel[num].round(4)), P.TAILS_SELECTED, "product",
+            "tail index + selection columns (read by steps 2b, 2c)", index=False)
 
 # ------------------------------------------------------------------------------------------------- TRAIN from here on
 tr = sel[sel.split_event == "train"].copy()
@@ -177,7 +179,7 @@ trunc = (tr[~tr.excluded & (tr.length_min > 0)]
          .groupby("truncated_by").agg(tails=("tail_id", "size"), removed_min=("removed_min", "sum"),
                                       median_removed_min=("removed_min", "median")))
 trunc["share_of_all_tail_time"] = (trunc.removed_min / tr[~tr.excluded].length_min.sum()).round(4)
-trunc.to_csv(P.STEP2_TRUNCATION)
+save_output(trunc, P.STEP2_TRUNCATION, "diag", "step 2 tail time removed by each truncation rule")
 
 
 def set_counts(df):
@@ -193,7 +195,7 @@ counts_sets = pd.DataFrame({
 grp = (main.groupby(["band", "length_class", "antennas_m"])
        .agg(tails=("tail_id", "size"), sublinks=("sublink_id", "nunique"), links=("cml_id", "nunique"))
        .reset_index())
-grp.to_csv(P.STEP2_COUNTS, index=False)
+save_output(grp, P.STEP2_COUNTS, "diag", "step 2 main-set counts per band x length x antenna", index=False)
 per_sub, per_link = main.groupby("sublink_id").size(), main.groupby("cml_id").size()
 
 
@@ -243,7 +245,7 @@ pairs = pairs.dropna(subset=["A_start_db_1", "A_start_db_2"])
 for v in pair_vars:
     tests.append(rho_ci(pairs, f"{v}_1", f"{v}_2", f"4d sub-link 1 vs 2: {v}"))
 tests = pd.DataFrame(tests)
-tests.to_csv(P.STEP2_CORRELATIONS, index=False)
+save_output(tests, P.STEP2_CORRELATIONS, "key", "fast-drop test: Spearman rho with link-bootstrap CI", index=False)
 
 # =================================================================================================== median curves
 use = long.merge(sel[["tail_id", "usable_min", "in_main_set", "in_control", "split_event", "margin_rain"]],
@@ -254,7 +256,7 @@ groups = {"main set": use[use.in_main_set], "control": use[use.in_control],
           "main, margin R_max > 0": use[use.in_main_set & (use.margin_rain == "R_max > 0")]}
 curves = pd.concat([g.groupby("minutes_since_t0").A_db.agg(["median", "count"]).reset_index().assign(group=k)
                     for k, g in groups.items()])
-curves.to_csv(P.STEP2_MEDIAN_CURVES, index=False)
+save_output(curves, P.STEP2_MEDIAN_CURVES, "diag", "step 2 median A: main set, control, margin rain", index=False)
 med_fd = main.margin_minutes.median()
 
 
@@ -284,7 +286,7 @@ fig.suptitle(f"Median tail curve, TRAIN: main set vs control (A_start < {S['cont
              f"Dotted: median t_first_dry ({med_fd:.0f} min). Drawn where >= 20 tails; log y from 0.01 dB.",
              fontsize=10)
 fig.tight_layout()
-fig.savefig(P.STEP2_FIG_MEDIAN, dpi=110)
+save_output(fig, P.STEP2_FIG_MEDIAN, "diag", "step 2 median tail curve: main set vs control", dpi=110)
 plt.close(fig)
 
 # =================================================================================================== 4a figure
@@ -329,7 +331,7 @@ for i, band in enumerate(("<25GHz", ">=25GHz")):
     tidy(b_)
 fig.suptitle("4a. Expected: path rain grows with L (slope 1 on log-log), WAA does not (flat). TRAIN main set.", fontsize=10)
 fig.tight_layout()
-fig.savefig(P.STEP2_FIG_LENGTH, dpi=110)
+save_output(fig, P.STEP2_FIG_LENGTH, "key", "fast drop vs link length (WAA or missed path rain?)", dpi=110)
 plt.close(fig)
 
 # =================================================================================================== 4b / 4c figure
@@ -348,7 +350,7 @@ ax[2].set(xlabel="margin_R_mean_sum (mm, symlog)", ylabel="fast_drop (dB)", titl
 for a_ in (ax[0], ax[2]):
     tidy(a_)
 fig.tight_layout()
-fig.savefig(P.STEP2_FIG_MARGIN, dpi=110)
+save_output(fig, P.STEP2_FIG_MARGIN, "diag", "step 2 fast drop by margin radar rain", dpi=110)
 plt.close(fig)
 
 # =================================================================================================== 4d figure
@@ -364,7 +366,7 @@ for a_, v in zip(ax, pair_vars):
     tidy(a_)
 fig.suptitle("4d. Same link and event, both sub-links in the TRAIN main set. Dashed: 1:1.", fontsize=10)
 fig.tight_layout()
-fig.savefig(P.STEP2_FIG_PAIRS, dpi=110)
+save_output(fig, P.STEP2_FIG_PAIRS, "diag", "step 2 sub-link 1 vs 2", dpi=110)
 plt.close(fig)
 
 # =================================================================================================== 5 figure
@@ -391,7 +393,7 @@ ax[2].legend(frameon=False, fontsize=8)
 for a_ in ax:
     tidy(a_)
 fig.tight_layout()
-fig.savefig(P.STEP2_FIG_SHAPE, dpi=110)
+save_output(fig, P.STEP2_FIG_SHAPE, "diag", "step 2 shape descriptors", dpi=110)
 plt.close(fig)
 
 # =================================================================================================== 7 gallery
@@ -434,7 +436,7 @@ fig.suptitle(f"{len(gal)} random TRAIN main-set tails (seed {S['gallery_seed']})
              "Green dashed: t_first_dry; orange: t_use_end (if inside); shading: link_state wet (blue) / unknown "
              "(grey). Bottom: radar R_max (mm/h). x: hours since t0.", fontsize=11, y=0.995)
 fig.subplots_adjust(top=0.97)
-fig.savefig(P.STEP2_FIG_GALLERY, dpi=90, bbox_inches="tight")
+save_output(fig, P.STEP2_FIG_GALLERY, "diag", "step 2 gallery for a manual check", dpi=90, bbox_inches="tight")
 plt.close(fig)
 
 
@@ -583,6 +585,6 @@ Dotted line = median t_first_dry of the main set ({med_fd:.0f} min). `{rel(P.STE
 10. **Status** is the sub-link's quality status from `baselines.csv` (good / degraded); `use_in_waa_main` already
    drops degraded, so `status_not_good` adds nothing new here.
 """
-P.STEP2_REPORT.write_text(report, encoding="utf-8")
+save_output(report, P.STEP2_REPORT, "diag", "step 2 report: selection and fast-drop test")
 print("\n" + "=" * 100 + "\n" + report)
 print(f"done in {time.time() - clock:.0f} s")

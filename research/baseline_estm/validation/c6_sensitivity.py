@@ -8,6 +8,7 @@ Run after c1_fake_events.py: python research/baseline_estm/validation/c6_sensiti
 import numpy as np
 import pandas as pd
 from common import V, OUT, SPH, Timer, open_data, sublink_table, groups, load_panel, usable, window, stat, summary
+from research.common.outputs import save_output
 
 C = V["c6"]
 
@@ -42,7 +43,7 @@ def main():
                          "missing_share": float(np.mean(miss[(st, D)])) if parts else np.nan,
                          **summary(np.concatenate(parts) if parts else [])})
         t = pd.DataFrame(rows).sort_values(["D_h", "window_h", "skip_h", "stat"])
-        t.to_csv(OUT / "c6_sensitivity.csv", index=False)
+        save_output(t, OUT / "c6_sensitivity.csv", "diag", "C6 M2b error vs window / skip / statistic", index=False)
         print(t.round(3).to_string())
 
 

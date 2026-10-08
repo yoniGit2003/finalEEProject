@@ -4,6 +4,11 @@ One entry per output file. Paths are relative to `research/WAA_estm/`. Commands 
 `C:\Users\yoni\miniconda3\python.exe` (written `python` below). Folder locations are set in `WAA_estm_paths.py`.
 Settings come from section `waa` of `research/config.yaml`. Status of every entry: **current**.
 
+**Levels** (ORGANIZATION.md section 5): every file's level and purpose is in `outputs/MANIFEST.csv`. Only **key** and
+**product** files are kept and committed; **diag** files (most step figures, tables and reports below) are
+deleted by /tidy and listed in `outputs/TIDY_LOG.md`. An entry below describes what its script writes, so a
+diag file is back after rerunning that script. Decisions from deleted reports: `DECISIONS.md`.
+
 ## Shared vocabulary
 
 | term | meaning |

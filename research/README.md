@@ -48,15 +48,19 @@ Allowed imports from the pipeline: `cmlpipe.api` and `cmlpipe.viz` only, and the
 config.yaml        all research settings (one section per module) and the pinned release
 ROADMAP.md         research progress (the status block below is generated from it)
 baseline_estm/     dry-weather baseline per sub-link and A(t)          (done: method v2 frozen)
-waa/               Stage 1: drying tails, literature fits, weak-form SINDy        (planned)
+WAA_estm/          Stage 1: drying tails (frozen tail set v1), then weak-form SINDy  (in progress)
 path_law/          Stage 2: f(L, R̄, Z) with PySR                                  (planned)
 evaluation/        rain estimation, metrics, comparisons                          (planned)
+common/            shared helpers: outputs.py (save_output), tidy_outputs.py (not a module)
 explorations/      playground: try ideas here; results that matter move into a module
 ```
 
 Every module has the same layout (`README.md`, `METHOD.md`, `CATALOG.md`, `<module>_paths.py`, code, `validation/`,
 `outputs/{products,tables,figures,reports}/`, git-ignored `.cache/`). The rules: [`../ORGANIZATION.md`](../ORGANIZATION.md);
 what every output file means: the module's `CATALOG.md` (index: [`../CATALOG.md`](../CATALOG.md)).
+Every output is written with `save_output(obj, path, level, purpose)` from `common/outputs.py`; the level (key /
+product / diag / scratch, recorded in `outputs/MANIFEST.csv`) decides what is committed and what /tidy deletes
+(ORGANIZATION.md section 5). Decisions from deleted step reports are kept in the module's `DECISIONS.md`.
 
 ## Conventions
 

@@ -11,6 +11,7 @@ The file is called baseline_estm_paths.py (not paths.py) so that a later module,
 imports baseline.py, does not pick up the wrong one.
 """
 from pathlib import Path
+import sys
 
 MODULE = Path(__file__).resolve().parent                   # research/baseline_estm
 REPO = MODULE.parents[1]                                   # the repository root
@@ -22,6 +23,7 @@ TABLES = OUTPUTS / "tables"
 FIGURES = OUTPUTS / "figures"
 REPORTS = OUTPUTS / "reports"
 CACHE = MODULE / ".cache"
+MANIFEST = OUTPUTS / "MANIFEST.csv"                        # level + purpose of every output file
 DEV = CACHE / "dev"                                        # validation runs with BV_SAMPLE=DEV (throw-away)
 
 # ---- products (make_dew_products.py, make_baseline_table.py) ----------------------------------------------------
@@ -43,6 +45,10 @@ C1_FAKE_EVENTS = TABLES / "c1_fake_events.csv.gz"
 C3_DAILY_CYCLE = TABLES / "c3_daily_cycle_per_sublink.csv"
 C4_JUMPS = TABLES / "c4_jumps.csv"
 R1B_FAKE_EVENT_OFFSETS = TABLES / "r1b_fake_event_offsets.csv.gz"
+
+# every output is written through research/common/outputs.py (save_output); this makes `research.` importable
+if str(REPO) not in sys.path:
+    sys.path.append(str(REPO))
 
 
 def validation_dirs(sample):

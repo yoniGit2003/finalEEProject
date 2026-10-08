@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from common import V, OUT, FIG, SPH, Timer, open_data, sublink_table, groups, load_panel, usable
+from research.common.outputs import save_output
 
 C = V["c3"]
 
@@ -49,8 +50,8 @@ def main():
         amp = pd.DataFrame(rows).merge(sl, on="sublink_id", how="left")
         cur = pd.DataFrame(curves, index=pd.Index(range(24), name="hour_utc")).T
         cur.columns = [f"h{h:02d}" for h in range(24)]
-        amp.merge(cur, left_on="sublink_id", right_index=True).to_csv(OUT / "c3_daily_cycle_per_sublink.csv",
-                                                                       index=False)
+        save_output(amp.merge(cur, left_on="sublink_id", right_index=True), OUT / "c3_daily_cycle_per_sublink.csv", "product",
+                    "C3 daily-cycle amplitude per sub-link (read by R1b, run_sample, make_baseline_table)", index=False)
         a = amp.amplitude_db.dropna()
         summ = {"n_sublinks": len(a), "amp_p10": a.quantile(0.1), "amp_p50": a.median(), "amp_p90": a.quantile(0.9)}
         for th in C["amplitude_thresholds_db"]:
@@ -60,9 +61,9 @@ def main():
             summ.update({f"corr_{name}_p10": x.quantile(0.1), f"corr_{name}_median": x.median(),
                          f"corr_{name}_p90": x.quantile(0.9)})
         summ = pd.DataFrame([summ])
-        summ.to_csv(OUT / "c3_summary.csv", index=False)
+        save_output(summ, OUT / "c3_summary.csv", "diag", "C3 amplitude percentiles and correlations", index=False)
         by_cls = amp.groupby(["length_class", "frequency_band"]).amplitude_db.describe(percentiles=[.1, .5, .9])
-        by_cls.to_csv(OUT / "c3_amplitude_by_class.csv")
+        save_output(by_cls, OUT / "c3_amplitude_by_class.csv", "diag", "C3 amplitude per link class")
         # figure: amplitude distribution + 3 largest and 3 typical curves
         a_sorted = amp.dropna(subset=["amplitude_db"]).sort_values("amplitude_db")
         largest = a_sorted.tail(C["n_largest"]).sublink_id.tolist()
@@ -86,7 +87,8 @@ def main():
         axes[1].legend(fontsize=7)
         fig.suptitle("C3: daily cycle of dry-weather TL")
         fig.tight_layout()
-        fig.savefig(FIG / "c3_daily_cycle.png", dpi=110)
+        save_output(fig, FIG / "c3_daily_cycle.png", "key",
+                    "daily cycle of dry TL (the daily_cycle_large flag)", dpi=110)
         plt.close(fig)
         print(summ.round(3).T.to_string())
 

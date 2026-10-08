@@ -33,6 +33,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
+from research.common.outputs import save_output
 
 CFG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
 S2, B, F = CFG["waa"]["selection"], CFG["waa"]["selection_2b"], CFG["waa"]["freeze"]
@@ -187,7 +188,7 @@ events = pd.DataFrame(ev_rows)
 events["event_rise_heavy"] = events.share_cut_by_rise_v2 > F["event_rise_heavy_share"]
 v["event_rise_heavy"] = v.event_id.map(events.set_index("event_id").event_rise_heavy).fillna(False).astype(bool)
 ev_tr = events[events.split_event == "train"].drop(columns="split_event").sort_values("event_start")
-ev_tr.to_csv(P.STEP2C_EVENTS, index=False)
+save_output(ev_tr, P.STEP2C_EVENTS, "diag", "step 2c one row per TRAIN event of the frozen set", index=False)
 
 # =================================================================================================== 4. freeze
 tr_ = v[v.split_event == "train"]
@@ -208,7 +209,8 @@ def freeze(flag, idx_path, rows_path, label):
                                   "truncated_by_v1": "truncated_by", "A_start_v1_db": "A_start_trace_db",
                                   "main_v1": "in_main_set", "offset_std_unc": "offset_std"})
     num = out.select_dtypes("number").columns
-    out.assign(**out[num].round(4)).to_csv(idx_path, index=False)
+    save_output(out.assign(**out[num].round(4)), idx_path, "product",
+                f"frozen tail set {TAIL_SET} ({label}): one row per tail", index=False)
     # 1 min rows: minutes [k_tr, end_v1) of each tail
     lr = long.merge(s[["tail_id", "sublink_id", "cml_id", "event_id", "split_event", "t0", "k_tr", "end_v1"]],
                     on="tail_id")
@@ -219,7 +221,8 @@ def freeze(flag, idx_path, rows_path, label):
                           "t": lr.t0 + pd.to_timedelta(lr.minutes_since_t0, unit="min"),
                           "minutes_since_t0_trace": (lr.minutes_since_t0 - lr.k_tr).astype("int16"),
                           "A_db": lr.A_db.astype("float32"), "link_state": lr.link_state.astype("int8")})
-    pq.write_table(pa.Table.from_pandas(rows_, preserve_index=False), rows_path, compression="zstd")
+    save_output(pa.Table.from_pandas(rows_, preserve_index=False), rows_path, "product",
+                f"frozen tail set {TAIL_SET} ({label}): 1 min rows from t0_trace", compression="zstd")
     return out, rows_
 
 
@@ -242,7 +245,7 @@ changes = pd.DataFrame([
     (f"main set {TAIL_SET} (after rules 1-2)", int(k.main_v1.sum()), float(k[k.main_v1].usable_v1_min.sum())),
     ("step 2b strict main set (reference)", int(k.in_main_strict.sum()), float(k[k.in_main_strict].usable_strict_min.sum())),
 ], columns=["what", "tails", "minutes"])
-changes.to_csv(P.STEP2C_CHANGES, index=False)
+save_output(changes, P.STEP2C_CHANGES, "diag", "step 2c tails / time changed by each rule", index=False)
 by_v1 = k[k.main_v1].truncated_by_v1.value_counts()
 lost_to_short = int((k.pre_main & ~k.main_v1).sum())
 
@@ -260,7 +263,7 @@ for name, (m_, k0, k1) in grp.items():
     cv_list.append(g.A_db.groupby(rel_.to_numpy()).agg(["median", "count"]).rename_axis("rel").reset_index()
                    .assign(group=name))
 curves = pd.concat(cv_list)
-curves.to_csv(P.STEP2C_MEDIAN_CURVES, index=False)
+save_output(curves, P.STEP2C_MEDIAN_CURVES, "diag", "step 2c median A of the frozen set", index=False)
 fig, ax = plt.subplots(2, 2, figsize=(13, 8))
 for row, log in enumerate((False, True)):
     for j, xmax in enumerate((90, 360)):
@@ -282,7 +285,7 @@ ax[0, 0].legend(frameon=False, fontsize=8)
 fig.suptitle(f"Median tail curves (TRAIN), each aligned at its own t0_trace. Line styles: strict {TAIL_SET} solid, "
              "step 2b strict dashed, control dash-dot. Drawn where >= 20 tails; log y from 0.01 dB.", fontsize=10)
 fig.tight_layout()
-fig.savefig(P.STEP2C_FIG_MEDIAN, dpi=110)
+save_output(fig, P.STEP2C_FIG_MEDIAN, "key", "median drying curve of the frozen tail set v1", dpi=110)
 plt.close(fig)
 
 # =================================================================================================== event look plots
@@ -359,7 +362,8 @@ for n_ev, eid in enumerate(F["look_events"]):
              "end v1 dash-dot); hatching /// unknown, xxx wet. Middle: radar R_max solid, R_mean dashed, gauges "
              "within 1 km (max) dotted, x = radar NaN. Bottom: hourly RH at GbgA.", ha="center", va="top", fontsize=9)
     fig.subplots_adjust(top=0.9)
-    fig.savefig(path, dpi=90, bbox_inches="tight")
+    save_output(fig, path, "key", f"look at event {eid}: what the rise cut v2 removes", dpi=90,
+                bbox_inches="tight")
     plt.close(fig)
 
 
@@ -457,6 +461,6 @@ Flags in the TRAIN main set: level_shift {int(idx_main[idx_main.split_event == '
 9. **File names** carry no version (`ORGANIZATION.md` forbids `_v1` on active paths): the set id `{TAIL_SET}` is in
    config `waa.freeze.tail_set` and in the `tail_set` column of every frozen file.
 """
-P.STEP2C_REPORT.write_text(report, encoding="utf-8")
+save_output(report, P.STEP2C_REPORT, "key", "step 2c report: rules and counts of the frozen tail set v1")
 print("\n" + "=" * 100 + "\n" + report)
 print(f"done in {time.time() - clock:.0f} s")

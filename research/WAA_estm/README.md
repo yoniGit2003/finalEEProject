@@ -161,12 +161,21 @@ for v1.
 ## Outputs
 
 `outputs/products/` (`tails_1min.parquet`, `tails_index.csv`, `tails_selected.csv`, `tails_model*` = frozen set v1), `outputs/tables/`, `outputs/figures/`,
-`outputs/reports/` (`step0_inventory.md`, `step1_tails.md`, `step2_selection.md`, `step2b_selection.md`, `step2c_freeze.md`). Every file is described in [`CATALOG.md`](CATALOG.md).
+`outputs/reports/`. Every file is described in [`CATALOG.md`](CATALOG.md); its importance level (key / product / diag /
+scratch, ORGANIZATION.md section 5) is in `outputs/MANIFEST.csv`.
+
+- **Key** (kept for the final report): `outputs/reports/step2c_freeze.md` with its figures `step2c_median_curves.png`,
+  `step2c_event_E20150617_0705.png`, `step2c_event_E20150701_0030.png`; the fast-drop test
+  `outputs/figures/step2_fast_drop_vs_length.png` and `outputs/tables/step2_correlations.csv`.
+- **Product**: everything in `outputs/products/`.
+- **Diag** (all other step figures, tables and reports): deleted by /tidy (log: `outputs/TIDY_LOG.md`); rerun the
+  step's script to get them back. The decisions they held are in [`DECISIONS.md`](DECISIONS.md).
 
 ## Method
 
 Step 1 is extraction and description only. The report definitions (return to the dry level, median curves,
-dry-weather rises) are in `outputs/reports/step1_tails.md` and in the `waa.report` settings. The WAA model method will
+dry-weather rises) are in the step 1 report (diag: rerun `step1_extract_tails.py`) and in the `waa.report` settings;
+the decisions of every step are in [`DECISIONS.md`](DECISIONS.md). The WAA model method will
 go to `METHOD.md` once it is decided.
 
 ## Open issues
@@ -190,5 +199,5 @@ go to `METHOD.md` once it is decided.
 - Light rain after t_first_dry: the step 2b strict end cuts at the first trace; the lenient end keeps it. Which
   end the WAA model uses (or rain as an input) is still open.
 - The L test of the fast drop has little power: the path-rain reference `wet_A_max` itself barely grows with L
-  (Spearman 0.13 for >= 25 GHz). See `outputs/reports/step2_selection.md`.
+  (Spearman 0.13 for >= 25 GHz). See DECISIONS.md, step 2.
 - `wet_A_max` spans the link's whole wet phase in the network event (several showers for multi-run events).

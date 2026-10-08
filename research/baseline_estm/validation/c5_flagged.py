@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from common import (V, P, OUT, FIG, SPH, HERE, Timer, open_data, sublink_table, load_panel, usable, window, stat)
+from research.common.outputs import save_output
 from c2_after_window import deltas
 
 C = V["c5"]
@@ -81,7 +82,7 @@ def main():
             rows.append(out)
             plot_case(d, r, other, c, tl, met, T, out)
         t = pd.DataFrame(rows)
-        t.to_csv(OUT / "c5_flagged_cases.csv", index=False)
+        save_output(t, OUT / "c5_flagged_cases.csv", "diag", "C5 the 13 flagged v1 cases", index=False)
         print(t[["event_id", "sublink_id", "flags", "self_d1", "self_d6", "other_d1", "rh_after_mean",
                  "c4_jump_overlap", "hint"]].round(2).to_string())
 
@@ -110,7 +111,7 @@ def plot_case(d, r, other, c, tl, met, T, out):
     a3.set_ylabel("RH [%]")
     a3.set_xlabel("time (UTC)")
     fig.tight_layout()
-    fig.savefig(FIG / f"c5_{r.sublink_id}_{r.event_id}.png", dpi=100)
+    save_output(fig, FIG / f"c5_{r.sublink_id}_{r.event_id}.png", "diag", "C5 flagged v1 case with weather", dpi=100)
     plt.close(fig)
 
 

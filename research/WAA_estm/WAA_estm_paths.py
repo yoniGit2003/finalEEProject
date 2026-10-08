@@ -8,6 +8,7 @@ Layout (rules: ORGANIZATION.md at the repository root; every output file is desc
     .cache/            git-ignored: logs, scratch (safe to delete)
 """
 from pathlib import Path
+import sys
 
 MODULE = Path(__file__).resolve().parent                   # research/WAA_estm
 REPO = MODULE.parents[1]                                   # the repository root
@@ -19,6 +20,11 @@ TABLES = OUTPUTS / "tables"
 FIGURES = OUTPUTS / "figures"
 REPORTS = OUTPUTS / "reports"
 CACHE = MODULE / ".cache"
+MANIFEST = OUTPUTS / "MANIFEST.csv"                        # level + purpose of every output file
+
+# every output is written through research/common/outputs.py (save_output); this makes `research.` importable
+if str(REPO) not in sys.path:
+    sys.path.append(str(REPO))
 
 # ---- step 0: inventory (step0_inventory.py) -----------------------------------------------------------------------
 STEP0_EXAMPLE_PNG = FIGURES / "step0_example.png"

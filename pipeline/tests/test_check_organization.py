@@ -40,3 +40,30 @@ def test_checker_catches_violations(tmp_path):
                  "b_v2.csv: no entry", "make.py:1: hard-coded", "missing NOTE.md", "nested .gitignore",
                  "notes.txt: not an allowed root file", "docs/a.md: broken link"):
         assert what in found, what
+
+
+def test_repository_outputs_follow_the_levels():
+    assert co.check_outputs(co.tracked()) == []
+
+
+def test_output_checks_catch_violations(tmp_path):
+    m = tmp_path / "research" / "m"
+    files = {
+        "m_paths.py": "",
+        "outputs/MANIFEST.csv": "path,level,purpose,script,commit,date\n"
+                                "outputs/figures/a.png,diag,x,s.py,abc,2026-01-01\n"
+                                "outputs/tables/b.csv,bogus,x,s.py,abc,2026-01-01\n"
+                                + "".join(f"outputs/figures/k{i}.png,key,x,s.py,abc,2026-01-01\n" for i in range(7)),
+        "outputs/TIDY_LOG.md": "",
+        "outputs/figures/a.png": "",
+        "outputs/tables/b.csv": "",
+        "outputs/tables/c_v2.csv": "",                              # not in the MANIFEST + versioned name
+    }
+    for name, text in files.items():
+        (m / name).parent.mkdir(parents=True, exist_ok=True)
+        (m / name).write_text(text)
+    found = "\n".join(co.check_outputs(["research/m/outputs/figures/a.png"], tmp_path))
+    for what in ("c_v2.csv: not in outputs/MANIFEST.csv", "c_v2.csv: versioned name", "b.csv: level 'bogus'",
+                 "7 key outputs", "a.png: level diag but tracked"):
+        assert what in found, what
+    assert "TIDY_LOG.md" not in found and "MANIFEST.csv: not in" not in found

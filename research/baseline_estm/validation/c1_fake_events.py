@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 from common import (V, OUT, FIG, CACHE, SPH, VARIANTS, Timer, open_data, sublink_table, groups, load_panel, usable,
                     variants, summary)
+from research.common.outputs import save_output
 
 C = V["c1"]
 PF = V["pass_fail"]
@@ -190,7 +191,7 @@ def plot_vs_time(vt):
     axes[0].legend(fontsize=8)
     fig.suptitle("C1: baseline error in dry weather against time since the (fake) event start, main sub-links")
     fig.tight_layout()
-    fig.savefig(FIG / "c1c_error_vs_time.png", dpi=110)
+    save_output(fig, FIG / "c1c_error_vs_time.png", "diag", "C1 error vs time since fake-event start", dpi=110)
     plt.close(fig)
 
 
@@ -225,7 +226,7 @@ def hour_humidity(ev, ids, met):
     axes[0].legend(fontsize=8)
     fig.suptitle(f"C1: fake-event error (D <= {C['short_max_h']} h) against hour of day and humidity, main sub-links")
     fig.tight_layout()
-    fig.savefig(FIG / "c1e_error_vs_hour_humidity.png", dpi=110)
+    save_output(fig, FIG / "c1e_error_vs_hour_humidity.png", "diag", "C1 error vs hour of day and humidity", dpi=110)
     plt.close(fig)
     return t
 
@@ -236,7 +237,8 @@ def main():
         sl = sublink_table(d)
         tl, state, cert, met = load_panel(d, sl)
         ev, slots = place_and_compute(sl, tl, state, cert)
-        ev.to_csv(OUT / "c1_fake_events.csv.gz", index=False)
+        save_output(ev, OUT / "c1_fake_events.csv.gz", "product",
+                    "C1 fake events (read by C2, C6, R1b, make_baseline_table)", index=False)
         np.savez_compressed(CACHE / "c1_slots.npz", **slots)
         G = groups(sl)
         # counts: how many fake events could be placed
@@ -250,27 +252,31 @@ def main():
                               "sublinks_full": int((n == C["max_events_per_sublink"]).sum()),
                               "sublinks_fewer": int(((n > 0) & (n < C["max_events_per_sublink"])).sum()),
                               "sublinks_none": int((n == 0).sum())})
-        pd.DataFrame(crows).to_csv(OUT / "c1_event_counts.csv", index=False)
+        save_output(pd.DataFrame(crows), OUT / "c1_event_counts.csv", "diag",
+                    "C1 fake events placed per group and D", index=False)
         for gname, ids in G.items():
-            table_a(ev, slots, ids).to_csv(OUT / f"c1a_variants_by_D_{gname}.csv", index=False)
-        by_class(ev, slots, G["main"], sl.assign(cls=sl.length_class + " / " + sl.frequency_band), "cls") \
-            .to_csv(OUT / "c1b_M2b_by_class.csv", index=False)
-        by_class(ev, slots, G["main"], sl, "tsl_behaviour").to_csv(OUT / "c1b_M2b_by_tsl.csv", index=False)
+            save_output(table_a(ev, slots, ids), OUT / f"c1a_variants_by_D_{gname}.csv", "diag",
+                        "C1 error per variant and D", index=False)
+        tab_cls = by_class(ev, slots, G["main"], sl.assign(cls=sl.length_class + " / " + sl.frequency_band), "cls")
+        save_output(tab_cls, OUT / "c1b_M2b_by_class.csv", "diag", "C1 M2b error per link class", index=False)
+        save_output(by_class(ev, slots, G["main"], sl, "tsl_behaviour"), OUT / "c1b_M2b_by_tsl.csv", "diag",
+                    "C1 M2b error per TSL behaviour", index=False)
         vt = vs_time(ev, slots, G["main"])
-        vt.to_csv(OUT / "c1c_error_vs_time.csv", index=False)
+        save_output(vt, OUT / "c1c_error_vs_time.csv", "diag", "C1 error vs time since start", index=False)
         plot_vs_time(vt)
-        hour_humidity(ev, G["main"], met).to_csv(OUT / "c1e_error_vs_hour_humidity.csv", index=False)
+        save_output(hour_humidity(ev, G["main"], met), OUT / "c1e_error_vs_hour_humidity.csv", "diag",
+                    "C1 error vs hour and humidity", index=False)
         ps = per_sublink(ev, slots, sl)
-        ps.to_csv(OUT / "c1d_M2b_per_sublink.csv", index=False)
+        save_output(ps, OUT / "c1d_M2b_per_sublink.csv", "diag", "C1 error per sub-link", index=False)
         pf = pass_fail(ps)
-        pf.to_csv(OUT / "c1_pass_fail_per_sublink.csv", index=False)
+        save_output(pf, OUT / "c1_pass_fail_per_sublink.csv", "diag", "R1 PASS / FAIL per sub-link", index=False)
         main_pf = pf[pf.group == "main"]
         summ = pd.concat([pf_summary(main_pf).assign(split="all main"),
                           pf_summary(main_pf, ["length_class", "frequency_band"]).assign(split="length / frequency"),
                           pf_summary(main_pf, "tsl_behaviour").assign(split="TSL class"),
                           pf_summary(pf[pf.is_degraded]).assign(split="degraded (separate)"),
                           pf_summary(pf[pf.is_toggling]).assign(split="toggling (separate)")])
-        summ.to_csv(OUT / "c1_pass_fail_summary.csv", index=False)
+        save_output(summ, OUT / "c1_pass_fail_summary.csv", "diag", "R1 PASS / FAIL counts", index=False)
         print(summ.round(3).to_string())
 
 

@@ -43,6 +43,15 @@ is described in [`CATALOG.md`](CATALOG.md): columns, units, producer and the com
 validation reports: [`outputs/reports/R1_validation.md`](outputs/reports/R1_validation.md) and
 [`outputs/reports/R1b_validation.md`](outputs/reports/R1b_validation.md).
 
+Importance levels (ORGANIZATION.md section 5) are in `outputs/MANIFEST.csv`:
+- **key**: the two validation reports (written by hand) and the figures `r1b_offset_by_D.png`, `r1b_c2_delta.png`,
+  `c3_daily_cycle.png`, `c4_humidity_dewpoint.png`;
+- **product**: the four files in `outputs/products/` and the tables other scripts read (`c1_fake_events.csv.gz`,
+  `c3_daily_cycle_per_sublink.csv`, `c4_jumps.csv`, `r1b_fake_event_offsets.csv.gz`,
+  `sample_two_window_baselines.csv`);
+- **diag**: everything else; deleted by /tidy (log: `outputs/TIDY_LOG.md`), rebuilt by rerunning the script. The
+  decisions they held are in [`DECISIONS.md`](DECISIONS.md).
+
 ## Method
 
 [`METHOD.md`](METHOD.md): the v2 rules and flags, the changes v1 -> v2, the known accuracy, the products, and the v1

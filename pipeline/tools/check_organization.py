@@ -13,12 +13,16 @@ What it checks (only files tracked by git, plus a few untracked ones that must n
  10. module code does not hard-code output folders (they come from <module>_paths.py) and never reads
      explorations/ or archive/
  11. relative links in Markdown files point to files that exist
+ 12. outputs and importance (ORGANIZATION.md section 5; files on disk, tracked or not): every file in a module's
+     outputs/ has a row in outputs/MANIFEST.csv with a valid level; at most 6 `key` per module; no versioned name in
+     outputs/; no diag / scratch output is tracked by git
 
 Run from anywhere:  python pipeline/tools/check_organization.py   (standard library only, a few seconds)
 Used by the /tidy command; it can also be added to the pre-commit hook (see ORGANIZATION.md).
 """
 from __future__ import annotations
 
+import csv
 import re
 import subprocess
 import sys
@@ -32,6 +36,10 @@ OUTPUT_SUFFIXES = {".csv", ".png", ".jpg", ".svg", ".pdf", ".gz", ".parquet", ".
 VERSIONED = re.compile(r"_(v\d+|new|final|old)(?=[._/-]|$)", re.IGNORECASE)
 EXEMPT_VERSIONED = ("docs/organization/", "_archive/")   # records of past names; any archive/ folder is exempt too
 MODULE_KINDS = ("products", "tables", "figures", "reports")
+BOOKKEEPING = ("MANIFEST.csv", "TIDY_LOG.md")                # files directly in outputs/ that are not outputs
+LEVELS = ("key", "product", "diag", "scratch")
+MAX_KEY = 6
+NOT_MODULES = ("explorations", "common")                    # research/ folders with code that are not modules
 
 
 def tracked() -> list[str]:
@@ -40,9 +48,9 @@ def tracked() -> list[str]:
 
 
 def research_modules(files: list[str]) -> list[str]:
-    """research/<name>/ folders that hold code (explorations/ is the playground, not a module)."""
+    """research/<name>/ folders that hold code (explorations/ is the playground, common/ the shared helpers)."""
     names = {f.split("/")[1] for f in files if f.startswith("research/") and f.count("/") >= 2 and f.endswith(".py")}
-    return sorted(n for n in names if n != "explorations")
+    return sorted(n for n in names if n not in NOT_MODULES)
 
 
 def catalog_patterns(text: str) -> list[re.Pattern]:
@@ -98,7 +106,8 @@ def check(files: list[str], repo: Path = REPO) -> list[str]:
                 bad.append(f"{base}{f}: a module has only one README (put it in README.md)")
             if Path(f).suffix.lower() in OUTPUT_SUFFIXES and not f.startswith(("outputs/", "archive/")):
                 bad.append(f"{base}{f}: output file outside outputs/ (or archive/)")
-            if f.startswith("outputs/") and (f.count("/") < 2 or f.split("/")[1] not in MODULE_KINDS):
+            if f.startswith("outputs/") and f.split("/", 1)[1] not in BOOKKEEPING and (
+                    f.count("/") < 2 or f.split("/")[1] not in MODULE_KINDS):
                 bad.append(f"{base}{f}: outputs/ holds only {', '.join(MODULE_KINDS)}/")
         cat = repo / base / "CATALOG.md"
         pats = catalog_patterns(cat.read_text(encoding="utf-8")) if cat.exists() else []
@@ -136,9 +145,44 @@ def check(files: list[str], repo: Path = REPO) -> list[str]:
     return bad
 
 
+def check_outputs(files: list[str], repo: Path = REPO) -> list[str]:
+    """Rule 12 (outputs and importance), on the files on disk of every module with a <module>_paths.py."""
+    bad = []
+    tracked_set = set(files)
+    research = repo / "research"
+    mods = sorted(p for p in research.iterdir() if p.is_dir() and (p / f"{p.name}_paths.py").exists())         if research.exists() else []
+    for mod in mods:
+        base = f"research/{mod.name}/"
+        out = mod / "outputs"
+        man = out / "MANIFEST.csv"
+        rows = {}
+        if man.exists():
+            with open(man, newline="", encoding="utf-8") as fh:
+                rows = {r["path"]: r for r in csv.DictReader(fh)}
+        for p, r in rows.items():
+            if r.get("level") not in LEVELS:
+                bad.append(f"{base}outputs/MANIFEST.csv: {p}: level {r.get('level')!r} (one of {', '.join(LEVELS)})")
+            elif r["level"] in ("diag", "scratch") and base + p in tracked_set:
+                bad.append(f"{base}{p}: level {r['level']} but tracked by git (diag / scratch are never committed)")
+        n_key = sum(r.get("level") == "key" for r in rows.values())
+        if n_key > MAX_KEY:
+            bad.append(f"{base}outputs/MANIFEST.csv: {n_key} key outputs (at most {MAX_KEY})")
+        if not out.exists():
+            continue
+        for f in sorted(out.rglob("*")):
+            rel = f.relative_to(mod).as_posix()
+            if not f.is_file() or f.parent == out and f.name in BOOKKEEPING:
+                continue
+            if rel not in rows:
+                bad.append(f"{base}{rel}: not in outputs/MANIFEST.csv (write it with save_output)")
+            if VERSIONED.search(rel):
+                bad.append(f"{base}{rel}: versioned name in outputs/ (one current version, named by content)")
+    return bad
+
+
 def main() -> int:
     files = tracked()
-    bad = check(files)
+    bad = check(files) + check_outputs(files)
     for b in bad:
         print(b)
     print(f"check_organization: {'FAIL' if bad else 'OK'} ({len(bad)} problems; {len(files)} tracked files checked)")
