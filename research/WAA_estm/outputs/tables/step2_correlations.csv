@@ -1,0 +1,16 @@
+test,x,y,n,links,rho,ci_low,ci_high
+"4a fast_drop vs L, <25GHz",L_km,fast_drop_db,99,20,0.138,-0.094,0.313
+"4a fast_drop / A_start vs L, <25GHz",L_km,fast_drop_share,99,20,0.055,-0.123,0.282
+"4a reference: wet_A_max vs L, <25GHz",L_km,wet_A_max_db,99,20,0.195,-0.075,0.356
+"4a reference: wet_A_max / L vs L, <25GHz",L_km,k,99,20,-0.157,-0.422,0.092
+"4a fast_drop vs L, >=25GHz",L_km,fast_drop_db,860,190,-0.104,-0.203,-0.0
+"4a fast_drop / A_start vs L, >=25GHz",L_km,fast_drop_share,860,190,-0.127,-0.235,-0.016
+"4a reference: wet_A_max vs L, >=25GHz",L_km,wet_A_max_db,860,190,0.132,0.038,0.216
+"4a reference: wet_A_max / L vs L, >=25GHz",L_km,k,860,190,-0.583,-0.648,-0.507
+4c fast_drop vs margin_R_mean_sum,margin_R_mean_sum_mm,fast_drop_db,959,210,0.102,0.024,0.178
+4c fast_drop vs margin_R_max_max,margin_R_max_max_mmh,fast_drop_db,959,210,0.077,0.004,0.152
+4c fast_drop vs margin_min,margin_minutes,fast_drop_db,959,210,0.031,-0.045,0.107
+4d sub-link 1 vs 2: A_start_db,A_start_db_1,A_start_db_2,334,160,0.747,0.685,0.8
+4d sub-link 1 vs 2: fast_drop_db,fast_drop_db_1,fast_drop_db_2,334,160,0.871,0.835,0.902
+4d sub-link 1 vs 2: A_60min_db,A_60min_db_1,A_60min_db_2,333,159,0.522,0.411,0.619
+4d sub-link 1 vs 2: A_180min_db,A_180min_db_1,A_180min_db_2,320,156,0.451,0.348,0.553

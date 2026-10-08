@@ -1,0 +1,18 @@
+path,level,purpose,script,commit,date
+outputs/figures/c3_daily_cycle.png,key,daily cycle of dry TL (the daily_cycle_large flag),research/baseline_estm/validation/c3_daily_cycle.py,fb59b8e+dirty,2026-10-08T12:35:18Z
+outputs/figures/c4_humidity_dewpoint.png,key,dry jumps vs humidity and dew-point depression (dew?),research/baseline_estm/validation/c4_jumps.py,fb59b8e+dirty,2026-10-08T12:35:27Z
+outputs/figures/r1b_c2_delta.png,key,Delta_k after real rain with v2 vs control,research/baseline_estm/validation/r1b_event_level.py,fb59b8e+dirty,2026-10-08T12:37:26Z
+outputs/figures/r1b_offset_by_D.png,key,v2 vs v1 / M0 / M1 event offsets by duration,research/baseline_estm/validation/r1b_event_level.py,fb59b8e+dirty,2026-10-08T12:37:26Z
+outputs/products/baseline_uncertainty.csv,product,v2 baseline error spread per sub-link (weights),research/baseline_estm/make_baseline_table.py,fb59b8e+dirty,2026-10-08T12:37:54Z
+outputs/products/baselines.csv,product,"frozen v2 baseline per (event, sub-link): input of WAA_estm",research/baseline_estm/make_baseline_table.py,fb59b8e+dirty,2026-10-08T12:38:13Z
+outputs/products/dew_risk_hourly.csv,product,hourly weather and dew risk at GbgA,research/baseline_estm/make_dew_products.py,fb59b8e+dirty,2026-10-08T12:37:34Z
+outputs/products/dry_jumps.csv,product,dry-day baseline jumps of all train sub-links (C4),research/baseline_estm/make_dew_products.py,fb59b8e+dirty,2026-10-08T12:37:34Z
+outputs/reports/R1_validation.md,key,"R1: slot-level validation of the baseline variants (C1-C6), PASS / FAIL",by hand,,2026-10-08T12:38:52Z
+outputs/reports/R1b_validation.md,key,"R1b: event-level validation of v2, humidity-exclusion decision",by hand,,2026-10-08T12:38:52Z
+outputs/tables/c1_fake_events.csv.gz,product,"C1 fake events (read by C2, C6, R1b, make_baseline_table)",research/baseline_estm/validation/c1_fake_events.py,fb59b8e+dirty,2026-10-08T12:33:49Z
+outputs/tables/c3_daily_cycle_per_sublink.csv,product,"C3 daily-cycle amplitude per sub-link (read by R1b, run_sample, make_baseline_table)",research/baseline_estm/validation/c3_daily_cycle.py,fb59b8e+dirty,2026-10-08T12:35:18Z
+outputs/tables/c4_jumps.csv,product,"C4 dry-day jumps (read by C5, make_dew_products)",research/baseline_estm/validation/c4_jumps.py,fb59b8e+dirty,2026-10-08T12:35:26Z
+outputs/tables/r1b_fake_event_offsets.csv.gz,product,R1b event offsets of every method (read by make_baseline_table),research/baseline_estm/validation/r1b_event_level.py,fb59b8e+dirty,2026-10-08T12:36:53Z
+outputs/tables/r1b_real_events.csv.gz,diag,"R1b real (event, sub-link) pairs with v2",research/baseline_estm/validation/r1b_event_level.py,fb59b8e+dirty,2026-10-08T12:37:07Z
+outputs/tables/sample_two_window_baselines.csv,product,method v1 on the sample (read by C5),research/baseline_estm/run_sample.py,fb59b8e+dirty,2026-10-08T12:32:56Z
+outputs/tables/validation_runtimes.csv,diag,runtime of each validation check,research/baseline_estm/validation/run_all.py,fb59b8e+dirty,2026-10-08T12:37:26Z

@@ -21,10 +21,44 @@ hall_of_fame*.pkl
 /outputs/
 
 # ---- Large data formats (safety net) ----
-research/WAA_estm/outputs/products/tails_1min.parquet
-research/WAA_estm/outputs/products/tails_selected.csv
 *.nc
 *.zip
+
+# ---- Research outputs (ORGANIZATION.md, "Outputs and importance") ----
+# Everything in research/<module>/outputs/ is ignored except MANIFEST.csv, TIDY_LOG.md and the key / product files
+# (<= 10 MB) listed in the generated block, which research/common/outputs.py rewrites from the MANIFESTs.
+# So diag / scratch outputs (and products over 10 MB) are never committed.
+research/*/outputs/**/*.*
+!research/*/outputs/MANIFEST.csv
+!research/*/outputs/TIDY_LOG.md
+# BEGIN generated: key / product outputs that are committed (research/common/outputs.py; do not edit)
+!research/WAA_estm/outputs/figures/step2_fast_drop_vs_length.png
+!research/WAA_estm/outputs/figures/step2c_event_E20150617_0705.png
+!research/WAA_estm/outputs/figures/step2c_event_E20150701_0030.png
+!research/WAA_estm/outputs/figures/step2c_median_curves.png
+!research/WAA_estm/outputs/products/tails_index.csv
+!research/WAA_estm/outputs/products/tails_model.parquet
+!research/WAA_estm/outputs/products/tails_model_alt.parquet
+!research/WAA_estm/outputs/products/tails_model_alt_index.csv
+!research/WAA_estm/outputs/products/tails_model_index.csv
+!research/WAA_estm/outputs/reports/step2c_freeze.md
+!research/WAA_estm/outputs/tables/step2_correlations.csv
+!research/baseline_estm/outputs/figures/c3_daily_cycle.png
+!research/baseline_estm/outputs/figures/c4_humidity_dewpoint.png
+!research/baseline_estm/outputs/figures/r1b_c2_delta.png
+!research/baseline_estm/outputs/figures/r1b_offset_by_D.png
+!research/baseline_estm/outputs/products/baseline_uncertainty.csv
+!research/baseline_estm/outputs/products/baselines.csv
+!research/baseline_estm/outputs/products/dew_risk_hourly.csv
+!research/baseline_estm/outputs/products/dry_jumps.csv
+!research/baseline_estm/outputs/reports/R1_validation.md
+!research/baseline_estm/outputs/reports/R1b_validation.md
+!research/baseline_estm/outputs/tables/c1_fake_events.csv.gz
+!research/baseline_estm/outputs/tables/c3_daily_cycle_per_sublink.csv
+!research/baseline_estm/outputs/tables/c4_jumps.csv
+!research/baseline_estm/outputs/tables/r1b_fake_event_offsets.csv.gz
+!research/baseline_estm/outputs/tables/sample_two_window_baselines.csv
+# END generated
 
 # ---- Windows ----
 Thumbs.db

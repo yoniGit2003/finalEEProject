@@ -1,0 +1,14 @@
+path,level,purpose,script,commit,date
+outputs/figures/step2_fast_drop_vs_length.png,key,fast drop vs link length (WAA or missed path rain?),research/WAA_estm/step2_select_tails.py,fb59b8e+dirty,2026-10-08T12:42:38Z
+outputs/figures/step2c_event_E20150617_0705.png,key,look at event E20150617_0705: what the rise cut v2 removes,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:14Z
+outputs/figures/step2c_event_E20150701_0030.png,key,look at event E20150701_0030: what the rise cut v2 removes,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:16Z
+outputs/figures/step2c_median_curves.png,key,median drying curve of the frozen tail set v1,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:11Z
+outputs/products/tails_1min.parquet,product,"every minute of every drying tail (git-ignored, > 10 MB)",research/WAA_estm/step1_extract_tails.py,fb59b8e+dirty,2026-10-08T12:41:16Z
+outputs/products/tails_index.csv,product,one row per drying tail (read by step 2),research/WAA_estm/step1_extract_tails.py,fb59b8e+dirty,2026-10-08T12:41:17Z
+outputs/products/tails_model.parquet,product,frozen tail set v1 (main): 1 min rows from t0_trace,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:06Z
+outputs/products/tails_model_alt.parquet,product,frozen tail set v1 (alt): 1 min rows from t0_trace,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:07Z
+outputs/products/tails_model_alt_index.csv,product,frozen tail set v1 (alt): one row per tail,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:06Z
+outputs/products/tails_model_index.csv,product,frozen tail set v1 (main): one row per tail,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:05Z
+outputs/products/tails_selected.csv,product,tail index + selection columns of steps 2 and 2b (read by step 2c),research/WAA_estm/step2b_fix_tails.py,fb59b8e+dirty,2026-10-08T12:43:24Z
+outputs/reports/step2c_freeze.md,key,step 2c report: rules and counts of the frozen tail set v1,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:16Z
+outputs/tables/step2_correlations.csv,key,fast-drop test: Spearman rho with link-bootstrap CI,research/WAA_estm/step2_select_tails.py,fb59b8e+dirty,2026-10-08T12:42:32Z
