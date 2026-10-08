@@ -93,3 +93,76 @@ baseline_validation:
     p10_min_db: -0.3
     p90_max_db: 0.3
     extra_p90_24h_db: 0.2
+
+# ---------------------------------------------------------------------------------------------------------------
+# WAA stage (research/WAA_estm/). Step 1 = extract ALL drying tails (no selection, no fitting). Unit: minutes and dB.
+# ---------------------------------------------------------------------------------------------------------------
+waa:
+  tails:                     # tail definition (README.md of WAA_estm): t0 = last_wet_end of baselines.csv
+    cap_h: 12.0              # t_end at the latest t0 + cap_h
+    gap_min: 15              # ... or at the start of a NaN run of 1 min A this long or longer
+    gauge_max_dist_m: 1000   # gauge columns only if the link's nearest gauge is this close (as link_state)
+  report:                    # descriptive only (step1_tails.md); nothing here selects tails
+    a_start_bins_db: [0.5, 1.0, 2.0]          # A_start bins: < 0.5, 0.5-1, 1-2, > 2 dB
+    return_minutes: [2, 5, 10, 30, 60, 180]   # "back to the dry level" checked at these minutes since t0
+    return_floor_db: 0.3                      # threshold = max(return_floor_db, return_std_factor * offset_std)
+    return_std_factor: 2.0
+    rise_db: 0.3             # dry-weather rise: smoothed A goes up by this much above its running minimum ...
+    rise_smooth_min: 15      # ... smoothed with a rolling median of this many minutes, while link_state is dry
+    resolution_panels: 12    # resolution check: random tails with A_start >= resolution_min_a_start_db
+    resolution_min_a_start_db: 1.0
+    resolution_hours: 2.0
+    seed: 0
+  selection:                 # step 2 (step2_select_tails.py): rules fixed BEFORE looking at the results; TRAIN only
+    max_nan_share: 0.10      # exclude a tail if more than this share of its minutes has no A
+    rise_db: 0.6             # truncate at a sustained dry-weather rise: smoothed A >= this above its running minimum
+    rise_smooth_min: 15      #   (trailing rolling median, minutes; running minimum since t_first_dry, dry minutes)
+    rise_min_duration_min: 30   #  ... held for at least this many consecutive minutes
+    main_a_start_db: 1.0     # main set: A_start >= this ...
+    alt_a_start_db: 0.6      #   (alternative threshold, counts only)
+    min_usable_min: 60       # ... and usable length t0 .. t_use_end >= this
+    control_max_a_start_db: 0.5   # control group: A_start below this, same exclusions
+    a_dry_window_min: 5      # A_dry = mean A over [t_first_dry, t_first_dry + this)
+    value_window_min: 5      # A at t0 + k = mean over [k, k + this)
+    shape_minutes: [10, 30, 60, 180, 360]
+    crossing_smooth_min: 5   # time to A_start / 2 and A_start / e on a trailing mean of this many minutes
+    plateau_band_db: 0.15    # plateau: A stays within this band ...
+    plateau_min_duration_min: 45   # ... for at least this long ...
+    plateau_min_a_db: 0.6    # ... while A stays above this
+    pair_minutes: [60, 180]  # sub-link 1 vs 2: A at t0 + these minutes
+    length_bins_km: [0.1, 0.5, 1, 2, 3, 5, 8, 16]
+    bootstrap_reps: 1000     # Spearman 95 % CI: resample LINKS with replacement
+    seed: 0
+    gallery_n: 24
+    gallery_seed: 1
+    gallery_hours: 6
+  selection_2b:              # step 2b (step2b_fix_tails.py): fixes after the step 2 gallery; TRAIN only, no fitting
+    gauge_max_dist_m: 1000   # rain trace: radar R_max > 0 on the path OR any gauge within this distance > 0 (5 min bin)
+    rise_quiet_db: 0.15      # dry-rise cut moved back to the last minute before the rise run with excess < this
+    max_offset_std_db: 0.3   # noise exclusion: sub-link offset_std (dry-weather baseline spread) above this (1 RSL step)
+    late_from_h: 6           # late_level = median A over [t0 + late_from_h, t0 + late_to_h] ...
+    late_to_h: 12
+    late_min_valid_min: 60   # ... if the lenient tail has at least this many valid minutes there
+    level_floor_db: 0.3      # level_shift if |late_level| > max(level_floor_db, level_std_factor * offset_std)
+    level_std_factor: 2.0
+    undershoot_window_h: 3   # undershoot = min of the 15 min trailing median of A within this long after t0_trace
+    undershoot_db: -0.3      # flag if below this
+    temp_before_h: 2         # temperature change = T(hour of t0) - T(hour of event start - this)
+    example_panels: 6        # example panels per flag
+    example_seed: 3
+    gallery_n: 24
+    gallery_seed: 2
+    gallery_hours: 6
+  freeze:                    # step 2c (step2c_freeze.py): last fixes, then the frozen tail set for modelling
+    tail_set: v1             # id written into every frozen file (file names carry no version: ORGANIZATION.md)
+    radar_nan_is_unknown: true   # a radar NaN bin on the path counts like a rain trace (start and strict end)
+    rise_smooth_min: 10      # rise cut v2: trailing median of A over this many minutes ...
+    rise_db: 0.6             # ... >= this above its running minimum since t0_trace, on ALL minutes ...
+    rise_min_duration_min: 10    # ... for at least this many minutes
+    rise_quiet_db: 0.15      # cut at the last minute before that run with an excess < this (that minute is kept)
+    event_window_after_h: 6  # event diagnostics: radar valid fraction over [event start, event end + this]
+    event_rise_heavy_share: 0.3  # flag an event if more than this share of its tails is cut by the rise rule
+    look_events: [E20150617_0705, E20150701_0030]
+    look_tails_per_event: 6
+    look_seed: 4
+    look_hours: 6

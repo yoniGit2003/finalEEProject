@@ -7,6 +7,7 @@ which script writes it and the command that rebuilds it. The entries live next t
 |---|---|---|
 | data layer (pipeline) | `data/work/openmrg/`, `data/release/openmrg_v1/` (not in git) | [`pipeline/docs/data_dictionary.md`](pipeline/docs/data_dictionary.md) (every table, column and variable) |
 | research: baseline | `research/baseline_estm/outputs/` | [`research/baseline_estm/CATALOG.md`](research/baseline_estm/CATALOG.md) |
+| research: WAA (drying tails) | `research/WAA_estm/outputs/` | [`research/WAA_estm/CATALOG.md`](research/WAA_estm/CATALOG.md) |
 | research: explorations | next to each script (playground) | not cataloged; see [`research/explorations/README.md`](research/explorations/README.md) |
 | documents | `docs/` | [`docs/README.md`](docs/README.md) |
 
@@ -24,6 +25,11 @@ Commands from the repository root, with `C:\Users\yoni\miniconda3\python.exe` as
 | 3 | `python research/baseline_estm/run_sample.py` | `outputs/tables/sample_pre_event_baselines.csv` | release, `c3_daily_cycle_per_sublink.csv` (step 2) | ~5 s |
 | 4 | `python research/baseline_estm/make_dew_products.py` | `outputs/products/dew_risk_hourly.csv`, `dry_jumps.csv` | release, `c4_jumps.csv` (step 2) | ~3 s |
 | 5 | `python research/baseline_estm/make_baseline_table.py` | `outputs/products/baselines.csv`, `baseline_uncertainty.csv` | release, step 4, `c1_fake_events.csv.gz`, `c3_*`, `r1b_fake_event_offsets.csv.gz` (step 2) | ~40 s |
+| 6 | `python research/WAA_estm/step0_inventory.py` | `WAA_estm/outputs/{figures,tables,reports}/step0_*` | release, step 5 | ~10 s |
+| 7 | `python research/WAA_estm/step1_extract_tails.py` | `WAA_estm/outputs/products/tails_1min.parquet`, `tails_index.csv`, `step1_*` | release, steps 4-5 | ~2.5 min |
+| 8 | `python research/WAA_estm/step2_select_tails.py` | `WAA_estm/outputs/products/tails_selected.csv`, `step2_*` | step 7 | ~1.5 min |
+| 9 | `python research/WAA_estm/step2b_fix_tails.py` | new columns in `WAA_estm/outputs/products/tails_selected.csv`, `step2b_*` | step 8 | ~1 min |
+| 10 | `python research/WAA_estm/step2c_freeze.py` | `WAA_estm/outputs/products/tails_model*` (frozen tail set v1), `step2c_*` | step 9 | ~45 s |
 | - | by hand | `outputs/reports/R1_validation.md`, `R1b_validation.md`, `METHOD.md` | the numbers of steps 1-5 | |
 
 (`research/baseline_estm/` is left out of the paths in steps 1-5.) Re-running a step only rewrites its own files.
