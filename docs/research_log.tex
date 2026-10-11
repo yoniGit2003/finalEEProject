@@ -1,4 +1,4 @@
-% last updated: 2026-10-11 commit=75df645
+% last updated: 2026-10-11 commit=104de05
 % (the line above is read and rewritten by /tidy: the date and the git commit the content of this report describes)
 % Research log: what has been implemented in research/, at the level of ideas (no code).
 % Build:  python pipeline/tools/build_research_log.py   (pdflatex twice; writes docs/research_log.pdf only)
@@ -89,8 +89,9 @@ about $\pm 0.2\dB$ per event, and it does not absorb the drying of the antenna a
 \emph{drying tails}: 429 stretches of $A(t)$ after the rain has stopped on a link, in which the remaining attenuation
 is mostly wet-antenna attenuation (WAA). One thing is in progress: before any drying law is fitted to the real tails,
 the fitting method is tested on simulated tails whose true law is known. A fit of one tail at a time cannot tell the
-candidate laws apart; a fit of all tails together can, on simulated data, and a stress test of that fit is running. No
-law has been fitted to real tails yet. Still to come are the drying law itself (fitting and weak-form SINDy), the
+candidate laws apart; a fit of all tails together can, on simulated data. A stress test of that fit passed for three
+of the four laws tested and showed that two of the nonlinear laws cannot be told apart from each other. The second
+tool, SINDy, has not been tested yet. No law has been fitted to real tails yet. Still to come are the drying law itself (fitting and weak-form SINDy), the
 wetting law from very short links, the verification on unseen events, and then the two later stages of the project:
 the path law $f(L,\Rbar,Z)$ and the rain estimate.
 
@@ -165,7 +166,7 @@ WAA 2, 2b, 2c & Selection by fixed rules; frozen tail set v1 (429 train, 123 val
 WAA 3a & Simulator of tails, calibrated to the real set & done & \ref{sec:sim} \\
 WAA 3b-1 & Fit one tail at a time, on simulated tails & done: not enough & \ref{sec:pertail} \\
 WAA 3b-1b & Fit all tails together, on simulated tails & done: works & \ref{sec:pooled} \\
-WAA 3b-1c & Stress test of that fit & in progress & \ref{sec:stress} \\
+WAA 3b-1c & Stress test of that fit & done: partly passed & \ref{sec:stress} \\
 WAA 3b-2, 3c & SINDy on simulated tails; simulator of whole events & not started & \ref{sec:next} \\
 WAA 4--6 & Drying law $h(W)$ on real tails; what it depends on & not started & \ref{sec:next} \\
 WAA 7 & Wetting law $g(R,W)$ from very short links & not started & \ref{sec:next} \\
@@ -903,7 +904,7 @@ minutes, first 6 hours, whole tail.}
 On the real tails, the pooled fit will be able to say which of the five forms describes the drying best, with its
 parameters and an uncertainty from resampling events. It will not prove a mechanism: the true law may be none of the
 five, and the winner is then only the best approximation among them. And the test above was run under friendly
-conditions, which is why the next step exists:
+conditions, which is why the next step was added:
 \begin{itemize}
 \item the fit used the same noise model that generated the data, while the real noise has more than one time scale;
 \item the search started from the calibrated parameters of each law;
@@ -912,27 +913,69 @@ is $0.23$; the simulated laws give $0.28$ or more). This is a hint, not a result
 is wide ($0.16$ to $0.56$).
 \end{itemize}
 
-\subsection{Stress test of the pooled fit (in progress)}
+\subsection{Stress test of the pooled fit: partly passed}
 \label{sec:stress}
 
 The stress test tries to break the pooled fit by removing the three friendly conditions one at a time, again on
-simulated data and again with a rule for success fixed before the run:
+simulated data and again with a rule for success fixed before the run (per test and per true law: the law's own
+candidate wins in at least 4 of 5 data sets, and its main parameters come back within $\pm 30\,\%$). It uses the first
+60 minutes of each tail and four true laws: exponential, two layers, linear + quadratic, and the switch.
 \begin{description}[leftmargin=1.2cm, style=nextline]
 \item[T1, wrong noise model.] The data are generated with two slow noise components (correlation times of 20 and 300
 minutes), but the fit still assumes one. Slow noise that the fit does not model could be mistaken for a slow layer and
 favour the more flexible laws.
-\item[T2, honest starting points.] The search starts from generic values, the same for every law, instead of from the
-right answer.
+\item[T2, honest starting points.] The search starts from four generic values, the same for every true law, instead
+of from the right answer; the best of the four is kept.
 \item[T3, faster truths.] Every law is recalibrated to the real median at 10, 30 and 60 minutes, so that the test
-data dry as fast as the real tails do.
+data dry as fast as the real tails do. The exponential and the two-layer law are also tested with a wider spread of
+drying speeds ($s = 1.5$).
 \end{description}
-The test was started on 11 October 2026 and has no result yet. Its outcome decides whether the pooled fit is applied
-to the real tails as it is, or whether its noise model has to be extended first.
+
+\begin{table}[H]
+\centering
+\caption{Stress test of the pooled fit on simulated data: 12 of the 14 cases pass. ``Pass'' means the rule fixed before
+the run is met.}
+\label{tab:stress}
+\small
+\begin{tabularx}{\linewidth}{@{}l c c Y@{}}
+\toprule
+True law & T1: wrong noise & T2: honest starts & T3: faster truths \\
+\midrule
+m1 exponential & pass & pass & pass (also with the wider spread) \\
+m4 two layers & pass & pass & pass (also with the wider spread) \\
+m6 switch & pass & pass & pass \\
+m5 linear + quadratic & \textbf{fail}: the power law wins 5 of 5 & pass & \textbf{fail}: wins 4 of 5, but its linear rate comes back at 0.65 of the truth \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+What the result means:
+\begin{itemize}
+\item \textbf{The method holds for three of the four laws.} The exponential, the two-layer law and the switch are
+recognised under noise the fit does not know, from generic starting points, and when they dry as fast as the real
+tails. The fear that unmodelled slow noise would be mistaken for a slow layer did not come true in this test.
+\item \textbf{The two nonlinear laws are one family.} Both failures belong to the linear + quadratic law, and both
+have the same cause: with the calibrated parameters its linear term is small, so it is almost a pure quadratic, which
+the power law copies. The margins are tiny (about 2 BIC units, in either direction). On real tails the two will be
+read together as ``drying that speeds up when the antenna is wetter'', and the linear rate will not be interpreted
+from the first hour.
+\item \textbf{Starting points matter, most of all for the switch law.} From different starting points the switch
+candidate reached clearly different solutions in all 20 data sets of the test, the other candidates in about a fifth to
+a half of them. The winner still was the same as with the ideal start in 19 of 20 data sets. Every candidate will
+therefore be fitted from several starting points on the real tails.
+\item \textbf{Two layers against the switch needs a clear margin.} In one two-layer data set the switch won from a
+generic start by about 4 BIC units; a difference below about 10 units between these two will not be called a
+decision.
+\end{itemize}
+One limit of the test itself: when the slow laws were recalibrated to the fast early decay with all parameters free,
+their slow part ran off to a constant floor, so the slow parameters were kept at their earlier values. This choice was
+made before any fit of T3 and is still to be confirmed by us.
 
 \inshort{A simulator that copies the real tails and their noise shows that the median curve cannot decide between the
 laws, and that fitting single tails cannot either. Fitting all tails together, with a shared law, a random speed per
 tail, a bounded offset and a correlated-noise model, recovers the right law and its parameters on simulated data. A
-stress test of that result is running.}
+stress test confirms this for the exponential, the two-layer and the switch law; the two nonlinear laws cannot be
+separated from each other. All of this is on simulated data: no law has been fitted to the real tails.}
 
 % =====================================================================================================================
 \section{Where we stand}
@@ -957,8 +1000,10 @@ A frozen, non-circular set of 429 drying tails (and 123 validation tails not yet
 What the unexplained night-time rises are (drizzle or condensation). \\
 The median tail halves in about 15 minutes and has a slow remainder. &
 Whether the slow remainder is a second process or only the spread of drying speeds between antennas. \\
-The median curve and single-tail fits cannot identify the law; a pooled fit can, on simulated data. &
-Whether the pooled fit survives a wrong noise model, generic starting points and faster truths (stress test running). \\
+The median curve and single-tail fits cannot identify the law; a pooled fit can, on simulated data, also under a wrong noise model and from generic starting points (exponential, two layers, switch). &
+Whether SINDy recovers a known law from simulated tails (not tested yet). \\
+On simulated data the power law and the linear + quadratic law cannot be told apart. &
+Which law the real tails follow, and whether the real noise is close enough to the two noise models tested. \\
 Dry-weather noise is correlated over tens of minutes; dew produces WAA-like jumps at night. &
 The wetting law, the path law $f$, and the rain estimate: not started. \\
 \bottomrule
@@ -970,7 +1015,9 @@ known truth} before trusting a method: fake events for the baseline, simulated t
 \emph{fix the decision rule before the run}: the rejected humidity rule, the tail selection, and the success rules of
 the fitting tests were all written down before their results were seen. Twice this prevented a wrong conclusion that
 looked attractive: that the fast drop is antenna drying (Section~\ref{sec:fastdrop}) and that the data ask for two
-layers (Section~\ref{sec:sim}).
+layers (Section~\ref{sec:sim}). The stress
+test adds a third case of the same kind: a win of the linear + quadratic law over the power law, or the reverse, will
+not be read as a finding.
 
 % =====================================================================================================================
 \section{What comes next}
@@ -989,7 +1036,7 @@ links, where the path term is small. Figure~\ref{fig:plan} shows the route.
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[node distance=5mm and 5mm]
-\node[doing, text width=40mm] (a) {Finish the tool tests\\{\scriptsize stress test; SINDy on simulated tails; simulator of whole events}};
+\node[doing, text width=40mm] (a) {Finish the tool tests\\{\scriptsize SINDy on simulated tails; simulator of whole events}};
 \node[todo, text width=40mm, right=of a] (b) {Drying law $h(W)$\\{\scriptsize pooled fit and weak-form SINDy on the real tails}};
 \node[todo, text width=40mm, right=of b] (c) {What drying depends on\\{\scriptsize frequency, antenna, wind, temperature, humidity}};
 \node[todo, text width=40mm, below=10mm of a] (d) {Wetting law $g(R,W)$\\{\scriptsize very short links, radar rain as input, $h$ kept fixed}};
@@ -1006,15 +1053,15 @@ links, where the path term is small. Figure~\ref{fig:plan} shows the route.
 \subsection{The steps}
 
 \begin{enumerate}
-\item \textbf{Finish testing the tools.} Complete the stress test (Section~\ref{sec:stress}). Then test weak-form
+\item \textbf{Finish testing the tools.} The stress test is done (Section~\ref{sec:stress}). Next, test weak-form
 SINDy [10] on simulated tails: with a library of terms $1, W, W^{2}, W^{3}$ and switch terms $\max(W - A_{c}, 0)$,
 does it return the law that generated the data? What does it return when the truth has a hidden second state (two
 layers)? Does mixing tails of different speeds create a false nonlinear term? The weak form is used because it
 integrates the data against smooth test functions instead of differentiating it, and differentiating a signal
 quantized to $0.3\dB$ is hopeless. Last, extend the simulator from tails to whole events (real radar rain, a wetting
 law, a small path term that grows with $L$) so that SINDy with rain as input can be tested as well.
-\item \textbf{The drying law on real tails.} Fit the five candidates with the pooled method, and run SINDy, on the
-frozen set. Every result is repeated on four versions of the set (the main set; without the flagged events; without
+\item \textbf{The drying law on real tails.} Fit the five candidates with the pooled method, each from several
+starting points, and run SINDy, on the frozen set. Every result is repeated on four versions of the set (the main set; without the flagged events; without
 the tails with a level flag; the alternative set), and its uncertainty comes from resampling events. The exponential
 drying of the literature is one of the candidates, so the comparison with the literature is built in.
 \item \textbf{What drying depends on.} Relate the drying speed to frequency, antenna size, time of day, temperature,
