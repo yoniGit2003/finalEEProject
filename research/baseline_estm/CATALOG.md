@@ -6,8 +6,8 @@ set in `baseline_estm_paths.py`. Status of every entry: **current** (there is no
 
 **Levels** (ORGANIZATION.md section 5): every file's level and purpose is in `outputs/MANIFEST.csv`. Only **key** and
 **product** files are kept and committed; **diag** files (most step figures, tables and reports below) are
-deleted by /tidy and listed in `outputs/TIDY_LOG.md`. An entry below describes what its script writes, so a
-diag file is back after rerunning that script. Decisions from deleted reports: `DECISIONS.md`.
+moved by /tidy to the local `legacy/` folder (same sub-folder and name) and listed in `outputs/TIDY_LOG.md`. An entry below describes what its script writes, so a
+diag file is back after rerunning that script. Decisions from the step reports: `DECISIONS.md`.
 
 ## Shared vocabulary
 

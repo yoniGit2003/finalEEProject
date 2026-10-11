@@ -5,16 +5,16 @@ What is done and what is left in the research (research/), following the work sc
 of `research/README.md` and the one-line summary in the root `README.md` are generated from this file on every commit
 (`pipeline/tools/update_readme.py`), so this is the only place where research progress is edited by hand.
 
-Status: in progress (not started in code yet)
+Status: in progress (baseline frozen; Stage 1 WAA: drying tails frozen, fitting tools tested on simulated tails)
 
 ## 1. Baseline and attenuation A(t)
 - [ ] Baseline per sub-link from the certified dry periods (constant / rolling) and the dynamic minimum-attenuation method [8]
-- [ ] Check that the baseline does not follow the drying tail (otherwise WAA ends up in the baseline)
-- [ ] Baseline residual in dry periods: size and spread per sub-link (the noise floor of δ(t))
-- [ ] A(t) = TSL(t) - RSL(t) - baseline per sub-link, as the input of the next stages
+- [x] Check that the baseline does not follow the drying tail (otherwise WAA ends up in the baseline)
+- [x] Baseline residual in dry periods: size and spread per sub-link (the noise floor of δ(t))
+- [x] A(t) = TSL(t) - RSL(t) - baseline per sub-link, as the input of the next stages
 
 ## 2. Stage 1: WAA
-- [ ] Find links with a drying tail after rain ends
+- [x] Find links with a drying tail after rain ends
 - [ ] Fit literature WAA models [1], [9] per link
 - [ ] Learn a dynamic WAA model with weak-form SINDy (rain as input)
 - [ ] Compare the learned models across links (same form, different coefficients?)

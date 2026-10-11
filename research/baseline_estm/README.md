@@ -49,7 +49,8 @@ Importance levels (ORGANIZATION.md section 5) are in `outputs/MANIFEST.csv`:
 - **product**: the four files in `outputs/products/` and the tables other scripts read (`c1_fake_events.csv.gz`,
   `c3_daily_cycle_per_sublink.csv`, `c4_jumps.csv`, `r1b_fake_event_offsets.csv.gz`,
   `sample_two_window_baselines.csv`);
-- **diag**: everything else; deleted by /tidy (log: `outputs/TIDY_LOG.md`), rebuilt by rerunning the script. The
+- **diag**: everything else; moved by /tidy to the local `legacy/` folder (git-ignored; log:
+  `outputs/TIDY_LOG.md`). The files /tidy deleted before 2026-10-11 are rebuilt by rerunning the script. The
   decisions they held are in [`DECISIONS.md`](DECISIONS.md).
 
 ## Method

@@ -3,7 +3,7 @@
 What it checks (only files tracked by git, plus a few untracked ones that must not be tracked):
   1. only one .gitignore (the root one)
   2. no caches or IDE files tracked (__pycache__, .cache/, _cache/, .pytest_cache, .idea/, *.pyc, checkpoints)
-  3. protected paths: nothing under research/.vibe-wise/ or data/ is tracked
+  3. protected and local-only paths: nothing under research/.vibe-wise/, data/ or research/<module>/legacy/ is tracked
   4. no versioned names (_v2, _new, _final, _old) on active paths (archive/ and docs/organization/ are exempt)
   5. root holds only the allowed files
   6. every research module has README.md, CATALOG.md and a <module>_paths.py; no other README inside it
@@ -81,6 +81,8 @@ def check(files: list[str], repo: Path = REPO) -> list[str]:
             bad.append(f"{f}: cache / IDE / plugin file is tracked (git rm --cached it; the root .gitignore covers it)")
         if f.startswith("data/"):
             bad.append(f"{f}: data/ must not be tracked")
+        if len(parts) > 3 and parts[0] == "research" and parts[2] == "legacy":
+            bad.append(f"{f}: legacy/ is local only and must not be tracked (git rm --cached it)")
 
     # 4: versioned names
     for f in files:

@@ -28,6 +28,7 @@ def test_checker_catches_violations(tmp_path):
         "research/m/make.py": 'OUT = HERE / "outputs"\n',           # hard-coded output folder
         "research/m/archive/old/x.csv": "",                         # archive without NOTE.md
         "research/m/.gitignore": "",                                # nested .gitignore
+        "research/m/legacy/figures/old.png": "",                    # legacy/ is local only: must not be tracked
         "notes.txt": "see [x](missing.md)\n",                       # not an allowed root file
         "docs/a.md": "see [x](missing.md)\n",                       # broken link
     }
@@ -37,7 +38,7 @@ def test_checker_catches_violations(tmp_path):
     assert co.check(sorted(good), tmp_path) == []
     found = "\n".join(co.check(sorted({**good, **bad}), tmp_path))
     for what in ("only one README", "results.csv: output file outside", "b_v2.csv: versioned name",
-                 "b_v2.csv: no entry", "make.py:1: hard-coded", "missing NOTE.md", "nested .gitignore",
+                 "b_v2.csv: no entry", "make.py:1: hard-coded", "missing NOTE.md", "nested .gitignore", "old.png: legacy/ is local only",
                  "notes.txt: not an allowed root file", "docs/a.md: broken link"):
         assert what in found, what
 

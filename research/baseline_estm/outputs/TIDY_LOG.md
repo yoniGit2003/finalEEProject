@@ -1,7 +1,8 @@
-# TIDY_LOG: outputs of baseline_estm deleted by /tidy
+# TIDY_LOG: outputs of baseline_estm moved to legacy/ by /tidy (before 2026-10-11: deleted)
 
 Written by `python research/common/tidy_outputs.py --apply` (rules: ORGANIZATION.md, "Outputs and importance").
-Newest first. Every file can be rebuilt by running the script in the last column from the repository root.
+Newest first. Since 2026-10-11 /tidy deletes nothing: it moves files to `legacy/` (local only, git-ignored). Every
+file, moved or deleted earlier, can be rebuilt by running the script in the last column from the repository root.
 
 <!-- last tidy: 2026-10-08T12:45:06Z commit=4762d57 -->
 

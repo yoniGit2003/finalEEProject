@@ -1,18 +1,78 @@
 path,level,purpose,script,commit,date
-outputs/figures/c3_daily_cycle.png,key,daily cycle of dry TL (the daily_cycle_large flag),research/baseline_estm/validation/c3_daily_cycle.py,fb59b8e+dirty,2026-10-08T12:35:18Z
-outputs/figures/c4_humidity_dewpoint.png,key,dry jumps vs humidity and dew-point depression (dew?),research/baseline_estm/validation/c4_jumps.py,fb59b8e+dirty,2026-10-08T12:35:27Z
-outputs/figures/r1b_c2_delta.png,key,Delta_k after real rain with v2 vs control,research/baseline_estm/validation/r1b_event_level.py,fb59b8e+dirty,2026-10-08T12:37:26Z
-outputs/figures/r1b_offset_by_D.png,key,v2 vs v1 / M0 / M1 event offsets by duration,research/baseline_estm/validation/r1b_event_level.py,fb59b8e+dirty,2026-10-08T12:37:26Z
+outputs/figures/c1c_error_vs_time.png,diag,C1 error vs time since fake-event start,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:50Z
+outputs/figures/c1e_error_vs_hour_humidity.png,diag,C1 error vs hour of day and humidity,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:51Z
+outputs/figures/c2_delta_vs_k.png,diag,C2 Delta_k after real rain vs dry control,research/baseline_estm/validation/c2_after_window.py,75df645,2026-10-11T09:31:22Z
+outputs/figures/c3_daily_cycle.png,key,daily cycle of dry TL (the daily_cycle_large flag),research/baseline_estm/validation/c3_daily_cycle.py,75df645,2026-10-11T09:31:31Z
+outputs/figures/c4_humidity_dewpoint.png,key,dry jumps vs humidity and dew-point depression (dew?),research/baseline_estm/validation/c4_jumps.py,75df645,2026-10-11T09:31:38Z
+outputs/figures/c4_start_hour.png,diag,C4 start hour of dry jumps,research/baseline_estm/validation/c4_jumps.py,75df645,2026-10-11T09:31:38Z
+outputs/figures/c5_10011_1_E20150705_1910.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:39Z
+outputs/figures/c5_10011_1_E20150804_1830.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:40Z
+outputs/figures/c5_10011_1_E20150810_1545.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:40Z
+outputs/figures/c5_10011_1_E20150815_1305.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:41Z
+outputs/figures/c5_10155_1_E20150705_1910.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:41Z
+outputs/figures/c5_10281_1_E20150617_0705.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:42Z
+outputs/figures/c5_10281_1_E20150618_0530.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:42Z
+outputs/figures/c5_10281_1_E20150707_1235.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:43Z
+outputs/figures/c5_10281_2_E20150617_0705.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:43Z
+outputs/figures/c5_10281_2_E20150707_1235.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:43Z
+outputs/figures/c5_10338_1_E20150705_1910.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:44Z
+outputs/figures/c5_10338_1_E20150725_0440.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:44Z
+outputs/figures/c5_10338_2_E20150725_0440.png,diag,C5 flagged v1 case with weather,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:45Z
+outputs/figures/r1b_c2_delta.png,key,Delta_k after real rain with v2 vs control,research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:33:16Z
+outputs/figures/r1b_offset_by_D.png,key,v2 vs v1 / M0 / M1 event offsets by duration,research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:33:16Z
+outputs/figures/sample_two_window_examples/10011_1_E20150810_1545.png,diag,"method v1 example: TL, windows, baseline, A(t)",research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:41Z
+outputs/figures/sample_two_window_examples/10011_2_E20150831_0455.png,diag,"method v1 example: TL, windows, baseline, A(t)",research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:39Z
+outputs/figures/sample_two_window_examples/10116_2_E20150831_0455.png,diag,"method v1 example: TL, windows, baseline, A(t)",research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:39Z
+outputs/figures/sample_two_window_examples/10155_1_E20150705_1910.png,diag,"method v1 example: TL, windows, baseline, A(t)",research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:40Z
+outputs/figures/sample_two_window_examples/10281_1_E20150617_0705.png,diag,"method v1 example: TL, windows, baseline, A(t)",research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:41Z
+outputs/figures/sample_two_window_examples/10281_1_E20150707_1235.png,diag,"method v1 example: TL, windows, baseline, A(t)",research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:42Z
+outputs/figures/sample_two_window_examples/10320_2_E20150605_1745.png,diag,"method v1 example: TL, windows, baseline, A(t)",research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:40Z
+outputs/figures/sample_two_window_examples/10320_2_E20150825_0145.png,diag,"method v1 example: TL, windows, baseline, A(t)",research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:38Z
+outputs/figures/sample_two_window_examples/10338_1_E20150617_0705.png,diag,"method v1 example: TL, windows, baseline, A(t)",research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:39Z
+outputs/figures/sample_two_window_examples/10338_1_E20150705_1910.png,diag,"method v1 example: TL, windows, baseline, A(t)",research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:42Z
+outputs/figures/sample_two_window_examples/10338_2_E20150707_1235.png,diag,"method v1 example: TL, windows, baseline, A(t)",research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:40Z
+outputs/figures/sample_two_window_overview.png,diag,method v1 sample: the five quality checks,research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:38Z
 outputs/products/baseline_uncertainty.csv,product,v2 baseline error spread per sub-link (weights),research/baseline_estm/make_baseline_table.py,fb59b8e+dirty,2026-10-08T12:37:54Z
 outputs/products/baselines.csv,product,"frozen v2 baseline per (event, sub-link): input of WAA_estm",research/baseline_estm/make_baseline_table.py,fb59b8e+dirty,2026-10-08T12:38:13Z
 outputs/products/dew_risk_hourly.csv,product,hourly weather and dew risk at GbgA,research/baseline_estm/make_dew_products.py,fb59b8e+dirty,2026-10-08T12:37:34Z
 outputs/products/dry_jumps.csv,product,dry-day baseline jumps of all train sub-links (C4),research/baseline_estm/make_dew_products.py,fb59b8e+dirty,2026-10-08T12:37:34Z
 outputs/reports/R1_validation.md,key,"R1: slot-level validation of the baseline variants (C1-C6), PASS / FAIL",by hand,,2026-10-08T12:38:52Z
 outputs/reports/R1b_validation.md,key,"R1b: event-level validation of v2, humidity-exclusion decision",by hand,,2026-10-08T12:38:52Z
-outputs/tables/c1_fake_events.csv.gz,product,"C1 fake events (read by C2, C6, R1b, make_baseline_table)",research/baseline_estm/validation/c1_fake_events.py,fb59b8e+dirty,2026-10-08T12:33:49Z
-outputs/tables/c3_daily_cycle_per_sublink.csv,product,"C3 daily-cycle amplitude per sub-link (read by R1b, run_sample, make_baseline_table)",research/baseline_estm/validation/c3_daily_cycle.py,fb59b8e+dirty,2026-10-08T12:35:18Z
-outputs/tables/c4_jumps.csv,product,"C4 dry-day jumps (read by C5, make_dew_products)",research/baseline_estm/validation/c4_jumps.py,fb59b8e+dirty,2026-10-08T12:35:26Z
-outputs/tables/r1b_fake_event_offsets.csv.gz,product,R1b event offsets of every method (read by make_baseline_table),research/baseline_estm/validation/r1b_event_level.py,fb59b8e+dirty,2026-10-08T12:36:53Z
-outputs/tables/r1b_real_events.csv.gz,diag,"R1b real (event, sub-link) pairs with v2",research/baseline_estm/validation/r1b_event_level.py,fb59b8e+dirty,2026-10-08T12:37:07Z
-outputs/tables/sample_two_window_baselines.csv,product,method v1 on the sample (read by C5),research/baseline_estm/run_sample.py,fb59b8e+dirty,2026-10-08T12:32:56Z
-outputs/tables/validation_runtimes.csv,diag,runtime of each validation check,research/baseline_estm/validation/run_all.py,fb59b8e+dirty,2026-10-08T12:37:26Z
+outputs/reports/sample_two_window_summary.md,diag,method v1 sample quality numbers,research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:37Z
+outputs/tables/c1_event_counts.csv,diag,C1 fake events placed per group and D,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:31Z
+outputs/tables/c1_fake_events.csv.gz,product,"C1 fake events (read by C2, C6, R1b, make_baseline_table)",research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:20Z
+outputs/tables/c1_pass_fail_per_sublink.csv,diag,R1 PASS / FAIL per sub-link,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:57Z
+outputs/tables/c1_pass_fail_summary.csv,diag,R1 PASS / FAIL counts,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:57Z
+outputs/tables/c1a_variants_by_D_degraded.csv,diag,C1 error per variant and D,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:35Z
+outputs/tables/c1a_variants_by_D_main.csv,diag,C1 error per variant and D,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:34Z
+outputs/tables/c1a_variants_by_D_toggling.csv,diag,C1 error per variant and D,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:36Z
+outputs/tables/c1b_M2b_by_class.csv,diag,C1 M2b error per link class,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:41Z
+outputs/tables/c1b_M2b_by_tsl.csv,diag,C1 M2b error per TSL behaviour,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:46Z
+outputs/tables/c1c_error_vs_time.csv,diag,C1 error vs time since start,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:49Z
+outputs/tables/c1d_M2b_per_sublink.csv,diag,C1 error per sub-link,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:56Z
+outputs/tables/c1e_error_vs_hour_humidity.csv,diag,C1 error vs hour and humidity,research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:51Z
+outputs/tables/c2_case_status.csv,diag,C2 case counts,research/baseline_estm/validation/c2_after_window.py,75df645,2026-10-11T09:31:22Z
+outputs/tables/c2_delta_vs_k.csv,diag,C2 Delta_k real vs control,research/baseline_estm/validation/c2_after_window.py,75df645,2026-10-11T09:31:22Z
+outputs/tables/c2_m3_line_cases_delta_vs_k.csv,diag,C2 Delta_k of the line (B) cases,research/baseline_estm/validation/c2_after_window.py,75df645,2026-10-11T09:31:22Z
+outputs/tables/c2_m3_method_share.csv,diag,C2 share of M3 methods A / B,research/baseline_estm/validation/c2_after_window.py,75df645,2026-10-11T09:31:22Z
+outputs/tables/c2_real_cases.csv,diag,"C2 real (event, sub-link) cases",research/baseline_estm/validation/c2_after_window.py,75df645,2026-10-11T09:31:04Z
+outputs/tables/c3_amplitude_by_class.csv,diag,C3 amplitude per link class,research/baseline_estm/validation/c3_daily_cycle.py,75df645,2026-10-11T09:31:31Z
+outputs/tables/c3_daily_cycle_per_sublink.csv,product,"C3 daily-cycle amplitude per sub-link (read by R1b, run_sample, make_baseline_table)",research/baseline_estm/validation/c3_daily_cycle.py,75df645,2026-10-11T09:31:31Z
+outputs/tables/c3_summary.csv,diag,C3 amplitude percentiles and correlations,research/baseline_estm/validation/c3_daily_cycle.py,75df645,2026-10-11T09:31:31Z
+outputs/tables/c4_jumps.csv,product,"C4 dry-day jumps (read by C5, make_dew_products)",research/baseline_estm/validation/c4_jumps.py,75df645,2026-10-11T09:31:37Z
+outputs/tables/c4_summary.csv,diag,C4 jump counts and shares,research/baseline_estm/validation/c4_jumps.py,75df645,2026-10-11T09:31:37Z
+outputs/tables/c5_flagged_cases.csv,diag,C5 the 13 flagged v1 cases,research/baseline_estm/validation/c5_flagged.py,75df645,2026-10-11T09:31:45Z
+outputs/tables/c6_sensitivity.csv,diag,C6 M2b error vs window / skip / statistic,research/baseline_estm/validation/c6_sensitivity.py,75df645,2026-10-11T09:32:16Z
+outputs/tables/r1b_c2_delta.csv,diag,R1b Delta_k with the v2 baseline,research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:33:15Z
+outputs/tables/r1b_fake_event_offsets.csv.gz,product,R1b event offsets of every method (read by make_baseline_table),research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:32:46Z
+outputs/tables/r1b_humidity_exclusion_decision.csv,diag,R1b humidity exclusion decision,research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:32:48Z
+outputs/tables/r1b_offset_by_variant_D.csv,diag,R1b offsets per variant and D,research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:32:47Z
+outputs/tables/r1b_pass_fail_per_sublink.csv,diag,R1b PASS / FAIL per sub-link,research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:32:50Z
+outputs/tables/r1b_pass_fail_summary.csv,diag,R1b PASS / FAIL counts,research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:32:50Z
+outputs/tables/r1b_real_event_coverage.csv,diag,R1b real-event coverage,research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:32:58Z
+outputs/tables/r1b_real_events.csv.gz,diag,"R1b real (event, sub-link) pairs with v2",research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:32:58Z
+outputs/tables/r1b_splits.csv,diag,R1b offsets split by humidity / split / class,research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:32:48Z
+outputs/tables/sample_pre_event_baselines.csv,diag,method v2 on the 24-sub-link sample,research/baseline_estm/run_sample.py,75df645,2026-10-11T09:33:20Z
+outputs/tables/sample_two_window_baselines.csv,product,method v1 on the sample (read by C5),research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:37Z
+outputs/tables/sample_two_window_sensitivity_X.csv,diag,method v1 sample for X = 0.5-3 h,research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:37Z
+outputs/tables/validation_runtimes.csv,diag,runtime of each validation check,research/baseline_estm/validation/run_all.py,75df645,2026-10-11T09:33:16Z

@@ -20,20 +20,23 @@ file means: `CATALOG.md` (root index) -> each module's `CATALOG.md`.
 ```
 README.md, ORGANIZATION.md, CATALOG.md, LICENSE (MIT), CLAUDE.md, .gitignore (the only one), .gitattributes
 .claude/commands/tidy.md   the /tidy command
-docs/        project-level material only (proposal, reports / figures); docs/organization/ = records of the reorg
+docs/        project-level material only (proposal, reports / figures); the two project reports: pipeline_log.pdf
+             (data layer) and research_log.pdf + .tex (research at the level of ideas; /tidy updates it, build:
+             python pipeline/tools/build_research_log.py); docs/organization/ = records of the reorg
 research/    research code; uses ONLY cmlpipe.api (+ cmlpipe.viz) and the release pinned in research/config.yaml;
              research/ROADMAP.md = research tasks (pipeline tasks: pipeline/docs/roadmap.md);
              baseline_estm/ = the first module (README, METHOD, CATALOG, baseline_estm_paths.py, code, validation/,
-             outputs/{products,tables,figures,reports}/, git-ignored .cache/); explorations/ = playground
+             outputs/{products,tables,figures,reports}/ = important (key / product, committed), legacy/ = diag / scratch
+             moved there by /tidy (git-ignored, local only), git-ignored .cache/); explorations/ = playground
 pipeline/    the data layer: src/cmlpipe (io, qc, geometry, aggregate, events, inventory, release, api, viz, cli),
              apps/explorer (Streamlit GUI), configs/openmrg.yaml, tests/, tools/ (update_readme, check_boundaries,
-             check_organization, githooks), docs/ (DATA_GUIDE, methods, data_dictionary, howto_access, roadmap,
-             openmrg_summary, pipeline_log.pdf, papers, reference), examples/, pyproject.toml (single dependency
+             check_organization, build_research_log, githooks), docs/ (DATA_GUIDE, methods, data_dictionary,
+             howto_access, roadmap, openmrg_summary, papers, reference), examples/, pyproject.toml (single dependency
              list), environment.yml, LICENSE-DATA.md (CC BY-SA 4.0)
 data/        at the repository root, NOT in git: raw/openmrg (never modified), work/openmrg (pipeline outputs),
              release/openmrg_<version> (read-only release)
 _archive/    local only, gitignored (old checks and notes); history before step 8: branch dev-history
-_review/     local only, gitignored: untracked files a tidy would have deleted (the user decides)
+_review/     local only, gitignored: untracked files that look like junk, moved there by a tidy (the user decides)
 ```
 Config paths (`data/...`) resolve against the repository root (`cmlpipe.config.REPO_ROOT`); code paths against
 `PIPELINE_ROOT` (= `pipeline/`). Dataset paths are never part of a stage hash. Research output locations come from
@@ -49,6 +52,7 @@ each module's `<module>_paths.py`, never from strings scattered in scripts.
 - Raw `cml.nc` is ~4.6 GB: never load it whole (slice by time / sub-link; missing value 1e10 -> NaN). Never open many NetCDF files with xarray at once. No dask.
 
 ## Rules
+- A tidy never deletes a file: it moves (archive/, a module's local legacy/, _review/). See ORGANIZATION.md.
 - Protected (see ORGANIZATION.md): `data/`, `research/.vibe-wise/` (plugin notes: never commit, move or delete), the files in `research/explorations/`.
 - Frozen: `events.csv`, `split_events.csv`, `split_links.csv`, `event_links.csv`, `dry_periods.csv` (data/work/openmrg/tables and the release) never change unless explicitly asked (`--force-split` / `--force`). Do not modify `data/raw/`; rebuild the release only with `--force` or as a new `--version`.
 - One-way boundary: research may import only `cmlpipe.api` / `cmlpipe.viz`; nothing in `pipeline/` imports `research`.

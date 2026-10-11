@@ -1,8 +1,9 @@
 """Save a research output with an importance level and record it in the module's outputs/MANIFEST.csv.
 
 Every file a research script writes into research/<module>/outputs/ goes through save_output() (or, for a file that
-was written another way, register_output()). The level says how important the file is; /tidy reads it and deletes
-the unimportant ones. The rules are in ORGANIZATION.md, section "Outputs and importance" (and only there).
+was written another way, register_output()). The level says how important the file is; /tidy reads it and moves the
+unimportant ones to the module's local legacy/ folder (nothing is deleted). The rules are in ORGANIZATION.md, section
+"Outputs and importance" (and only there).
 
     import WAA_estm_paths as P                      # the module's paths file also makes `research.` importable
     from research.common.outputs import save_output
@@ -25,7 +26,8 @@ MANIFEST.csv (one row per output file, rewritten on every save):
 
 Files outside an outputs/ folder (e.g. .cache/dev/ of a DEV run) are written but not recorded.
 The root .gitignore ignores everything in research/*/outputs/ except MANIFEST.csv, TIDY_LOG.md and a generated list of
-key / product files (<= 10 MB). That list is rewritten here, so diag / scratch files are never committed.
+key / product files (<= 10 MB). That list is rewritten here, so diag / scratch files are never committed; they stay
+on this machine (in outputs/ until the next /tidy, then in <module>/legacy/, which is git-ignored as a whole).
 """
 from __future__ import annotations
 
@@ -85,18 +87,19 @@ def register_output(path, level, purpose, script=None):
     return path
 
 
-def read_manifest(module_dir):
-    """The rows of research/<module>/outputs/MANIFEST.csv as a dict path -> row (empty if there is none)."""
-    f = Path(module_dir) / "outputs" / "MANIFEST.csv"
+def read_manifest(module_dir, folder="outputs"):
+    """The rows of research/<module>/<folder>/MANIFEST.csv as a dict path -> row (empty if there is none).
+    folder: "outputs" (the committed list) or "legacy" (the local list of the files /tidy moved there)."""
+    f = Path(module_dir) / folder / "MANIFEST.csv"
     if not f.exists():
         return {}
     with open(f, newline="", encoding="utf-8") as fh:
         return {r["path"]: r for r in csv.DictReader(fh)}
 
 
-def write_manifest(module_dir, rows):
-    """Write the MANIFEST rows (dict path -> row), sorted by path, through a temporary file."""
-    f = Path(module_dir) / "outputs" / "MANIFEST.csv"
+def write_manifest(module_dir, rows, folder="outputs"):
+    """Write the MANIFEST rows (dict path -> row) of <folder>/, sorted by path, through a temporary file."""
+    f = Path(module_dir) / folder / "MANIFEST.csv"
     f.parent.mkdir(parents=True, exist_ok=True)
     tmp = f.with_suffix(".csv.tmp")
     with open(tmp, "w", newline="", encoding="utf-8") as fh:

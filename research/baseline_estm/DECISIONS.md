@@ -1,6 +1,6 @@
 # DECISIONS: baseline_estm
 
-What each step decided, with the numbers behind it, so that the step reports can be deleted by /tidy and rebuilt on
+What each step decided, with the numbers behind it, so that the step reports can stay local (/tidy moves them to `legacy/`, which is not in git) and be rebuilt on
 demand (rerun the script named in each heading). The method itself: METHOD.md. The two validation reports were
 written by hand and are key outputs: `R1_validation.md` (R1) and `R1b_validation.md` (R1b).
 

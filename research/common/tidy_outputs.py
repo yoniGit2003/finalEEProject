@@ -1,29 +1,30 @@
-"""Delete the unimportant outputs of the research modules (the output part of /tidy). Rules: ORGANIZATION.md,
-section "Outputs and importance"; this script only applies them.
+"""Move the unimportant outputs of the research modules to their local legacy/ folder (the output part of /tidy).
+Nothing is ever deleted. Rules: ORGANIZATION.md, section "Outputs and importance"; this script only applies them.
 
-    python research/common/tidy_outputs.py                  # dry run: what would be deleted, kept, and why
-    python research/common/tidy_outputs.py --apply          # delete, log, update MANIFEST.csv and .gitignore
+    python research/common/tidy_outputs.py                  # dry run: what would move, what stays, and why
+    python research/common/tidy_outputs.py --apply          # move, log, update the MANIFESTs and .gitignore
     python research/common/tidy_outputs.py --all            # every module, not only those touched since their last tidy
 
 For every research module touched since its last tidy (or every module with --all):
-  delete   outputs with level diag or scratch, outputs not in outputs/MANIFEST.csv, and product files that no script
-           reads and no script writes any more (orphans);
+  move     to <module>/legacy/<kind>/<name> (git-ignored, so local only): outputs with level diag or scratch, outputs
+           not in outputs/MANIFEST.csv, and product files that no script reads and no script writes any more (orphans).
+           An older legacy copy with the same name is replaced by the newer file;
   never    a file that a script reads (its name, or the paths-file constant that holds it, appears in the code of a
            script other than its producer), a file named in the module's DECISIONS.md, or a file linked from a
-           Markdown file that stays. Such a file is kept and reported as a conflict.
+           Markdown file that stays. Such a file stays in outputs/ and is reported as a conflict;
   keep     key files, and products that their producer still writes (an unread product, e.g. a frozen set waiting
            for the next module, is listed but kept).
-Before --apply, the module's DECISIONS.md must exist and name the script of every report that is deleted (step c of
-/tidy: the decisions in those reports are summarised there first).
---apply logs every deletion to <module>/outputs/TIDY_LOG.md (path, level, size, the script that rebuilds it), drops
-the deleted rows from MANIFEST.csv, un-tracks kept diag / scratch files and rewrites the .gitignore block.
-Only files inside <module>/outputs/ are ever deleted; code, configs, docs, data/ and archive/ are never touched.
+--apply logs every move to <module>/outputs/TIDY_LOG.md (path, level, size, the script that rebuilds it), moves the
+rows from outputs/MANIFEST.csv to legacy/MANIFEST.csv, un-tracks moved and kept diag / scratch files (git rm --cached:
+the file stays on disk) and rewrites the .gitignore block.
+Only files inside <module>/outputs/ are ever moved; code, configs, docs, data/ and archive/ are never touched.
 """
 from __future__ import annotations
 
 import argparse
 import ast
 import datetime as dt
+import os
 import re
 import subprocess
 import sys
@@ -34,6 +35,7 @@ from research.common.outputs import REPO, read_manifest, write_manifest, sync_gi
 
 RESEARCH = REPO / "research"
 BOOKKEEPING = ("MANIFEST.csv", "TIDY_LOG.md")                      # files in outputs/ that are not outputs
+LEGACY = "legacy"                                                  # <module>/legacy/: local only (git-ignored)
 MARK = re.compile(r"<!-- last tidy: (\S+) commit=(\S+) -->")
 
 
@@ -125,7 +127,7 @@ def plan(mod, code, tracked):
     consts = path_constants(mod)
     paths_file = (mod / f"{mod.name}_paths.py").relative_to(REPO).as_posix()
     decisions = (mod / "DECISIONS.md").read_text(encoding="utf-8") if (mod / "DECISIONS.md").exists() else ""
-    res = {"delete": [], "conflict": [], "key": [], "product": [], "unread_product": [], "missing": [],
+    res = {"legacy": [], "conflict": [], "key": [], "product": [], "unread_product": [], "missing": [],
            "stale_rows": [], "untrack": []}
 
     def readers(f, producer):
@@ -159,11 +161,11 @@ def plan(mod, code, tracked):
         cand.append((f, rel, level, producer, why))
 
     # protection (rule b): read by a script, named in DECISIONS.md, linked from a Markdown file that stays
-    doomed = {f.resolve() for f, *_ in cand}
+    moving = {f.resolve() for f, *_ in cand}
     mds = [REPO / p for p in tracked if p.endswith(".md")] + [m for m in mod.rglob("*.md") if ".cache" not in m.parts]
     linked = set()
     for md in set(mds):
-        if md.exists() and md.resolve() not in doomed:
+        if md.exists() and md.resolve() not in moving:
             linked |= md_links(md)
     for f, rel, level, producer, why in cand:
         reasons = []
@@ -179,7 +181,7 @@ def plan(mod, code, tracked):
             if level in ("diag", "scratch") and f"{mod.relative_to(REPO).as_posix()}/{rel}" in tracked:
                 res["untrack"].append(rel)
         else:
-            res["delete"].append((rel, level, f.stat().st_size, producer or "?", why))
+            res["legacy"].append((rel, level, f.stat().st_size, producer or "?", why))
 
     for rel, r in rows.items():
         if not (mod / rel).exists():
@@ -187,14 +189,18 @@ def plan(mod, code, tracked):
     return res
 
 
-def check_decisions(mod, res, rows):
-    """Step c of /tidy: DECISIONS.md must name the script of every report that is about to be deleted."""
-    reports = [(rel, rows.get(rel, {}).get("script", "")) for rel, *_ in res["delete"] if rel.startswith("outputs/reports/")]
-    if not reports:
-        return []
+def reports_not_in_decisions(mod, res, rows):
+    """Step reports that move to legacy/ although DECISIONS.md does not name their script yet (a note, not a blocker:
+    the report is kept; DECISIONS.md is the committed summary that the research log is written from)."""
+    reports = [(rel, rows.get(rel, {}).get("script", "")) for rel, *_ in res["legacy"] if rel.startswith("outputs/reports/")]
     f = mod / "DECISIONS.md"
     text = f.read_text(encoding="utf-8") if f.exists() else ""
     return [f"{rel} (script {s or '?'})" for rel, s in reports if not s or Path(s).name not in text]
+
+
+def legacy_path(rel):
+    """outputs/<kind>/<name> -> legacy/<kind>/<name> (both relative to the module folder)."""
+    return LEGACY + "/" + rel.split("/", 1)[1]
 
 
 # ------------------------------------------------------------------------------------------------------- apply
@@ -203,12 +209,16 @@ def apply(mod, res, rows):
     now = dt.datetime.now(dt.timezone.utc)
     head = git("rev-parse", "--short", "HEAD").strip() or "no-git"
     tracked = set(git("ls-files", "--", rel_mod).splitlines())
-    for rel, *_ in res["delete"]:
+    legacy_rows = read_manifest(mod, LEGACY)
+    for rel, level, *_ in res["legacy"]:
         p = f"{rel_mod}/{rel}"
         if p in tracked:
-            git("rm", "-q", "--", p)
-        (mod / rel).unlink(missing_ok=True)
-        rows.pop(rel, None)
+            git("rm", "-q", "--cached", "--", p)                    # out of git only: the file stays on disk
+        new = legacy_path(rel)
+        (mod / new).parent.mkdir(parents=True, exist_ok=True)
+        os.replace(mod / rel, mod / new)                            # a move; replaces an older legacy copy
+        row = rows.pop(rel, None) or {"level": level, "purpose": "", "script": "?", "commit": "", "date": ""}
+        legacy_rows[new] = {**row, "path": new}
     for rel in res["untrack"]:
         git("rm", "-q", "--cached", "--", f"{rel_mod}/{rel}")
     for rel in res["stale_rows"]:
@@ -217,22 +227,25 @@ def apply(mod, res, rows):
         if d.is_dir() and d.parent != mod / "outputs" and not any(d.iterdir()):
             d.rmdir()
     write_manifest(mod, rows)
+    if legacy_rows:
+        write_manifest(mod, legacy_rows, LEGACY)
 
     log = mod / "outputs" / "TIDY_LOG.md"
     old = log.read_text(encoding="utf-8") if log.exists() else (
-        f"# TIDY_LOG: outputs of {mod.name} deleted by /tidy\n\n"
+        f"# TIDY_LOG: outputs of {mod.name} moved to legacy/ by /tidy\n\n"
         "Written by `python research/common/tidy_outputs.py --apply` (rules: ORGANIZATION.md, \"Outputs and "
-        "importance\").\nNewest first. Every file can be rebuilt by running the script in the last column from the "
-        "repository root.\n\n<!-- last tidy: x commit=x -->\n")
-    total = sum(s for _, _, s, *_ in res["delete"])
-    sec = [f"## {now:%Y-%m-%d %H:%M} UTC (commit {head}): {len(res['delete'])} files deleted, {size_str(total)}", ""]
-    if res["delete"]:
-        sec += ["| path | level | size | rebuilt by | why |", "|---|---|---|---|---|"]
-        sec += [f"| `{r}` | {lv} | {size_str(s)} | `{p}` | {w} |" for r, lv, s, p, w in res["delete"]]
+        "importance\").\nNewest first. `legacy/` is local only (git-ignored); a moved file can also be rebuilt by "
+        "running the script in the last column from the repository root.\n\n<!-- last tidy: x commit=x -->\n")
+    total = sum(s for _, _, s, *_ in res["legacy"])
+    sec = [f"## {now:%Y-%m-%d %H:%M} UTC (commit {head}): {len(res['legacy'])} files moved to legacy/, "
+           f"{size_str(total)}", ""]
+    if res["legacy"]:
+        sec += ["| path (now under legacy/) | level | size | rebuilt by | why |", "|---|---|---|---|---|"]
+        sec += [f"| `{r}` | {lv} | {size_str(s)} | `{p}` | {w} |" for r, lv, s, p, w in res["legacy"]]
     else:
-        sec.append("Nothing to delete.")
+        sec.append("Nothing to move.")
     if res["conflict"]:
-        sec += ["", "Kept although the level says delete (conflicts):", ""]
+        sec += ["", "Kept in outputs/ although the level says legacy (conflicts):", ""]
         sec += [f"- `{r}` ({lv}): {why}" for r, lv, why in res["conflict"]]
     stamp = f"<!-- last tidy: {now:%Y-%m-%dT%H:%M:%SZ} commit={head} -->"
     new = MARK.sub(stamp, old, count=1)
@@ -243,7 +256,7 @@ def apply(mod, res, rows):
 # ------------------------------------------------------------------------------------------------------- main
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--apply", action="store_true", help="delete and log (default: dry run)")
+    ap.add_argument("--apply", action="store_true", help="move to legacy/ and log (default: dry run)")
     ap.add_argument("--all", action="store_true", help="every module, not only the touched ones")
     ap.add_argument("modules", nargs="*", help="module names (default: all touched modules)")
     a = ap.parse_args()
@@ -251,7 +264,6 @@ def main():
     code = corpus()
     tracked = git("ls-files").splitlines()
     mods = [m for m in modules() if not a.modules or m.name in a.modules]
-    bad = 0
     print(f"tidy_outputs: {'APPLY' if a.apply else 'dry run'}")
     for mod in mods:
         rows = read_manifest(mod)
@@ -259,11 +271,11 @@ def main():
             print(f"\n== {mod.name}: not touched since the last tidy ({last_tidy(mod)[0]}), skipped")
             continue
         res = plan(mod, code, tracked)
-        missing_dec = check_decisions(mod, res, rows)
-        total = sum(s for _, _, s, *_ in res["delete"])
+        no_decision = reports_not_in_decisions(mod, res, rows)
+        total = sum(s for _, _, s, *_ in res["legacy"])
         print(f"\n== {mod.name}")
-        print(f"delete: {len(res['delete'])} files, {size_str(total)}")
-        for r, lv, s, p, w in res["delete"]:
+        print(f"move to legacy/: {len(res['legacy'])} files, {size_str(total)}")
+        for r, lv, s, p, w in res["legacy"]:
             print(f"   - {r}  [{w}, {size_str(s)}; rebuilt by {p}]")
         print(f"keep, key ({len(res['key'])}): " + ", ".join(Path(r).name for r in res["key"]))
         print(f"keep, product read by a script ({len(res['product'])}): " + ", ".join(Path(r).name for r in res["product"]))
@@ -271,24 +283,20 @@ def main():
             print(f"keep, product nothing reads yet ({len(res['unread_product'])}): "
                   + ", ".join(Path(r).name for r in res["unread_product"]))
         for r, lv, why in res["conflict"]:
-            print(f"CONFLICT (kept): {r} [{lv}]: {why}")
+            print(f"CONFLICT (kept in outputs/): {r} [{lv}]: {why}")
         for r in res["missing"]:
             print(f"missing key / product (rebuild with its script): {r}")
-        if missing_dec:
-            print("DECISIONS.md does not yet summarise these reports (step c of /tidy):")
-            for m in missing_dec:
+        if no_decision:
+            print("note: DECISIONS.md does not summarise these step reports yet (they are kept in legacy/):")
+            for m in no_decision:
                 print(f"   - {m}")
         if a.apply:
-            if missing_dec:
-                print(f"NOT applied to {mod.name}: update DECISIONS.md first")
-                bad = 1
-                continue
             apply(mod, res, rows)
             print(f"applied: log in {mod.name}/outputs/TIDY_LOG.md")
     if a.apply:
         sync_gitignore()
         print("\n.gitignore: key / product list rewritten")
-    return bad
+    return 0
 
 
 if __name__ == "__main__":

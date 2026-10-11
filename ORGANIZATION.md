@@ -7,13 +7,15 @@ Short on purpose. Checked by `python pipeline/tools/check_organization.py`; appl
 ```
 README.md  ORGANIZATION.md  CATALOG.md  CLAUDE.md  .gitignore (the only one)
 docs/              project documents: proposal, reports, thesis, their figures; docs/organization/ = reorg records
+                   the two project reports live here: pipeline_log.pdf (the data layer) and research_log.pdf
+                   (the research, at the level of ideas; source research_log.tex, updated by /tidy, section 9)
 pipeline/          the data layer: src/cmlpipe (package), tests/ (pytest), apps/, configs/, docs/, tools/, examples/
 research/          config.yaml (all research settings), ROADMAP.md, README.md
   <module>/        one folder per research step (baseline_estm, WAA_estm, later path_law, evaluation)
   common/          shared research helpers: outputs.py (save_output), tidy_outputs.py (the output part of /tidy)
   explorations/    the playground
 data/              raw / work / release data: NOT in git, never modified by hand          (protected)
-_review/           git-ignored: files /tidy would have deleted but git cannot restore (you decide)
+_review/           git-ignored: untracked files that look like junk, moved here by /tidy (you decide)
 ```
 
 **A research module** always looks like this:
@@ -23,16 +25,19 @@ _review/           git-ignored: files /tidy would have deleted but git cannot re
   README.md              the only README of the module (template in section 6)
   METHOD.md              the scientific method, if longer than a README section
   CATALOG.md             one entry per output file
-  DECISIONS.md           the decisions taken in the step reports (kept when /tidy deletes those reports)
+  DECISIONS.md           the decisions taken in the step reports (committed; the step reports themselves are local)
   <module>_paths.py      every folder location of the module (and files other scripts read)
   *.py                   library code and entry scripts
   validation/            scientific checks: scripts only, they write to outputs/
+  outputs/               the IMPORTANT outputs (key / product: committed) and whatever a script has just written
   outputs/products/      deliverables other modules read
   outputs/tables/        other tables
   outputs/figures/       figures
   outputs/reports/       written reports (.md)
   outputs/MANIFEST.csv   level + purpose of every output file (written by save_output; section 5)
-  outputs/TIDY_LOG.md    what /tidy deleted, and which script rebuilds it
+  outputs/TIDY_LOG.md    what /tidy moved to legacy/, and which script rebuilds it
+  legacy/                the LEGACY outputs (diag / scratch), moved here by /tidy: git-ignored, so local only;
+                         same sub-folders as outputs/, plus its own MANIFEST.csv; never deleted
   archive/               superseded outputs nothing reads; each subfolder has a NOTE.md
   .cache/                git-ignored: loaded data, DEV runs, logs; safe to delete
 ```
@@ -46,7 +51,7 @@ configuration (`research/config.yaml`, `pipeline/configs/`), generated outputs (
 - Lower case with underscores; say what it is: `dew_risk_hourly.csv`, not `table3.csv`.
 - Every output file name starts with the script or check that writes it: `c1_...`, `r1b_...`, `sample_two_window_...`.
 - **No `_v2`, `_new`, `_final`, `_old` on active paths.** One current version per output; the old one goes to
-  `archive/` (if untracked) or is deleted (if tracked: git keeps it).
+  `archive/` (section 7). Nothing is deleted.
 - Two **method** versions that are both in use are named by what differs (`sample_two_window_*` vs
   `sample_pre_event_*`), and README / CATALOG say which method id (v1, v2 in `config.yaml`) each one is.
 - Validation checks: `c<n>_<topic>.py`; a re-run of a whole validation: `r<n><letter>_<topic>.py` (e.g. `r1b_...`).
@@ -73,7 +78,8 @@ write to `outputs/`, add CATALOG entries. Modules never read files from `explora
 - **Committed**: code, configs, docs, `MANIFEST.csv`, `TIDY_LOG.md`, and the outputs with level **key** or
   **product** that are <= 10 MB (section 5).
 - **Ignored** (root `.gitignore` only): `data/`, `.cache/`, `_cache/`, `__pycache__/`, `.pytest_cache/`, `.idea/`,
-  `_archive/`, `_review/`, `research/.vibe-wise/`, DEV runs, every **diag** / **scratch** output, anything > 10 MB.
+  `_archive/`, `_review/`, `research/.vibe-wise/`, DEV runs, every **diag** / **scratch** output, every module's
+  `legacy/` folder, anything > 10 MB.
   The `.gitignore` ignores all of `research/*/outputs/` and re-includes the key / product files in a generated block
   that `save_output` rewrites from the MANIFESTs: never edit that block by hand.
 - A nested `.gitignore` is not allowed (tools such as PyCharm and pytest write their own inside ignored folders: fine).
@@ -95,30 +101,37 @@ which writes the file (figure, DataFrame, pyarrow Table or text) and upserts its
 report written by hand) is recorded with `register_output(path, level, purpose)` (`script = "by hand"` for the
 latter).
 
-| level | what | default for | committed | deleted by /tidy |
+| level | what | default for | committed | moved to `legacy/` by /tidy |
 |---|---|---|---|---|
 | `key` | what the final report shows; **at most 6 per module** | (chosen) | yes | never |
 | `product` | data a script or another module reads; frozen data products | frozen products, tables other scripts read | yes if <= 10 MB | only if no script reads **and** no script writes it any more |
 | `diag` | step figures, step reports, checks, intermediate tables | **every step figure and step report** | never | yes |
 | `scratch` | throw-away | | never | yes |
 
-**What /tidy deletes** (for every module touched since its last tidy): outputs with level `diag` or `scratch`,
-outputs not in `MANIFEST.csv`, and `product` files that no script reads and no script writes any more. A product that
-its producer still writes but nothing reads yet (e.g. a frozen set waiting for the next module) is kept and listed.
+**Important vs legacy.** `outputs/` holds the important files (key, product), which are committed and pushed.
+`legacy/` holds everything else, on this machine only: it is git-ignored as a whole. **/tidy never deletes an
+output**; it moves it from `outputs/<kind>/<name>` to `legacy/<kind>/<name>`. A script that is rerun writes into
+`outputs/` again; the next /tidy moves the new file to `legacy/`, where it replaces the older copy of the same name.
 
-**What /tidy never deletes**: code, configs, `README`, `CATALOG`, `METHOD`, `DECISIONS.md`, `MANIFEST.csv`,
+**What /tidy moves to legacy/** (for every module touched since its last tidy): outputs with level `diag` or
+`scratch`, outputs not in `MANIFEST.csv`, and `product` files that no script reads and no script writes any more. A
+product that its producer still writes but nothing reads yet (e.g. a frozen set waiting for the next module) is kept
+and listed. A moved file that git tracked is taken out of git (`git rm --cached`); the file itself stays.
+
+**What /tidy never moves**: code, configs, `README`, `CATALOG`, `METHOD`, `DECISIONS.md`, `MANIFEST.csv`,
 `TIDY_LOG.md`, anything under `data/` or `archive/`, a file that a script reads (its name, or the paths-file constant
 holding it, appears in the code of a script other than its producer; docstrings and comments do not count), a file
-named in the module's `DECISIONS.md`, and a file linked from a Markdown file that stays. If the level says "delete"
-but one of these applies, the file is kept and reported as a **conflict**.
+named in the module's `DECISIONS.md`, and a file linked from a Markdown file that stays. If the level says "legacy"
+but one of these applies, the file stays in `outputs/` and is reported as a **conflict**.
 
-**Before deleting**, the decisions in the step reports that are about to go are written to the module's
-`DECISIONS.md`: 5-10 lines per step, naming the script that wrote the report (`tidy_outputs.py --apply` refuses
-otherwise). Every deletion is logged in `outputs/TIDY_LOG.md` (path, level, size, the script that rebuilds it).
-Deleting is safe because diag / scratch outputs are rebuilt by rerunning their script.
+**Step reports and DECISIONS.md.** Step reports are `diag`, so they end up in `legacy/` and are not on GitHub. What
+they decided is therefore written to the module's `DECISIONS.md` (committed): 5-10 lines per step, naming the script
+that wrote the report. /tidy adds what is missing. Every move is logged in `outputs/TIDY_LOG.md` (path, level, size,
+the script that rebuilds it), and the moved files' rows go from `outputs/MANIFEST.csv` to `legacy/MANIFEST.csv`.
 
 **Checks** (`check_organization.py`): every file in `outputs/` has a `MANIFEST.csv` row; at most 6 key per module;
-no version suffix (`_v2`, `_new`, `_final`, `_old`) in output names; no diag / scratch file is tracked by git.
+no version suffix (`_v2`, `_new`, `_final`, `_old`) in output names; no diag / scratch file is tracked by git;
+nothing under a `legacy/` folder is tracked by git.
 
 ## 6. Catalog and README template
 
@@ -141,6 +154,8 @@ status (current / archived). Module README template:
 
 `archive/<what>/` holds superseded outputs that **no code reads**, with a `NOTE.md`: what it was, what replaced it,
 why, and the date. If code still reads an old version, it is not archived: it stays active, named by content.
+`archive/` is for an older **version** of something (a replaced method, a replaced tail set) and is committed;
+`legacy/` (section 5) is for the step-level figures, tables and reports of the current version and is local only.
 
 ## 8. Protected paths (never moved, edited or deleted by a tidy)
 
@@ -153,10 +168,16 @@ the files inside `research/explorations/` (README only), frozen pipeline tables 
 Claude decides organization questions itself, using these priorities: (1) nothing breaks, (2) reversible over
 irreversible, (3) one source of truth, (4) kinds stay apart, (5) the same layout in every module, (6) names describe
 content, (7) regenerable means ignored, (8) fewer, shallower folders, (9) keep existing conventions that work. It works
-on a branch, uses `git mv`, commits in small steps, logs each decision with a one-line reason, and **never deletes an
-untracked file** (those go to `_review/`), with one exception: outputs inside `<module>/outputs/` that section 5 says
-to delete are deleted (tracked or not) by `research/common/tidy_outputs.py --apply`, which logs them to
-`TIDY_LOG.md`; their script rebuilds them. It never changes scientific logic, parameters or results. Questions that
-depend on the science (is an old method still needed?) are not decided: both versions are kept, cleanly named, and
-the question goes to the report's "Open questions". Claude does not stop to ask, except when a decision in a step
-report about to be deleted is unclear (section 5, DECISIONS.md).
+on a branch, uses `git mv`, commits in small steps, logs each decision with a one-line reason, and **never deletes a
+file, tracked or untracked**: a tidy only reorganizes. Superseded files go to `archive/`, untracked files that look
+like junk go to `_review/`, and the outputs that section 5 calls legacy are moved to `<module>/legacy/` by
+`research/common/tidy_outputs.py --apply`, which logs them to `TIDY_LOG.md`. It never changes scientific logic,
+parameters or results. Questions that depend on the science (is an old method still needed?) are not decided: both
+versions are kept, cleanly named, and the question goes to the report's "Open questions". Claude does not stop to ask.
+
+**The research log.** A tidy also brings `docs/research_log.pdf` up to date: the report of what the research has
+implemented so far, where it stands and what comes next, at the level of ideas (equations and plain language, no
+code). Claude edits `docs/research_log.tex` from the modules' README, `DECISIONS.md`, `roadmap.md` and key reports,
+only where the research changed since the `% last updated` line of the `.tex`, and rebuilds the PDF with
+`python pipeline/tools/build_research_log.py`. It includes only `key` figures, so it builds from a clean clone.
+`docs/pipeline_log.pdf` (the data-layer report) has no LaTeX source in the repository and is not rebuilt.
