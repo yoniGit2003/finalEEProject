@@ -19,7 +19,9 @@ a dynamic WAA model first, then the correction f, and finally rain estimates fro
 
 - [`pipeline/`](pipeline/): the data layer. Turns the raw OpenMRG data into a versioned, read-only data release.
 - [`research/`](research/): the research code (baseline, WAA, path law, evaluation).
-- [`docs/`](docs/): project documents (proposal, report material).
+- [`docs/`](docs/): project documents (proposal, report material) and the two project reports:
+  [`research_log.pdf`](docs/research_log.pdf) (what the research has implemented, where it stands, what comes
+  next) and [`pipeline_log.pdf`](docs/pipeline_log.pdf) (the data layer).
 - `data/`: raw data, work files and the release. Not in git; see [`pipeline/README.md`](pipeline/README.md).
 
 Where new files go and how they are named: [`ORGANIZATION.md`](ORGANIZATION.md). What every output file means and how
@@ -29,7 +31,7 @@ to regenerate it: [`CATALOG.md`](CATALOG.md).
 
 <!-- AUTO:status -->
 - **Pipeline (data layer)**: done (release openmrg_v1 built and published; the open items are extensions); 21 / 26 roadmap items. Details: [`pipeline/README.md`](pipeline/README.md)
-- **Research**: in progress (not started in code yet); 0 / 16 roadmap items. Details: [`research/README.md`](research/README.md)
+- **Research**: in progress (baseline frozen; Stage 1 WAA: drying tails frozen, fitting tools tested on simulated tails); 4 / 16 roadmap items. Details: [`research/README.md`](research/README.md)
 <!-- /AUTO:status -->
 
 ## Boundary rule

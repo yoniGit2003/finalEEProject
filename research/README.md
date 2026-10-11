@@ -11,6 +11,7 @@ A_rain ≈ a·R̄^b·L, which is exact only for uniform rain. We want to find, f
 (2) the true dependence on the link, A_rain = a·R̄^b·f(L, R̄, Z), where uniform rain gives f = L. WAA must be removed
 before learning f, because a constant WAA looks like f = L + L0. The aim is readable equations that keep the known
 physics (gray-box), not only good predictions. Background: [`../docs/proposal.md`](../docs/proposal.md).
+What has been implemented so far, at the level of ideas: [`../docs/research_log.pdf`](../docs/research_log.pdf).
 
 ## Plan
 
@@ -59,7 +60,7 @@ Every module has the same layout (`README.md`, `METHOD.md`, `CATALOG.md`, `<modu
 `outputs/{products,tables,figures,reports}/`, git-ignored `.cache/`). The rules: [`../ORGANIZATION.md`](../ORGANIZATION.md);
 what every output file means: the module's `CATALOG.md` (index: [`../CATALOG.md`](../CATALOG.md)).
 Every output is written with `save_output(obj, path, level, purpose)` from `common/outputs.py`; the level (key /
-product / diag / scratch, recorded in `outputs/MANIFEST.csv`) decides what is committed and what /tidy deletes
+product / diag / scratch, recorded in `outputs/MANIFEST.csv`) decides what is committed and what /tidy moves to the module's local `legacy/` folder
 (ORGANIZATION.md section 5). Decisions from deleted step reports are kept in the module's `DECISIONS.md`.
 
 ## Conventions
@@ -71,19 +72,19 @@ product / diag / scratch, recorded in `outputs/MANIFEST.csv`) decides what is co
 ## Status and next steps *(auto, from [`ROADMAP.md`](ROADMAP.md))*
 
 <!-- AUTO:progress -->
-Status: **in progress (not started in code yet)**; 0 / 16 roadmap items done (tick items in [`ROADMAP.md`](ROADMAP.md)).
+Status: **in progress (baseline frozen; Stage 1 WAA: drying tails frozen, fitting tools tested on simulated tails)**; 4 / 16 roadmap items done (tick items in [`ROADMAP.md`](ROADMAP.md)).
 
-- 1. Baseline and attenuation A(t): 0 / 4
-- 2. Stage 1: WAA: 0 / 5
+- 1. Baseline and attenuation A(t): 3 / 4
+- 2. Stage 1: WAA: 1 / 5
 - 3. Stage 2: path law f(L, R̄, Z): 0 / 1
 - 4. Rain estimation and evaluation: 0 / 6
 
 Next steps:
 - [ ] Baseline per sub-link from the certified dry periods (constant / rolling) and the dynamic minimum-attenuation method [8]
-- [ ] Check that the baseline does not follow the drying tail (otherwise WAA ends up in the baseline)
-- [ ] Baseline residual in dry periods: size and spread per sub-link (the noise floor of δ(t))
-- [ ] A(t) = TSL(t) - RSL(t) - baseline per sub-link, as the input of the next stages
-- [ ] Find links with a drying tail after rain ends
 - [ ] Fit literature WAA models [1], [9] per link
-- ... and 10 more in the roadmap
+- [ ] Learn a dynamic WAA model with weak-form SINDy (rain as input)
+- [ ] Compare the learned models across links (same form, different coefficients?)
+- [ ] Drying time from SINDy vs drying time measured directly from tails
+- [ ] Learn f(L, R̄, Z) with PySR, radar along the path as reference (WAA removed first)
+- ... and 6 more in the roadmap
 <!-- /AUTO:progress -->

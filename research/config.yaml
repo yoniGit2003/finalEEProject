@@ -166,3 +166,110 @@ waa:
     look_tails_per_event: 6
     look_seed: 4
     look_hours: 6
+  sim:                       # step 3a + 3a-fix (waa_sim.py, step3a_simulator.py): a tail simulator that mimics tail set v1
+    seed: 0
+    horizon_min: 360         # calibration window: median curve of A / A_start over 0 .. 6 h after t0_trace
+    min_tails_per_minute: 20 # a minute of the real median curve / band counts only with at least this many tails
+    laws: [m1, m3, m4, m5]   # 3a-fix: m2 dropped (= m1 with spread; every law now has a spread)
+    switches:                # observation-model effects (3b turns them off one by one)
+      offset: true           # per-tail baseline offset ~ N(0, offset_std of the sub-link)
+      noise: true            # Gaussian 10 s white noise, sigma_white per sub-link
+      slow_noise: true       # 3a-fix: AR(1) dry-weather wander at 1 min, sigma_slow and tau_noise per sub-link
+      quantization: true     # 0.3 dB RSL step on the 10 s values (random grid phase per tail)
+      real_nan_mask: true    # copy the NaN minutes of the real tail
+      spread: true           # 3a-fix: per-tail time-scale factor f = exp(s z), z = half link, half tail
+    rsl_step_db: 0.3
+    samples_per_min: 6       # 10 s samples averaged into one 1 min value (as the pipeline's 1 min tl_mean)
+    m3_n: 2.0                # m3 exponent (fixed)
+    spread_grid: [0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5]   # s scanned per law (band misfit)
+    noise_grid:              # lookup grid for the three noise parameters per sub-link
+      sigma_white_db: [0.0, 0.6, 0.03]     # start, stop, step
+      sigma_slow_db: [0.0, 0.5, 0.025]
+      tau_noise_min: [1, 2, 5, 10, 20, 40, 80, 160, 320, 640, 1280]
+    noise_lookup_blocks: 30  # dry series per grid point, each noise_lookup_block_min long
+    noise_lookup_block_min: auto   # auto = median length of the real control tails (rounded to 10 min)
+    noise_acf_lags_min: [1, 10, 60]
+    noise_weights: {std_db: 0.03, on_level: 0.05, acf: 0.1}   # scale of each target in the summed squared error
+    noise_min_control_min: 120   # sub-links with fewer control minutes get the median parameters
+    shape_minutes: [10, 30, 60, 180]
+    long_tail_min: 360       # "long tail" for the last-hour noise check: usable >= this
+    thalf_bins_db: [1.0, 1.5, 2.0, 3.0]   # t_half per A_start bin: 1-1.5, 1.5-2, 2-3, > 3 dB
+    gallery_n: 12
+    gallery_seed: 5
+  fit3b1:                    # step 3b-1 (waa_fit.py, step3b1_fitting_on_sim.py): the fitting method on simulated tails
+    replicates: 10           # simulated datasets per law (seeds seed_base + 0 .. replicates - 1)
+    seed_base: 1000
+    laws: [m1, m3, m4, m5]   # truths from step 3a-fix (step3a_calibration.csv); m6 added if its calibration converges
+    m6:                      # optional truth m6 (state switch), calibrated like the others (median + band, spread rule)
+      try: true
+      start: {k_run: 0.08, k_evap: 0.006, A_c: 0.4}   # 1/min, 1/min, dB
+    candidates: [F1, F3, F4, F5]
+    f3_n_bounds: [1.0, 3.0]
+    workers: 4
+    n_eff_from: F4           # residual lag-1 autocorrelation of this candidate gives the tail's n_eff (same for all)
+    n_eff_min: 6
+    ablation:
+      laws: [m1, m4]
+      replicates: 10
+      variants:              # switches turned OFF in each variant (real_nan_mask always stays on)
+        no_noise: [noise, slow_noise]
+        no_quantization: [quantization]
+        no_offset: [offset]
+        no_spread: [spread]
+        all_off: [noise, slow_noise, quantization, offset, spread]
+    thalf_bins_db: [1.0, 1.5, 2.0, 3.0]
+    dadt_smooth_min: 15      # centred rolling mean of A before the derivative (real and simulated alike)
+    dadt_bins_db: [-0.2, 0.0, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0]
+    dadt_min_count: 50       # a bin of the dA/dt curve needs at least this many minutes
+    ci_reps: 1000            # bootstrap over events for the real CIs
+  pooled3b1b:                # step 3b-1b (waa_pooled.py, step3b1b_pooled_fit.py): pooled fit, re-tested on simulated tails
+    replicates: 10           # per truth; each replicate = an EVENT bootstrap of the TRAIN v1 skeleton (same events for all truths)
+    seed_base: 2000
+    truths: [m1, m3, m4, m5, m6]
+    candidates: [F1, F3, F4, F5, F6]
+    windows: {first_60min: 60, first_6h: 360, whole: null}   # fit on t < window minutes since t0_trace (null = all)
+    min_points: 10           # a tail needs at least this many valid minutes in the window
+    s_start: 1.0             # starting spread; law starts = the real-data calibration of the matching truth (3a-fix, m6)
+    maxfev: 400
+    decision:                # FIXED BEFORE LOOKING at the results
+      laws: [m1, m4, m5, m6]
+      own_win_share: 0.8     # the truth's own candidate wins >= this share of the replicates (per dataset) ...
+      param_tol: 0.3         # ... and every key law parameter has |median(fitted / true) - 1| <= this
+    shape_minutes: [10, 30, 60, 180]
+    thalf_bins_db: [1.0, 1.5, 2.0, 3.0]
+    ci_reps: 1000
+  stress3b1c:                # step 3b-1c (step3b1c_stress_test.py): stress test of the pooled fit; fake data only
+    replicates: 5            # per truth and test; each replicate = a new EVENT bootstrap (same draws for every test)
+    seed_base: 3000
+    truths: [m1, m4, m5, m6] # m3 is not a truth here (F3 stays a candidate)
+    candidates: [F1, F3, F4, F5, F6]   # F1 first: its solution gives one of the T2 starts
+    window_min: 60           # fit on the first 60 min only (the best window of 3b-1b)
+    min_points: 10
+    s_true: 1.25             # spread of every truth (3a-fix)
+    s_start: 1.0             # start of s for the calibration start (as 3b-1b)
+    maxfev: 400              # Nelder-Mead budget from the calibration start (as 3b-1b)
+    maxfev_generic: 800      # ... from the T2 generic starts (further from the optimum)
+    time_budget_h: 3.0       # if the projected run time is longer: replicates 5 -> 3, then no s = 1.5 variants, then T2 starts 4 -> 3
+    t1_noise:                # T1: noise the fit does not know = 10 s white + TWO 1 min AR(1) wanders + quantization
+      tau_fast_min: 20
+      tau_slow_min: 300
+      fast_share_grid: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]   # share of the slow variance in the tau_fast part
+      blocks: 30             # dry series per sub-link for the check (length = median control tail, as 3a-fix)
+      seed: 31
+    t2_starts:               # T2: generic starts, the same for every truth: [law parameters], s. One more start per
+      F1: {g1: [[10], 1.0], g2: [[30], 1.0], g3: [[100], 1.0], g4: [[300], 0.5]}        # candidate (not F1) is built
+      F3: {g1: [[0.01, 1.5], 1.0], g2: [[0.1, 1.5], 1.0], g3: [[0.03, 2.5], 0.5]}       # from the F1 solution (f1sol)
+      F4: {g1: [[10, 100, 0.3], 1.0], g2: [[30, 300, 0.1], 1.0], g3: [[3, 30, 0.5], 0.5]}
+      F5: {g1: [[0.1, 0.01], 1.0], g2: [[0.01, 0.1], 1.0], g3: [[0.003, 0.01], 0.5]}
+      F6: {g1: [[0.1, 0.01, 0.5], 1.0], g2: [[0.02, 0.002, 0.3], 1.0], g3: [[0.3, 0.03, 1.0], 0.5]}
+    t2_bic_gap: 2.0          # start sensitivity: best and worst start differ by more than this (BIC)
+    t3:                      # T3: truths recalibrated to the real median A / A_start at these minutes
+      shape_minutes: [10, 30, 60]
+      z_draws: 16            # the calibration averages the simulated median over this many spread draws
+      keep: {m4: [tau_s], m6: [k_evap]}   # slow parameters kept at their 3a-fix value (from the real 0-6 h curve):
+                             #   three points inside the first hour cannot fix them (free, they ran off to infinity)
+      s_variant: 1.5         # one more variant with this spread ...
+      variant_truths: [m1, m4]   # ... for these truths
+    decision:                # FIXED BEFORE THE RUN
+      own_win_share: 0.8     # the own candidate wins >= 4 of 5 replicates ...
+      param_tol: 0.3         # ... and every key parameter has |median(fitted / true) - 1| <= this

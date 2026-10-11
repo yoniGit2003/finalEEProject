@@ -245,7 +245,7 @@ pairs = pairs.dropna(subset=["A_start_db_1", "A_start_db_2"])
 for v in pair_vars:
     tests.append(rho_ci(pairs, f"{v}_1", f"{v}_2", f"4d sub-link 1 vs 2: {v}"))
 tests = pd.DataFrame(tests)
-save_output(tests, P.STEP2_CORRELATIONS, "key", "fast-drop test: Spearman rho with link-bootstrap CI", index=False)
+save_output(tests, P.STEP2_CORRELATIONS, "diag", "fast-drop test: Spearman rho with link-bootstrap CI", index=False)
 
 # =================================================================================================== median curves
 use = long.merge(sel[["tail_id", "usable_min", "in_main_set", "in_control", "split_event", "margin_rain"]],
@@ -331,7 +331,7 @@ for i, band in enumerate(("<25GHz", ">=25GHz")):
     tidy(b_)
 fig.suptitle("4a. Expected: path rain grows with L (slope 1 on log-log), WAA does not (flat). TRAIN main set.", fontsize=10)
 fig.tight_layout()
-save_output(fig, P.STEP2_FIG_LENGTH, "key", "fast drop vs link length (WAA or missed path rain?)", dpi=110)
+save_output(fig, P.STEP2_FIG_LENGTH, "diag", "fast drop vs link length (WAA or missed path rain?)", dpi=110)
 plt.close(fig)
 
 # =================================================================================================== 4b / 4c figure

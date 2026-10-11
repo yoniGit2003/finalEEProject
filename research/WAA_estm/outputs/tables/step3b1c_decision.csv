@@ -1,0 +1,15 @@
+test,truth,own,own_wins,replicates,wins_instead,median_dbic_own_minus_best_other,median_dbic_where_lost,win_ok,params_off,params_ok,met
+T1,m1,F1,5,5,,-5.7,,True,,True,True
+T1,m4,F4,5,5,,-29.3,,True,,True,True
+T1,m5,F5,0,5,F3 x5,1.8,1.8,False,,True,False
+T1,m6,F6,5,5,,-30.3,,True,,True,True
+T2,m1,F1,4,5,F6 x1,-5.0,1.5,True,,True,True
+T2,m4,F4,4,5,F6 x1,-57.1,3.8,True,,True,True
+T2,m5,F5,4,5,F3 x1,-1.9,0.2,True,,True,True
+T2,m6,F6,5,5,,-16.9,,True,,True,True
+T3,m1,F1,5,5,,-4.7,,True,,True,True
+T3,m4,F4,5,5,,-69.2,,True,,True,True
+T3,m5,F5,4,5,F3 x1,-7.4,0.5,True,a x0.654,False,False
+T3,m6,F6,5,5,,-30.0,,True,,True,True
+T3s,m1,F1,5,5,,-4.9,,True,,True,True
+T3s,m4,F4,4,5,F6 x1,-43.8,8.4,True,,True,True

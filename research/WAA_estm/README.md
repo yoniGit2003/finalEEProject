@@ -18,7 +18,11 @@ circular).
 | 2 | pre-defined exclusions / truncation, main set, fast-drop test, shape descriptors (`step2_select_tails.py`) | done 2026-10-08; TRAIN only, no fitting |
 | 2b | fixes after the step 2 gallery: t0_trace start, strict / lenient ends, earlier rise cut, noise exclusion, level flags (`step2b_fix_tails.py`) | done 2026-10-08; TRAIN only, no fitting |
 | 2c | last fixes (radar NaN = unknown, rise cut v2), event diagnostics, **frozen tail set v1** (`step2c_freeze.py`) | done 2026-10-08; frozen |
-| 3+ | WAA model (weak-form SINDy), comparison with [1], [9] | not started |
+| 3a | tail simulator (drying laws + observation model) calibrated to v1 (`step3a_simulator.py`, library `waa_sim.py`) | done 2026-10-08; 3a-fix the same day: slow AR(1) noise, spread for every law, m2 dropped |
+| 3b-1 | the per-tail fitting method on simulated tails with a known truth (`step3b1_fitting_on_sim.py`, library `waa_fit.py`) | done 2026-10-09: only "exponential vs not" is identifiable, per dataset with BIC |
+| 3b-1b | pooled fit (shared law, per-tail start and speed, offset prior, AR(1) noise likelihood, F6 added), re-tested on event-bootstrap simulated tails (`step3b1b_pooled_fit.py`, library `waa_pooled.py`) | done 2026-10-10: pre-set rule met in all three windows (own law 80-100 % for m1, m4, m5, m6; parameters within +-15 %); m3 vs m5 partly confused |
+| 3b-1c | stress test of the pooled fit on fake tails: unknown noise, honest starts, faster truths (`step3b1c_stress_test.py`) | done 2026-10-11: PARTIAL (12 of 14 cells; m1, m4, m6 pass every test; m5 fails: F3 / F5 not separable) |
+| 3b-2+ | SINDy on fake tails (3b-2); fit the real tails; WAA model (weak-form SINDy), comparison with [1], [9] | not started |
 
 Inputs: release `openmrg_v1` (pinned in `research/config.yaml`) and the frozen baseline v2 products of
 `research/baseline_estm/` (`baselines.csv`, `baseline_uncertainty.csv`, `dew_risk_hourly.csv`, `dry_jumps.csv`).
@@ -34,6 +38,10 @@ python research/WAA_estm/step1_extract_tails.py    # all tails, products, report
 python research/WAA_estm/step2_select_tails.py     # selection + fast-drop test (needs step 1)          ~ 1.5 min
 python research/WAA_estm/step2b_fix_tails.py       # step 2b fixes, adds columns (run after step 2)    ~ 1 min
 python research/WAA_estm/step2c_freeze.py          # last fixes + frozen tail set v1 (after 2b)          ~ 45 s
+python research/WAA_estm/step3a_simulator.py       # simulator calibration + checks (needs v1, 2b set)   ~ 3.5 min
+python research/WAA_estm/step3b1_fitting_on_sim.py # fits on simulated tails (needs 3a), 4 workers      ~ 60 min (cached: 2.5 min)
+python research/WAA_estm/step3b1b_pooled_fit.py    # pooled fits on simulated tails (needs 3a, 3b-1)     ~ 3 h (cached: 1 min)
+python research/WAA_estm/step3b1c_stress_test.py   # stress test of the pooled fit (needs 3a, 3b-1), cores - 1   ~ 45 min (cached: 20 s)
 ```
 
 Both need the release and the baseline products. Step 1 reads the 1 min CML store once, chunk by chunk (32 sub-links).
@@ -51,6 +59,13 @@ step 2b columns, so always run 2b after 2.
 | `step2_select_tails.py` | applies the step 2 rules, writes `tails_selected.csv`, the fast-drop test, shape descriptors, curves, gallery and `outputs/reports/step2_selection.md` |
 | `step2b_fix_tails.py` | applies the step 2b fixes, adds their columns to `tails_selected.csv`, writes the step 2b tables / figures and `outputs/reports/step2b_selection.md` |
 | `step2c_freeze.py` | applies the step 2c fixes, event diagnostics, writes the frozen set (`tails_model*`) and `outputs/reports/step2c_freeze.md` |
+| `waa_sim.py` | library: the drying laws m1, m3, m4, m5 (closed forms), the per-tail time-scale spread, the observation model with switches (offset, white noise, slow AR(1) noise, quantization, real NaN mask, spread), the dry-noise lookup |
+| `waa_fit.py` | library: the candidate models F1, F3, F4, F5 (closed forms, free W0 and offset c), per-tail least squares, BIC / AIC with an effective n, winners, t_half and dA/dt population statistics |
+| `waa_pooled.py` | library: the pooled marginal likelihood of a dataset for F1, F3, F4, F5, F6 (numba): ARMA(1,1) whitening of white + AR(1) noise, offset prior (MAP), per-tail W0 profiled, speed factors marginalised (Laplace per tail, quadrature per link), Nelder-Mead fit |
+| `step3b1c_stress_test.py` | stress test of the pooled fit on fake tails (first 60 min; truths m1, m4, m5, m6): T1 noise with two slow time scales, T2 generic optimiser starts, T3 truths recalibrated to the real early decay; parallel fits cached in `.cache/fits3b1c/`; win shares, recovery, start sensitivity, pre-set rule per cell; writes `outputs/reports/step3b1c_stress_test.md` |
+| `step3b1b_pooled_fit.py` | event-bootstrap replicates per truth (m1, m3, m4, m5, m6), simulates them, pooled fit of every candidate in three windows (cached in `.cache/pooled3b1b/`), confusion, recovery, pre-set decision rule, population statistics; writes `outputs/reports/step3b1b_pooled_fit.md` |
+| `step3b1_fitting_on_sim.py` | simulates replicate datasets per truth (m1, m3, m4, m5, m6), fits every tail with every candidate (cached in `.cache/fits3b1/`), confusion, recovery, population tests, ablation; writes `outputs/reports/step3b1_fitting_on_sim.md` |
+| `step3a_simulator.py` | calibrates the noise (control tails: std, on-level share, ACF 1 / 10 / 60 min) and every law (median, then spread from the band), simulates every law on the TRAIN v1 skeleton, checks real vs simulated (incl. t_half per A_start bin), writes `outputs/reports/step3a_fix.md` |
 
 ## Tail definition (decided by the learners; re-stated here, not read from `explorations/`)
 
@@ -164,11 +179,19 @@ for v1.
 `outputs/reports/`. Every file is described in [`CATALOG.md`](CATALOG.md); its importance level (key / product / diag /
 scratch, ORGANIZATION.md section 5) is in `outputs/MANIFEST.csv`.
 
-- **Key** (kept for the final report): `outputs/reports/step2c_freeze.md` with its figures `step2c_median_curves.png`,
-  `step2c_event_E20150617_0705.png`, `step2c_event_E20150701_0030.png`; the fast-drop test
-  `outputs/figures/step2_fast_drop_vs_length.png` and `outputs/tables/step2_correlations.csv`.
-- **Product**: everything in `outputs/products/`.
-- **Diag** (all other step figures, tables and reports): deleted by /tidy (log: `outputs/TIDY_LOG.md`); rerun the
+- **Key** (kept for the final report, 6 = the limit): `outputs/reports/step2c_freeze.md` with its figure
+  `step2c_median_curves.png`; the simulator calibration `outputs/tables/step3a_calibration.csv` and
+  `outputs/figures/step3a_real_vs_sim_median.png`; the pooled fitting test on simulated tails
+  `outputs/figures/step3b1b_confusion.png` and `outputs/tables/step3b1b_recovery.csv`. Demoted to diag: the two step
+  2c event look figures (2026-10-08, learners' choice), the step 2 fast-drop figure and table (2026-10-09, learners'
+  choice) and the step 3b-1 per-tail confusion figure and recovery table (2026-10-10, decision delegated to Claude:
+  superseded by 3b-1b); their findings are in DECISIONS.md. The key report `step2c_freeze.md` still links the event figures, so /tidy keeps
+  them and reports them as a conflict until that report is rerun or edited.
+- **Product**: everything in `outputs/products/`; the step 3b-1c report `outputs/reports/step3b1c_stress_test.md`
+  and its tables (win shares, decision, recovery, start sensitivity, recalibration). Its win-share figure is diag
+  (the key limit is reached).
+- **Diag** (all other step figures, tables and reports): moved by /tidy to the local `legacy/` folder (git-ignored;
+  log: `outputs/TIDY_LOG.md`). The files /tidy deleted before 2026-10-11 are not there: rerun the
   step's script to get them back. The decisions they held are in [`DECISIONS.md`](DECISIONS.md).
 
 ## Method
@@ -179,6 +202,17 @@ the decisions of every step are in [`DECISIONS.md`](DECISIONS.md). The WAA model
 go to `METHOD.md` once it is decided.
 
 ## Open issues
+
+- **What fitting can show (3b-1, 3b-1b, 3b-1c)**: the per-tail fit (3b-1) separates only "exponential or not"; the pooled
+  fit (3b-1b) separates all five forms on simulated data. The stress test (3b-1c) confirms this for exponential, two
+  layers and the state switch under unknown noise, honest starts and faster truths, but F3 and F5 cannot be told
+  apart (one family, "nonlinear in W"), F5's linear rate is not recoverable from the first hour, and F6 needs several
+  optimiser starts. Open: is keeping m4's tau_s and m6's k_evap fixed in the T3 recalibration acceptable?
+
+- **m1 with spread mimics m4 (3a-fix)**: a mix of exponentials gives the same long slow tail in the median as two
+  layers. Whether the data can tell them apart is the question of 3b (per-tail shape, not the median).
+- **Spread vs noise**: the spread s = 1.25 is set from the band after the noise is fixed; any noise the model still
+  misses (several time scales, daily cycle) ends up in s.
 
 - **Rise cut v2 vs night-time rises (v1)**: in E20150701_0030 A rises 0.5-1 dB after t0_trace with no radar or gauge
   trace, then decays; v1 cuts these. Missed drizzle (radar 78 km away) or condensation on wet radomes? RH at GbgA is

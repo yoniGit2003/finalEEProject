@@ -32,17 +32,30 @@ research/*/outputs/**/*.*
 !research/*/outputs/MANIFEST.csv
 !research/*/outputs/TIDY_LOG.md
 # BEGIN generated: key / product outputs that are committed (research/common/outputs.py; do not edit)
-!research/WAA_estm/outputs/figures/step2_fast_drop_vs_length.png
-!research/WAA_estm/outputs/figures/step2c_event_E20150617_0705.png
-!research/WAA_estm/outputs/figures/step2c_event_E20150701_0030.png
 !research/WAA_estm/outputs/figures/step2c_median_curves.png
+!research/WAA_estm/outputs/figures/step3a_real_vs_sim_median.png
+!research/WAA_estm/outputs/figures/step3b1b_confusion.png
+!research/WAA_estm/outputs/products/sim_noise_params.csv
+!research/WAA_estm/outputs/products/sim_tails_index.csv
+!research/WAA_estm/outputs/products/sim_tails_m1.parquet
+!research/WAA_estm/outputs/products/sim_tails_m3.parquet
+!research/WAA_estm/outputs/products/sim_tails_m4.parquet
+!research/WAA_estm/outputs/products/sim_tails_m5.parquet
 !research/WAA_estm/outputs/products/tails_index.csv
 !research/WAA_estm/outputs/products/tails_model.parquet
 !research/WAA_estm/outputs/products/tails_model_alt.parquet
 !research/WAA_estm/outputs/products/tails_model_alt_index.csv
 !research/WAA_estm/outputs/products/tails_model_index.csv
 !research/WAA_estm/outputs/reports/step2c_freeze.md
-!research/WAA_estm/outputs/tables/step2_correlations.csv
+!research/WAA_estm/outputs/reports/step3b1c_stress_test.md
+!research/WAA_estm/outputs/tables/step3a_calibration.csv
+!research/WAA_estm/outputs/tables/step3b1_m6_calibration.csv
+!research/WAA_estm/outputs/tables/step3b1b_recovery.csv
+!research/WAA_estm/outputs/tables/step3b1c_decision.csv
+!research/WAA_estm/outputs/tables/step3b1c_recalibration.csv
+!research/WAA_estm/outputs/tables/step3b1c_recovery.csv
+!research/WAA_estm/outputs/tables/step3b1c_start_sensitivity.csv
+!research/WAA_estm/outputs/tables/step3b1c_win_shares.csv
 !research/baseline_estm/outputs/figures/c3_daily_cycle.png
 !research/baseline_estm/outputs/figures/c4_humidity_dewpoint.png
 !research/baseline_estm/outputs/figures/r1b_c2_delta.png
@@ -59,6 +72,8 @@ research/*/outputs/**/*.*
 !research/baseline_estm/outputs/tables/r1b_fake_event_offsets.csv.gz
 !research/baseline_estm/outputs/tables/sample_two_window_baselines.csv
 # END generated
+# Legacy outputs: the diag / scratch files that /tidy moves out of outputs/ (never deleted, kept on this machine only)
+research/*/legacy/
 
 # ---- Windows ----
 Thumbs.db

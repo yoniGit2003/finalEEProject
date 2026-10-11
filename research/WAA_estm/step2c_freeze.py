@@ -362,7 +362,7 @@ for n_ev, eid in enumerate(F["look_events"]):
              "end v1 dash-dot); hatching /// unknown, xxx wet. Middle: radar R_max solid, R_mean dashed, gauges "
              "within 1 km (max) dotted, x = radar NaN. Bottom: hourly RH at GbgA.", ha="center", va="top", fontsize=9)
     fig.subplots_adjust(top=0.9)
-    save_output(fig, path, "key", f"look at event {eid}: what the rise cut v2 removes", dpi=90,
+    save_output(fig, path, "diag", f"look at event {eid}: what the rise cut v2 removes", dpi=90,
                 bbox_inches="tight")
     plt.close(fig)
 

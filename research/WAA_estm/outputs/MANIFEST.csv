@@ -1,14 +1,94 @@
 path,level,purpose,script,commit,date
-outputs/figures/step2_fast_drop_vs_length.png,key,fast drop vs link length (WAA or missed path rain?),research/WAA_estm/step2_select_tails.py,fb59b8e+dirty,2026-10-08T12:42:38Z
-outputs/figures/step2c_event_E20150617_0705.png,key,look at event E20150617_0705: what the rise cut v2 removes,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:14Z
-outputs/figures/step2c_event_E20150701_0030.png,key,look at event E20150701_0030: what the rise cut v2 removes,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:16Z
-outputs/figures/step2c_median_curves.png,key,median drying curve of the frozen tail set v1,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:11Z
-outputs/products/tails_1min.parquet,product,"every minute of every drying tail (git-ignored, > 10 MB)",research/WAA_estm/step1_extract_tails.py,fb59b8e+dirty,2026-10-08T12:41:16Z
-outputs/products/tails_index.csv,product,one row per drying tail (read by step 2),research/WAA_estm/step1_extract_tails.py,fb59b8e+dirty,2026-10-08T12:41:17Z
-outputs/products/tails_model.parquet,product,frozen tail set v1 (main): 1 min rows from t0_trace,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:06Z
-outputs/products/tails_model_alt.parquet,product,frozen tail set v1 (alt): 1 min rows from t0_trace,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:07Z
-outputs/products/tails_model_alt_index.csv,product,frozen tail set v1 (alt): one row per tail,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:06Z
-outputs/products/tails_model_index.csv,product,frozen tail set v1 (main): one row per tail,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:05Z
-outputs/products/tails_selected.csv,product,tail index + selection columns of steps 2 and 2b (read by step 2c),research/WAA_estm/step2b_fix_tails.py,fb59b8e+dirty,2026-10-08T12:43:24Z
-outputs/reports/step2c_freeze.md,key,step 2c report: rules and counts of the frozen tail set v1,research/WAA_estm/step2c_freeze.py,fb59b8e+dirty,2026-10-08T12:44:16Z
-outputs/tables/step2_correlations.csv,key,fast-drop test: Spearman rho with link-bootstrap CI,research/WAA_estm/step2_select_tails.py,fb59b8e+dirty,2026-10-08T12:42:32Z
+outputs/figures/step0_example.png,diag,step 0 example event,research/WAA_estm/step0_inventory.py,75df645,2026-10-11T09:33:32Z
+outputs/figures/step1_distributions.png,diag,"step 1 distributions of A_start, wet_A_max, length",research/WAA_estm/step1_extract_tails.py,75df645,2026-10-11T09:36:02Z
+outputs/figures/step1_median_curves.png,diag,step 1 median tail curve per A_start bin,research/WAA_estm/step1_extract_tails.py,75df645,2026-10-11T09:36:02Z
+outputs/figures/step1_resolution_panels.png,diag,step 1 resolution check (10 s / 1 min / 5 min),research/WAA_estm/step1_extract_tails.py,75df645,2026-10-11T09:36:07Z
+outputs/figures/step2_fast_drop_vs_length.png,diag,fast drop vs link length (WAA or missed path rain?),research/WAA_estm/step2_select_tails.py,75df645+dirty,2026-10-11T09:37:13Z
+outputs/figures/step2_gallery.png,diag,step 2 gallery for a manual check,research/WAA_estm/step2_select_tails.py,75df645+dirty,2026-10-11T09:37:19Z
+outputs/figures/step2_margin_rain.png,diag,step 2 fast drop by margin radar rain,research/WAA_estm/step2_select_tails.py,75df645+dirty,2026-10-11T09:37:13Z
+outputs/figures/step2_median_curves.png,diag,step 2 median tail curve: main set vs control,research/WAA_estm/step2_select_tails.py,75df645+dirty,2026-10-11T09:37:11Z
+outputs/figures/step2_shape.png,diag,step 2 shape descriptors,research/WAA_estm/step2_select_tails.py,75df645+dirty,2026-10-11T09:37:14Z
+outputs/figures/step2_sublink_pairs.png,diag,step 2 sub-link 1 vs 2,research/WAA_estm/step2_select_tails.py,75df645+dirty,2026-10-11T09:37:14Z
+outputs/figures/step2b_examples_level_shift.png,diag,"step 2b 6 random TRAIN lenient main-set tails flagged level_shift (seed 3), first 12 h",research/WAA_estm/step2b_fix_tails.py,75df645,2026-10-11T09:38:05Z
+outputs/figures/step2b_examples_undershoot.png,diag,"step 2b 6 random TRAIN lenient main-set tails flagged undershoot (seed 3), first 6 h",research/WAA_estm/step2b_fix_tails.py,75df645,2026-10-11T09:38:06Z
+outputs/figures/step2b_gallery.png,diag,"step 2b 24 random TRAIN strict main-set tails (seed 2), first 6 h, 1 min A",research/WAA_estm/step2b_fix_tails.py,75df645,2026-10-11T09:38:11Z
+outputs/figures/step2b_median_curves.png,diag,step 2b median curves at t0_trace,research/WAA_estm/step2b_fix_tails.py,75df645,2026-10-11T09:38:04Z
+outputs/figures/step2b_offset_std.png,diag,step 2b offset_std of the main-set sub-links,research/WAA_estm/step2b_fix_tails.py,75df645,2026-10-11T09:37:56Z
+outputs/figures/step2b_undershoot_vs_weather.png,diag,step 2b undershoot vs temperature change and hour,research/WAA_estm/step2b_fix_tails.py,75df645,2026-10-11T09:37:58Z
+outputs/figures/step2c_event_E20150617_0705.png,diag,look at event E20150617_0705: what the rise cut v2 removes,research/WAA_estm/step2c_freeze.py,75df645+dirty,2026-10-11T09:38:45Z
+outputs/figures/step2c_event_E20150701_0030.png,diag,look at event E20150701_0030: what the rise cut v2 removes,research/WAA_estm/step2c_freeze.py,75df645+dirty,2026-10-11T09:38:48Z
+outputs/figures/step2c_median_curves.png,key,median drying curve of the frozen tail set v1,research/WAA_estm/step2c_freeze.py,75df645+dirty,2026-10-11T09:38:42Z
+outputs/figures/step3a_gallery.png,diag,step 3a-fix gallery: real vs simulated m1 / m4 tails,research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:18:40Z
+outputs/figures/step3a_noise_fit.png,diag,step 3a-fix noise calibration per sub-link (5 targets),research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:18:38Z
+outputs/figures/step3a_real_vs_sim_median.png,key,"real vs simulated median tail curve and band, per law (3a-fix)",research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:18:34Z
+outputs/figures/step3a_t_half_t_e.png,diag,"step 3a-fix t_half / t_e histograms, real vs simulated",research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:18:38Z
+outputs/figures/step3a_thalf_by_astart.png,diag,"median t_half per A_start bin, real vs each law",research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:19:24Z
+outputs/figures/step3b1_ablation.png,diag,step 3b-1 ablation confusion,research/WAA_estm/step3b1_fitting_on_sim.py,75df645+dirty,2026-10-09T19:21:25Z
+outputs/figures/step3b1_confusion.png,diag,step 3b-1 confusion matrix (per-tail fit; superseded by 3b-1b),research/WAA_estm/step3b1_fitting_on_sim.py,75df645+dirty,2026-10-09T23:23:41Z
+outputs/figures/step3b1_dadt_population.png,diag,step 3b-1 dA/dt vs A population test,research/WAA_estm/step3b1_fitting_on_sim.py,75df645+dirty,2026-10-09T19:21:24Z
+outputs/figures/step3b1_thalf_population.png,diag,step 3b-1 t_half population test,research/WAA_estm/step3b1_fitting_on_sim.py,75df645+dirty,2026-10-09T19:21:22Z
+outputs/figures/step3b1b_confusion.png,key,step 3b-1b confusion: truth x chosen candidate per window (pooled fit),research/WAA_estm/step3b1b_pooled_fit.py,75df645+dirty,2026-10-09T23:23:02Z
+outputs/figures/step3b1b_population.png,diag,step 3b-1b population statistics per truth vs real,research/WAA_estm/step3b1b_pooled_fit.py,75df645+dirty,2026-10-09T23:23:25Z
+outputs/figures/step3b1c_win_share.png,diag,step 3b-1c own-candidate win share per test and truth (stress test),research/WAA_estm/step3b1c_stress_test.py,75df645+dirty,2026-10-11T09:29:47Z
+outputs/products/sim_noise_params.csv,product,"noise parameters per sub-link (white 10 s, slow AR(1) 1 min)",research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:17:46Z
+outputs/products/sim_noise_sigma.csv,scratch,retired in 3a-fix: replaced by sim_noise_params.csv,research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:17:08Z
+outputs/products/sim_tails_index.csv,product,"simulated tails: per law and tail f, offset, noise, phase",research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:18:31Z
+outputs/products/sim_tails_m1.parquet,product,"simulated tail set, law m1 (exponential) with spread, skeleton = TRAIN v1",research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:18:28Z
+outputs/products/sim_tails_m2.parquet,scratch,retired in 3a-fix: m2 = m1 with spread,research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:17:08Z
+outputs/products/sim_tails_m3.parquet,product,"simulated tail set, law m3 (nonlinear dW/dt = -c W^n) with spread, skeleton = TRAIN v1",research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:18:29Z
+outputs/products/sim_tails_m4.parquet,product,"simulated tail set, law m4 (two layers (fast + slow exponential)) with spread, skeleton = TRAIN v1",research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:18:30Z
+outputs/products/sim_tails_m5.parquet,product,"simulated tail set, law m5 (linear + quadratic dW/dt = -a W - b W^2) with spread, skeleton = TRAIN v1",research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:18:31Z
+outputs/products/tails_1min.parquet,product,"every minute of every drying tail (git-ignored, > 10 MB)",research/WAA_estm/step1_extract_tails.py,75df645,2026-10-11T09:35:56Z
+outputs/products/tails_index.csv,product,one row per drying tail (read by step 2),research/WAA_estm/step1_extract_tails.py,75df645,2026-10-11T09:35:58Z
+outputs/products/tails_model.parquet,product,frozen tail set v1 (main): 1 min rows from t0_trace,research/WAA_estm/step2c_freeze.py,75df645+dirty,2026-10-11T09:38:37Z
+outputs/products/tails_model_alt.parquet,product,frozen tail set v1 (alt): 1 min rows from t0_trace,research/WAA_estm/step2c_freeze.py,75df645+dirty,2026-10-11T09:38:38Z
+outputs/products/tails_model_alt_index.csv,product,frozen tail set v1 (alt): one row per tail,research/WAA_estm/step2c_freeze.py,75df645+dirty,2026-10-11T09:38:37Z
+outputs/products/tails_model_index.csv,product,frozen tail set v1 (main): one row per tail,research/WAA_estm/step2c_freeze.py,75df645+dirty,2026-10-11T09:38:37Z
+outputs/products/tails_selected.csv,product,tail index + selection columns of steps 2 and 2b (read by step 2c),research/WAA_estm/step2b_fix_tails.py,75df645,2026-10-11T09:37:56Z
+outputs/reports/step0_inventory.md,diag,step 0 report: inventory of the inputs,research/WAA_estm/step0_inventory.py,75df645,2026-10-11T09:33:32Z
+outputs/reports/step1_tails.md,diag,"step 1 report: all drying tails, descriptive",research/WAA_estm/step1_extract_tails.py,75df645,2026-10-11T09:36:08Z
+outputs/reports/step2_selection.md,diag,step 2 report: selection and fast-drop test,research/WAA_estm/step2_select_tails.py,75df645+dirty,2026-10-11T09:37:19Z
+outputs/reports/step2b_selection.md,diag,step 2b report: fixes after the step 2 gallery,research/WAA_estm/step2b_fix_tails.py,75df645,2026-10-11T09:38:11Z
+outputs/reports/step2c_freeze.md,key,step 2c report: rules and counts of the frozen tail set v1,research/WAA_estm/step2c_freeze.py,75df645+dirty,2026-10-11T09:38:48Z
+outputs/reports/step3a_fix.md,diag,"step 3a-fix report: slow noise, spread per law, checks",research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:19:25Z
+outputs/reports/step3a_simulator.md,scratch,retired in 3a-fix: replaced by step3a_fix.md,research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:17:08Z
+outputs/reports/step3b1_fitting_on_sim.md,diag,step 3b-1 report: the fitting method on simulated tails,research/WAA_estm/step3b1_fitting_on_sim.py,75df645+dirty,2026-10-09T19:21:25Z
+outputs/reports/step3b1b_pooled_fit.md,diag,step 3b-1b report: pooled fit on simulated tails,research/WAA_estm/step3b1b_pooled_fit.py,75df645+dirty,2026-10-09T23:23:25Z
+outputs/reports/step3b1c_stress_test.md,product,step 3b-1c report: stress test of the pooled fit on fake data,research/WAA_estm/step3b1c_stress_test.py,75df645+dirty,2026-10-11T09:29:47Z
+outputs/tables/step0_example.csv,diag,"step 0 example event, 1 min A",research/WAA_estm/step0_inventory.py,75df645,2026-10-11T09:33:32Z
+outputs/tables/step1_a_check.csv,diag,step 1 A(t) check vs baseline.a_of_t,research/WAA_estm/step1_extract_tails.py,75df645,2026-10-11T09:35:58Z
+outputs/tables/step1_dry_rises.csv,diag,step 1 dry-weather rises later in the tail,research/WAA_estm/step1_extract_tails.py,75df645,2026-10-11T09:35:58Z
+outputs/tables/step1_median_curves.csv,diag,step 1 median A per minute and A_start bin,research/WAA_estm/step1_extract_tails.py,75df645,2026-10-11T09:36:01Z
+outputs/tables/step1_return_to_dry.csv,diag,step 1 share of tails back at the dry level,research/WAA_estm/step1_extract_tails.py,75df645,2026-10-11T09:35:59Z
+outputs/tables/step2_correlations.csv,diag,fast-drop test: Spearman rho with link-bootstrap CI,research/WAA_estm/step2_select_tails.py,75df645+dirty,2026-10-11T09:37:08Z
+outputs/tables/step2_counts.csv,diag,step 2 main-set counts per band x length x antenna,research/WAA_estm/step2_select_tails.py,75df645+dirty,2026-10-11T09:36:49Z
+outputs/tables/step2_median_curves.csv,diag,"step 2 median A: main set, control, margin rain",research/WAA_estm/step2_select_tails.py,75df645+dirty,2026-10-11T09:37:10Z
+outputs/tables/step2_truncation.csv,diag,step 2 tail time removed by each truncation rule,research/WAA_estm/step2_select_tails.py,75df645+dirty,2026-10-11T09:36:49Z
+outputs/tables/step2b_counts.csv,diag,step 2b strict / lenient main-set counts,research/WAA_estm/step2b_fix_tails.py,75df645,2026-10-11T09:37:57Z
+outputs/tables/step2b_median_curves.csv,diag,step 2b median A aligned at t0_trace,research/WAA_estm/step2b_fix_tails.py,75df645,2026-10-11T09:38:02Z
+outputs/tables/step2b_noisy_sublinks.csv,diag,step 2b sub-links removed by the offset_std rule,research/WAA_estm/step2b_fix_tails.py,75df645,2026-10-11T09:37:56Z
+outputs/tables/step2b_tail_time.csv,diag,step 2b tail time kept / lost by each change,research/WAA_estm/step2b_fix_tails.py,75df645,2026-10-11T09:37:56Z
+outputs/tables/step2c_changes.csv,diag,step 2c tails / time changed by each rule,research/WAA_estm/step2c_freeze.py,75df645+dirty,2026-10-11T09:38:38Z
+outputs/tables/step2c_events.csv,diag,step 2c one row per TRAIN event of the frozen set,research/WAA_estm/step2c_freeze.py,75df645+dirty,2026-10-11T09:38:37Z
+outputs/tables/step2c_median_curves.csv,diag,step 2c median A of the frozen set,research/WAA_estm/step2c_freeze.py,75df645+dirty,2026-10-11T09:38:41Z
+outputs/tables/step3a_calibration.csv,key,"tail simulator: calibrated law parameters, spread and misfit (3a-fix)",research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:18:31Z
+outputs/tables/step3a_shape_checks.csv,diag,step 3a-fix shape checks: real vs each simulated law,research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:18:36Z
+outputs/tables/step3a_thalf_by_astart.csv,diag,"median t_half per A_start bin, real vs each law",research/WAA_estm/step3a_simulator.py,75df645+dirty,2026-10-08T14:19:24Z
+outputs/tables/step3b1_ablation.csv,diag,step 3b-1 ablation: confusion of m1 / m4 with effects off,research/WAA_estm/step3b1_fitting_on_sim.py,75df645+dirty,2026-10-09T19:21:24Z
+outputs/tables/step3b1_confusion.csv,diag,step 3b-1 confusion: true law x chosen candidate,research/WAA_estm/step3b1_fitting_on_sim.py,75df645+dirty,2026-10-09T19:20:43Z
+outputs/tables/step3b1_dadt_population.csv,diag,step 3b-1 dA/dt vs A: replicate range vs real,research/WAA_estm/step3b1_fitting_on_sim.py,75df645+dirty,2026-10-09T19:21:22Z
+outputs/tables/step3b1_fits.parquet,diag,step 3b-1 every per-tail fit on simulated tails,research/WAA_estm/step3b1_fitting_on_sim.py,75df645+dirty,2026-10-09T19:20:41Z
+outputs/tables/step3b1_m6_calibration.csv,product,calibration scan of truth m6 (state switch); read by step 3b-1b,research/WAA_estm/step3b1_fitting_on_sim.py,75df645+dirty,2026-10-09T20:10:05Z
+outputs/tables/step3b1_recovery.csv,diag,step 3b-1 parameter recovery (per-tail fit; superseded by 3b-1b),research/WAA_estm/step3b1_fitting_on_sim.py,75df645+dirty,2026-10-09T23:23:41Z
+outputs/tables/step3b1_thalf_population.csv,diag,step 3b-1 t_half per A_start bin: replicate range vs real,research/WAA_estm/step3b1_fitting_on_sim.py,75df645+dirty,2026-10-09T19:21:21Z
+outputs/tables/step3b1b_decision.csv,diag,step 3b-1b pre-set decision rule per truth and window,research/WAA_estm/step3b1b_pooled_fit.py,75df645+dirty,2026-10-09T23:23:02Z
+outputs/tables/step3b1b_fits.csv,diag,step 3b-1b every pooled fit on event-bootstrap simulated datasets,research/WAA_estm/step3b1b_pooled_fit.py,75df645+dirty,2026-10-09T23:23:01Z
+outputs/tables/step3b1b_population.csv,diag,step 3b-1b population statistics: replicate ranges vs real,research/WAA_estm/step3b1b_pooled_fit.py,75df645+dirty,2026-10-09T23:23:24Z
+outputs/tables/step3b1b_recovery.csv,key,step 3b-1b recovery of the own candidate's parameters (pooled fit),research/WAA_estm/step3b1b_pooled_fit.py,75df645+dirty,2026-10-09T23:23:02Z
+outputs/tables/step3b1c_decision.csv,product,step 3b-1c pre-set decision rule per test and truth,research/WAA_estm/step3b1c_stress_test.py,75df645+dirty,2026-10-11T09:29:46Z
+outputs/tables/step3b1c_fits.csv,diag,"step 3b-1c every pooled fit of the stress test (test, truth, replicate, candidate, start)",research/WAA_estm/step3b1c_stress_test.py,75df645+dirty,2026-10-11T09:29:46Z
+outputs/tables/step3b1c_noise_check.csv,diag,"step 3b-1c T1: dry-noise statistics, real vs 3a-fix vs T1 noise",research/WAA_estm/step3b1c_stress_test.py,75df645+dirty,2026-10-11T09:29:37Z
+outputs/tables/step3b1c_recalibration.csv,product,"step 3b-1c T3: old and recalibrated truth parameters, real vs simulated A/A_start at 10 / 30 / 60 min",research/WAA_estm/step3b1c_stress_test.py,75df645+dirty,2026-10-11T09:29:41Z
+outputs/tables/step3b1c_recovery.csv,product,step 3b-1c recovery of the own candidate's parameters per test (fitted / true),research/WAA_estm/step3b1c_stress_test.py,75df645+dirty,2026-10-11T09:29:46Z
+outputs/tables/step3b1c_start_sensitivity.csv,product,step 3b-1c T2 start sensitivity: BIC spread over the generic starts per truth and candidate,research/WAA_estm/step3b1c_stress_test.py,75df645+dirty,2026-10-11T09:29:46Z
+outputs/tables/step3b1c_win_shares.csv,product,step 3b-1c win shares: test x truth x candidate (lowest pooled BIC),research/WAA_estm/step3b1c_stress_test.py,75df645+dirty,2026-10-11T09:29:46Z

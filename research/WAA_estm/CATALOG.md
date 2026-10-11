@@ -6,8 +6,8 @@ Settings come from section `waa` of `research/config.yaml`. Status of every entr
 
 **Levels** (ORGANIZATION.md section 5): every file's level and purpose is in `outputs/MANIFEST.csv`. Only **key** and
 **product** files are kept and committed; **diag** files (most step figures, tables and reports below) are
-deleted by /tidy and listed in `outputs/TIDY_LOG.md`. An entry below describes what its script writes, so a
-diag file is back after rerunning that script. Decisions from deleted reports: `DECISIONS.md`.
+moved by /tidy to the local `legacy/` folder (same sub-folder and name) and listed in `outputs/TIDY_LOG.md`. An entry below describes what its script writes, so a
+diag file is back after rerunning that script. Decisions from the step reports: `DECISIONS.md`.
 
 ## Shared vocabulary
 
@@ -111,6 +111,30 @@ diag file is back after rerunning that script. Decisions from deleted reports: `
 - **What**: the same as the frozen set, with A_start_trace >= 0.6 dB instead of 1.0 dB (`tail_set` = `v1_alt`;
   `in_main_set` marks the tails that are also in the main set). Same columns, same producer.
 
+### `outputs/products/sim_tails_m1.parquet`, `sim_tails_m3.parquet`, `sim_tails_m4.parquet`, `sim_tails_m5.parquet`, `outputs/products/sim_tails_index.csv`
+- **What**: simulated tail sets on the TRAIN v1 skeleton (same tail_id, sub-link, link, event, usable length,
+  A_start_trace), one per drying law (m1 exponential, m3 nonlinear, m4 two layers, m5 linear + quadratic), each with
+  its tail-to-tail time-scale spread and the full observation model (offset, 10 s white noise, 1 min AR(1) slow noise,
+  0.3 dB quantization, real NaN minutes). Laws, parameters, spread: `outputs/tables/step3a_calibration.csv`.
+- **Answers**: "what would tail set v1 look like if law X were true?" (input of the identifiability step 3b).
+- **`sim_tails_<law>.parquet`** (1 min rows): `law`, `tail_id`, `sublink_id`, `cml_id`, `event_id`, `split_event`
+  (`train`), `minutes_since_t0_trace`, `W_db` (truth, mean of the six 10 s values, dB), `A_db` (observed 1 min A, dB).
+- **`sim_tails_index.csv`** (per law and tail): `law`, `tail_id`, `f_time_scale` (the tail's time-scale factor),
+  `offset_db`, `sigma_white_db`, `sigma_slow_db`, `tau_noise_min`, `phase_db` (quantization grid phase), `sublink_id`,
+  `cml_id`, `event_id`, `usable_min`, `A_start_trace_db`.
+- **Producer**: `python research/WAA_estm/step3a_simulator.py` (library `waa_sim.py`). **Inputs**:
+  `tails_model_index.csv`, `tails_model.parquet`, `sim_noise_params.csv` (same run).
+
+### `outputs/products/sim_noise_params.csv`
+- **What**: the noise parameters per sub-link of the TRAIN v1 skeleton, fitted on its real control tails (step 2b
+  control, A_start < 0.5 dB) through a lookup of simulated dry series (blocks = the median control tail length).
+- **Columns**: `sublink_id`, `n_control_tails`, `n_control_min`, `median_control_len_min`; real targets
+  `within_std_db` (within-tail std of 1 min A), `on_level_share` (share of minutes with 1 min `tl_std` = 0 and 6 valid
+  samples), `acf_1`, `acf_10`, `acf_60` (autocorrelation of 1 min A at lags in minutes, within-tail, pooled); fitted
+  `sigma_white_db` (10 s), `sigma_slow_db`, `tau_noise_min` (AR(1) at 1 min); `sim_<target>` (the same targets of the
+  chosen grid point); `source` (`fit` / `median_fallback`).
+- **Producer / inputs**: `step3a_simulator.py`; `tails_selected.csv`, `tails_1min.parquet`, release `cml_1min`.
+
 ## outputs/tables/
 
 | file | producer | what it contains (columns) | question |
@@ -119,6 +143,27 @@ diag file is back after rerunning that script. Decisions from deleted reports: `
 | `step1_a_check.csv` | `step1_extract_tails.py` | 3 random pairs: `n_minutes`, `n_nan`, `max_abs_diff_db`, `exactly_equal` (A built here vs `baseline.a_of_t`) | is A(t) built from the products identical to the baseline module's? |
 | `step1_return_to_dry.csv` | `step1_extract_tails.py` | per `A_start_bin` (and `all`) and `minute` (2, 5, 10, 30, 60, 180): `n_tails`, `share_below` (A < max(0.3 dB, 2 x offset_std)) | how fast does A return to the dry level? |
 | `step1_median_curves.csv` | `step1_extract_tails.py` | per `A_start_bin` and `minutes_since_t0`: `median` A (dB), `count` of tails | the typical tail shape per start level |
+| `step3a_calibration.csv` | `step3a_simulator.py` (**key**) | per `law` (m1, m3, m4, m5): `description`, `n_free_params` (incl. the spread), the law's parameters (`tau`; `c`, `n`; `tau_f`, `tau_s`, `phi`; `a`, `b`; minutes, dB), `s` (spread), `f_10_90` (time-scale factor 10-90 %), `s_at_grid_edge`, `rmse_median_truth` (noise-free median vs real), `rmse_median_observed`, `rmse_band_observed` (observed simulation vs real median / 10-90 % band; units of A / A_start) | which laws can reproduce the real median curve, and with which parameters? |
+| `step3b1b_fits.csv` | `step3b1b_pooled_fit.py` | one row per pooled fit: `law` (truth), `rep`, `window` (first_60min, first_6h, whole), `candidate`, `ll` (marginal log-likelihood), `k`, `n_independent` (distinct link x event draw pairs = BIC's N), `n_tails`, `bic`, `s` (fitted spread), `p1`-`p3` with `param_names`, `nfev`, `success`, `seconds` | the raw material of the confusion, recovery and decision tables |
+| `step3b1b_recovery.csv` | `step3b1b_pooled_fit.py` (**key**) | per truth `law`, `window`, `parameter` of its own candidate (and `s`): `true`, `median_ratio`, `p10_ratio`, `p90_ratio` (fitted / true over the 10 event-bootstrap replicates), `within_tol` (+-30 %) | does the pooled fit recover the law parameters? |
+| `step3b1b_decision.csv` | `step3b1b_pooled_fit.py` | per `law` and `window`: `in_rule`, `own_win_share`, `win_ok` (>= 80 %), `params_ok`, `params_off`, `main_confusion`, `met` | is the pre-set decision rule met? |
+| `step3b1b_population.csv` | `step3b1b_pooled_fit.py` | per `statistic` (median t_half per A_start bin; median A / A_start at 10, 30, 60, 180 min): `real`, `real_ci_low`, `real_ci_high` (events resampled), `<law>_min`, `<law>_max` over the replicates, `<law>_real_inside`, `separates` (pairs of truths with non-overlapping ranges) | which population statistics tell which laws apart? |
+| `step3b1c_win_shares.csv` | `step3b1c_stress_test.py` (product) | per `test` (T1 misspecified noise, T2 honest starts, T3 faster truths, T3s = T3 with s = 1.5), `truth` (m1, m4, m5, m6) and `candidate`: `wins` (replicates with the lowest pooled BIC), `replicates`, `share`, `own` (the truth's own candidate) | who wins when the pooled fit is stressed? |
+| `step3b1c_decision.csv` | `step3b1c_stress_test.py` (product) | per `test` and `truth`: `own`, `own_wins`, `replicates`, `wins_instead`, `median_dbic_own_minus_best_other` (negative = own wins), `median_dbic_where_lost`, `win_ok` (>= 4 of 5), `params_off`, `params_ok` (key parameters within +-30 %), `met` | does each cell meet the rule fixed before the run? |
+| `step3b1c_recovery.csv` | `step3b1c_stress_test.py` (product) | per `test`, `truth`, `parameter` of the own candidate (and `s`, not in the rule): `true`, `median_ratio`, `min_ratio`, `max_ratio` (fitted / true over the replicates), `in_rule`, `within_tol` | are the law parameters still recovered under stress? |
+| `step3b1c_start_sensitivity.csv` | `step3b1c_stress_test.py` (product) | T2, per `truth` and `candidate`: `datasets`, `starts_differ` (best and worst start differ by > 2 BIC), `median_bic_range`, `max_bic_range`, `generic_worse_than_calib` / `generic_better_than_calib` (best generic start vs the fit started at the truth, > 2 BIC), `fits_stopped_at_maxfev`, `fits`, `best_start_counts` | does the result depend on where the optimiser starts? |
+| `step3b1c_recalibration.csv` | `step3b1c_stress_test.py` (product) | T3, per `test` and `truth`: `s`, `old_parameters`, `new_parameters`, and A / A_start at 10, 30, 60 min: `real_*`, `old_sim_*` / `new_sim_*` (median over the replicates of the observed fake tails; `new_sim_min_*`, `new_sim_max_*`), `old_noise_free_*` / `new_noise_free_*` (calibration values) | which faster truths were used, and do they match the real early decay? |
+| `step3b1c_noise_check.csv` | `step3b1c_stress_test.py` | T1, per `statistic` (within-tail std, on-level share, ACF at 1 / 10 / 60 min): `real_median`, `sim_3afix_median`, `sim_T1_median`, `abs_err_3afix`, `abs_err_T1` (median absolute error per sub-link) | does the two-time-scale noise still look like the real dry noise? |
+| `step3b1c_fits.csv` | `step3b1c_stress_test.py` | one row per pooled fit: `test`, `truth`, `rep`, `candidate`, `start` (calib, g1-g4, f1sol), `s0`, `ll`, `k`, `n_independent`, `n_tails`, `bic`, `s`, `p1`-`p3` with `param_names`, `nfev`, `success`, `seconds` | the raw material of the stress-test tables |
+| `step3b1_confusion.csv` | `step3b1_fitting_on_sim.py` | per `score` (bic, aic), `law` (truth), `variant` (full or an ablation), `candidate`: `per_tail_share` (mean over replicates), `per_tail_share_sd`, `per_dataset_share` (share of replicates won by the summed score) | which candidate does the method choose for each true law? |
+| `step3b1_recovery.csv` | `step3b1_fitting_on_sim.py` (diag since 2026-10-10) | per `law` and `parameter` of the truth's own candidate: `measure` (fitted / true for scale parameters; fitted - true for phi, n; fitted - true offset for c; fitted - A_start for W0), `true_value`, `n`, `median`, `p10`, `p90`, `at_bound_share` | can the fit recover the per-tail parameters? |
+| `step3b1_fits.parquet` | `step3b1_fitting_on_sim.py` | every per-tail fit: `tail_id`, `candidate`, `n`, `rho`, `n_eff`, `k`, `rss`, `bic`, `aic`, `converged`, the candidate's parameters (`W0`, `tau`, `tau_f`, `tau_s`, `phi`, `k`, `n`, `a`, `b`, `c`), the truth's `f_time_scale`, `offset_db`, `law`, `variant`, `rep`, `dataset` | the raw material of the confusion and recovery tables |
+| `step3b1_m6_calibration.csv` | `step3b1_fitting_on_sim.py` | m6 calibration per spread `s`: `k_run`, `k_evap` (1/min), `A_c` (dB), `status`, `rmse_median_truth`, `rmse_median_observed`, `rmse_band_observed` | does the state-switch truth calibrate? |
+| `step3b1_thalf_population.csv` | `step3b1_fitting_on_sim.py` | per `law` and A_start `bin`: `min`, `median`, `max` of the replicate medians of t_half (min); real `tails`, `real_median`, `real_ci_low`, `real_ci_high` (events resampled); `real_inside` | does t_half per A_start bin separate the laws? |
+| `step3b1_dadt_population.csv` | `step3b1_fitting_on_sim.py` | per `law` and smoothed-A bin `A_bin` (`A_mid`, dB): `min`, `max` of the replicate median dA/dt (dB/min); `real_median_dadt`, `real_count`, `real_inside` (1 / 0 / NaN) | does the drying rate vs A separate the laws? |
+| `step3b1_ablation.csv` | `step3b1_fitting_on_sim.py` | the BIC rows of `step3b1_confusion.csv` for truths m1, m4 and every variant (full, no_noise, no_quantization, no_offset, no_spread, all_off) | which observation effect causes the confusion? |
+| `step3a_thalf_by_astart.csv` | `step3a_simulator.py` | per `source` (real, m1, m3, m4, m5) and `A_start_bin_db` (1-1.5, 1.5-2, 2-3, > 3): `tails`, `n_reached`, `median_t_half_min`; real also `ci_low`, `ci_high` (95 %, 1000 resamples of events) | does t_half depend on A_start (nonlinear) or not (exponential, two layers)? |
+| `step3a_shape_checks.csv` | `step3a_simulator.py` | per `quantity` (`t_half_min`, `t_e_min`, `ratio_<k>min`, `last_hour_std_db`) and `source` (real, m1 ... m5): `n`, `p10`, `median`, `p90`, `not_reached` | does the simulator look like the data beyond the median? |
 | `step2c_changes.csv` | `step2c_freeze.py` | `what`, `tails`, `minutes`: tails / tail time changed by the radar-NaN rule and rise cut v2; pre-rise, v1 and step 2b main-set sizes (TRAIN) | what did the last fixes cost? |
 | `step2c_events.csv` | `step2c_freeze.py` | one row per TRAIN event with pre-rise main-set tails: local start / end / median t0_trace hour, `tails_before_rise_cut`, `tails_v1`, `links_v1`, `share_cut_by_rise_v2`, `share_level_flags_v1`, `radar_valid_fraction` ([start, end + 6 h], path R_max non-NaN share), mean T / RH / wind at t0, `event_rise_heavy` | which events dominate or behave oddly? |
 | `step2c_median_curves.csv` | `step2c_freeze.py` | per `group` (strict v1, step 2b strict, control) and `rel` (minutes since each group's t0_trace): `median` A (dB), `count` (TRAIN) | how did the last fixes change the typical tail? |
@@ -137,6 +182,18 @@ diag file is back after rerunning that script. Decisions from deleted reports: `
 | file | producer | what is plotted / what to look for |
 |---|---|---|
 | `step0_example.png` | `step0_inventory.py` | top: A of one sub-link in one event with link_state shading (wet blue, unknown grey); bottom: radar R_mean and gauge rate. Look for the rain, the drop of A after the last wet bin, and dry-weather changes |
+| `step3b1b_confusion.png` | `step3b1b_pooled_fit.py` (**key**) | one greyscale matrix per fitting window (first 60 min, first 6 h, whole): truth (rows m1, m3, m4, m5, m6) x chosen candidate (F1, F3, F4, F5, F6, lowest pooled BIC), share of the 10 event-bootstrap replicates in the cells, own candidate bold in a dashed box. A strong diagonal = the pooled fit tells the laws apart |
+| `step3b1b_population.png` | `step3b1b_pooled_fit.py` | one panel per population statistic: replicate range per truth (bars) vs the real value (line) and its 95 % CI from resampling events (hatched); the title names the pairs of truths it separates |
+| `step3b1c_win_share.png` | `step3b1c_stress_test.py` | one panel per test (T1, T2, T3, T3s): bars = replicates won by the truth's own candidate, per truth; dashed line = the rule (4 of 5); grey bar = cell passes, hatched white bar = fails, with a text label (who wins instead, parameters off) | look for hatched bars: where does the pooled fit break? |
+| `step3b1_confusion.png` | `step3b1_fitting_on_sim.py` (diag since 2026-10-10) | two greyscale matrices, truth (rows m1, m3, m4, m5, m6) x chosen candidate (F1, F3, F4, F5), numbers in the cells, the truth's own candidate bold in a dashed box: left per tail (share of tails), right per dataset (share of 10 replicates won). Look for a strong diagonal: only m1 has one |
+| `step3b1_thalf_population.png` | `step3b1_fitting_on_sim.py` | one panel per truth: replicate min-max of the median t_half per A_start bin (hatched boxes) vs the real median with its 95 % CI (dots, error bars) |
+| `step3b1_dadt_population.png` | `step3b1_fitting_on_sim.py` | one column per truth: drying rate -dA/dt vs smoothed A, replicate min-max (hatched) vs real (dots), linear (top) and log-log (bottom) |
+| `step3b1_ablation.png` | `step3b1_fitting_on_sim.py` | truths m1, m4: share choosing each candidate per variant (rows), per tail and per dataset, own candidate bold |
+| `step3a_real_vs_sim_median.png` | `step3a_simulator.py` (**key**) | rows = laws m1, m3, m4, m5 (with spread and slow noise), columns = 0-90 min / 0-6 h, linear / log: real median A / A_start (solid) with hatched 10-90 % band vs simulated median (dashed) and 10 / 90 % (dotted). Which law follows the median, which the spread? |
+| `step3a_t_half_t_e.png` | `step3a_simulator.py` | histograms of the time to A_start / 2 and A_start / e: real (hatched bars) vs each law (dashed outline) |
+| `step3a_noise_fit.png` | `step3a_simulator.py` | per sub-link, real vs simulated for the 5 noise targets (within-tail std, on-level share, ACF at 1 / 10 / 60 min; each its own marker), 1:1 dashed; title = median absolute error |
+| `step3a_gallery.png` | `step3a_simulator.py` | 12 random TRAIN v1 tails (seed 5): real (solid) vs simulated m1 (dashed) and m4 (dotted) with the same tail_id, A_start, length, sub-link noise and NaN minutes |
+| `step3a_thalf_by_astart.png` | `step3a_simulator.py` | median t_half per A_start bin: real (solid, filled circles, 95 % CI bars from events) vs each law (own line style and marker). Flat = exponential / two layers, falling = nonlinear |
 | `step2c_median_curves.png` | `step2c_freeze.py` | median A of strict v1 (solid), step 2b strict (dashed), control (dash-dot), 0-90 min and 0-6 h, linear and log y, labelled at the line ends |
 | `step2c_event_<event_id>.png` | `step2c_freeze.py` | 6 random pre-rise main-set tails of each event in `waa.freeze.look_events` (seed 4), first 6 h: A with labelled line-style markers (t0, t0_trace, first dry, end v1) and hatched link_state; radar R_max (solid), R_mean (dashed), gauges within 1 km (dotted), radar NaN (x); hourly RH. Is the rise cut removing rain or a dry-weather rise? |
 | `step2b_offset_std.png` | `step2b_fix_tails.py` | histogram of offset_std over the lenient main-set sub-links, dashed line at the 0.3 dB exclusion |
@@ -159,6 +216,10 @@ diag file is back after rerunning that script. Decisions from deleted reports: `
 | file | producer | content |
 |---|---|---|
 | `step0_inventory.md` | `step0_inventory.py` (overwritten each run) | inventory of every input: paths, formats, producers, dims, spans, coverage, flags, splits, references, metadata, weather; one example; list of gaps |
+| `step3b1c_stress_test.md` | `step3b1c_stress_test.py` (product; overwritten each run) | what was run and cut, T1 noise check, T3 recalibration, win shares and the pre-set rule per cell, parameter recovery, T2 start sensitivity, overall verdict and what it means for step 4, unclear points |
+| `step3b1b_pooled_fit.md` | `step3b1b_pooled_fit.py` (overwritten each run) | plain-words summary incl. what the real tails can tell, method (marginalisation, BIC's N), confusion per window, recovery, population statistics, the pre-set decision rule, unclear points |
+| `step3b1_fitting_on_sim.md` | `step3b1_fitting_on_sim.py` (overwritten each run) | plain-words summary, the fit and its n_eff, confusion (BIC and AIC), recovery, population tests, ablation, unclear points |
+| `step3a_fix.md` | `step3a_simulator.py` (overwritten each run) | 3a-fix: noise targets and parameters, spread scan per law, calibration and misfit, checks, t_half per A_start bin, unclear points (replaces `step3a_simulator.md`, retired) |
 | `step2c_freeze.md` | `step2c_freeze.py` (overwritten each run) | changes by the last fixes, event table and look figures, counts of the frozen set (train / val, with events), tails per event, median curves, unclear points |
 | `step2b_selection.md` | `step2b_fix_tails.py` (overwritten each run) | new start, two ends, tail time, noise exclusion, level flags, main sets, median curves, gallery, unclear points (TRAIN only) |
 | `step2_selection.md` | `step2_select_tails.py` (overwritten each run) | exclusions, truncation, main-set counts, fast-drop test with bootstrap CIs, shape descriptors, median curves, gallery, unclear points (TRAIN only) |
@@ -166,4 +227,4 @@ diag file is back after rerunning that script. Decisions from deleted reports: `
 
 ## .cache/ (git-ignored, safe to delete)
 
-`step0_run.log`, `step1_run.log`, `step2_run.log`, `step2b_run.log`, `step2c_run.log`, `check_new.py` (organization check incl. untracked files): console output of the last runs.
+`step0_run.log`, `step1_run.log`, `step2_run.log`, `step2b_run.log`, `step2c_run.log`, `step3a_run.log`, `step3b1_run.log`, `fits3b1/` (cached per-dataset fits of step 3b-1; delete to refit), `pooled3b1b/` (cached simulations and pooled fits of step 3b-1b), `step3b1b_run.log`, `fits3b1c/` (cached simulations, fits and the run plan of step 3b-1c; delete to redo), `step3b1c_run.log`, `check_new.py` (organization check incl. untracked files): console output of the last runs.

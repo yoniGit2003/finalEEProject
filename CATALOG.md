@@ -30,6 +30,10 @@ Commands from the repository root, with `C:\Users\yoni\miniconda3\python.exe` as
 | 8 | `python research/WAA_estm/step2_select_tails.py` | `WAA_estm/outputs/products/tails_selected.csv`, `step2_*` | step 7 | ~1.5 min |
 | 9 | `python research/WAA_estm/step2b_fix_tails.py` | new columns in `WAA_estm/outputs/products/tails_selected.csv`, `step2b_*` | step 8 | ~1 min |
 | 10 | `python research/WAA_estm/step2c_freeze.py` | `WAA_estm/outputs/products/tails_model*` (frozen tail set v1), `step2c_*` | step 9 | ~45 s |
+| 11 | `python research/WAA_estm/step3a_simulator.py` | `WAA_estm/outputs/products/sim_tails_*`, `sim_noise_params.csv`, `step3a_*` | step 10 | ~3.5 min |
+| 12 | `python research/WAA_estm/step3b1_fitting_on_sim.py` | `WAA_estm/outputs/tables/step3b1_*`, `figures/step3b1_*`, `reports/step3b1_fitting_on_sim.md` | step 11 | ~60 min (cached fits: ~2.5 min) |
+| 13 | `python research/WAA_estm/step3b1b_pooled_fit.py` | `WAA_estm/outputs/tables/step3b1b_*`, `figures/step3b1b_*`, `reports/step3b1b_pooled_fit.md` | steps 11-12 | ~3 h (cached: ~1 min) |
+| 14 | `python research/WAA_estm/step3b1c_stress_test.py` | `WAA_estm/outputs/tables/step3b1c_*`, `figures/step3b1c_win_share.png`, `reports/step3b1c_stress_test.md` | steps 11-12 | ~45 min (cached: ~20 s) |
 | - | by hand | `outputs/reports/R1_validation.md`, `R1b_validation.md`, `METHOD.md` | the numbers of steps 1-5 | |
 
 (`research/baseline_estm/` is left out of the paths in steps 1-5.) Re-running a step only rewrites its own files.

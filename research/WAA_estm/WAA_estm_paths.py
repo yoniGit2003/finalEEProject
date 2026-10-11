@@ -86,3 +86,54 @@ STEP2C_MEDIAN_CURVES = TABLES / "step2c_median_curves.csv"
 STEP2C_FIG_MEDIAN = FIGURES / "step2c_median_curves.png"
 STEP2C_FIG_EVENT = FIGURES / "step2c_event_{event_id}.png" # filled with the event id
 STEP2C_REPORT = REPORTS / "step2c_freeze.md"
+
+# ---- step 3a (+ 3a-fix): tail simulator (waa_sim.py = library, step3a_simulator.py = calibration + checks) ----------
+SIM_TAILS_M1 = PRODUCTS / "sim_tails_m1.parquet"          # simulated tail set per law, 1 min rows (one constant per
+SIM_TAILS_M3 = PRODUCTS / "sim_tails_m3.parquet"          #   file, so /tidy can see that step3a_simulator.py writes it)
+SIM_TAILS_M4 = PRODUCTS / "sim_tails_m4.parquet"
+SIM_TAILS_M5 = PRODUCTS / "sim_tails_m5.parquet"
+SIM_INDEX = PRODUCTS / "sim_tails_index.csv"               # per law and tail: time-scale factor, offset, noise, phase
+SIM_NOISE = PRODUCTS / "sim_noise_params.csv"              # noise parameters per sub-link (white, slow, tau_noise)
+STEP3A_CALIBRATION = TABLES / "step3a_calibration.csv"     # law parameters + median-curve misfit (key)
+STEP3A_CHECKS = TABLES / "step3a_shape_checks.csv"         # ratios, t_half, t_e, last-hour std: real vs each law
+STEP3A_FIG_MEDIAN = FIGURES / "step3a_real_vs_sim_median.png"   # key
+STEP3A_FIG_CROSSING = FIGURES / "step3a_t_half_t_e.png"
+STEP3A_FIG_NOISE = FIGURES / "step3a_noise_fit.png"
+STEP3A_FIG_GALLERY = FIGURES / "step3a_gallery.png"
+STEP3A_THALF = TABLES / "step3a_thalf_by_astart.csv"       # median t_half per A_start bin, real vs each law
+STEP3A_FIG_THALF = FIGURES / "step3a_thalf_by_astart.png"
+STEP3A_REPORT = REPORTS / "step3a_fix.md"                 # the 3a-fix report (replaces step3a_simulator.md)
+
+# ---- step 3b-1: the fitting method on simulated tails (waa_fit.py = library, step3b1_fitting_on_sim.py) ----------------
+STEP3B1_FITS = TABLES / "step3b1_fits.parquet"             # every per-tail fit: dataset, tail, candidate, params, BIC
+STEP3B1_CONFUSION = TABLES / "step3b1_confusion.csv"       # true law x chosen candidate, per tail and per dataset
+STEP3B1_RECOVERY = TABLES / "step3b1_recovery.csv"         # parameter recovery of the true law's own candidate (key)
+STEP3B1_M6 = TABLES / "step3b1_m6_calibration.csv"         # m6 (state switch) calibration scan
+STEP3B1_THALF = TABLES / "step3b1_thalf_population.csv"    # t_half per A_start bin: replicate range vs real
+STEP3B1_DADT = TABLES / "step3b1_dadt_population.csv"      # dA/dt vs A: replicate range vs real
+STEP3B1_ABLATION = TABLES / "step3b1_ablation.csv"         # confusion for m1 / m4 with effects switched off
+STEP3B1_FIG_CONFUSION = FIGURES / "step3b1_confusion.png"  # key
+STEP3B1_FIG_THALF = FIGURES / "step3b1_thalf_population.png"
+STEP3B1_FIG_DADT = FIGURES / "step3b1_dadt_population.png"
+STEP3B1_FIG_ABLATION = FIGURES / "step3b1_ablation.png"
+STEP3B1_REPORT = REPORTS / "step3b1_fitting_on_sim.md"
+
+# ---- step 3b-1b: pooled fit on event-bootstrap simulated datasets (waa_pooled.py, step3b1b_pooled_fit.py) -------------
+STEP3B1B_FITS = TABLES / "step3b1b_fits.csv"               # every pooled fit: truth, replicate, window, candidate, BIC
+STEP3B1B_RECOVERY = TABLES / "step3b1b_recovery.csv"       # own-candidate recovery over replicates (key)
+STEP3B1B_DECISION = TABLES / "step3b1b_decision.csv"       # the pre-set decision rule per truth and window
+STEP3B1B_POPULATION = TABLES / "step3b1b_population.csv"   # t_half per bin and A / A_start at k min: ranges vs real
+STEP3B1B_FIG_CONFUSION = FIGURES / "step3b1b_confusion.png"   # key
+STEP3B1B_FIG_POPULATION = FIGURES / "step3b1b_population.png"
+STEP3B1B_REPORT = REPORTS / "step3b1b_pooled_fit.md"
+
+# ---- step 3b-1c: stress test of the pooled fit (step3b1c_stress_test.py; fake data only) -------------------------------
+STEP3B1C_FITS = TABLES / "step3b1c_fits.csv"               # every fit: test, truth, replicate, candidate, start, BIC
+STEP3B1C_WIN = TABLES / "step3b1c_win_shares.csv"          # test x truth x candidate: replicates won
+STEP3B1C_DECISION = TABLES / "step3b1c_decision.csv"       # the pre-set rule per test and truth (cell verdicts)
+STEP3B1C_RECOVERY = TABLES / "step3b1c_recovery.csv"       # own-candidate parameter ratios per test and truth
+STEP3B1C_STARTS = TABLES / "step3b1c_start_sensitivity.csv"   # T2: spread of the BIC over the starts
+STEP3B1C_RECAL = TABLES / "step3b1c_recalibration.csv"     # T3: old and new truth parameters, A / A_start at 10/30/60
+STEP3B1C_NOISE = TABLES / "step3b1c_noise_check.csv"       # T1: real vs simulated dry-noise statistics
+STEP3B1C_FIG_WIN = FIGURES / "step3b1c_win_share.png"      # own-candidate win share per test and truth
+STEP3B1C_REPORT = REPORTS / "step3b1c_stress_test.md"
