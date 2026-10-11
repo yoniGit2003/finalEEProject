@@ -16,11 +16,15 @@ the per-tail part v analytic; the per-link part u is integrated by quadrature on
 
 Candidates (theta):  F1 exponential (tau) | F4 two layers (tau_f, tau_s, phi) | F3 nonlinear dW/dt = -k W^n
 (k, n in [1, 3]) | F5 linear + quadratic (a, b) | F6 state switch (k_run, k_evap, A_c), as in waa_sim.py.
+FC (step 3b-3) is not a menu law but a FREE curve: dW/dt = -W k(W), with k(W) given as a table (waa_curve.py builds
+the table from a spline and calls pooled_loglik("FC", table, s, D)). Table layout in theta: [n, x_0, dx, T_0 .. T_(n-1),
+k_0 .. k_(n-1)], x = log W on a regular grid, T(x) = integral from x_0 to x of dx / k (the time the law needs to dry
+from x to x_0). A tail that starts at x(0) is then x(tau) = T^-1(T(x(0)) - tau). Outside the grid k is constant.
 """
 import numpy as np
 from numba import njit, prange
 
-CAND_CODE = {"F1": 1, "F3": 3, "F4": 4, "F5": 5, "F6": 6}
+CAND_CODE = {"F1": 1, "F3": 3, "F4": 4, "F5": 5, "F6": 6, "FC": 7}
 LINEAR = {"F1", "F4"}                                               # W is proportional to W0: W0 profiled exactly
 G_LATTICE = np.linspace(-4.0, 4.0, 17)                              # g = u + v, in units of z (sd 1)
 U_NODES = np.linspace(-2.1, 2.1, 13)                                # u ~ N(0, 1/2): +-3 sd
@@ -48,6 +52,35 @@ def arma_params(sigma_white_10s, sigma_slow, tau_noise, step=0.3, spm=6):
 def _curve(code, th, t, w0, f, out):
     """W(t / f) for one tail into `out`."""
     n = t.shape[0]
+    if code == 7:                                                   # free curve: table look-up (see module docstring)
+        m = int(th[0])
+        x0, dx = th[1], th[2]
+        T = th[3:3 + m]
+        klo, khi, tmax, xmax = th[3 + m], th[3 + 2 * m - 1], th[3 + m - 1], th[1] + (m - 1) * th[2]
+        xw = np.log(w0)
+        j = 0
+        if xw <= x0:
+            ts = (xw - x0) / klo
+        elif xw >= xmax:
+            ts = tmax + (xw - xmax) / khi
+            j = m - 2
+        else:
+            u = (xw - x0) / dx
+            j = min(int(u), m - 2)
+            ts = T[j] + (u - j) * (T[j + 1] - T[j])
+        for k in range(n):
+            tt = ts - t[k] / f
+            if tt <= 0.0:
+                out[k] = np.exp(x0 + klo * tt)
+            elif tt >= tmax:
+                out[k] = np.exp(xmax + khi * (tt - tmax))
+            else:
+                while j > 0 and T[j] > tt:                          # time runs forward, so the index only walks down
+                    j -= 1
+                while j < m - 2 and T[j + 1] < tt:
+                    j += 1
+                out[k] = np.exp(x0 + (j + (tt - T[j]) / (T[j + 1] - T[j])) * dx)
+        return
     p3 = w0 ** (1 - th[1]) if code == 3 and abs(th[1] - 1.0) >= 1e-6 else 0.0   # F3: constant part, once per tail
     for k in range(n):
         x = t[k] / f
@@ -86,6 +119,15 @@ def _rate(code, th, w):
         return -th[0] * w ** th[1]
     if code == 5:
         return -th[0] * w - th[1] * w * w
+    if code == 7:                                                   # free curve: -W k(W), k from the table
+        m = int(th[0])
+        u = (np.log(w) - th[1]) / th[2]
+        if u <= 0.0:
+            return -w * th[3 + m]
+        if u >= m - 1:
+            return -w * th[3 + 2 * m - 1]
+        j = int(u)
+        return -w * (th[3 + m + j] + (u - j) * (th[3 + m + j + 1] - th[3 + m + j]))
     if w > th[2]:                                                   # 6: state switch
         return -th[0] * (w - th[2]) - th[1] * w
     return -th[1] * w
@@ -293,3 +335,14 @@ def fit(cand, D, theta0, s0, maxfev=400, step=0.4, fatol=0.1):
     theta, s = to_theta(cand, res.x)
     return {"ll": -float(res.fun), "theta": [float(v) for v in theta], "s": s, "nfev": int(res.nfev),
             "success": bool(res.success)}
+
+
+def tail_speed_factors(cand, theta, s, D):
+    """Estimated speed factor f_i of every tail of D at the fitted (theta, s): {tail_id: f}. Per tail the profile
+    likelihood in g is summarised by its peak g* and curvature kappa (as in pooled_loglik); with the prior g ~ N(0, 1)
+    the posterior mode is kappa g* / (1 + kappa), so a tail that says little about its speed is pulled to f = 1.
+    Used by step 3b-2 to rescale the time axis of each tail (t / f_i)."""
+    _, gstar, kap = _tails_laplace(CAND_CODE[cand], cand in LINEAR, np.asarray(theta, float), float(s), D["T"], D["FY"],
+                                   D["F1"], D["start"], D["length"], D["rho"], D["ma"], D["s2"], D["g0"], D["o2"],
+                                   D["a0"], G_LATTICE)
+    return dict(zip(D["tail_id"], np.exp(s * kap * gstar / (1 + kap))))

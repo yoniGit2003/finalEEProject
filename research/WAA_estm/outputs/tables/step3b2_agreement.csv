@@ -1,0 +1,26 @@
+truth,rep,n_tails,pooled_winner,pooled_family,pooled_dbic_to_second,sindy_terms,sindy_family,sindy_rescaled_terms,sindy_rescaled_family,pooled_F1_rate,sindy_A_coef,sindy_rescaled_A_coef,agree,agree_rescaled
+m1,0,370,F1,exponential,1.8,A + A^2,nonlinear,A + A^2,nonlinear,0.0362,0.06,0.0172,False,False
+m1,1,135,F6,switch,1.5,A,exponential,A + A^2,nonlinear,0.0472,0.0434,0.0136,False,False
+m1,2,548,F1,exponential,5.9,A + A^2,nonlinear,A + A^2,nonlinear,0.0304,0.0658,0.0129,False,False
+m1,3,753,F1,exponential,5.0,A + A^2,nonlinear,A,exponential,0.0317,0.0626,0.0259,False,True
+m1,4,478,F1,exponential,5.9,A,exponential,A + A^2,nonlinear,0.0346,0.0446,0.0161,True,False
+m3,0,370,F3,nonlinear,4.4,A,exponential,A^2,nonlinear,0.0591,0.0507,-0.0,False,True
+m3,1,135,F3,nonlinear,0.2,A,exponential,A^3,nonlinear,0.074,0.0476,-0.0,False,True
+m3,2,548,F5,nonlinear,0.0,A,exponential,A + A^2 + A^3,nonlinear,0.0494,0.052,0.0058,False,True
+m3,3,753,F5,nonlinear,0.2,A,exponential,A + A^2 + A^3,nonlinear,0.0503,0.0496,0.0103,False,True
+m3,4,478,F3,nonlinear,0.2,A,exponential,A^2,nonlinear,0.0599,0.0558,-0.0,False,True
+m4,0,370,F4,two layers,51.1,A,exponential,A + A^2,nonlinear,0.039,0.0477,0.0149,False,False
+m4,1,135,F6,switch,3.8,A,exponential,A^2,nonlinear,0.0589,0.0478,-0.0,False,False
+m4,2,548,F4,two layers,65.7,A + A^2,nonlinear,A + A^2,nonlinear,0.0415,0.067,0.0106,False,False
+m4,3,753,F4,two layers,69.5,A + A^2,nonlinear,A + A^2,nonlinear,0.0408,0.0648,0.0162,False,False
+m4,4,478,F4,two layers,57.1,A,exponential,A^2,nonlinear,0.0438,0.0499,-0.0,False,False
+m5,0,370,F5,nonlinear,1.7,A,exponential,A + A^2 + A^3,nonlinear,0.0568,0.0497,0.0085,False,True
+m5,1,135,F3,nonlinear,0.2,A,exponential,A + A^3,nonlinear,0.0557,0.0479,0.0108,False,True
+m5,2,548,F5,nonlinear,1.9,A,exponential,A + A^2 + A^3,nonlinear,0.0419,0.051,0.0063,False,True
+m5,3,753,F5,nonlinear,4.2,A,exponential,A + A^2 + A^3,nonlinear,0.045,0.0483,0.0104,False,True
+m5,4,478,F5,nonlinear,4.7,A,exponential,A^2,nonlinear,0.0525,0.0547,-0.0,False,True
+m6,0,370,F6,switch,13.3,A,exponential,A + A^2 + A^3,nonlinear,0.0532,0.0484,0.0131,False,False
+m6,1,135,F6,switch,16.9,A,exponential,A^2,nonlinear,0.0643,0.0476,-0.0,False,False
+m6,2,548,F6,switch,41.1,A + A^2,nonlinear,A + A^2,nonlinear,0.0387,0.0709,0.0128,False,False
+m6,3,753,F6,switch,11.1,A + A^2,nonlinear,A + A^2,nonlinear,0.0391,0.0675,0.018,False,False
+m6,4,478,F6,switch,56.3,A,exponential,A^2,nonlinear,0.0585,0.0502,-0.0,False,False

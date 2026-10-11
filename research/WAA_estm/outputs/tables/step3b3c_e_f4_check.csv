@@ -1,0 +1,6 @@
+rep,bic_free_curve,bic_f4_3b3b,bic_f4_generic_now,bic_f4_f1sol,best_start,curve_minus_f4_3b3b,curve_minus_f4_now,warning_now
+0,32462.1,32459.4,32459.4,32460.0,g3,2.7,2.7,False
+1,40712.4,40708.2,40708.2,40709.3,g3,4.2,4.2,False
+2,36876.8,36838.1,36838.1,36836.9,f1sol,38.7,39.9,True
+3,31403.2,31350.0,31350.0,31349.9,f1sol,53.2,53.3,True
+4,23305.8,23302.5,23302.5,23303.4,g3,3.3,3.3,False

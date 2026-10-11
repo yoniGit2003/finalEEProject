@@ -153,3 +153,141 @@ section `waa` of `research/config.yaml`. TRAIN events only for every number unle
 - For step 4: fit every candidate from several starts (more for F6); read F3 and F5 as one family ("nonlinear in
   W"); F4 vs F6 by less than about 10 BIC is not decisive; do not interpret F5's linear rate a from the first hour.
 - The win-share figure is diag, not key: the module already has 6 key outputs.
+
+## Step 3b-2, weak-form SINDy on fake tails (`step3b2_sindy_fake.py` + `waa_sindy.py`, 2026-10-11)
+
+- Fake data only: the T2 datasets of 3b-1c (seeds 3000+, 5 replicates; 20 of 20 bit-identical, their pooled fits
+  reused) for m1, m4, m5, m6, plus m3, plus m1, m3, m5, m6 without spread. Own weak-form SINDy (pysindy not
+  installed): library 1, A, A^2, A^3, max(A - A_c, 0) for A_c 0.1-1 dB; 21 min test windows; thresholded backward
+  elimination (STLSQ failed a noise-free self-test on the near-duplicate switch terms); threshold by 5-fold CV over
+  event draws (one-SE rule); stability selection (50 resamples, selected if >= 0.6). 190 SINDy runs, nothing cut.
+- Offset: `handled` = a free constant per tail in dA/dt (exact for a linear law only); also `naive` and `oracle`.
+- **Q1 FAIL (0 of 4 truths)**, first 60 min, handled, with spread: m3 and m5 return "A" in 5/5 (A^2 0/5); m6
+  returns "A" with rate 0.05 / min = k_run + k_evap, no switch term; m1 keeps A (5/5) but gets a false A^2 in 3/5
+  and a rate x1.79. Without spread only m1 is met (rate x0.94).
+- Why: held-out error 0.36-0.58 for every threshold; the best model beats the one-term model by 0.00-0.06 (SE
+  0.03-0.04), so the laws cannot be told apart. Post hoc check with the lowest-error threshold (added after the
+  first run; decision table unchanged): unstable sets of 1-8 terms, rule met nowhere new.
+- With the TRUE offset and no spread the first hour does give A^2 for m3 and m5 (5/5, coefficients x0.83, x0.77):
+  the offset and the spread are what break it. Naive offset: a false constant term in nearly every result.
+- **Q2 FAIL (misleading)**: m4 returns a clean single-variable law in 5/5 ("A" x3, "A + A^2" x2).
+- **Q3 PARTIAL (mixture trap is real)**: m1 with spread gets A^2 in 3/5, 0/5 without spread. Time rescaling by the
+  pooled-fit speed does not cure it (A^2 4/5, rate x0.48); with the true speed A^2 2/5, rate x0.28, so the
+  rescaling as built is itself doubtful (fast tails enter with noise-only regressors times up to 20).
+- **Q4 FAIL**: same family as the pooled-fit winner in 1 of 20 datasets (the pooled fit is right in 19 of 20).
+- For step 5: do not run SINDy on the real tails as planned (one pooled law); the pooled fit is the working tool.
+  A SINDy redesign (speed per tail inside the regression, offset prior, noise in the library terms, no switch
+  terms below the noise level) must pass this fake-data test first. To be decided by the learners.
+- The selection figure is diag (key limit 6 reached); if wanted as key, the proposed output to demote is
+  `step3b1b_recovery.csv`.
+
+### Plan change after 3b-2 (2026-10-11, decided by the learners)
+
+- SINDy on raw tails failed the fake-data test (3b-2). Discovery is kept but split into two jumps: (1) the pooled
+  fit with a FREE smooth drying curve instead of a menu of laws draws the drying curve from all tails; (2) SINDy
+  names the equation of that clean curve.
+- Old Step 5 (SINDy on raw real tails) is replaced by this: it becomes part of 3b-3 (fake) and Step 4 (real).
+- New order: 3b-3 -> 4 -> 6 -> 3c -> 7 -> 8a-8e -> 9 (old step numbers kept). 3c moves to just before Step 7 (only
+  needed for wetting); the tool for g(R, W) in Step 7 is decided after 3c, by the same fake-data testing.
+
+## Step 3b-3, "draw the curve, then name it" on fake tails (`step3b3_curve_then_equation.py` + `waa_curve.py`, 2026-10-11)
+
+- Jump 1: the pooled fit of 3b-1b / 3b-1c with a free curve, dW/dt = -f_i W k(W), log k = natural cubic spline in
+  log W (5 knots: 0.05 dB, three quantiles of log A, top of the supported range 1.5-3.3 dB); 4 starts; penalty by
+  2-fold CV over event draws. Jump 2: sparse regression of h(W) = W k(W) on W, W^2, W^3, switch terms. Data: the
+  3b-1c / 3b-2 fake datasets (m1, m3, m4, m5, m6 with spread; extras m1 without spread, m1 and m3 with T1 noise),
+  first 60 min and first 6 h. 65 fits, 2.1 h on 3 processes. Cut: the 6 h window of the extras.
+- **Verdict by the pre-set rule: PARTIAL** (m1 FAIL, m3 PARTIAL, m5 PARTIAL, m6 PARTIAL, m4 PASS).
+  m1: curve bends up at the lowest W (slope -0.24, true 0), coverage 68 % / 48 %, equation with false terms, W x2.1.
+  m3, m5: equation right in the first 60 min (W^2 5/5, x0.94 and x1.07). m6: step test passes (ratio 7.7, 4/5) but
+  the equation is W^2 + W^3, no switch term. m4: warning in 4/5 (free curve worse than F4 by 20-36 BIC).
+- Broken in the judging: the curvature interval exists for 3 of 65 fits (every slope test fails for lack of an
+  interval; the "60 min vs 6 h disagree" warning never fires), and the first knot (0.05 dB) is badly determined
+  with the next knot at 0.30-0.40 dB (m1: k there 2-4 times too high in 9 of 10 fits).
+- **Post hoc, above the second knot only (0.35-1.7 dB), first 60 min, with spread** (cached fits, verdicts
+  unchanged): m1 slope -0.02 (true 0), level x1.03, equation "W" 5/5 x1.03: the mixing trap is gone there; m3
+  slope 1.08 (true 1.0), W^2 x0.94; m5 slope 0.96 (true 0.92), W^2 x1.06; m6 slope 0.27 (true 0.26), level x1.02;
+  m4 slope 0.37.
+- The curve cannot show m6's step (A_c = 0.16 dB is in the undetermined stretch; above it the switch law is a
+  smooth rising curve named "W + W^2") nor that m4 has two states (it draws a clean rising curve); only the menu
+  fits F6 and F4 can.
+- The free curve has a lower BIC than the TRUE menu law for m1, m3, m5 (median -21, -32, -62). Suspected cause:
+  the likelihood has no quantization model, so the low end looks like faster drying. Not tested; it may also
+  affect F6's A_c and F4's slow layer.
+- For step 4: draw the curve in the first 60 min and read it only above the second knot (about 0.35 dB); keep the
+  menu fits next to it (F6, F4; free curve worse than F4 by > 10 BIC = do not trust one curve). Repairs to test on
+  the cached fake datasets first: a working interval (event bootstrap or profile), knots / range that do not leave
+  0.05-0.35 dB to one value, a longer search. To be decided by the learners.
+- The five k(W) figures are diag (key limit reached).
+
+## Step 3b-3b, confirmation run of the free curve above 0.35 dB (`step3b3b_confirm.py`, 2026-10-11)
+
+- Why: the "right above 0.35 dB" result of 3b-3 was found post hoc. Here it is tested on fresh fake data (event
+  bootstrap seeds 4000 + replicate, 5 replicates, 3a-fix noise, s = 1.25) with range, tests and rule fixed in
+  `waa.curve3b3b` before the run. Same fit as 3b-3, first 60 min; 5 knots from W_lo = 0.35 dB to W_hi (level with
+  200 tail-minutes above; 1.9-3.5 dB per dataset), straight line in log-log below W_lo, nothing judged or named
+  below W_lo. Band = min-max of the replicates; shape = slope of log k vs log W per replicate; jump 2 library W,
+  W^2, W^3, switch at 0.5 and 0.75 dB. 35 fits, 32 min on 3 processes, nothing cut.
+- **Verdict by the pre-set rule: PARTIAL** (m1 PASS, m3 PASS, m5 PASS, m4 FAIL; m6 not judged by design).
+- m1, m3, m5: true k inside the band on 100 % of the judged range, level x0.99 / x0.97 / x1.03; slopes -0.01..0.05
+  (true 0), 0.99..1.12 (true 1), 0.93..1.03 (true 0.92); equation "W" x0.99, "W^2" x0.97, "W^2" x1.13, one term in 5
+  of 5, no false term. The mixing trap does not appear above 0.35 dB. T1 noise: same slopes and equations (only the
+  m3 band coverage drops to 72 %).
+- m6 (switch at 0.16 dB, below W_lo): curve right over the judged range (coverage 92 %, slopes 0.20-0.32, true
+  0.23); jump 2 gives a three-term fit (W^2 + W^3 + switch at 0.5 dB), not a law. A user would conclude "mildly
+  rising, neither exponential nor quadratic", which is true but does not say "switch".
+- m4: BIC(free curve) - BIC(F4) > 10 in 2 of 5 (2.7, 4.2, 38.7, 53.2, 3.3): the warning sign is NOT confirmed. Its
+  curve looks like m6's (slopes 0.36-0.47, three-term equation). Open: F4 had 3 generic starts here (4 in 3b-3);
+  not rechecked because of the no-rerun rule.
+- For step 4: run this setup on the real tails. The statement holds for W in [0.35 dB, W_hi] and the first 60 min:
+  slope near 0 with "W" = exponential there; near 1 with "W^2" = quadratic; 0.2-0.5 with a multi-term equation =
+  "mildly rising, law not identified by the curve" (switch or two layers: menu fits F6 / F4). Nothing is said
+  about W < 0.35 dB. "Free curve vs F4" is reported as information, not used as a check. The band on real data
+  needs an event bootstrap of the fit (not tested here as such).
+- The five k(W) figures are diag (key limit reached).
+
+## Step 3b-3c, the discovery method finished on fake tails (`step3b3c_method.py`, 2026-10-11)
+
+- Five parts on the cached 3b-3b datasets (seeds 4000 + replicate, first 60 min), rules fixed in `waa.curve3b3c` before
+  the run. 93 min on 3 processes + 15 min of PySR, nothing cut. pysindy 2.1.0 and PySR 2.7.0 (Julia 1.11.9) were
+  installed with pip. **Overall PARTIAL: A PARTIAL, B PARTIAL, C PARTIAL, D FAIL; E information.** The PASS cells of
+  m6 in B and C carry no information (see B).
+- A, jump 2 alone on the TRUE h(W) + 2 % / 5 % noise, 20 draws: E-SINDy (bagged backward elimination of
+  `waa_sindy.py`) exact in 20 of 20 in all 8 cells, m6 included; PySR exact 20 / 20 / 18 of 20 for m1 / m3 / m5,
+  cannot write the switch; best-subset + BIC always holds the true terms but adds one in 3-8 of 20 draws for m1,
+  m3, m5 (5 of 8 cells miss the 16-of-20 rule); pysindy's STLSQ fails at 5 % noise.
+- B, free curve with an optional step (`waa_curve.StepCurve`, kept if BIC improves by > 6): kept in 5 of 5 for m1,
+  m3, m5 AND m6 (gain 15-170), with W_c at 0.2-0.4 dB whatever the truth. The step tool is not usable.
+- C, jump 3 (every candidate refitted in the pooled model, winner by held-out log-likelihood over event draws):
+  the step law wins in 18 of the 20 single-curve datasets, by 16-65 over the true menu law; m4: F4 in 3 of 5. The
+  pooled likelihood itself prefers a false feature near 0.2-0.4 dB. Suspected cause: the 0.3 dB quantization is
+  not in the likelihood; NOT tested. Post hoc, menu laws only: BIC names the true family in 4, 5, 4, 5, 5 of 5.
+- D, band from 20 event bootstraps of ONE dataset: 5-95 % band +-1 to 6 % wide, true k inside on 0-78 % of the
+  range (rule 80 %) in 9 of 9 datasets: about 3 times too narrow; level of the fits x0.93-x1.23; slopes within
+  0.01-0.11 of the truth.
+- E: F4 with the F1-solution start changes BIC by at most 1.2; the m4 warning of 3b-3b stays at 2 of 5.
+- Step 4 recipe (only what passed): free curve of 3b-3b without a step, read for W >= 0.35 dB, first 60 min;
+  slope of log k vs log W (about +-0.1); jump 2 by E-SINDy with PySR as cross-check; no jump 3 by held-out
+  likelihood; named laws by the menu fits with BIC (3b-1c rules); bootstrap band shown with the warning (level
+  about +-20 %). Nothing about W < 0.35 dB or a switch until the low-W likelihood is repaired and B, C, D are
+  repeated on the cached fake datasets. To be decided by the learners: repair first, or run Step 4 with the reduced
+  recipe.
+- The figures are diag; no key figure proposed.
+
+## Step 3b-4, is the 0.3 dB quantization the cause of the false step? (`step3b4_quantization.py`, 2026-10-11)
+
+- Diagnosis only (no new likelihood, no fix), fake data only, rule fixed in `waa.quant3b4` before the run. Truth m1,
+  the skeleton, seeds (4000 + replicate), noise and spread of 3b-3b, 5 replicates, first 60 min; three simulator
+  settings that differ only in the RSL quantization: none, 0.3 dB (the cached 3b-3b / 3b-3c fits), 0.1 dB. Fit: free
+  curve as in 3b-3b, optional step as in 3b-3c part B. 17 min on 3 processes (projected 18), nothing cut.
+- **Verdict: not the cause.** The step is kept in 5 of 5 in every setting; BIC gain 40-130 without quantization,
+  81-143 at 0.3 dB, 49-136 at 0.1 dB (rule: > 6). The explanation suspected in 3b-3c is withdrawn.
+- The fitted W_c is within 12 % of its start value (0.12, 0.2, 0.4 dB) in 15 of 15 fits: the position of the false
+  step is set by the start list, not by the data.
+- Real data (reading only): RSL in 0.3 dB steps on 719 of 728 sub-links, TSL in 1 dB steps (constant on 523; tails end
+  before a TSL step), 10 s samples averaged to 1 min. The simulator matches this.
+- Consequence: the Step 4 recipe of 3b-3c is unchanged (curve read for W >= 0.35 dB, no step tool, no jump 3 by
+  held-out likelihood, nothing about a switch). Dropped: "add the quantization to the likelihood, then repeat B, C, D".
+- Open: the cause of the false step. Untested suspects: the 1150 extra evaluations of the step fit (a no-step fit that
+  was not fully converged), the offset prior / start floor / start profile at low W, the 0.02-wide step shape.
+- The figure is diag; no key figure proposed.

@@ -1,0 +1,22 @@
+part,truth,verdict,basis
+A,m1,PARTIAL,2%: 16/20 (W x1.00); 5%: 14/20 (W x1.00)
+A,m3,FAIL,2%: 12/20 (W^2 x1.00); 5%: 15/20 (W^2 x0.99)
+A,m5,PARTIAL,"2%: 15/20 (W x1.00, W^2 x1.00); 5%: 17/20 (W x1.02, W^2 x0.99)"
+A,m6,PASS,"2%: 20/20 (W x0.96, switch x1.02); 5%: 20/20 (W x0.96, switch x1.02)"
+B,m1,FAIL,no step in 0 of 5; coverage above 0.35 dB 65%
+B,m3,FAIL,no step in 0 of 5; coverage above 0.35 dB 100%
+B,m5,FAIL,no step in 0 of 5; coverage above 0.35 dB 85%
+B,m6,PASS,step kept in 5 of 5; median W_c 0.209 dB (true 0.16; within +-30% in 3)
+C,m1,FAIL,held-out winner in the true family (exponential) in 0 of 5: step x5
+C,m3,FAIL,"held-out winner in the true family (quadratic) in 0 of 5: step x4, J2-3 x1"
+C,m4,FAIL,"held-out winner in the true family (two layers) in 3 of 5: F4 x3, J2-3 x1, F6 x1"
+C,m5,FAIL,"held-out winner in the true family (quadratic) in 0 of 5: step x4, J2-3 x1"
+C,m6,PASS,held-out winner in the true family (switch) in 5 of 5: step x5
+D,m1,FAIL,"true k inside the bootstrap band on >= 80 % in 0 of 3 datasets (78%, 52%, 30%)"
+D,m3,FAIL,"true k inside the bootstrap band on >= 80 % in 0 of 3 datasets (0%, 28%, 75%)"
+D,m5,FAIL,"true k inside the bootstrap band on >= 80 % in 0 of 3 datasets (65%, 68%, 28%)"
+A,all parts of A,PARTIAL,
+B,all parts of B,PARTIAL,
+C,all parts of C,PARTIAL,
+D,all parts of D,FAIL,
+overall,,PARTIAL,

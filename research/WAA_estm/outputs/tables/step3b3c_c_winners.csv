@@ -1,0 +1,26 @@
+truth,rep,winner,winner_what,family,in_true_family,margin_to_other_family,best_other_family,simplest_within_2,bic_winner,bic_winner_family,free_curve_minus_winner,step_kept,j2_bic_pick
+m1,0,step,free curve with a step at 0.39 dB,switch,False,55.6,F4 (two layers),step,step,switch,-61.06,True,W + W^2
+m1,1,step,free curve with a step at 0.21 dB,switch,False,41.64,F5 (quadratic),step,step,switch,-50.06,True,W + sw0.15 + sw0.3
+m1,2,step,free curve with a step at 0.41 dB,switch,False,59.36,F1 (exponential),step,step,switch,-77.98,True,W + W^2 + sw0.5
+m1,3,step,free curve with a step at 0.38 dB,switch,False,44.17,F1 (exponential),step,step,switch,-51.9,True,W + sw0.2
+m1,4,step,free curve with a step at 0.21 dB,switch,False,17.19,F1 (exponential),step,step,switch,-20.05,True,W + sw0.2 + sw0.3
+m3,0,step,free curve with a step at 0.40 dB,switch,False,35.32,J2-1 (quadratic),step,step,switch,-26.72,True,W + W^2 + sw0.15
+m3,1,step,free curve with a step at 0.21 dB,switch,False,31.47,J2-3 (other),step,step,switch,-29.72,True,W + W^3 + sw0.2
+m3,2,step,free curve with a step at 0.39 dB,switch,False,6.77,J2-3 (other),step,step,switch,-8.9,True,W + W^3 + sw0.3
+m3,3,J2-3,W + W^3 + sw0.2,other,False,14.88,step (switch),J2-3,step,switch,-7.63,True,W + W^3 + sw0.2
+m3,4,step,free curve with a step at 0.33 dB,switch,False,21.47,J2-1 (quadratic),step,step,switch,-20.04,True,W + W^3 + sw0.3
+m4,0,F4,"tau_f 16.36, tau_s 155.7, phi 0.1736",two layers,True,4.22,F6 (switch),F4,F4,two layers,-6.21,False,W + W^2 + W^3
+m4,1,J2-3,W^2 + W^3 + sw0.5,other,False,2.45,F4 (two layers),J2-3,J2-3,other,2.57,False,W^2 + W^3 + sw0.5
+m4,2,F4,"tau_f 18.86, tau_s 165.6, phi 0.1971",two layers,True,18.21,F6 (switch),F4,F4,two layers,-34.01,False,W^2 + W^3 + sw0.5
+m4,3,F4,"tau_f 19.01, tau_s 212.5, phi 0.1762",two layers,True,24.92,F6 (switch),F4,F4,two layers,-21.42,False,W^2 + W^3 + sw0.5
+m4,4,F6,"k_run 0.04938, k_evap 0.004542, A_c 0.1941",switch,False,3.52,F4 (two layers),F6,F6,switch,2.29,False,W^2 + W^3 + sw0.5
+m5,0,step,free curve with a step at 0.37 dB,switch,False,16.7,J2-2 (quadratic),step,step,switch,-19.72,True,W + W^2 + sw0.1
+m5,1,step,free curve with a step at 0.23 dB,switch,False,24.56,J2-2 (other),step,step,switch,-23.01,True,W + W^3 + sw0.2
+m5,2,step,free curve with a step at 0.38 dB,switch,False,21.09,J2-1 (quadratic),step,step,switch,-36.89,True,W + W^3 + sw0.3
+m5,3,step,free curve with a step at 0.20 dB,switch,False,13.03,J2-3 (other),step,step,switch,-14.25,True,W + W^3 + sw0.2
+m5,4,J2-3,W + W^3 + sw0.2,other,False,12.68,J2-1 (quadratic),J2-3,step,switch,-17.84,True,W + W^3 + sw0.2
+m6,0,step,free curve with a step at 0.21 dB,switch,True,60.63,F4 (two layers),step,step,switch,-68.89,True,W + sw0.2 + sw0.3
+m6,1,step,free curve with a step at 0.23 dB,switch,True,102.69,F4 (two layers),step,step,switch,-61.57,True,W + sw0.2
+m6,2,step,free curve with a step at 0.20 dB,switch,True,47.16,F4 (two layers),step,step,switch,-51.95,True,W + sw0.15 + sw0.2
+m6,3,step,free curve with a step at 0.25 dB,switch,True,75.41,F4 (two layers),step,step,switch,-75.85,True,W + sw0.15 + sw0.2
+m6,4,step,free curve with a step at 0.21 dB,switch,True,41.66,F4 (two layers),step,J2-3,switch,-39.1,True,W + sw0.2 + sw0.3

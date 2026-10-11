@@ -273,3 +273,185 @@ waa:
     decision:                # FIXED BEFORE THE RUN
       own_win_share: 0.8     # the own candidate wins >= 4 of 5 replicates ...
       param_tol: 0.3         # ... and every key parameter has |median(fitted / true) - 1| <= this
+  sindy3b2:                  # step 3b-2 (waa_sindy.py, step3b2_sindy_fake.py): weak-form SINDy on fake tails
+    replicates: 5            # event-bootstrap replicates per truth (same seeds and draws as stress3b1c)
+    seed_base: 3000
+    truths: [m1, m3, m4, m5, m6]          # with spread s_true (3a-fix noise, as the T2 data of step 3b-1c)
+    nospread_truths: [m1, m3, m5, m6]     # the same without spread (s = 0)
+    s_true: 1.25
+    windows: {first_60min: 60, whole: null}   # minutes since t0_trace (null = the whole tail)
+    half_width_min: 10       # test function phi = (1 - tau^2)^p on a window of 2 * half_width + 1 minutes
+    stride_min: 5            # distance between window centres
+    test_power: 2
+    max_gap_min: 3           # NaN runs up to this length are interpolated; a window with a NaN left is skipped
+    switch_grid_db: [0.1, 0.2, 0.3, 0.5, 1.0]   # A_c of the switch terms max(A - A_c, 0)
+    lambda_grid: [0.01, 0.02, 0.03, 0.05, 0.08, 0.12, 0.2, 0.3, 0.45]   # threshold candidates (relative term size)
+    cv_folds: 5              # cross-validation over event draws (never within tails)
+    stability: {resamples: 50, select_freq: 0.6, seed: 77}   # a term is "selected" in a replicate if its frequency >= select_freq
+    offsets: [naive, handled, oracle]     # naive = ignore c; handled = a free constant per tail in dA/dt; oracle = true c removed
+    main: {window: first_60min, offset: handled, rescale: none}   # the configuration of the decision rule
+    pooled_min_points: 10    # pooled fit (speeds for the rescaling check, Q4): as stress3b1c, first 60 min
+    time_budget_h: 2.0       # if longer: replicates 5 -> 3, then no whole-tail window, then no no-spread m5
+    decision:                # FIXED BEFORE THE RUN
+      min_true: 0.8          # Q1: every true term selected in >= 4 of 5 replicates ...
+      max_spurious: 1        # ... no term outside the truth selected in more than this many replicates ...
+      coef_tol: 0.3          # ... counted coefficients within +-30 % (median of fitted / true; 0 if not selected)
+      true_terms:            # required = must be selected (a list entry with several names: any one of them);
+        m1: {required: [[A]], allowed: [A], coefs: [A]}                       # allowed = not counted as spurious
+        m3: {required: [[A^2]], allowed: [A^2], coefs: [A^2]}
+        m5: {required: [[A^2]], allowed: [A, A^2], coefs: [A^2]}              # linear part: reported, not counted
+        m6: {required: [[A], [sw0.1, sw0.2]], allowed: [A, sw0.1, sw0.2], coefs: [A, switch]}   # true A_c = 0.16 dB
+      q2_q3: {clean_share: 0.8}   # Q2 (m4): FAIL = a clean single-variable law in >= 4 of 5; Q3 (m1 with spread):
+                             #   FAIL = a nonlinear or switch term in >= 4 of 5, PASS = in at most 1 of 5
+      q4: {pass: 0.8, partial: 0.5}   # share of the m1, m3, m5, m6 datasets where SINDy and the pooled fit name the same family
+  curve3b3:                  # step 3b-3 (waa_curve.py, step3b3_curve_then_equation.py): free drying curve, then its equation
+    replicates: 5            # event-bootstrap replicates per truth (same seeds and draws as stress3b1c / sindy3b2)
+    seed_base: 3000
+    truths: [m1, m3, m4, m5, m6]          # main test: spread s_true, 3a-fix noise
+    nospread_truths: [m1]    # extra: no spread (sanity check)
+    t1_truths: [m1, m3]      # extra: T1 noise of step 3b-1c (two slow time scales; the fit keeps one)
+    s_true: 1.25
+    windows: {first_60min: 60, first_6h: 360}
+    min_points: 10
+    knots: 5                 # log k = natural cubic spline in log W: end knots at the ends of the supported range,
+                             #   the others at equal quantiles of log A (tail-minutes of the first 60 min in that range)
+    w_floor_db: 0.05         # lower end of the supported range (the smallest switch level of jump 2)
+    support_min_minutes: 200 # upper end = the level with this many tail-minutes of A above it (first 60 min)
+    prior_sd_logk: 3.0       # weak prior on log k at the knots around log(1 / 30 min): keeps data-free knots in place
+    lambda_grid: [0.01, 0.1, 1.0]   # smoothness penalty; chosen by 2-fold cross-validation over EVENT DRAWS
+    lambda_start: 0.1        # the starts are run with this penalty
+    starts:                  # log k = log(k1) + slope * log W (k1 = k at 1 dB, 1 / min), or a step; s starts at s_start
+      flat: {k1: 0.0333, slope: 0.0}       # exponential, tau 30 min
+      rising: {k1: 0.05, slope: 1.0}       # like -c W^2
+      falling: {k1: 0.03, slope: -0.5}
+      step: {low: 0.005, high: 0.05, at_db: 0.2}   # like a state switch
+    s_start: 1.0
+    maxfev: {start: 150, finish: 450, other_lambda: 300, cv: 120}   # Nelder-Mead budgets: every start; the best start
+                             #   continued; the other penalties (from that solution); each cross-validation half
+    grid_points: 40          # W grid (log-spaced) inside the supported range for bands, tests and jump 2
+    j2_switch_grid_db: [0.05, 0.1, 0.15, 0.2, 0.3, 0.5]
+    j2_lambda_grid: [0.01, 0.02, 0.03, 0.05, 0.08, 0.12, 0.2, 0.3, 0.45]
+    menu_6h_starts: [g1, g2, g3]   # F4 menu fit in the 6 h window (m4 only; starts of stress3b1c.t2_starts)
+    time_budget_h: 3.0       # if longer: [6 h window of the extras], then T1, then m1 no-spread, then replicates 5 -> 3
+    decision:                # FIXED BEFORE THE RUN (verdict per truth: the better of the two windows)
+      band_coverage: 0.8     # J1 curve: true k inside the min-max band of the replicates over >= this share of the grid
+      min_reps: 4            # "in >= 4 of 5"
+      interval_z: 1.96       # per-replicate interval of the slope of log k vs log W (from the fit's curvature)
+      shape: {m1: flat, m3: rising, m5: rising, m6: step}   # flat: interval contains 0; rising: interval above 0;
+      step_ratio: 2.0        #   step: mean k above 2 A_c / mean k below A_c > this (geometric means, true A_c)
+      max_spurious: 1        # J2: no term outside the truth in more than this many replicates
+      coef_tol: 0.3          # J2: counted coefficients within +-30 % (median of fitted / true; 0 if not selected)
+      j2_terms:
+        m1: {required: [[W]], allowed: [W], coefs: [W]}
+        m3: {required: [[W^2]], allowed: [W^2], coefs: [W^2]}
+        m5: {required: [[W^2]], allowed: [W, W^2], coefs: [W^2]}          # linear part: reported, not counted
+        m6: {required: [[W], [sw0.1, sw0.15, sw0.2]], allowed: [W, sw0.1, sw0.15, sw0.2], coefs: [W, switch]}
+      m4_warning:            # PASS if a warning in >= min_reps replicates:
+        disagree_share: 0.2  #   the 60 min and 6 h bands (per replicate, interval_z) do not overlap on > this share of the grid
+        dbic_vs_f4: 10.0     #   or BIC(free curve) - BIC(F4) > this, in either window
+  curve3b3b:                 # step 3b-3b (step3b3b_confirm.py): confirmation run of the free curve + its equation on
+                             #   FRESH fake data. FIXED BEFORE THE RUN. The fit itself (starts, penalties, budgets,
+                             #   prior, cross-validation, jump 2 threshold grid) is read from curve3b3, unchanged.
+    replicates: 5
+    seed_base: 4000          # new event bootstraps and noise (3b-3 used 3000)
+    truths: [m1, m3, m4, m5, m6]          # main data: spread s_true, 3a-fix noise
+    t1_truths: [m1, m3]      # robustness: T1 noise of step 3b-1c
+    s_true: 1.25
+    window_min: 60           # first 60 min only
+    w_lo_db: 0.35            # judged range starts here; below it the curve is fitted (straight line in log-log) but
+                             #   nothing is judged or passed to jump 2
+    knots: 5                 # at w_lo, w_hi (the level with curve3b3.support_min_minutes tail-minutes above it) and
+                             #   3 equal quantiles of log A in between
+    j2_switch_grid_db: [0.5, 0.75]        # switch levels inside the judged range only
+    menu_f4_starts: [g1, g2, g3]          # F4 menu fit (m4 only; starts of stress3b1c.t2_starts, maxfev_generic)
+    time_budget_h: 1.5       # if the projection from replicate 0 is longer: drop the T1 robustness
+    decision:
+      band_coverage: 0.8     # curve: true k inside the min-max band of the replicates on >= this share of [w_lo, w_hi]
+      level_tol: 0.2         #   and median learned / true k within +-20 %
+      min_reps: 4            # "in >= 4 of 5"
+      flat_abs_slope: 0.15   # shape, slope of log k vs log W over [w_lo, w_hi] per replicate: m1 |slope| < this
+      rising_slope: 0.6      #   m3, m5: slope > this
+      shape: {m1: flat, m3: rising, m5: rising}
+      max_spurious: 1        # equation: no term outside the truth in more than this many replicates
+      coef_tol: 0.3          #   coefficient within +-30 % (median of fitted / true; 0 where not selected)
+      j2_terms:
+        m1: {required: [W], allowed: [W], coefs: [W]}
+        m3: {required: [W^2], allowed: [W^2], coefs: [W^2]}
+        m5: {required: [W^2], allowed: [W, W^2], coefs: [W^2]}            # its W: reported, not counted
+      m4_dbic_vs_f4: 10.0    # m4 PASS: BIC(free curve) - BIC(F4) > this in >= min_reps replicates
+  curve3b3c:                 # step 3b-3c (step3b3c_method.py): the discovery method finished on fake data, parts A-E.
+                             #   FIXED BEFORE THE RUN. Data of B-E: the cached datasets of step 3b-3b (seeds 4000 + replicate).
+    time_budget_h: 3.0       # if the projection from replicate 0 is longer: cut E (costs nothing extra: part C already
+                             #   fits F4 with the F1-solution start), then the bootstraps of D 20 -> 12, then the truths m3 / m5 of B
+    a:                       # A. jump 2 alone, on the TRUE h(W) = W k(W) plus noise
+      truths: [m1, m3, m5, m6]
+      w_range_db: [0.1, 2.0]
+      grid_points: 40
+      noise: [0.02, 0.05]    # Gaussian, relative to h
+      draws: 20
+      seed: 7000
+      switch_grid_db: [0.1, 0.15, 0.2, 0.3, 0.5]
+      max_terms: 3           # best-subset: every combination of up to 3 terms, least squares on relative residuals, BIC
+      esindy: {bootstraps: 100, inclusion: 0.6, threshold: 0.05}   # bagging of the points; relative threshold
+      pysr: {niterations: 30, maxsize: 12, timeout_s: 30, drop_share: 0.02, power_round: 0.1}
+                             #   operators + - * / ^ exp, relative loss, PySR's own choice of the 'best' formula; a term of
+                             #   the returned formula is ignored if it is < drop_share of h everywhere; an exponent within
+                             #   power_round of 1, 2, 3 counts as that integer. m6 cannot be written with these operators.
+      min_draws: 16          # rule: exactly the true terms in >= 16 of 20 draws ...
+      coef_tol: 0.3          #   ... and the median coefficient (over those draws) within +-30 %
+      true_terms:            # m6: W + one or both of the switch terms next to the true A_c = 0.16 dB (their sum = k_run)
+        m1: [W]
+        m3: [W^2]
+        m5: [W, W^2]
+        m6: [W, switch]
+      m6_switch_terms: [sw0.15, sw0.2]
+    b:                       # B. jump 1 with an optional step
+      truths: [m1, m3, m5, m6]
+      wc_range_db: [0.08, 0.6]
+      width_logw: 0.02       # logistic width of the step in ln W
+      wc_starts_db: [0.12, 0.2, 0.4]
+      height_start: 1.0      # start of the step height (ln units: k_low = k(W_c) / e)
+      maxfev: {start: 250, finish: 400}   # from the 3b-3b solution (same knots, same penalty), every W_c start; the best continued
+      bic_gain: 6.0          # the step is kept only if BIC(no step) - BIC(step) > this (2 more parameters)
+      step_range_lo_db: 0.1  # judged range when a step is kept: 0.1 dB to W_hi (otherwise 0.35 dB to W_hi)
+      wc_tol: 0.3            # m6: median W_c of the kept steps within +-30 % of the true A_c
+      min_reps: 4
+      band_coverage: 0.8     # m1, m3, m5: true k inside the min-max band of the chosen curves on >= 80 % of [0.35 dB, W_hi]
+    c:                       # C. jump 3: refit every candidate in the pooled model, choose by held-out log-likelihood
+      truths: [m1, m3, m4, m5, m6]
+      j2_sizes: [1, 2, 3]    # jump-2 candidates: the best subset of each size on the chosen curve of the dataset
+                             #   (no step: library W, W^2, W^3, sw0.5, sw0.75 on [0.35 dB, W_hi]; step kept: the library
+                             #   of part A on [0.1 dB, W_hi]); all sizes go to jump 3, which chooses
+      maxfev_formula: {full: 300, half: 200}
+      maxfev_half: 250       # menu laws and the step law on a half, from their full-data solution
+      menu: [F1, F3, F4, F5, F6]          # 3 generic starts of stress3b1c.t2_starts (F1: 4) + the F1-solution start
+      families:              # winner must be in the true family in >= 4 of 5
+        m1: [exponential]    # F1, or the formula "W"
+        m3: [quadratic]      # F3, F5, or the formulas "W^2", "W + W^2"
+        m5: [quadratic]
+        m6: [switch]         # F6, the step law, or a formula W + switch term(s) at <= 0.3 dB
+        m4: [two layers]     # F4
+      min_reps: 4
+    d:                       # D. band from an event bootstrap of ONE dataset
+      truths: [m1, m3, m5]
+      datasets: [0, 1, 2]    # replicates of 3b-3b used as "the one dataset"
+      bootstraps: 20         # event draws resampled with replacement; same knots and penalty; start = the dataset's fit
+      maxfev: 400
+      seed: 5000
+      band: [5, 95]          # percentiles; rule: true k inside on >= coverage of [0.35 dB, W_hi] in >= min_datasets of 3
+      coverage: 0.8
+      min_datasets: 2
+  quant3b4:                  # step 3b-4 (step3b4_quantization.py): is the 0.3 dB RSL quantization the cause of the false
+                             #   step of 3b-3c? Diagnosis only, FIXED BEFORE THE RUN. Truth m1, skeleton / seeds / spread /
+                             #   window / knot rule of curve3b3b, plain fit as in 3b-3b, step fit as in curve3b3c.b.
+    truth: m1
+    settings: {"none": 0.0, "0.3 dB": 0.3, "0.1 dB": 0.1}   # RSL quantization step of the simulator (0 = not quantized);
+                             #   the 0.3 dB setting IS the 3b-3b / 3b-3c data, so its cached fits are reused
+    reference: "0.3 dB"
+    fine: "0.1 dB"
+    time_budget_h: 0.5
+    decision:                # "kept" = BIC(no step) - BIC(step) > curve3b3c.b.bic_gain
+      cause_max_kept: 1      # "quantization is the cause": without quantization kept in <= 1 of 5, AND
+      fine_wc_ratio: 0.6     #   at 0.1 dB: kept in <= 1 of 5, or median W_c of the kept steps < 0.6 x that at 0.3 dB
+      not_cause_min_kept: 4  # "not the cause": without quantization still kept in >= 4 of 5; otherwise "partly / unclear"
+    low_range_db: [0.1, 0.35]             # information only: fitted / true k of the curve WITHOUT the step below W_lo

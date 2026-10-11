@@ -1,0 +1,7 @@
+truth,window_used,curve_ok,shape_ok,equation_ok,verdict,basis
+m1,first_60min,False,False,False,FAIL,"first_60min: curve False, shape False, equation False; first_6h: curve False, shape False, equation False"
+m3,first_60min,False,False,True,PARTIAL,"first_60min: curve False, shape False, equation True; first_6h: curve True, shape False, equation False"
+m4,both,,,,PASS,warning sign in 4 of 5 replicates
+m5,first_6h,True,False,True,PARTIAL,"first_60min: curve False, shape False, equation True; first_6h: curve True, shape False, equation True"
+m6,first_60min,True,True,False,PARTIAL,"first_60min: curve True, shape True, equation False; first_6h: curve False, shape True, equation False"
+overall,,,,,PARTIAL,

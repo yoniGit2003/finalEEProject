@@ -1,0 +1,33 @@
+truth,noise,method,exact,true_included,draws,most_common,coef_ratios,ok
+m1,0.02,best-subset + BIC,16,20,20,W x16,W x1.00,True
+m1,0.02,"E-SINDy (waa_sindy, bagged)",20,20,20,W x20,W x1.00,True
+m1,0.02,"E-SINDy (pysindy STLSQ, bagged)",14,20,20,W x14,W x1.00,False
+m1,0.05,best-subset + BIC,14,20,20,W x14,W x1.00,False
+m1,0.05,"E-SINDy (waa_sindy, bagged)",20,20,20,W x20,W x1.00,True
+m1,0.05,"E-SINDy (pysindy STLSQ, bagged)",0,20,20,W + W^2 + W^3 + sw0.1 + sw0.15 + sw0.2 + sw0.3 + sw0.5 x11,W xnan,False
+m3,0.02,best-subset + BIC,12,20,20,W^2 x12,W^2 x1.00,False
+m3,0.02,"E-SINDy (waa_sindy, bagged)",20,20,20,W^2 x20,W^2 x1.00,True
+m3,0.02,"E-SINDy (pysindy STLSQ, bagged)",20,20,20,W^2 x20,W^2 x1.00,True
+m3,0.05,best-subset + BIC,15,20,20,W^2 x15,W^2 x0.99,False
+m3,0.05,"E-SINDy (waa_sindy, bagged)",20,20,20,W^2 x20,W^2 x1.00,True
+m3,0.05,"E-SINDy (pysindy STLSQ, bagged)",8,20,20,W^2 x8,W^2 x0.99,False
+m5,0.02,best-subset + BIC,15,20,20,W + W^2 x15,"W x1.00, W^2 x1.00",False
+m5,0.02,"E-SINDy (waa_sindy, bagged)",20,20,20,W + W^2 x20,"W x1.00, W^2 x1.00",True
+m5,0.02,"E-SINDy (pysindy STLSQ, bagged)",20,20,20,W + W^2 x20,"W x1.01, W^2 x1.00",True
+m5,0.05,best-subset + BIC,17,20,20,W + W^2 x17,"W x1.02, W^2 x0.99",True
+m5,0.05,"E-SINDy (waa_sindy, bagged)",20,20,20,W + W^2 x20,"W x1.03, W^2 x0.99",True
+m5,0.05,"E-SINDy (pysindy STLSQ, bagged)",5,20,20,W + W^2 x5,"W x1.04, W^2 x1.00",False
+m6,0.02,best-subset + BIC,20,20,20,W + sw0.15 + sw0.2 x20,"W x0.96, switch x1.02",True
+m6,0.02,"E-SINDy (waa_sindy, bagged)",20,20,20,W + sw0.15 x20,"W x0.96, switch x0.96",True
+m6,0.02,"E-SINDy (pysindy STLSQ, bagged)",6,20,20,W + sw0.15 + sw0.2 x6,"W x1.09, switch x1.12",False
+m6,0.05,best-subset + BIC,20,20,20,W + sw0.15 + sw0.2 x20,"W x0.96, switch x1.02",True
+m6,0.05,"E-SINDy (waa_sindy, bagged)",20,20,20,W + sw0.15 x20,"W x0.97, switch x0.95",True
+m6,0.05,"E-SINDy (pysindy STLSQ, bagged)",0,20,20,W + W^2 + W^3 + sw0.1 + sw0.15 + sw0.2 + sw0.3 + sw0.5 x12,"W xnan, switch xnan",False
+m1,0.02,PySR,20,20,20,W x20,W x1.00,True
+m1,0.05,PySR,20,20,20,W x20,W x1.00,True
+m3,0.02,PySR,20,20,20,W^2 x20,W^2 x1.00,True
+m3,0.05,PySR,20,20,20,W^2 x20,W^2 x1.00,True
+m5,0.02,PySR,18,18,20,W + W^2 x18,"W x1.01, W^2 x1.00",True
+m5,0.05,PySR,18,18,20,W + W^2 x18,"W x1.02, W^2 x0.99",True
+m6,0.02,PySR,0,0,20,W**2*exp(-W) + W*exp(-W) x2,"W xnan, switch xnan",False
+m6,0.05,PySR,0,0,20,W*exp(-0.3041961/W) x1,"W xnan, switch xnan",False

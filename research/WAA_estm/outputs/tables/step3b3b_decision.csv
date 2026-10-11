@@ -1,0 +1,7 @@
+truth,curve_ok,shape_ok,equation_ok,verdict,basis
+m1,True,True,True,PASS,"coverage 100%, level x0.99; flat in 5 of 5; equation: W x5; W x0.99"
+m3,True,True,True,PASS,"coverage 100%, level x0.97; rising in 5 of 5; equation: W^2 x5; W^2 x0.97"
+m5,True,True,True,PASS,"coverage 100%, level x1.03; rising in 5 of 5; equation: W^2 x5; W^2 x1.13"
+m4,,,,FAIL,BIC(free curve) - BIC(F4) > 10 in 2 of 5
+m6,,,,not judged,"switch at 0.16 dB, below W_lo: cannot be named here by design"
+overall,,,,PARTIAL,

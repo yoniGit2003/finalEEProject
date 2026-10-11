@@ -34,6 +34,11 @@ Commands from the repository root, with `C:\Users\yoni\miniconda3\python.exe` as
 | 12 | `python research/WAA_estm/step3b1_fitting_on_sim.py` | `WAA_estm/outputs/tables/step3b1_*`, `figures/step3b1_*`, `reports/step3b1_fitting_on_sim.md` | step 11 | ~60 min (cached fits: ~2.5 min) |
 | 13 | `python research/WAA_estm/step3b1b_pooled_fit.py` | `WAA_estm/outputs/tables/step3b1b_*`, `figures/step3b1b_*`, `reports/step3b1b_pooled_fit.md` | steps 11-12 | ~3 h (cached: ~1 min) |
 | 14 | `python research/WAA_estm/step3b1c_stress_test.py` | `WAA_estm/outputs/tables/step3b1c_*`, `figures/step3b1c_win_share.png`, `reports/step3b1c_stress_test.md` | steps 11-12 | ~45 min (cached: ~20 s) |
+| 15 | `python research/WAA_estm/step3b2_sindy_fake.py` | `WAA_estm/outputs/tables/step3b2_*`, `figures/step3b2_selection_frequency.png`, `reports/step3b2_sindy_fake.md` | steps 11-12, 14 (its cached fits are reused if present) | ~13 min (cached: ~10 s) |
+| 16 | `python research/WAA_estm/step3b3_curve_then_equation.py` | `WAA_estm/outputs/tables/step3b3_*`, `figures/step3b3_k_*.png`, `reports/step3b3_curve_then_equation.md` | steps 11-12; 15 (its cached menu fits are read if present) | ~2.1 h (cached: ~15 s) |
+| 17 | `python research/WAA_estm/step3b3b_confirm.py` | `WAA_estm/outputs/tables/step3b3b_*`, `figures/step3b3b_k_*.png`, `reports/step3b3b_confirm.md` | steps 11-12 | ~35 min (cached: ~15 s) |
+| 18 | `python research/WAA_estm/step3b3c_method.py` | `WAA_estm/outputs/tables/step3b3c_*`, `figures/step3b3c_*.png`, `reports/step3b3c_method.md` | step 17 (its cached datasets and fits) | ~1.6 h + 15 min PySR (cached: ~80 s) |
+| 19 | `python research/WAA_estm/step3b4_quantization.py` | `WAA_estm/outputs/tables/step3b4_*`, `figures/step3b4_m1_quantization.png`, `reports/step3b4_quantization.md` | steps 17 and 18 (their cached datasets and fits) | ~17 min (cached: ~20 s) |
 | - | by hand | `outputs/reports/R1_validation.md`, `R1b_validation.md`, `METHOD.md` | the numbers of steps 1-5 | |
 
 (`research/baseline_estm/` is left out of the paths in steps 1-5.) Re-running a step only rewrites its own files.

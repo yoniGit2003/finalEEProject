@@ -22,7 +22,12 @@ circular).
 | 3b-1 | the per-tail fitting method on simulated tails with a known truth (`step3b1_fitting_on_sim.py`, library `waa_fit.py`) | done 2026-10-09: only "exponential vs not" is identifiable, per dataset with BIC |
 | 3b-1b | pooled fit (shared law, per-tail start and speed, offset prior, AR(1) noise likelihood, F6 added), re-tested on event-bootstrap simulated tails (`step3b1b_pooled_fit.py`, library `waa_pooled.py`) | done 2026-10-10: pre-set rule met in all three windows (own law 80-100 % for m1, m4, m5, m6; parameters within +-15 %); m3 vs m5 partly confused |
 | 3b-1c | stress test of the pooled fit on fake tails: unknown noise, honest starts, faster truths (`step3b1c_stress_test.py`) | done 2026-10-11: PARTIAL (12 of 14 cells; m1, m4, m6 pass every test; m5 fails: F3 / F5 not separable) |
-| 3b-2+ | SINDy on fake tails (3b-2); fit the real tails; WAA model (weak-form SINDy), comparison with [1], [9] | not started |
+| 3b-2 | weak-form SINDy on fake tails with a known truth (`step3b2_sindy_fake.py`, library `waa_sindy.py`) | done 2026-10-11: Q1 FAIL, Q2 FAIL, Q3 PARTIAL, Q4 FAIL: it returns "A" for almost every truth; the pooled fit stays the working tool |
+| 3b-3 | "draw the curve, then name it" on fake tails: free-curve pooled fit, then the equation of the curve (`step3b3_curve_then_equation.py`, library `waa_curve.py`) | done 2026-10-11: PARTIAL by the pre-set rule (m1 FAIL, m3 / m5 / m6 PARTIAL, m4 PASS); the curve is right above about 0.35 dB and undetermined below |
+| 3b-3b | confirmation run of the two jumps on fresh fake tails, judged only above 0.35 dB, rule fixed before the run (`step3b3b_confirm.py`) | done 2026-10-11: PARTIAL by the pre-set rule (m1, m3, m5 PASS on curve, shape and equation above 0.35 dB; the m4 warning sign fails, 2 of 5; m6 not judged) |
+| 3b-3c | the discovery method finished on fake tails: jump 2 alone, jump 1 with an optional step, jump 3 (refit and choose), bootstrap band, F4 check (`step3b3c_method.py`) | done 2026-10-11: PARTIAL (jump 2 alone works with E-SINDy / PySR; the step is drawn for every truth; jump 3 and the bootstrap band fail; F4 check: no change) |
+| 3b-4 | is the 0.3 dB RSL quantization the cause of the false step of 3b-3c? (`step3b4_quantization.py`) | done 2026-10-11: NOT the cause (without quantization the step is still kept in 5 of 5); cause open |
+| 4+ | real tails: free-curve fit, its equation, menu fits, literature comparison (4); what drying depends on (6); full-event simulator (3c); wetting (7) | not started |
 
 Inputs: release `openmrg_v1` (pinned in `research/config.yaml`) and the frozen baseline v2 products of
 `research/baseline_estm/` (`baselines.csv`, `baseline_uncertainty.csv`, `dew_risk_hourly.csv`, `dry_jumps.csv`).
@@ -42,6 +47,11 @@ python research/WAA_estm/step3a_simulator.py       # simulator calibration + che
 python research/WAA_estm/step3b1_fitting_on_sim.py # fits on simulated tails (needs 3a), 4 workers      ~ 60 min (cached: 2.5 min)
 python research/WAA_estm/step3b1b_pooled_fit.py    # pooled fits on simulated tails (needs 3a, 3b-1)     ~ 3 h (cached: 1 min)
 python research/WAA_estm/step3b1c_stress_test.py   # stress test of the pooled fit (needs 3a, 3b-1), cores - 1   ~ 45 min (cached: 20 s)
+python research/WAA_estm/step3b2_sindy_fake.py     # weak-form SINDy on fake tails (needs 3a, 3b-1; reuses 3b-1c fits)  ~ 13 min (cached: 10 s)
+python research/WAA_estm/step3b3_curve_then_equation.py   # free drying curve + its equation on fake tails (needs 3a, 3b-1; reads 3b-2's cached menu fits)  ~ 2.1 h (cached: 15 s)
+python research/WAA_estm/step3b3b_confirm.py              # confirmation run on fresh fake tails, judged above 0.35 dB (needs 3a, 3b-1)  ~ 35 min (cached: 15 s)
+python research/WAA_estm/step3b3c_method.py               # jump 2 alone, step, jump 3, bootstrap band, F4 check on fake tails (needs 3b-3b's cache)  ~ 1.6 h + 15 min PySR with `--pysr` (cached: 80 s)
+python research/WAA_estm/step3b4_quantization.py         # is the 0.3 dB quantization the cause of the false step? m1, three settings (needs 3b-3b's and 3b-3c's caches)  ~ 17 min (cached: 20 s)
 ```
 
 Both need the release and the baseline products. Step 1 reads the 1 min CML store once, chunk by chunk (32 sub-links).
@@ -62,6 +72,13 @@ step 2b columns, so always run 2b after 2.
 | `waa_sim.py` | library: the drying laws m1, m3, m4, m5 (closed forms), the per-tail time-scale spread, the observation model with switches (offset, white noise, slow AR(1) noise, quantization, real NaN mask, spread), the dry-noise lookup |
 | `waa_fit.py` | library: the candidate models F1, F3, F4, F5 (closed forms, free W0 and offset c), per-tail least squares, BIC / AIC with an effective n, winners, t_half and dA/dt population statistics |
 | `waa_pooled.py` | library: the pooled marginal likelihood of a dataset for F1, F3, F4, F5, F6 (numba): ARMA(1,1) whitening of white + AR(1) noise, offset prior (MAP), per-tail W0 profiled, speed factors marginalised (Laplace per tail, quadrature per link), Nelder-Mead fit |
+| `waa_sindy.py` | library (numpy only; pysindy is not installed): weak-form rows of a tail, library 1, A, A^2, A^3, max(A - A_c, 0), thresholded backward elimination, threshold by cross-validation over events, stability selection; `python waa_sindy.py` runs a noise-free self-test |
+| `step3b2_sindy_fake.py` | weak-form SINDy on the fake datasets of 3b-1c (+ m3, + no-spread variants): two windows, three offset treatments, time-rescaling check, pre-set rule, agreement with the pooled fit; cached in `.cache/sindy3b2/`; writes `outputs/reports/step3b2_sindy_fake.md` |
+| `waa_curve.py` | library: the free drying curve dW/dt = -f W k(W) (log k = natural cubic spline in log W) for the pooled likelihood of `waa_pooled.py` (law `FC`), penalised fit, curvature-based uncertainty; and the equation of a curve (sparse regression of h(W) = W k(W) on W, W^2, W^3, switch terms) |
+| `step3b3_curve_then_equation.py` | "draw the curve, then name it" on the fake datasets of 3b-1c (+ m3, m1 without spread, T1 noise): free-curve pooled fit per dataset and window (4 starts, penalty by cross-validation over events; cached in `.cache/fits3b3/`), band and shape tests, equation of the curve, m4 warning signs, comparison with the menu fit; writes `outputs/reports/step3b3_curve_then_equation.md` |
+| `step3b3b_confirm.py` | confirmation run of 3b-3 on fresh fake tails (seeds 4000 + replicate, first 60 min): the same free-curve pooled fit with 5 knots from 0.35 dB to W_hi, nothing judged below 0.35 dB, band = min-max of the replicates, slope per replicate, equation of the curve; rule fixed before the run (`waa.curve3b3b`); cached in `.cache/fits3b3b/`; writes `outputs/reports/step3b3b_confirm.md` |
+| `step3b3c_method.py` | the rest of the discovery method on the fake datasets of 3b-3b: A jump 2 alone on true curves (best-subset + BIC, E-SINDy), B free curve with an optional step (`waa_curve.StepCurve`), C jump 3 = every candidate (jump-2 formulas via `waa_curve.FormulaLaw`, step law, menu laws) refitted in the pooled model and chosen by held-out log-likelihood over event draws, D band from an event bootstrap of one dataset, E F4 with the F1-solution start; rules fixed before the run (`waa.curve3b3c`); cached in `.cache/fits3b3c/`; writes `outputs/reports/step3b3c_method.md` |
+| `step3b4_quantization.py` | diagnosis only: truth m1 simulated with no / 0.3 dB / 0.1 dB RSL quantization (same random numbers), free curve of 3b-3b + optional step of 3b-3c part B on each; rule fixed before the run (`waa.quant3b4`); the 0.3 dB fits are read from `.cache/fits3b3b/` and `.cache/fits3b3c/`; cached in `.cache/fits3b4/`; writes `outputs/reports/step3b4_quantization.md` |
 | `step3b1c_stress_test.py` | stress test of the pooled fit on fake tails (first 60 min; truths m1, m4, m5, m6): T1 noise with two slow time scales, T2 generic optimiser starts, T3 truths recalibrated to the real early decay; parallel fits cached in `.cache/fits3b1c/`; win shares, recovery, start sensitivity, pre-set rule per cell; writes `outputs/reports/step3b1c_stress_test.md` |
 | `step3b1b_pooled_fit.py` | event-bootstrap replicates per truth (m1, m3, m4, m5, m6), simulates them, pooled fit of every candidate in three windows (cached in `.cache/pooled3b1b/`), confusion, recovery, pre-set decision rule, population statistics; writes `outputs/reports/step3b1b_pooled_fit.md` |
 | `step3b1_fitting_on_sim.py` | simulates replicate datasets per truth (m1, m3, m4, m5, m6), fits every tail with every candidate (cached in `.cache/fits3b1/`), confusion, recovery, population tests, ablation; writes `outputs/reports/step3b1_fitting_on_sim.md` |
@@ -189,7 +206,14 @@ scratch, ORGANIZATION.md section 5) is in `outputs/MANIFEST.csv`.
   them and reports them as a conflict until that report is rerun or edited.
 - **Product**: everything in `outputs/products/`; the step 3b-1c report `outputs/reports/step3b1c_stress_test.md`
   and its tables (win shares, decision, recovery, start sensitivity, recalibration). Its win-share figure is diag
-  (the key limit is reached).
+  (the key limit is reached). The step 3b-2 report `outputs/reports/step3b2_sindy_fake.md` and its tables (selection,
+  coefficients, decision, agreement); its selection figure is diag. The step 3b-3 report
+  `outputs/reports/step3b3_curve_then_equation.md` and its tables (curves, jump 1, jump 2, menu comparison, decision,
+  post hoc upper range); its five k(W) figures are diag. The step 3b-3b report
+  `outputs/reports/step3b3b_confirm.md` and its tables (curves, curve and shape, jump 2, m4 BIC, decision); its five
+  k(W) figures are diag. The step 3b-3c report `outputs/reports/step3b3c_method.md` and its tables (parts A-E,
+  decision); its figures (step, bootstrap band) are diag. The step 3b-4 report
+  `outputs/reports/step3b4_quantization.md` and its two tables; its figure is diag.
 - **Diag** (all other step figures, tables and reports): moved by /tidy to the local `legacy/` folder (git-ignored;
   log: `outputs/TIDY_LOG.md`). The files /tidy deleted before 2026-10-11 are not there: rerun the
   step's script to get them back. The decisions they held are in [`DECISIONS.md`](DECISIONS.md).
@@ -202,6 +226,27 @@ the decisions of every step are in [`DECISIONS.md`](DECISIONS.md). The WAA model
 go to `METHOD.md` once it is decided.
 
 ## Open issues
+
+- **The pooled likelihood prefers a false feature near 0.2-0.4 dB (3b-3c)**: a step is drawn for every fake
+  truth, also the exponential, and wins on held-out events. The 0.3 dB quantization is NOT the cause (3b-4: the
+  step is kept in 5 of 5 also without it, and W_c stays at its start value); the cause is open (suspects: the
+  extra search budget of the step fit, the offset prior / start floor, the narrow step shape). Until found: no
+  step tool, no jump 3 by held-out likelihood, nothing said below 0.35 dB. Also open: the event-bootstrap band of one dataset is about 3 times too narrow.
+
+- **The free curve cannot tell a switch from two layers (3b-3b)**: above 0.35 dB both give a mildly rising curve
+  (slope 0.2-0.5) with a multi-term equation, and "free curve worse than F4 by > 10 BIC" fired in only 2 of 5 on
+  fresh data. Step 4 states its result for W >= 0.35 dB and the first 60 min only. Open: was the F4 fit of 3b-3b
+  (3 generic starts) at its optimum?
+
+- **The free drying curve is right only above about 0.35 dB (3b-3)**: below it the first spline knot is badly
+  determined (and the likelihood without quantization may favour fast drying there); the per-fit interval from the
+  curvature does not work (3 of 65). Open before step 4: repair interval, knots and search, or read the curve only
+  above the second knot?
+
+- **SINDy does not find the drying law on fake tails (3b-2)**: one pooled law dA/dt = h(A) returns "A" for the
+  quadratic, switch and two-layer truths, and a false A^2 for exponential tails of mixed speed. Step 5 (SINDy on real
+  tails) should not be run as planned; a redesign (speed per tail inside the regression, offset prior, noise in the
+  library terms) has to pass the same fake-data test first. Open: keep step 5, redesign it, or drop it?
 
 - **What fitting can show (3b-1, 3b-1b, 3b-1c)**: the per-tail fit (3b-1) separates only "exponential or not"; the pooled
   fit (3b-1b) separates all five forms on simulated data. The stress test (3b-1c) confirms this for exponential, two

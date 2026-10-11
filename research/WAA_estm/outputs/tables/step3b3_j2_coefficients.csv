@@ -1,0 +1,16 @@
+kind,truth,window,coefficient,true,median_ratio,min_ratio,max_ratio,replicates_nonzero,counted
+main,m1,first_60min,W,0.03361,2.104,1.203,3.319,5,True
+main,m1,first_6h,W,0.03361,2.659,2.226,3.641,5,True
+main,m3,first_60min,W^2,0.05296,0.942,0.867,0.985,5,True
+main,m3,first_6h,W^2,0.05296,1.009,0.965,1.833,5,True
+main,m5,first_60min,W,0.00299,0.788,0.0,20.126,3,False
+main,m5,first_60min,W^2,0.04499,1.07,0.859,2.826,5,True
+main,m5,first_6h,W,0.00299,1.773,0.0,2.315,4,False
+main,m5,first_6h,W^2,0.04499,0.968,0.846,1.193,5,True
+main,m6,first_60min,W,0.00554,0.0,0.0,1.898,1,True
+main,m6,first_60min,switch,0.04374,0.0,0.0,0.0,0,True
+main,m6,first_6h,W,0.00554,0.0,0.0,0.0,0,True
+main,m6,first_6h,switch,0.04374,0.0,0.0,0.0,0,True
+nospread,m1,first_60min,W,0.03361,1.094,0.979,1.639,5,True
+T1,m1,first_60min,W,0.03361,3.077,2.177,4.51,5,True
+T1,m3,first_60min,W^2,0.05296,0.96,0.0,1.018,4,True
