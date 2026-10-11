@@ -5,8 +5,8 @@ outputs/figures/r1b_c2_delta.png,key,Delta_k after real rain with v2 vs control,
 outputs/figures/r1b_offset_by_D.png,key,v2 vs v1 / M0 / M1 event offsets by duration,research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:33:16Z
 outputs/products/baseline_uncertainty.csv,product,v2 baseline error spread per sub-link (weights),research/baseline_estm/make_baseline_table.py,fb59b8e+dirty,2026-10-08T12:37:54Z
 outputs/products/baselines.csv,product,"frozen v2 baseline per (event, sub-link): input of WAA_estm",research/baseline_estm/make_baseline_table.py,fb59b8e+dirty,2026-10-08T12:38:13Z
-outputs/products/dew_risk_hourly.csv,product,hourly weather and dew risk at GbgA,research/baseline_estm/make_dew_products.py,fb59b8e+dirty,2026-10-08T12:37:34Z
-outputs/products/dry_jumps.csv,product,dry-day baseline jumps of all train sub-links (C4),research/baseline_estm/make_dew_products.py,fb59b8e+dirty,2026-10-08T12:37:34Z
+outputs/products/dew_risk_hourly.csv,product,hourly weather and dew risk at GbgA,research/baseline_estm/make_dew_products.py,104de05,2026-10-11T09:43:34Z
+outputs/products/dry_jumps.csv,product,dry-day baseline jumps of all train sub-links (C4),research/baseline_estm/make_dew_products.py,104de05,2026-10-11T09:43:34Z
 outputs/reports/R1_validation.md,key,"R1: slot-level validation of the baseline variants (C1-C6), PASS / FAIL",by hand,,2026-10-08T12:38:52Z
 outputs/reports/R1b_validation.md,key,"R1b: event-level validation of v2, humidity-exclusion decision",by hand,,2026-10-08T12:38:52Z
 outputs/tables/c1_fake_events.csv.gz,product,"C1 fake events (read by C2, C6, R1b, make_baseline_table)",research/baseline_estm/validation/c1_fake_events.py,75df645,2026-10-11T09:30:20Z
