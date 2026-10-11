@@ -1,4 +1,4 @@
-% last updated: 2026-10-11 commit=104de05
+% last updated: 2026-10-11 commit=dd4c907
 % (the line above is read and rewritten by /tidy: the date and the git commit the content of this report describes)
 % Research log: what has been implemented in research/, at the level of ideas (no code).
 % Build:  python pipeline/tools/build_research_log.py   (pdflatex twice; writes docs/research_log.pdf only)
@@ -70,7 +70,7 @@
 {\LARGE\sffamily\bfseries From measured attenuation to a wet-antenna law\par}
 \vspace{0.6em}
 {\large\sffamily Research log: what has been implemented, where we stand, and what comes next\par}
-\vspace{1.4em}
+\vspace{0.8em}
 {\large Yonatan Haber and Yehonatan Tsitseluk\par}
 \vspace{0.3em}
 CellEnMon lab, final-year electrical engineering project\par
@@ -87,15 +87,19 @@ that way, and what it found. It contains no code. Two things are finished and fr
 every link and rain event, which turns the raw signal levels into the attenuation $A(t)$; it is unbiased, accurate to
 about $\pm 0.2\dB$ per event, and it does not absorb the drying of the antenna after rain. Second, a fixed set of
 \emph{drying tails}: 429 stretches of $A(t)$ after the rain has stopped on a link, in which the remaining attenuation
-is mostly wet-antenna attenuation (WAA). One thing is in progress: before any drying law is fitted to the real tails,
-the fitting method is tested on simulated tails whose true law is known. A fit of one tail at a time cannot tell the
-candidate laws apart; a fit of all tails together can, on simulated data. A stress test of that fit passed for three
-of the four laws tested and showed that two of the nonlinear laws cannot be told apart from each other. The second
-tool, SINDy, has not been tested yet. No law has been fitted to real tails yet. Still to come are the drying law itself (fitting and weak-form SINDy), the
-wetting law from very short links, the verification on unseen events, and then the two later stages of the project:
-the path law $f(L,\Rbar,Z)$ and the rain estimate.
+is mostly wet-antenna attenuation (WAA). A third piece is finished for the drying law: the
+tools were tested on simulated tails whose true law is known. A fit of one tail at a time cannot tell the candidate
+laws apart; a fit of all tails together can. SINDy applied directly to the tails failed: it returned a linear law for
+almost every truth. It was replaced by two jumps. The pooled fit first draws a free drying curve from all tails, and
+sparse regression then names the equation of that clean curve. On simulated data this recovers an exponential and a
+quadratic law for $W$ above $0.35\dB$ in the first hour, and the result was confirmed on fresh data with the rule fixed
+in advance. Three additions failed their tests and will not be used: a curve that may contain a step, a choice between
+laws by held-out likelihood, and an uncertainty band from resampling one data set. No law has been fitted to real
+tails yet. Still to come are the drying law itself on the real tails, the wetting law from very short links, the
+verification on unseen events, and then the two later stages of the project: the path law $f(L,\Rbar,Z)$ and the rain
+estimate.
 
-\vspace{0.5em}
+\enlargethispage{2\baselineskip}
 \tableofcontents
 \newpage
 
@@ -137,7 +141,7 @@ Figure~\ref{fig:roadmap} shows the whole project and Table~\ref{tab:status} the 
 \node[lab, above=1mm of eval] {PLANNED};
 % inside stage 1
 \node[todo, text width=23mm, below=17mm of waa] (s3) {Drying law\\{\scriptsize $h(W)$, real tails}};
-\node[doing, text width=23mm, left=of s3] (s2) {Test the tools\\{\scriptsize on simulated tails}};
+\node[done, text width=23mm, left=of s3] (s2) {Test the tools\\{\scriptsize on simulated tails}};
 \node[done, text width=23mm, left=of s2] (s1) {Drying tails\\{\scriptsize frozen set of 429}};
 \node[todo, text width=23mm, right=of s3] (s4) {Wetting law\\{\scriptsize $g(R,W)$, short links}};
 \node[todo, text width=23mm, right=of s4] (s5) {Verification\\{\scriptsize unseen events}};
@@ -167,9 +171,11 @@ WAA 3a & Simulator of tails, calibrated to the real set & done & \ref{sec:sim} \
 WAA 3b-1 & Fit one tail at a time, on simulated tails & done: not enough & \ref{sec:pertail} \\
 WAA 3b-1b & Fit all tails together, on simulated tails & done: works & \ref{sec:pooled} \\
 WAA 3b-1c & Stress test of that fit & done: partly passed & \ref{sec:stress} \\
-WAA 3b-2, 3c & SINDy on simulated tails; simulator of whole events & not started & \ref{sec:next} \\
-WAA 4--6 & Drying law $h(W)$ on real tails; what it depends on & not started & \ref{sec:next} \\
-WAA 7 & Wetting law $g(R,W)$ from very short links & not started & \ref{sec:next} \\
+WAA 3b-2 & SINDy directly on simulated tails & done: failed & \ref{sec:sindy} \\
+WAA 3b-3, 3b-3b & Two jumps: draw the drying curve, then name its equation & done: partly passed & \ref{sec:twojumps} \\
+WAA 3b-3c, 3b-4 & The rest of the discovery method; the cause of a false step & done: partly passed & \ref{sec:method} \\
+WAA 4, 6 & Drying law $h(W)$ on real tails (next); what it depends on & not started & \ref{sec:next} \\
+WAA 3c, 7 & Simulator of whole events; wetting law $g(R,W)$ from very short links & not started & \ref{sec:next} \\
 WAA 8--9 & Verification; final WAA equation & not started & \ref{sec:next} \\
 Stage 2 & Path law $f(L,\Rbar,Z)$ with symbolic regression & not started & \ref{sec:next} \\
 Evaluation & Rain estimate, comparison with the literature & not started & \ref{sec:next} \\
@@ -621,7 +627,7 @@ The median tail halves in about 15 minutes and then has a slow remainder lasting
 is the antenna or the last light rain is not settled by the tails alone.}
 
 % =====================================================================================================================
-\section{Stage 1, part 2: testing the tools on simulated tails (in progress)}
+\section{Stage 1, part 2: testing the tools on simulated tails (done for drying)}
 \label{sec:tools}
 
 \subsection{Why simulate}
@@ -971,11 +977,149 @@ One limit of the test itself: when the slow laws were recalibrated to the fast e
 their slow part ran off to a constant floor, so the slow parameters were kept at their earlier values. This choice was
 made before any fit of T3 and is still to be confirmed by us.
 
+\subsection{SINDy directly on the tails: failed}
+\label{sec:sindy}
+
+The second tool of the proposal is weak-form SINDy [10]. It writes $dA/dt$ as a sum of terms from a library (here
+$1, A, A^{2}, A^{3}$ and switch terms $\max(A - A_{c}, 0)$), keeps only the terms it needs, and avoids differentiating
+the noisy signal by integrating it against smooth test functions over windows of 21 minutes. It was run on the
+simulated data sets of the stress test, with the rule for success fixed before the run. It failed all four questions
+asked of it.
+\begin{itemize}
+\item \textbf{It returns ``$A$'' for almost every truth.} In the first hour, with the spread of drying speeds, the
+quadratic and the linear + quadratic truths give the linear law in 5 of 5 data sets, with no $A^{2}$ term. The switch
+truth gives the linear law with no switch term. The exponential truth keeps its term but gets a false $A^{2}$ term in
+3 of 5 data sets and a rate $1.8$ times too high.
+\item \textbf{A hidden second state is not noticed.} The two-layer truth returns a clean single-variable law in 5 of
+5 data sets, which would be read as a finding.
+\item \textbf{It disagrees with the pooled fit.} The two tools name the same family of law in 1 of 20 data sets; the
+pooled fit is right in 19 of 20.
+\end{itemize}
+The reason is the two things the pooled fit models and SINDy on raw tails does not: the baseline offset of each tail
+and the spread of drying speeds. With the true offset given and no spread, SINDy does find $A^{2}$ in 5 of 5. The
+spread alone creates the \emph{mixing trap}: exponential tails of different speeds, put into one regression, look
+like a nonlinear law (a false $A^{2}$ in 3 of 5 data sets with the spread, in none without it). So SINDy will not be
+run on the raw real tails as first planned.
+
+\subsection{Two jumps: draw the drying curve, then name it}
+\label{sec:twojumps}
+
+Discovery was kept but split in two (Figure~\ref{fig:jumps}).
+\begin{description}[leftmargin=1.2cm, style=nextline]
+\item[Jump 1, draw the curve.] The pooled fit of Eq.~\eqref{eq:pooled} is used again, but the menu of laws is
+replaced by a free smooth curve $k(W)$, the drying rate per dB of water:
+\begin{equation}
+\frac{dW}{dt} \;=\; -f_{i}\,W\,k(W) ,
+\label{eq:freecurve}
+\end{equation}
+with $f_{i}$ the speed factor of tail $i$. The curve is a spline with five knots, and how smooth it must be is chosen
+by leaving out half of the events. A flat $k$ is exponential drying; $k$ proportional to $W$ is quadratic drying. On
+a log-log plot the slope of $k$ is therefore 0 for the exponential law and 1 for the quadratic one.
+\item[Jump 2, name it.] Sparse regression is applied to the clean curve $h(W) = W\,k(W)$ with the library
+$W, W^{2}, W^{3}$ and switch terms. Offsets, spread and noise were dealt with in jump 1, so the mixing trap should not
+appear.
+\end{description}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=4mm]
+\node[box, text width=23mm] (t) {all tails\\{\scriptsize offsets, spread, noise}};
+\node[box, text width=27mm, right=of t] (j1) {Jump 1: pooled fit\\{\scriptsize with a free curve $k(W)$}};
+\node[box, text width=24mm, right=of j1] (c) {clean curve\\{\scriptsize $h(W) = W\,k(W)$}};
+\node[box, text width=23mm, right=of c] (j2) {Jump 2: sparse\\regression};
+\node[box, text width=16mm, right=of j2] (e) {equation};
+\draw[arr] (t)--(j1); \draw[arr] (j1)--(c); \draw[arr] (c)--(j2); \draw[arr] (j2)--(e);
+\end{tikzpicture}
+\caption{The two jumps that replace SINDy on raw tails.}
+\label{fig:jumps}
+\end{figure}
+
+\textbf{First run.} By the rule fixed before the run the result was only partial. The curve is badly determined at
+low $W$: for the exponential truth its lowest point came out 2 to 4 times too high in 9 of 10 fits. Looking at the
+results afterwards, the curve and its equation were right above about $0.35\dB$. A finding made after seeing the
+results is not a result, so it was tested again.
+
+\textbf{Confirmation run.} New simulated data, the first 60 minutes, and a judged range fixed in advance: from
+$0.35\dB$ up to the highest level with enough data (2 to $3.5\dB$). Nothing below $0.35\dB$ is judged or named.
+Table~\ref{tab:confirm} gives the result.
+
+\begin{table}[H]
+\centering
+\caption{Confirmation run of the two jumps on fresh simulated data (5 data sets per law, first 60 minutes, $W$ above
+$0.35\dB$). ``Slope'' is the slope of $\log k$ against $\log W$.}
+\label{tab:confirm}
+\small
+\begin{tabularx}{\linewidth}{@{}l l l Y@{}}
+\toprule
+True law & Slope: true & Slope: found & Equation found (coefficient / truth) \\
+\midrule
+m1 exponential & 0 & $-0.01$ to $0.05$ & $W$ ($\times 0.99$), one term in 5 of 5: pass \\
+m3 quadratic & 1 & $0.99$ to $1.12$ & $W^{2}$ ($\times 0.97$), one term in 5 of 5: pass \\
+m5 linear + quadratic & 0.92 & $0.93$ to $1.03$ & $W^{2}$ ($\times 1.13$), one term in 5 of 5: pass \\
+m6 switch at $0.16\dB$ & 0.23 & $0.20$ to $0.32$ & three terms, not a law (not judged: the switch is below the range) \\
+m4 two layers & -- & $0.36$ to $0.47$ & three terms; the warning sign fired in 2 of 5: fail \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+For the three single-curve laws the true curve lies inside the band of the five fits over the whole judged range, and
+the mixing trap does not appear. Two limits remain. A switch below the range and a two-layer law both give a
+\emph{mildly rising} curve (slope 0.2 to 0.5) with a many-term equation, and the curve cannot say which of the two it
+is. And the hoped-for warning sign for two layers (the free curve fits clearly worse than the two-layer candidate)
+fired in only 2 of 5 data sets, so it is not used as a check.
+
+\subsection{The rest of the method, and a false step}
+\label{sec:method}
+
+Four additions were tested on the same simulated data, each with its own rule fixed before the run
+(Table~\ref{tab:method}).
+
+\begin{table}[H]
+\centering
+\caption{Tests of the remaining parts of the discovery method, on simulated data.}
+\label{tab:method}
+\small
+\begin{tabularx}{\linewidth}{@{}p{38mm} Y p{22mm}@{}}
+\toprule
+Part & What happened & Used on real tails? \\
+\midrule
+Naming alone: the true curve plus 2 to 5\,\% noise &
+Sparse regression repeated on resampled points names exactly the true terms in 20 of 20 draws for all four laws,
+the switch included. Symbolic regression (PySR [7]) does so in 20, 20 and 18 of 20 for the exponential, quadratic and
+linear + quadratic laws; it cannot write a switch. Choosing the best subset of terms by BIC adds one extra term in 3 to 8
+of 20 draws. & yes \\
+A curve that may contain a step (to find a switch) &
+A step is kept in 5 of 5 data sets for \emph{every} truth, also the pure exponential. & no \\
+Choosing between candidate laws by the likelihood of left-out events &
+The law with the false step wins in 18 of 20 data sets. Comparing only the five named laws by BIC on the whole data
+set still names the right family in 4 or 5 of 5. & no; BIC of the named laws instead \\
+An uncertainty band from resampling the events of one data set &
+The band is $\pm 1$ to $6\,\%$ wide and contains the true curve on 0 to 78\,\% of the range (rule: 80\,\%). It is about
+three times too narrow: the level of a fit is off by $-7$ to $+23\,\%$. The slope is steadier, within 0.01 to 0.11 of
+the truth. & shown, with this warning \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Is the quantization the cause of the false step?} The first explanation was that RSL is recorded in steps
+of $0.3\dB$, which the simulator copies but the noise model of the fit does not describe. This was tested directly:
+exponential data were simulated three times with the same random numbers, with no rounding, with $0.3\dB$ and with
+$0.1\dB$. The step is kept in 5 of 5 data sets in all three cases, also with no rounding at all. So the quantization is
+\emph{not} the cause, and adding it to the fit is not expected to help. The test showed one more thing: in 15 of 15
+fits the step stays where the search started it, so its position carries no information either. The cause is open.
+
+\textbf{What can be said on real tails, as a result.} For $W$ between $0.35\dB$ and the top of the data, in the first
+hour after rain: how the drying rate per dB of water changes with $W$, as a slope known to about $\pm 0.1$; whether
+that stretch is a one-term law (exponential or quadratic); the level of the rate to about $\pm 20\,\%$; and which of
+the named laws the data prefer by BIC. Nothing can be said below $0.35\dB$, and nothing about a switch level: a step
+found there would mean nothing.
+
 \inshort{A simulator that copies the real tails and their noise shows that the median curve cannot decide between the
 laws, and that fitting single tails cannot either. Fitting all tails together, with a shared law, a random speed per
-tail, a bounded offset and a correlated-noise model, recovers the right law and its parameters on simulated data. A
-stress test confirms this for the exponential, the two-layer and the switch law; the two nonlinear laws cannot be
-separated from each other. All of this is on simulated data: no law has been fitted to the real tails.}
+tail, a bounded offset and a correlated-noise model, recovers the right law and its parameters on simulated data.
+SINDy on the raw tails does not. Drawing a free drying curve with the pooled fit and then naming its equation does,
+for $W$ above $0.35\dB$ in the first hour. A step in the curve, a choice by held-out likelihood and a resampling band
+failed their tests. All of this is on simulated data: no law has been fitted to the real tails.}
 
 % =====================================================================================================================
 \section{Where we stand}
@@ -1001,7 +1145,9 @@ What the unexplained night-time rises are (drizzle or condensation). \\
 The median tail halves in about 15 minutes and has a slow remainder. &
 Whether the slow remainder is a second process or only the spread of drying speeds between antennas. \\
 The median curve and single-tail fits cannot identify the law; a pooled fit can, on simulated data, also under a wrong noise model and from generic starting points (exponential, two layers, switch). &
-Whether SINDy recovers a known law from simulated tails (not tested yet). \\
+Whether a trustworthy uncertainty band can be made from one data set (resampling events gave a band about three times too narrow). \\
+SINDy on the raw tails does not recover a known law on simulated data. In two jumps (a free drying curve, then sparse regression) an exponential and a quadratic law are recovered for $W$ above $0.35\dB$ in the first hour, also on fresh data. &
+Anything below $0.35\dB$, a switch level included, and why the fit prefers a false step there (it is not the $0.3\dB$ quantization). \\
 On simulated data the power law and the linear + quadratic law cannot be told apart. &
 Which law the real tails follow, and whether the real noise is close enough to the two noise models tested. \\
 Dry-weather noise is correlated over tens of minutes; dew produces WAA-like jumps at night. &
@@ -1017,7 +1163,9 @@ the fitting tests were all written down before their results were seen. Twice th
 looked attractive: that the fast drop is antenna drying (Section~\ref{sec:fastdrop}) and that the data ask for two
 layers (Section~\ref{sec:sim}). The stress
 test adds a third case of the same kind: a win of the linear + quadratic law over the power law, or the reverse, will
-not be read as a finding.
+not be read as a finding. The latest steps added two more habits. A finding made after seeing the results is tested
+again on fresh data before it is used (the range above $0.35\dB$). And our own explanation of a failure is tested
+before it is acted on: the quantization was the suspected cause of the false step, and the test said no.
 
 % =====================================================================================================================
 \section{What comes next}
@@ -1036,44 +1184,43 @@ links, where the path term is small. Figure~\ref{fig:plan} shows the route.
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[node distance=5mm and 5mm]
-\node[doing, text width=40mm] (a) {Finish the tool tests\\{\scriptsize SINDy on simulated tails; simulator of whole events}};
-\node[todo, text width=40mm, right=of a] (b) {Drying law $h(W)$\\{\scriptsize pooled fit and weak-form SINDy on the real tails}};
+\node[done, text width=40mm] (a) {Tool tests for drying\\{\scriptsize simulated tails: pooled fit, two jumps}};
+\node[todo, text width=40mm, right=of a] (b) {Drying law $h(W)$\\{\scriptsize free curve, its equation and the named laws, on the real tails}};
 \node[todo, text width=40mm, right=of b] (c) {What drying depends on\\{\scriptsize frequency, antenna, wind, temperature, humidity}};
-\node[todo, text width=40mm, below=10mm of a] (d) {Wetting law $g(R,W)$\\{\scriptsize very short links, radar rain as input, $h$ kept fixed}};
+\node[todo, text width=40mm, below=10mm of a] (d) {Wetting law $g(R,W)$\\{\scriptsize simulator of whole events first; very short links, $h$ kept fixed}};
 \node[todo, text width=40mm, right=of d] (e) {Verification\\{\scriptsize unseen events; longer links; dew events}};
 \node[todo, text width=40mm, right=of e] (f) {Final WAA equation\\{\scriptsize handed to Stage 2}};
 \draw[arr] (a)--(b); \draw[arr] (b)--(c);
 \draw[arr] (c.south) -- ++(0,-4mm) -| (d.north);
 \draw[arr] (d)--(e); \draw[arr] (e)--(f);
 \end{tikzpicture}
-\caption{The remaining route of Stage 1. Dashed border: in progress. Dotted border: planned.}
+\caption{The remaining route of Stage 1. Grey fill: done. Dotted border: planned.}
 \label{fig:plan}
 \end{figure}
 
 \subsection{The steps}
 
 \begin{enumerate}
-\item \textbf{Finish testing the tools.} The stress test is done (Section~\ref{sec:stress}). Next, test weak-form
-SINDy [10] on simulated tails: with a library of terms $1, W, W^{2}, W^{3}$ and switch terms $\max(W - A_{c}, 0)$,
-does it return the law that generated the data? What does it return when the truth has a hidden second state (two
-layers)? Does mixing tails of different speeds create a false nonlinear term? The weak form is used because it
-integrates the data against smooth test functions instead of differentiating it, and differentiating a signal
-quantized to $0.3\dB$ is hopeless. Last, extend the simulator from tails to whole events (real radar rain, a wetting
-law, a small path term that grows with $L$) so that SINDy with rain as input can be tested as well.
-\item \textbf{The drying law on real tails.} Fit the five candidates with the pooled method, each from several
-starting points, and run SINDy, on the frozen set. Every result is repeated on four versions of the set (the main set; without the flagged events; without
-the tails with a level flag; the alternative set), and its uncertainty comes from resampling events. The exponential
-drying of the literature is one of the candidates, so the comparison with the literature is built in.
+\item \textbf{The drying law on real tails (next).} Only what passed on simulated data is used
+(Section~\ref{sec:method}). The free drying curve is drawn from the frozen set, first 60 minutes, and read for $W$
+above $0.35\dB$; its shape is given as a slope; its equation is named by sparse regression on resampled points, with
+symbolic regression as a cross-check. Next to it the five named laws are fitted with the pooled method, each from
+several starting points, and compared by BIC. Every result is repeated on four versions of the set (the main set;
+without the flagged events; without the tails with a level flag; the alternative set). The resampling band is shown
+with the warning that it was too narrow on simulated data. The exponential drying of the literature is one of the
+candidates, so the comparison with the literature is built in.
 \item \textbf{What drying depends on.} Relate the drying speed to frequency, antenna size, time of day, temperature,
 wind and humidity.
 \item \textbf{The wetting law, from very short links.} On links shorter than about $0.6$ km the path term is small, so
 $A(t)$ during the rain is mostly WAA. That the path term is small must be shown without assuming the power law:
 among short links, the attenuation during rain must not grow with $L$, and the two directions of a link must agree.
-With $h(W)$ kept fixed from the tails, $g(R,W)$ is learned with SINDy using the radar rain along the path as input,
-and compared with the model of Schleiss et al.\ [1]. This step is also the real test of whether what we call WAA
+First the simulator is extended from tails to whole events (real radar rain, a wetting law, a small path term that
+grows with $L$), and the tool for this step is chosen by testing on that simulated data, as was done for drying. With
+$h(W)$ kept fixed from the tails, $g(R,W)$ is then learned with the radar rain along the path as input, and compared
+with the model of Schleiss et al.\ [1]. This step is also the real test of whether what we call WAA
 belongs to the antenna (Section~\ref{sec:fastdrop}).
 \item \textbf{Verification.} On data not used so far: drying on the validation events; the full law on unseen events;
-agreement between the drying time found by SINDy and the one fitted directly; agreement between the two directions of
+agreement between the drying time read from the free curve and the one fitted directly; agreement between the two directions of
 a link; and whether dew events, which wet the antenna without rain, dry by the same $h(W)$. The decisive check is the
 transfer to longer links: after the predicted WAA is subtracted, the remaining attenuation should grow with $L$ with
 no constant offset. That is the test of Eq.~\eqref{eq:L0}, and it is the handover to Stage~2.
@@ -1095,6 +1242,10 @@ under resampling.
 \subsection{Open questions}
 
 \begin{itemize}
+\item Why does the fit prefer a false step at low $W$ on simulated data? It is not the quantization. What is left to
+test: whether the fit without a step had simply not searched long enough, the bound on the baseline offset, and the
+very narrow shape of the step. Should this be found before the real tails are fitted, or after?
+\item Which is wrong in the resampling band: the resampling itself, or the short search each refit was given?
 \item Are the night-time rises after rain drizzle that the radar misses, or condensation? The humidity record has
 gaps exactly there.
 \item Should light rain after the first dry moment end a tail (as now), or be given to the model as input?
@@ -1158,6 +1309,9 @@ BIC & Bayesian information criterion: goodness of fit with a charge per paramete
 Pooled fit & One law with shared parameters fitted to all tails at once, Eq.~\eqref{eq:pooled}. \\
 Event bootstrap & Resampling whole events with replacement, to measure uncertainty. \\
 SINDy & Sparse identification of nonlinear dynamics: finds a short equation for $dW/dt$ from a library of terms. \\
+Free curve $k(W)$ & The drying rate per dB of water, drawn by the pooled fit without assuming a law, Eq.~\eqref{eq:freecurve}. \\
+Jump 1, jump 2 & Drawing the free curve from all tails; naming its equation by sparse regression. \\
+Mixing trap & Exponential tails of different speeds, analysed together, look like a nonlinear law. \\
 \bottomrule
 \end{tabularx}
 
@@ -1179,6 +1333,9 @@ What each WAA step decided & \code{WAA\_estm/DECISIONS.md} \\
 Frozen tail set & \code{step2c\_freeze.md}, in the reports folder of \code{WAA\_estm} \\
 Simulator and its calibration & \code{step3a\_fix.md}, same folder \\
 Pooled fit on simulated tails & \code{step3b1b\_pooled\_fit.md}, same folder \\
+SINDy on simulated tails & \code{step3b2\_sindy\_fake.md}, same folder \\
+The two jumps and their confirmation & \code{step3b3\_curve\_then\_equation.md} and \code{step3b3b\_confirm.md}, same folder \\
+The rest of the method; the false step & \code{step3b3c\_method.md} and \code{step3b4\_quantization.md}, same folder \\
 The WAA plan & \code{WAA\_estm/roadmap.md} \\
 The data layer & \code{docs/pipeline\_log.pdf} (next to this report) \\
 \bottomrule
