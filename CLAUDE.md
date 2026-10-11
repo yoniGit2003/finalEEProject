@@ -27,7 +27,7 @@ research/    research code; uses ONLY cmlpipe.api (+ cmlpipe.viz) and the releas
              research/ROADMAP.md = research tasks (pipeline tasks: pipeline/docs/roadmap.md);
              baseline_estm/ = the first module (README, METHOD, CATALOG, baseline_estm_paths.py, code, validation/,
              outputs/{products,tables,figures,reports}/ = important (key / product, committed), legacy/ = diag / scratch
-             moved there by /tidy (git-ignored, local only), git-ignored .cache/); explorations/ = playground
+             moved there by /tidy (git-ignored, local only), git-ignored .cache/); explorations/ = playground (git-ignored except its README)
 pipeline/    the data layer: src/cmlpipe (io, qc, geometry, aggregate, events, inventory, release, api, viz, cli),
              apps/explorer (Streamlit GUI), configs/openmrg.yaml, tests/, tools/ (update_readme, check_boundaries,
              check_organization, build_research_log, githooks), docs/ (DATA_GUIDE, methods, data_dictionary,

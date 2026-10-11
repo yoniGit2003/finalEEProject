@@ -75,6 +75,10 @@ research/*/outputs/**/*.*
 # Legacy outputs: the diag / scratch files that /tidy moves out of outputs/ (never deleted, kept on this machine only)
 research/*/legacy/
 
+# ---- Explorations (the playground): local only; only its README is in git ----
+research/explorations/**
+!research/explorations/README.md
+
 # ---- Windows ----
 Thumbs.db
 desktop.ini

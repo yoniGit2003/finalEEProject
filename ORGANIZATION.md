@@ -13,7 +13,7 @@ pipeline/          the data layer: src/cmlpipe (package), tests/ (pytest), apps/
 research/          config.yaml (all research settings), ROADMAP.md, README.md
   <module>/        one folder per research step (baseline_estm, WAA_estm, later path_law, evaluation)
   common/          shared research helpers: outputs.py (save_output), tidy_outputs.py (the output part of /tidy)
-  explorations/    the playground
+  explorations/    the playground: local only (git-ignored), except its README
 data/              raw / work / release data: NOT in git, never modified by hand          (protected)
 _review/           git-ignored: untracked files that look like junk, moved here by /tidy (you decide)
 ```
@@ -78,7 +78,7 @@ write to `outputs/`, add CATALOG entries. Modules never read files from `explora
 - **Committed**: code, configs, docs, `MANIFEST.csv`, `TIDY_LOG.md`, and the outputs with level **key** or
   **product** that are <= 10 MB (section 5).
 - **Ignored** (root `.gitignore` only): `data/`, `.cache/`, `_cache/`, `__pycache__/`, `.pytest_cache/`, `.idea/`,
-  `_archive/`, `_review/`, `research/.vibe-wise/`, DEV runs, every **diag** / **scratch** output, every module's
+  `_archive/`, `_review/`, `research/.vibe-wise/`, everything in `research/explorations/` except its README, DEV runs, every **diag** / **scratch** output, every module's
   `legacy/` folder, anything > 10 MB.
   The `.gitignore` ignores all of `research/*/outputs/` and re-includes the key / product files in a generated block
   that `save_output` rewrites from the MANIFESTs: never edit that block by hand.

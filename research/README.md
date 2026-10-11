@@ -53,7 +53,7 @@ WAA_estm/          Stage 1: drying tails (frozen tail set v1), then weak-form SI
 path_law/          Stage 2: f(L, R̄, Z) with PySR                                  (planned)
 evaluation/        rain estimation, metrics, comparisons                          (planned)
 common/            shared helpers: outputs.py (save_output), tidy_outputs.py (not a module)
-explorations/      playground: try ideas here; results that matter move into a module
+explorations/      playground: try ideas here; results that matter move into a module (local only: git-ignored)
 ```
 
 Every module has the same layout (`README.md`, `METHOD.md`, `CATALOG.md`, `<module>_paths.py`, code, `validation/`,

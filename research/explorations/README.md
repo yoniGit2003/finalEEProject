@@ -3,6 +3,9 @@
 Try ideas here. Anything goes inside this folder: scripts, notebooks, CSVs, figures, next to each other. Nothing here
 is reorganized by `/tidy`, and nothing here needs a CATALOG entry.
 
+**This folder is local only.** Everything in it except this README is git-ignored, so it is not on GitHub: a
+result that should be shared has to graduate into a module (below).
+
 Light conventions (they make the next step easier):
 
 - Start each script with a docstring: the question it asks, and what it writes.
@@ -14,5 +17,6 @@ Light conventions (they make the next step easier):
 `outputs/`, it reads locations from the module's paths file, and every output gets a `CATALOG.md` entry. The old
 exploration file stays here (or is deleted by you); modules never read files from `explorations/`.
 
-Current contents: `dry_excursions.py` -> `dry_excursions.csv`; `plot_link_baseline.py` -> `link_10200_days.png`,
-`link_10200_event.png`.
+Current contents (on the machine that made them): `baseline_exp/` (`dry_excursions.py` -> `dry_excursions.csv`;
+`plot_link_baseline.py` -> `link_10200_days.png`, `link_10200_event.png`) and `WAA_exp/` (`gauge_radius.py`,
+`tail_sample.py` and their tables / figures).
