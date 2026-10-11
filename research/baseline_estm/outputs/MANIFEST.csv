@@ -13,6 +13,4 @@ outputs/tables/c1_fake_events.csv.gz,product,"C1 fake events (read by C2, C6, R1
 outputs/tables/c3_daily_cycle_per_sublink.csv,product,"C3 daily-cycle amplitude per sub-link (read by R1b, run_sample, make_baseline_table)",research/baseline_estm/validation/c3_daily_cycle.py,75df645,2026-10-11T09:31:31Z
 outputs/tables/c4_jumps.csv,product,"C4 dry-day jumps (read by C5, make_dew_products)",research/baseline_estm/validation/c4_jumps.py,75df645,2026-10-11T09:31:37Z
 outputs/tables/r1b_fake_event_offsets.csv.gz,product,R1b event offsets of every method (read by make_baseline_table),research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:32:46Z
-outputs/tables/r1b_real_events.csv.gz,diag,"R1b real (event, sub-link) pairs with v2",research/baseline_estm/validation/r1b_event_level.py,75df645,2026-10-11T09:32:58Z
 outputs/tables/sample_two_window_baselines.csv,product,method v1 on the sample (read by C5),research/baseline_estm/run_sample.py,75df645,2026-10-11T09:29:37Z
-outputs/tables/validation_runtimes.csv,diag,runtime of each validation check,research/baseline_estm/validation/run_all.py,75df645,2026-10-11T09:33:16Z

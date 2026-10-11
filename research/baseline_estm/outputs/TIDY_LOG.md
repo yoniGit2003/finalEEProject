@@ -4,7 +4,11 @@ Written by `python research/common/tidy_outputs.py --apply` (rules: ORGANIZATION
 Newest first. Since 2026-10-11 /tidy deletes nothing: it moves files to `legacy/` (local only, git-ignored). Every
 file, moved or deleted earlier, can be rebuilt by running the script in the last column from the repository root.
 
-<!-- last tidy: 2026-10-11T09:41:08Z commit=0b30481 -->
+<!-- last tidy: 2026-10-11T19:04:55Z commit=6bc6983 -->
+
+## 2026-10-11 19:04 UTC (commit 6bc6983): 0 files moved to legacy/, 0 kB
+
+Nothing to move.
 
 ## 2026-10-11 09:41 UTC (commit 0b30481): 60 files moved to legacy/, 6.6 MB
 

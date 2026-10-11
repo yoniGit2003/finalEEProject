@@ -4,7 +4,40 @@ Written by `python research/common/tidy_outputs.py --apply` (rules: ORGANIZATION
 Newest first. Since 2026-10-11 /tidy deletes nothing: it moves files to `legacy/` (local only, git-ignored). Every
 file, moved or deleted earlier, can be rebuilt by running the script in the last column from the repository root.
 
-<!-- last tidy: 2026-10-11T09:41:09Z commit=0b30481 -->
+<!-- last tidy: 2026-10-11T19:04:58Z commit=6bc6983 -->
+
+## 2026-10-11 19:04 UTC (commit 6bc6983): 3 files moved to legacy/, 0.1 MB
+
+| path (now under legacy/) | level | size | rebuilt by | why |
+|---|---|---|---|---|
+| `outputs/tables/step3b2_fits.csv` | diag | 0.1 MB | `research/WAA_estm/step3b2_sindy_fake.py` | level diag |
+| `outputs/tables/step3b3_fits.csv` | diag | 12 kB | `research/WAA_estm/step3b3_curve_then_equation.py` | level diag |
+| `outputs/tables/step3b3b_fits.csv` | diag | 6 kB | `research/WAA_estm/step3b3b_confirm.py` | level diag |
+
+Kept in outputs/ although the level says legacy (conflicts):
+
+- `outputs/figures/step2c_event_E20150617_0705.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step2c_event_E20150701_0030.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b1c_win_share.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b2_selection_frequency.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3_k_m1.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3_k_m3.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3_k_m4.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3_k_m5.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3_k_m6.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3b_k_m1.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3b_k_m3.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3b_k_m4.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3b_k_m5.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3b_k_m6.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3c_b_step_m1.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3c_b_step_m3.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3c_b_step_m5.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3c_b_step_m6.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3c_d_band_m1.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3c_d_band_m3.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b3c_d_band_m5.png` (diag): linked from a Markdown file that stays
+- `outputs/figures/step3b4_m1_quantization.png` (diag): linked from a Markdown file that stays
 
 ## 2026-10-11 09:41 UTC (commit 0b30481): 64 files moved to legacy/, 25.3 MB
 
