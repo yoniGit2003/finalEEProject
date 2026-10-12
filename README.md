@@ -31,7 +31,7 @@ to regenerate it: [`CATALOG.md`](CATALOG.md).
 
 <!-- AUTO:status -->
 - **Pipeline (data layer)**: done (release openmrg_v1 built and published; the open items are extensions); 21 / 26 roadmap items. Details: [`pipeline/README.md`](pipeline/README.md)
-- **Research**: in progress (baseline frozen; Stage 1 WAA: drying tails frozen, fitting tools tested on simulated tails); 4 / 16 roadmap items. Details: [`research/README.md`](research/README.md)
+- **Research**: in progress (baseline frozen; Stage 1 WAA: drying tails frozen, fitting tools tested on simulated tails, first fit of the real tails done: no drying law identified yet); 4 / 16 roadmap items. Details: [`research/README.md`](research/README.md)
 <!-- /AUTO:status -->
 
 ## Boundary rule

@@ -183,3 +183,15 @@ STEP3B4_TABLE = TABLES / "step3b4_step.csv"                # per quantization se
 STEP3B4_DECISION = TABLES / "step3b4_decision.csv"         # per setting: steps kept, median W_c; the verdict
 STEP3B4_FIG = FIGURES / "step3b4_m1_quantization.png"      # m1 fits for none / 0.3 / 0.1 dB side by side
 STEP3B4_REPORT = REPORTS / "step3b4_quantization.md"
+
+# ---- step 4: the drying law on the REAL tails (step4_real_drying.py; TRAIN tails of the frozen set v1 only) ------------
+STEP4_MENU = TABLES / "step4_menu_fits.csv"                # per dataset and candidate: BIC, parameters, s, start spread
+STEP4_SUMMARY = TABLES / "step4_summary.csv"               # per dataset: tails, W_hi, menu winner + margin, slope, jump 2
+STEP4_CURVES = TABLES / "step4_curves.csv"                 # k(W) on the read grid per dataset; band of the main set
+STEP4_JUMP2 = TABLES / "step4_jump2.csv"                   # the formulas of the three jump-2 tools per dataset
+STEP4_QUALITY = TABLES / "step4_fit_quality.csv"           # residuals of the winner and of F1 vs the dry-weather noise
+STEP4_FAKE = TABLES / "step4_fake_comparison.csv"          # real slope and A / A_start vs the ranges of the fake truths
+STEP4_FIG_K = FIGURES / "step4_k_real.png"                 # real k(W) above 0.35 dB, band, F1 line, menu winner
+STEP4_FIG_SETS = FIGURES / "step4_k_sets.png"              # k(W) of the sensitivity and leave-one-event-out sets
+STEP4_FIG_GALLERY = FIGURES / "step4_gallery.png"          # 12 real tails with the fitted winner and the fitted F1
+STEP4_REPORT = REPORTS / "step4_real_drying.md"

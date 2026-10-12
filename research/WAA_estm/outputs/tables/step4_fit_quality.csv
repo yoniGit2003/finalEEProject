@@ -1,0 +1,6 @@
+law,window_min,tails,within_tail_std_db,noise_model_std_db,whitened_variance_ratio,acf_1,noise_model_acf_1,acf_10,noise_model_acf_10,acf_60,noise_model_acf_60
+F1 (winner),60,429,0.1397,0.0879,4.13,0.802,0.603,0.185,0.141,,
+F1 (winner of the first hour),360,429,0.146,0.119,2.079,0.802,0.764,0.5,0.511,0.076,0.029
+"F6, set without event_rise_heavy",60,265,0.1236,0.0884,3.475,0.744,0.611,0.19,0.139,,
+"F1, set without event_rise_heavy",60,265,0.1273,0.0897,3.479,0.746,0.607,0.194,0.139,,
+"real control tails (dry weather, median over the sub-links of the main set)",677,5198,0.1414,,,0.801,,0.572,,0.219,

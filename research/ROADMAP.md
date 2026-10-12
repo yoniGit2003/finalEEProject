@@ -5,7 +5,7 @@ What is done and what is left in the research (research/), following the work sc
 of `research/README.md` and the one-line summary in the root `README.md` are generated from this file on every commit
 (`pipeline/tools/update_readme.py`), so this is the only place where research progress is edited by hand.
 
-Status: in progress (baseline frozen; Stage 1 WAA: drying tails frozen, fitting tools tested on simulated tails)
+Status: in progress (baseline frozen; Stage 1 WAA: drying tails frozen, fitting tools tested on simulated tails, first fit of the real tails done: no drying law identified yet)
 
 ## 1. Baseline and attenuation A(t)
 - [ ] Baseline per sub-link from the certified dry periods (constant / rolling) and the dynamic minimum-attenuation method [8]

@@ -70,9 +70,9 @@ use; may be slow). Say in each step which software was used.
 | 2 | 3b-3b | Confirmation run of the two jumps on fresh fake data, judged only above 0.35 dB, rule fixed before the run | done | PARTIAL: m1, m3, m5 PASS (curve, shape, equation); the m4 warning sign fails (2 of 5) |
 | 2 | 3b-3c | Jump 2 on TRUE curves (seconds); Jump 1 that may draw a step at a fitted W_c; Jump 3 (refit and choose) | done | PARTIAL: Jump 2 alone works (E-SINDy, PySR); the step tool draws a step for EVERY truth; Jump 3 and the bootstrap band fail |
 | 2 | 3b-4 | Diagnosis only: is the 0.3 dB RSL quantization the cause of the false step? m1 simulated with no / 0.3 / 0.1 dB quantization, step fit of 3b-3c part B | done | NOT the cause: without quantization the step is still kept in 5 of 5 (BIC gain 40-130); cause open |
-| 3 Find the law on real data | 4 | The confirmed setup (3b-3b) + menu fits on the 429 real tails, four sensitivity sets | next (recipe reduced by 3b-3c) | the drying law h(W), stated for W >= 0.35 dB only |
+| 3 Find the law on real data | 4 | The confirmed setup (3b-3b) + menu fits on the 429 real tails, four sensitivity sets | done 2026-10-12 | NO law identified: the real curve FALLS with W (slope -0.87; -0.05 without the rise-heavy events), no formula, menu not decisive (F1 as run; like for like F6 by 21 BIC); a W0 fault found in the menu comparison; F3 / F5 at their exponential limit in all 7 sets |
 | 3 | 5 | SINDy on raw real tails | replaced | replaced by 3b-3 + 4 |
-| 3 | 6 | What drying depends on (frequency, antenna, time of day, temperature, wind, humidity) | planned | |
+| 3 | 6 | What drying depends on (frequency, antenna, time of day, temperature, wind, humidity) | next (after the learners' decisions on Step 4) | |
 | 3 | 3c | Fake full events with rain, to test the wetting tools | planned | moved here: only needed for Step 7 |
 | 3 | 7 | Very short links: learn the wetting law g(R, W) with h(W) fixed | planned | the wetting law |
 | 4 Prove it | 8a | Drying law predicts unseen tails (VAL, leave-one-event-out) vs literature exponential | planned | |
@@ -195,7 +195,15 @@ offset prior / start floor, the narrow step shape). Next = Step 4 with the reduc
 
 ## Part 3: find the law on real data
 
-- **4 (next; recipe reduced by 3b-3c, 2026-10-11).** Only what passed on fake data is used: Jump 1 without a step, read for
+- **4 (done 2026-10-12: no drying law identified).** TRAIN v1, 429 tails, first 60 min, W_hi = 2.83 dB; 36 min, nothing
+  cut. The free curve falls with W (slope -0.87; bootstrap refits -1.43..-0.82; sets -0.05 to -1.60), which no fake truth
+  did: 21 % of the tails stay at >= 90 % of their start level for 10 min (38 % in the rise-heavy events) before they drop.
+  Without the rise-heavy events the slope is -0.05 (exponential-like, tau 15 min). Jump 2 gives no formula (5 of 5 terms
+  kept). Menu as run: F1 (tau 25.2 min), but F1 / F4 may fit a rising tail with a negative start (3 tails = the whole
+  2600 BIC gap to F3 at n = 1); like for like F6 is ahead by 21 BIC, not decisive (residual variance 4.1 times the
+  dry-noise model). Stable in all sets: F3 at n = 1, F5 at b = 0 (nothing rising with W). No literature value in the
+  repo to compare tau with. Open before Step 6 (learners): which tails define "drying"; repair the W0 bound and re-test
+  on fake data with rising tails; a noise level for drying tails. The recipe was: Only what passed on fake data is used: Jump 1 without a step, read for
   W >= 0.35 dB; shape = slope of log k vs log W (about +-0.1); Jump 2 by E-SINDy (waa_sindy elimination) with PySR as
   cross-check and best-subset as "true terms plus at most one extra"; NO Jump 3 by held-out likelihood; named laws compared
   by the menu fits with BIC; the event-bootstrap band is shown with the warning that it was about 3 times too narrow on fake
@@ -281,3 +289,8 @@ Note: machine learning in CML work is mostly rain detection; discovering the WAA
 - Night-time rises without any rain trace (E20150701_0030): drizzle under the radar beam, or condensation? RH is missing for those hours.
 - Test events and test links have no baseline yet (needed for the final held-out check).
 - `ORGANIZATION.md` / `check_organization.py`: confirm `roadmap.md` at the module root is allowed.
+- Step 4: what keeps A flat or rising after the last rain trace in 21 % of the tails (rain / drizzle below the reference,
+  re-wetting, condensation, path attenuation)? It decides whether those minutes belong to h(W) or to g(R, W).
+- Step 4: is the dip of k(W) near the third knot (0.9 dB main set, 0.7 dB alternative set) made by the knots or by
+  selecting tails by A_start?
+- Step 4: drying time constants of the proposal's refs [1] and [9] are not in the repo; read them before Step 8a.

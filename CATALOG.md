@@ -39,6 +39,7 @@ Commands from the repository root, with `C:\Users\yoni\miniconda3\python.exe` as
 | 17 | `python research/WAA_estm/step3b3b_confirm.py` | `WAA_estm/outputs/tables/step3b3b_*`, `figures/step3b3b_k_*.png`, `reports/step3b3b_confirm.md` | steps 11-12 | ~35 min (cached: ~15 s) |
 | 18 | `python research/WAA_estm/step3b3c_method.py` | `WAA_estm/outputs/tables/step3b3c_*`, `figures/step3b3c_*.png`, `reports/step3b3c_method.md` | step 17 (its cached datasets and fits) | ~1.6 h + 15 min PySR (cached: ~80 s) |
 | 19 | `python research/WAA_estm/step3b4_quantization.py` | `WAA_estm/outputs/tables/step3b4_*`, `figures/step3b4_m1_quantization.png`, `reports/step3b4_quantization.md` | steps 17 and 18 (their cached datasets and fits) | ~17 min (cached: ~20 s) |
+| 20 | `python research/WAA_estm/step4_real_drying.py` | `WAA_estm/outputs/tables/step4_*`, `figures/step4_*.png`, `reports/step4_real_drying.md` | steps 10 (frozen tail set) and 11 (noise parameters); 17 (its cached datasets, check 5 only) | ~40 min (cached: ~25 s) |
 | - | by hand | `outputs/reports/R1_validation.md`, `R1b_validation.md`, `METHOD.md` | the numbers of steps 1-5 | |
 
 (`research/baseline_estm/` is left out of the paths in steps 1-5.) Re-running a step only rewrites its own files.

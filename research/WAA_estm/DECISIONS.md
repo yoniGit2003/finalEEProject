@@ -291,3 +291,43 @@ section `waa` of `research/config.yaml`. TRAIN events only for every number unle
 - Open: the cause of the false step. Untested suspects: the 1150 extra evaluations of the step fit (a no-step fit that
   was not fully converged), the offset prior / start floor / start profile at low W, the 0.02-wide step shape.
 - The figure is diag; no key figure proposed.
+
+## Step 4, the drying law on the REAL tails (`step4_real_drying.py`, 2026-10-12)
+
+- First real-data step: frozen set v1, TRAIN only (429 tails, 24 events, 159 links; the 123 VAL tails were not read),
+  first 60 min, recipe of 3b-3c with unchanged settings (`waa.real4`): menu fits F1, F3, F4, F5, F6 (4 starts each),
+  free curve with 5 knots from 0.35 dB to W_hi = 2.83 dB, band from 20 event-bootstrap refits, jump 2 by E-SINDy /
+  PySR / best-subset. 160 menu fits, 7 curve fits, 20 refits; 36 min on 3 processes (projected 1.2 h), nothing cut.
+- **No drying law is identified.** The free curve FALLS with W: slope of log k vs log W = -0.87 on the main set
+  (bootstrap refits -1.43..-0.82), a shape no fake truth had; 1 / k = 6 min at 0.35 dB, 33 min at 1 dB, 71 min at
+  2.83 dB. A model-free look gives the same trend. Cause in the data: tails that stay flat or rise after t0_trace
+  (21 % are still at >= 90 % of A_start after 10 min; 38 % in the events flagged event_rise_heavy, 11 % in the others).
+- Sensitivity: without event_rise_heavy the slope is -0.05 ("exponential in this range", F1 tau 15 min); without
+  level_shift / undershoot -0.79; alternative set -0.69; leaving out each big event -0.60, -1.60, -0.46.
+- The curve is badly determined: the 4 starts end 800-1700 apart in cost (fake data: about 8), 5 of 20 refits were
+  better from the flat start, band +-94 %. The dip near 0.9 dB moves with the third knot: not read.
+- Jump 2: no formula. E-SINDy keeps all 5 library terms; the best one-term formula (0.032 W) misses the curve by 61 %
+  rms; PySR's simplest is a constant h = 0.044 dB / min (49 %).
+- **Fault found in the menu comparison**: `waa_pooled.py` profiles the start W0 of F1 and F4 without a bound, and keeps
+  W0 >= 0.001 dB for F3, F5, F6 and the free curve. As run, F1 wins (tau 25.2 min, s 1.40; F4 +11.4 BIC, F6 +2610), but
+  3 rising tails with a negative start are worth the whole gap to F3 at n = 1 (the same law). Like for like (row
+  `F1+`): F6 ahead of the exponential by 21.5 BIC on the main set (over the sets: F1+ ahead by 0.9, to F6 ahead by
+  216). Not decisive: the residuals are 4.1 times the dry-noise variance (2.1 on 6 h), so BIC margins are overstated,
+  and F6 depends on its start (192 BIC). Stable in all 7 sets: F3 ends at n = 1 and F5 at b = 0, so a rate that rises
+  with W (m3 / m5) is not supported in the first hour.
+- Check 3 (first 6 h, information): F4 ahead of F1 by 5.5 BIC with tau_s = 16000 min, phi = 0.015 (a constant floor);
+  F1 tau 18.7 min. Check 5: real A / A_start at 10 / 30 / 60 min = 0.568 / 0.229 / 0.142, inside the range of the
+  recalibrated m1 only; the real slope is outside every fake truth.
+- Literature: no drying time constant is quoted in the proposal, the OpenMRG summary or elsewhere in the repository;
+  none was invented. To do before Step 8a: read the values from the proposal's refs [1] and [9].
+- Reading: dW/dt = -h(W) with one curve and a random speed per tail does not describe the first hour of the TRAIN
+  tails; a tail that stays flat or rises points to an input after the last rain trace (the g(R, W) side) or a wrong
+  start time. The exponential with tau of 15-28 min is a placeholder, not a discovered law.
+- To be decided by the learners before Step 6: (a) which tails define "drying" (all of v1; without the rise-heavy
+  events; or tails re-started where the decay begins = a new frozen set); (b) repair the W0 bound and re-run the
+  fake-data tests with some rising tails; (c) a larger or fitted noise level for drying tails.
+- Claude's additions after the first run, from cached fits (no fit rerun, no setting changed): the like-for-like
+  reading, the model-free rate table, the residual rows without the rise-heavy events; the E-SINDy coefficients are
+  one least-squares fit on the kept terms (the bagged medians did not fit together).
+- `step4_k_real.png` is the key candidate but saved as diag (6 key outputs); if promoted, demote
+  `outputs/tables/step3b1b_recovery.csv`. Advice: wait.

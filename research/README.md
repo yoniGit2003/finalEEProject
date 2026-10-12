@@ -72,7 +72,7 @@ product / diag / scratch, recorded in `outputs/MANIFEST.csv`) decides what is co
 ## Status and next steps *(auto, from [`ROADMAP.md`](ROADMAP.md))*
 
 <!-- AUTO:progress -->
-Status: **in progress (baseline frozen; Stage 1 WAA: drying tails frozen, fitting tools tested on simulated tails)**; 4 / 16 roadmap items done (tick items in [`ROADMAP.md`](ROADMAP.md)).
+Status: **in progress (baseline frozen; Stage 1 WAA: drying tails frozen, fitting tools tested on simulated tails, first fit of the real tails done: no drying law identified yet)**; 4 / 16 roadmap items done (tick items in [`ROADMAP.md`](ROADMAP.md)).
 
 - 1. Baseline and attenuation A(t): 3 / 4
 - 2. Stage 1: WAA: 1 / 5

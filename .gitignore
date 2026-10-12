@@ -53,6 +53,7 @@ research/*/outputs/**/*.*
 !research/WAA_estm/outputs/reports/step3b3b_confirm.md
 !research/WAA_estm/outputs/reports/step3b3c_method.md
 !research/WAA_estm/outputs/reports/step3b4_quantization.md
+!research/WAA_estm/outputs/reports/step4_real_drying.md
 !research/WAA_estm/outputs/tables/step3a_calibration.csv
 !research/WAA_estm/outputs/tables/step3b1_m6_calibration.csv
 !research/WAA_estm/outputs/tables/step3b1b_recovery.csv
@@ -89,6 +90,12 @@ research/*/outputs/**/*.*
 !research/WAA_estm/outputs/tables/step3b3c_e_f4_check.csv
 !research/WAA_estm/outputs/tables/step3b4_decision.csv
 !research/WAA_estm/outputs/tables/step3b4_step.csv
+!research/WAA_estm/outputs/tables/step4_curves.csv
+!research/WAA_estm/outputs/tables/step4_fake_comparison.csv
+!research/WAA_estm/outputs/tables/step4_fit_quality.csv
+!research/WAA_estm/outputs/tables/step4_jump2.csv
+!research/WAA_estm/outputs/tables/step4_menu_fits.csv
+!research/WAA_estm/outputs/tables/step4_summary.csv
 !research/baseline_estm/outputs/figures/c3_daily_cycle.png
 !research/baseline_estm/outputs/figures/c4_humidity_dewpoint.png
 !research/baseline_estm/outputs/figures/r1b_c2_delta.png

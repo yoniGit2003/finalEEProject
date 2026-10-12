@@ -455,3 +455,37 @@ waa:
       fine_wc_ratio: 0.6     #   at 0.1 dB: kept in <= 1 of 5, or median W_c of the kept steps < 0.6 x that at 0.3 dB
       not_cause_min_kept: 4  # "not the cause": without quantization still kept in >= 4 of 5; otherwise "partly / unclear"
     low_range_db: [0.1, 0.35]             # information only: fitted / true k of the curve WITHOUT the step below W_lo
+  real4:                     # step 4 (step4_real_drying.py): the drying law on the REAL tails (frozen set v1, TRAIN only).
+                             #   FIXED BEFORE THE RUN. Only tools that passed on fake data; their settings are READ from
+                             #   the fake-data steps, unchanged: the likelihood and the menu starts from stress3b1c
+                             #   (t2_starts, maxfev_generic), the free curve from curve3b3 (starts, penalties, budgets,
+                             #   prior, grid) and curve3b3b (w_lo_db, knots, jump-2 switch levels), jump 2 from
+                             #   curve3b3c.a (esindy, pysr, max_terms), the bootstrap band from curve3b3c.d (maxfev, band).
+    window_min: 60           # main window: first 60 min of each tail
+    window_long_min: 360     # check 3 (information only): menu fits on the first 6 h
+    candidates: [F1, F3, F4, F5, F6]   # F1 first: its solution gives the `f1sol` start of the others
+    big_events: 3            # check 2: leave out each of the 3 events with the most tails, in turn
+    bootstraps: 20           # band: event-bootstrap refits of the free curve (same knots and penalty) ...
+    bootstrap_starts: [fit, flat]      # ... each from 2 starts: the fit of the dataset and the flat start of curve3b3
+    bootstrap_seed: 6000
+    cv_seed: 4400            # the two halves of the events for the penalty cross-validation
+    quote: {level_pct: 20, slope: 0.1}   # what is QUOTED as uncertainty (3b-3c part D: the band is about 3 times too narrow)
+    reading:                 # interpretation of the curve slope over [w_lo, W_hi], written before the run
+      flat_abs_slope: 0.15   # |slope| < this: "exponential in this range"
+      quadratic_slope: 0.6   # slope > this: "quadratic family in this range"; in between: "mildly rising, law not
+                             #   identified by the curve (switch or two layers look like this)"
+    f4_f6_bic: 10.0          # 3b-1c rule: F4 vs F6 by less than this is not decisive
+    typical_menu_nfev: 300   # time projection only: evaluations a menu fit usually needs (its budget is maxfev_generic)
+    time_budget_h: 3.0       # cut order if the projection is longer: check 3, then check 2 only for the biggest event,
+                             #   then bootstraps 20 -> 10
+    bootstraps_cut: 10
+    noise_draws: 20          # check 4: dry-noise series per tail drawn from the sub-link's noise model
+    noise_seed: 12
+    acf_lags_min: [1, 10, 60]
+    gallery_n: 12            # check 4: random real tails with the fitted winner and the fitted F1
+    gallery_seed: 11
+    shape_minutes: [10, 30, 60]   # check 5: A / A_start at these minutes (as stress3b1c.t3)
+    ci_reps: 1000            # check 5: event bootstrap of the real A / A_start medians
+    raw_rate:                # model-free look at the drying rate per level (information; added after the first run)
+      smooth_min: 7          # centred rolling mean of A per tail before the central difference
+      edges_db: [0.35, 0.5, 0.7, 1.0, 1.4, 2.0, 2.83, 6.0]

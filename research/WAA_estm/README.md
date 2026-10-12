@@ -27,7 +27,8 @@ circular).
 | 3b-3b | confirmation run of the two jumps on fresh fake tails, judged only above 0.35 dB, rule fixed before the run (`step3b3b_confirm.py`) | done 2026-10-11: PARTIAL by the pre-set rule (m1, m3, m5 PASS on curve, shape and equation above 0.35 dB; the m4 warning sign fails, 2 of 5; m6 not judged) |
 | 3b-3c | the discovery method finished on fake tails: jump 2 alone, jump 1 with an optional step, jump 3 (refit and choose), bootstrap band, F4 check (`step3b3c_method.py`) | done 2026-10-11: PARTIAL (jump 2 alone works with E-SINDy / PySR; the step is drawn for every truth; jump 3 and the bootstrap band fail; F4 check: no change) |
 | 3b-4 | is the 0.3 dB RSL quantization the cause of the false step of 3b-3c? (`step3b4_quantization.py`) | done 2026-10-11: NOT the cause (without quantization the step is still kept in 5 of 5); cause open |
-| 4+ | real tails: free-curve fit, its equation, menu fits, literature comparison (4); what drying depends on (6); full-event simulator (3c); wetting (7) | not started |
+| 4 | the drying law on the REAL tails: menu fits, free curve above 0.35 dB with a bootstrap band, jump 2, five checks (`step4_real_drying.py`) | done 2026-10-12: NO law identified (the real curve falls with W, slope -0.87; -0.05 without the rise-heavy events; no formula; menu not decisive; a W0 fault found in the menu comparison) |
+| 6+ | what drying depends on (6); full-event simulator (3c); wetting (7) | not started; Step 6 waits for the learners' decisions on Step 4 (DECISIONS.md) |
 
 Inputs: release `openmrg_v1` (pinned in `research/config.yaml`) and the frozen baseline v2 products of
 `research/baseline_estm/` (`baselines.csv`, `baseline_uncertainty.csv`, `dew_risk_hourly.csv`, `dry_jumps.csv`).
@@ -52,6 +53,7 @@ python research/WAA_estm/step3b3_curve_then_equation.py   # free drying curve + 
 python research/WAA_estm/step3b3b_confirm.py              # confirmation run on fresh fake tails, judged above 0.35 dB (needs 3a, 3b-1)  ~ 35 min (cached: 15 s)
 python research/WAA_estm/step3b3c_method.py               # jump 2 alone, step, jump 3, bootstrap band, F4 check on fake tails (needs 3b-3b's cache)  ~ 1.6 h + 15 min PySR with `--pysr` (cached: 80 s)
 python research/WAA_estm/step3b4_quantization.py         # is the 0.3 dB quantization the cause of the false step? m1, three settings (needs 3b-3b's and 3b-3c's caches)  ~ 17 min (cached: 20 s)
+python research/WAA_estm/step4_real_drying.py            # the drying law on the REAL TRAIN tails: menu fits, free curve, jump 2, checks (needs steps 2c, 3a; reads 3b-3b's cache for check 5 if present; PySR optional)  ~ 40 min (cached: 25 s)
 ```
 
 Both need the release and the baseline products. Step 1 reads the 1 min CML store once, chunk by chunk (32 sub-links).
@@ -79,6 +81,7 @@ step 2b columns, so always run 2b after 2.
 | `step3b3b_confirm.py` | confirmation run of 3b-3 on fresh fake tails (seeds 4000 + replicate, first 60 min): the same free-curve pooled fit with 5 knots from 0.35 dB to W_hi, nothing judged below 0.35 dB, band = min-max of the replicates, slope per replicate, equation of the curve; rule fixed before the run (`waa.curve3b3b`); cached in `.cache/fits3b3b/`; writes `outputs/reports/step3b3b_confirm.md` |
 | `step3b3c_method.py` | the rest of the discovery method on the fake datasets of 3b-3b: A jump 2 alone on true curves (best-subset + BIC, E-SINDy), B free curve with an optional step (`waa_curve.StepCurve`), C jump 3 = every candidate (jump-2 formulas via `waa_curve.FormulaLaw`, step law, menu laws) refitted in the pooled model and chosen by held-out log-likelihood over event draws, D band from an event bootstrap of one dataset, E F4 with the F1-solution start; rules fixed before the run (`waa.curve3b3c`); cached in `.cache/fits3b3c/`; writes `outputs/reports/step3b3c_method.md` |
 | `step3b4_quantization.py` | diagnosis only: truth m1 simulated with no / 0.3 dB / 0.1 dB RSL quantization (same random numbers), free curve of 3b-3b + optional step of 3b-3c part B on each; rule fixed before the run (`waa.quant3b4`); the 0.3 dB fits are read from `.cache/fits3b3b/` and `.cache/fits3b3c/`; cached in `.cache/fits3b4/`; writes `outputs/reports/step3b4_quantization.md` |
+| `step4_real_drying.py` | the first real-data step: TRAIN tails of the frozen set v1, first 60 min; menu fits F1, F3, F4, F5, F6 from 4 starts, free curve of 3b-3b (5 knots from 0.35 dB to W_hi) with 20 event-bootstrap refits, jump 2 (E-SINDy, PySR in its own process, best-subset), four sensitivity sets, leave-one-big-event-out, 6 h window, residuals vs dry noise, gallery, comparison with the fake truths; settings `waa.real4` (fit settings read from the fake-data steps); fits cached in `.cache/fits4/`; writes `outputs/reports/step4_real_drying.md` |
 | `step3b1c_stress_test.py` | stress test of the pooled fit on fake tails (first 60 min; truths m1, m4, m5, m6): T1 noise with two slow time scales, T2 generic optimiser starts, T3 truths recalibrated to the real early decay; parallel fits cached in `.cache/fits3b1c/`; win shares, recovery, start sensitivity, pre-set rule per cell; writes `outputs/reports/step3b1c_stress_test.md` |
 | `step3b1b_pooled_fit.py` | event-bootstrap replicates per truth (m1, m3, m4, m5, m6), simulates them, pooled fit of every candidate in three windows (cached in `.cache/pooled3b1b/`), confusion, recovery, pre-set decision rule, population statistics; writes `outputs/reports/step3b1b_pooled_fit.md` |
 | `step3b1_fitting_on_sim.py` | simulates replicate datasets per truth (m1, m3, m4, m5, m6), fits every tail with every candidate (cached in `.cache/fits3b1/`), confusion, recovery, population tests, ablation; writes `outputs/reports/step3b1_fitting_on_sim.md` |
@@ -214,6 +217,9 @@ scratch, ORGANIZATION.md section 5) is in `outputs/MANIFEST.csv`.
   k(W) figures are diag. The step 3b-3c report `outputs/reports/step3b3c_method.md` and its tables (parts A-E,
   decision); its figures (step, bootstrap band) are diag. The step 3b-4 report
   `outputs/reports/step3b4_quantization.md` and its two tables; its figure is diag.
+  The step 4 report `outputs/reports/step4_real_drying.md` and its six tables (menu fits, summary, curves, jump 2,
+  fit quality, fake comparison); its three figures are diag, `step4_k_real.png` is the key candidate (not promoted:
+  the key limit is reached).
 - **Diag** (all other step figures, tables and reports): moved by /tidy to the local `legacy/` folder (git-ignored;
   log: `outputs/TIDY_LOG.md`). The files /tidy deleted before 2026-10-11 are not there: rerun the
   step's script to get them back. The decisions they held are in [`DECISIONS.md`](DECISIONS.md).
@@ -226,6 +232,12 @@ the decisions of every step are in [`DECISIONS.md`](DECISIONS.md). The WAA model
 go to `METHOD.md` once it is decided.
 
 ## Open issues
+
+- **Step 4 found no drying law on the real tails**: the free curve falls with W because about one tail in five
+  stays flat or rises after t0_trace (mostly in the events flagged event_rise_heavy). To decide before Step 6:
+  which tails define "drying"; and two repairs of the tools: `waa_pooled.py` lets F1 / F4 fit a rising tail with a
+  negative start W0 while F3 / F5 / F6 and the free curve cannot (the menu BIC is not like for like), and the
+  residuals of drying tails have 4 times the variance of the dry-weather noise model (BIC margins overstated).
 
 - **The pooled likelihood prefers a false feature near 0.2-0.4 dB (3b-3c)**: a step is drawn for every fake
   truth, also the exponential, and wins on held-out events. The 0.3 dB quantization is NOT the cause (3b-4: the
