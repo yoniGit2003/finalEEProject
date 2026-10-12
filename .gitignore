@@ -1,140 +1,53 @@
-# ---- Raw and derived data: too large for GitHub (limit 100 MB per file) ----
+# Written by hand. Keep it short: add a line only for something that must never reach GitHub.
+
+# ---- Data: raw, pipeline work files and the release (rebuilt with pipeline/get_data.py) ----
 data/
-data_processed/
+
+# ---- Caches and logs of the research scripts (fit caches come from pipeline/get_caches.py) ----
+.cache/
+_cache/
+
+# ---- Research outputs: everything in research/<module>/outputs/ is committed, except these big
+#      files, which the scripts rebuild in a few minutes ----
+research/wet_antenna/outputs/products/tails_1min.parquet
+research/wet_antenna/outputs/products/tails_selected.csv
+research/wet_antenna/outputs/tables/check_per_tail_fit_fits.parquet
+
+# ---- The playground: local only, except its README ----
+research/explorations/*
+!research/explorations/README.md
 
 # ---- Python ----
 __pycache__/
 *.pyc
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
 .venv/
 venv/
-env/
 
-# ---- PyCharm ----
-.idea/
-
-# ---- Jupyter ----
-.ipynb_checkpoints/
-
-# ---- Julia / PySR temporary output (PySR runs: set output_directory to the module's .cache/) ----
+# ---- PySR / Julia temporary output ----
 hall_of_fame*.csv
 hall_of_fame*.pkl
-/outputs/
 
-# ---- Large data formats (safety net) ----
+# ---- Editors and tools ----
+.idea/
+.vscode/
+research/.vibe-wise/
+.claude/settings.local.json
+
+# ---- LaTeX build files (the PDF itself is committed) ----
+*.aux
+*.toc
+*.out
+*.synctex.gz
+
+# ---- Safety net: raw-data formats and archives are never committed ----
 *.nc
 *.zip
+*.zarr/
 
-# ---- Research outputs (ORGANIZATION.md, "Outputs and importance") ----
-# Everything in research/<module>/outputs/ is ignored except MANIFEST.csv, TIDY_LOG.md and the key / product files
-# (<= 10 MB) listed in the generated block, which research/common/outputs.py rewrites from the MANIFESTs.
-# So diag / scratch outputs (and products over 10 MB) are never committed.
-research/*/outputs/**/*.*
-!research/*/outputs/MANIFEST.csv
-!research/*/outputs/TIDY_LOG.md
-# BEGIN generated: key / product outputs that are committed (research/common/outputs.py; do not edit)
-!research/WAA_estm/outputs/figures/step2c_median_curves.png
-!research/WAA_estm/outputs/figures/step3a_real_vs_sim_median.png
-!research/WAA_estm/outputs/figures/step3b1b_confusion.png
-!research/WAA_estm/outputs/products/sim_noise_params.csv
-!research/WAA_estm/outputs/products/sim_tails_index.csv
-!research/WAA_estm/outputs/products/sim_tails_m1.parquet
-!research/WAA_estm/outputs/products/sim_tails_m3.parquet
-!research/WAA_estm/outputs/products/sim_tails_m4.parquet
-!research/WAA_estm/outputs/products/sim_tails_m5.parquet
-!research/WAA_estm/outputs/products/tails_index.csv
-!research/WAA_estm/outputs/products/tails_model.parquet
-!research/WAA_estm/outputs/products/tails_model_alt.parquet
-!research/WAA_estm/outputs/products/tails_model_alt_index.csv
-!research/WAA_estm/outputs/products/tails_model_index.csv
-!research/WAA_estm/outputs/reports/step2c_freeze.md
-!research/WAA_estm/outputs/reports/step3b1c_stress_test.md
-!research/WAA_estm/outputs/reports/step3b2_sindy_fake.md
-!research/WAA_estm/outputs/reports/step3b3_curve_then_equation.md
-!research/WAA_estm/outputs/reports/step3b3b_confirm.md
-!research/WAA_estm/outputs/reports/step3b3c_method.md
-!research/WAA_estm/outputs/reports/step3b4_quantization.md
-!research/WAA_estm/outputs/reports/step4_real_drying.md
-!research/WAA_estm/outputs/tables/step3a_calibration.csv
-!research/WAA_estm/outputs/tables/step3b1_m6_calibration.csv
-!research/WAA_estm/outputs/tables/step3b1b_recovery.csv
-!research/WAA_estm/outputs/tables/step3b1c_decision.csv
-!research/WAA_estm/outputs/tables/step3b1c_recalibration.csv
-!research/WAA_estm/outputs/tables/step3b1c_recovery.csv
-!research/WAA_estm/outputs/tables/step3b1c_start_sensitivity.csv
-!research/WAA_estm/outputs/tables/step3b1c_win_shares.csv
-!research/WAA_estm/outputs/tables/step3b2_agreement.csv
-!research/WAA_estm/outputs/tables/step3b2_coefficients.csv
-!research/WAA_estm/outputs/tables/step3b2_decision.csv
-!research/WAA_estm/outputs/tables/step3b2_selection.csv
-!research/WAA_estm/outputs/tables/step3b3_curves.csv
-!research/WAA_estm/outputs/tables/step3b3_decision.csv
-!research/WAA_estm/outputs/tables/step3b3_j1_curve.csv
-!research/WAA_estm/outputs/tables/step3b3_j2_coefficients.csv
-!research/WAA_estm/outputs/tables/step3b3_j2_selection.csv
-!research/WAA_estm/outputs/tables/step3b3_menu_comparison.csv
-!research/WAA_estm/outputs/tables/step3b3_posthoc_upper_range.csv
-!research/WAA_estm/outputs/tables/step3b3b_curve_shape.csv
-!research/WAA_estm/outputs/tables/step3b3b_curves.csv
-!research/WAA_estm/outputs/tables/step3b3b_decision.csv
-!research/WAA_estm/outputs/tables/step3b3b_j2_coefficients.csv
-!research/WAA_estm/outputs/tables/step3b3b_j2_selection.csv
-!research/WAA_estm/outputs/tables/step3b3b_m4_bic.csv
-!research/WAA_estm/outputs/tables/step3b3c_a_draws.csv
-!research/WAA_estm/outputs/tables/step3b3c_a_jump2_alone.csv
-!research/WAA_estm/outputs/tables/step3b3c_b_step.csv
-!research/WAA_estm/outputs/tables/step3b3c_c_candidates.csv
-!research/WAA_estm/outputs/tables/step3b3c_c_winners.csv
-!research/WAA_estm/outputs/tables/step3b3c_d_band_curves.csv
-!research/WAA_estm/outputs/tables/step3b3c_d_bootstrap_band.csv
-!research/WAA_estm/outputs/tables/step3b3c_decision.csv
-!research/WAA_estm/outputs/tables/step3b3c_e_f4_check.csv
-!research/WAA_estm/outputs/tables/step3b4_decision.csv
-!research/WAA_estm/outputs/tables/step3b4_step.csv
-!research/WAA_estm/outputs/tables/step4_curves.csv
-!research/WAA_estm/outputs/tables/step4_fake_comparison.csv
-!research/WAA_estm/outputs/tables/step4_fit_quality.csv
-!research/WAA_estm/outputs/tables/step4_jump2.csv
-!research/WAA_estm/outputs/tables/step4_menu_fits.csv
-!research/WAA_estm/outputs/tables/step4_summary.csv
-!research/baseline_estm/outputs/figures/c3_daily_cycle.png
-!research/baseline_estm/outputs/figures/c4_humidity_dewpoint.png
-!research/baseline_estm/outputs/figures/r1b_c2_delta.png
-!research/baseline_estm/outputs/figures/r1b_offset_by_D.png
-!research/baseline_estm/outputs/products/baseline_uncertainty.csv
-!research/baseline_estm/outputs/products/baselines.csv
-!research/baseline_estm/outputs/products/dew_risk_hourly.csv
-!research/baseline_estm/outputs/products/dry_jumps.csv
-!research/baseline_estm/outputs/reports/R1_validation.md
-!research/baseline_estm/outputs/reports/R1b_validation.md
-!research/baseline_estm/outputs/tables/c1_fake_events.csv.gz
-!research/baseline_estm/outputs/tables/c3_daily_cycle_per_sublink.csv
-!research/baseline_estm/outputs/tables/c4_jumps.csv
-!research/baseline_estm/outputs/tables/r1b_fake_event_offsets.csv.gz
-!research/baseline_estm/outputs/tables/sample_two_window_baselines.csv
-# END generated
-# Legacy outputs: the diag / scratch files that /tidy moves out of outputs/ (never deleted, kept on this machine only)
-research/*/legacy/
-
-# ---- Explorations (the playground): local only; only its README is in git ----
-research/explorations/**
-!research/explorations/README.md
-
-# ---- Windows ----
-Thumbs.db
-desktop.ini
-
-# ---- Caches (regenerable; one .cache/ per research module) ----
-.cache/
-_cache/
-.pytest_cache/
-check_*.png
-
-# ---- Archived development material (kept locally, not in git) ----
+# ---- Old local folders (removed by the makeover; ignored in case a copy is still around) ----
 _archive/
-*.egg-info/
-
-# ---- VibeWise plugin notes (created by a plugin; never commit, never move or delete) ----
-research/.vibe-wise/
-
-# ---- Reorganization: untracked files held for review instead of being deleted ----
 _review/
+legacy/
