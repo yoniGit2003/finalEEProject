@@ -29,6 +29,9 @@ Open extensions:
 - [ ] Learn a dynamic WAA model with weak-form SINDy (rain as input)
 - [ ] Compare the learned models across links (same form, different coefficients?)
 - [ ] Drying time from SINDy vs drying time measured directly from tails
+- [ ] When this stage is finished: publish the fit caches (`python pipeline/get_caches.py --pack`, upload the zip
+      as a GitHub release, put the tag and the sha256 into `pipeline/get_caches.py`, remove the "not published yet"
+      notes in `docs/REPRODUCE.md` and `README.md`)
 
 ## 3. Stage 2: path law f(L, R̄, Z)
 - [ ] Learn f(L, R̄, Z) with PySR, radar along the path as reference (WAA removed first)

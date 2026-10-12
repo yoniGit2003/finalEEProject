@@ -13,7 +13,7 @@ is used instead (`gh auth login` once, https://cli.github.com). Files that alrea
 
 Publishing a new zip after a new fitting step (maintainers):
     python pipeline/get_caches.py --pack                       # writes the zip next to the repository, prints its sha256
-    gh release create <TAG> <zip> --title "Fit caches <date>" --notes "Fit caches of research/wet_antenna"
+    gh release create <TAG> "<zip>#fit_caches.zip" --title "Fit caches <date>" --notes "Fit caches of research/wet_antenna"
 then set TAG and SHA256 below to the new values and commit.
 """
 from __future__ import annotations
@@ -30,9 +30,11 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 CACHE = REPO / "research" / ".cache"
 GITHUB = "yoniGit2003/finalEEProject"
-TAG = "fit-caches-2026-10-12"                               # the GitHub release that holds the zip
+# NOT PUBLISHED YET: the zip will be uploaded when the wet-antenna part is finished (docs/ROADMAP.md, part A,
+# stage 1). Until then TAG and SHA256 stay empty and the download says so.
+TAG = ""                                                    # the GitHub release that holds the zip, e.g. "fit-caches-2027-01-15"
 ASSET = "fit_caches.zip"
-SHA256 = "272b39d7fae03db1a61181dab97a26cff76da4abfb40749d173124b4018da258"   # of the published zip (printed by --pack)
+SHA256 = ""                                                 # of the published zip (printed by --pack)
 # what goes into the zip: the folders with cached fits (one per script). Logs, PySR working files and loaded-data
 # caches are left out: the scripts rebuild them.
 FOLDERS = ["wet_antenna/check_per_tail_fit", "wet_antenna/check_pooled_fit", "wet_antenna/stress_pooled_fit",
@@ -60,7 +62,7 @@ def pack():
         for f in files:
             z.write(f, f.relative_to(CACHE).as_posix())
     print(f"{out}: {out.stat().st_size / 1e6:.0f} MB\nsha256: {sha256_of(out)}\n\nPublish it with:\n"
-          f'  gh release create {TAG} "{out}#{ASSET}" --repo {GITHUB} --title "Fit caches" '
+          f'  gh release create {TAG or "fit-caches-<date>"} "{out}#{ASSET}" --repo {GITHUB} --title "Fit caches" '
           f'--notes "Fit caches of research/wet_antenna (see pipeline/get_caches.py)"\n'
           "then put the tag and the sha256 into TAG and SHA256 at the top of pipeline/get_caches.py.")
 
@@ -109,6 +111,10 @@ def main():
     args = parser.parse_args()
     if args.pack:
         return pack()
+    if not TAG:
+        raise SystemExit("The fit caches are not published yet (planned for the end of the wet-antenna part, see "
+                         "docs/ROADMAP.md).\nThe research steps work without them: they fit again, which takes "
+                         "longer (the column 'without caches' in docs/REPRODUCE.md).")
     CACHE.mkdir(parents=True, exist_ok=True)
     zip_path = CACHE / ASSET
     if not zip_path.exists():

@@ -34,7 +34,7 @@ Nothing big is in git. Two scripts fetch or rebuild it:
 
 ```
 python pipeline/get_data.py      # raw OpenMRG from Zenodo (318 MB) -> data/raw/, then builds the release in data/release/
-python pipeline/get_caches.py    # the saved fits of the long wet-antenna steps -> research/.cache/ (saves about 9 hours)
+python pipeline/get_caches.py    # the saved fits of the long wet-antenna steps -> research/.cache/ (saves about 9 hours; not published yet)
 ```
 
 ## Run

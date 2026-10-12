@@ -66,5 +66,8 @@ Do not ask questions; work through the steps and report at the end. Never change
    review, unless the argument `commit` was given: then commit `docs/research_log.tex`, `docs/research_log.pdf`,
    `docs/REPRODUCE.md` and `research/steps.yaml` with a message that says what was updated.
 
+**Reminder to give in the report:** if every other item of "Stage 1: WAA" in part A of `docs/ROADMAP.md` is ticked
+and the item "publish the fit caches" is not, tell the user that it is time to publish them (the item says how).
+
 `docs/pipeline_log.pdf` (the data-layer report) has no LaTeX source in the repository and is not rebuilt. If the
 pipeline changed in a way that makes it wrong, say so in the report.

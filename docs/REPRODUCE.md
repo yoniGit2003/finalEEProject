@@ -13,7 +13,7 @@ step 6 shows you where your numbers differ from ours.
 conda env create -f environment.yml          # 1. the environment (once)
 conda activate cmlpipe
 python pipeline/get_data.py                  # 2. raw data from Zenodo (318 MB) + build the data release
-python pipeline/get_caches.py                # 3. the saved fits (skip it and step 4 takes about 9 hours longer)
+python pipeline/get_caches.py                # 3. the saved fits (NOT PUBLISHED YET: skip it, step 4 then takes about 9 hours longer)
 python -m research run all                   # 4. every research step, in order (about 20 minutes with the caches)
 python docs/build_research_log.py            # 5. the research log PDF (needs LaTeX; optional)
 python -m research compare                   # 6. your tables against the committed ones
@@ -45,6 +45,9 @@ the download, get `OpenMRG.zip` in a browser, put it in `data/raw/` and run the 
 contains: [`../pipeline/docs/DATA_GUIDE.md`](../pipeline/docs/DATA_GUIDE.md).
 
 ### 3. The fit caches
+
+**Not published yet.** The zip will be uploaded when the wet-antenna part is finished; until then
+`python pipeline/get_caches.py` only says so, and the steps below fit again (the column "without caches").
 
 Some wet-antenna steps fit many models to thousands of simulated drying tails. The first run of these steps took
 about 9 hours in total on our computer. Every finished fit is saved, and `python pipeline/get_caches.py` downloads
