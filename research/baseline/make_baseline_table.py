@@ -11,11 +11,10 @@ A(t) is not stored: baseline.a_of_t(cml_id, event_id, res) computes it through C
 
 Needs: outputs/products/dew_risk_hourly.csv (make_dew_products.py), outputs/tables/c1_fake_events.csv.gz,
 c3_daily_cycle_per_sublink.csv and r1b_fake_event_offsets.csv.gz (validation/run_all.py).
-Locations: paths.py; columns: CATALOG.md.
+Locations: paths.py; columns: METHOD.md.
 Run: python -m research.baseline.make_baseline_table
 """
 from pathlib import Path
-import sys
 import numpy as np
 import pandas as pd
 import yaml

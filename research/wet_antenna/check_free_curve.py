@@ -34,19 +34,21 @@ import time
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
-import yaml
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from research.wet_antenna import paths as P
 from research.common.save import save
+from research.common.config import load_config
+from research.common.report import md_table, rel
+from research.wet_antenna import datasets as dsets
+from research.wet_antenna import fit_jobs as fj
 from research.wet_antenna import simulator as ws
 from research.wet_antenna import pooled_fit as wp
 from research.wet_antenna import free_curve as wc
-from research.wet_antenna import stress_pooled_fit as st                          # the same event bootstrap, noise tables, T1 noise, starts
 
-CFG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
+CFG = load_config()
 SIM, S, S1C = CFG["wet_antenna"]["simulator"], CFG["wet_antenna"]["check_free_curve"], CFG["wet_antenna"]["stress_pooled_fit"]
 STEP, SPM = SIM["rsl_step_db"], SIM["samples_per_min"]
 DEC = S["decision"]
@@ -62,63 +64,8 @@ N_EVAL = (len(S["starts"]) * S["maxfev"]["start"] + S["maxfev"]["finish"]
           + len(S["lambda_grid"]) * S["maxfev"]["cv"] + N_EVAL_COV)   # planned (the 2 CV halves = 1 full dataset)
 
 
-def rel(p):
-    return Path(p).resolve().relative_to(P.REPO).as_posix()
-
-
-def md(df, index=False):
-    df = df.reset_index() if index else df
-    head = "| " + " | ".join(map(str, df.columns)) + " |\n|" + "---|" * len(df.columns)
-    return head + "\n" + "\n".join("| " + " | ".join("" if pd.isna(x) else str(x) for x in row) + " |"
-                                   for row in df.itertuples(index=False))
-
-
-def true_k(truth, par, w):
-    """k(W) = -(dW/dt) / W of the base law (speed factor 1); None for m4 (two states: not a function of W)."""
-    w = np.asarray(w, float)
-    p = par[truth]
-    if truth == "m1":
-        return np.full_like(w, 1 / p["tau"])
-    if truth == "m3":
-        return p["c"] * w ** (p["n"] - 1)
-    if truth == "m5":
-        return p["a"] + p["b"] * w
-    if truth == "m6":
-        return np.where(w > p["A_c"], p["k_evap"] + p["k_run"] * (1 - p["A_c"] / w), p["k_evap"])
-    return None
-
-
-def start_theta(spec, knots):
-    if "slope" in spec:
-        return np.log(spec["k1"]) + spec["slope"] * np.log(knots)
-    return np.log(np.where(knots <= spec["at_db"], spec["low"], spec["high"]))
-
-
 # =================================================================================================== one job (worker)
 _INPUTS = {}
-
-
-def load_tails(sim):
-    rows = pd.read_parquet(sim).sort_values(["tail_id", "minutes_since_t0_trace"])
-    return [{"tail_id": t, "sublink_id": g.sublink_id.iloc[0], "cml_id": g.cml_id.iloc[0],
-             "event_copy": int(g.event_copy.iloc[0]), "A_start": g.A_start_trace_db.iloc[0],
-             "t": g.minutes_since_t0_trace.to_numpy(), "a": g.A_db.to_numpy(float)} for t, g in rows.groupby("tail_id")]
-
-
-def menu_fit(job, D, n_ind, cand, labels, res, save):
-    """Menu candidate `cand` from the given starts of step 3b-1c (best likelihood). Cached in the job's result."""
-    key = f"menu_{cand}"
-    if key not in res:
-        best = None
-        for lab in labels:
-            th0, s0 = S1C["t2_starts"][cand][lab]
-            r = wp.fit(cand, D, th0, s0, S1C["maxfev_generic"])
-            if best is None or r["ll"] > best["ll"]:
-                best = {**r, "start": lab}
-        best["bic"] = -2 * best["ll"] + (len(wp.NAMES[cand]) + 1) * np.log(n_ind)
-        res[key] = best
-        save()
-    return res[key]
 
 
 def run_job(job):
@@ -128,7 +75,7 @@ def run_job(job):
     if res.get("done"):
         return res
     if not _INPUTS:
-        _, _INPUTS["noise"], _INPUTS["offset_sd"] = st.load_noise()
+        _, _INPUTS["noise"], _INPUTS["offset_sd"] = dsets.load_noise()
     noise, offset_sd = _INPUTS["noise"], _INPUTS["offset_sd"]
 
     def save():
@@ -137,7 +84,7 @@ def run_job(job):
         tmp.replace(f_)
 
     t0 = time.time()
-    tails = load_tails(job["sim"])
+    tails = dsets.load_tails(job["sim"])
     D = wp.pack(tails, noise, offset_sd, job["minutes"], S["min_points"])
     used = set(D["tail_id"])
     n_ind = len({(tl["cml_id"], tl["event_copy"]) for tl in tails if tl["tail_id"] in used})
@@ -150,7 +97,7 @@ def run_job(job):
     res.setdefault("starts", {})
     for name, spec in S["starts"].items():
         if name not in res["starts"]:
-            res["starts"][name] = cv.fit(D, np.r_[start_theta(spec, cv.knots), np.log(S["s_start"])], lam0, mf["start"])
+            res["starts"][name] = cv.fit(D, np.r_[wc.start_theta(spec, cv.knots), np.log(S["s_start"])], lam0, mf["start"])
             save()
     res.setdefault("lam", {})
     if str(lam0) not in res["lam"]:
@@ -192,7 +139,7 @@ def run_job(job):
                 "nfev": sum(r["nfev"] for r in list(res["starts"].values()) + list(res["lam"].values()))})
     # 5. F4 menu fit in the 6 h window (m4 only): for the "free curve worse than F4" warning
     if job["menu_f4"]:
-        menu_fit(job, D, n_ind, "F4", S["menu_6h_starts"], res, save)
+        fj.menu_fit(D, n_ind, "F4", S["menu_6h_starts"], res, save)
     res["seconds"] = round(res.get("seconds", 0.0) + time.time() - t0, 1)
     res["done"] = True
     save()
@@ -216,7 +163,7 @@ def k_figure(truth, cur, bands, par, R):
         for r in piv.columns:
             a_.plot(w, piv[r], "-", color=INK2, lw=0.7)
         a_.plot(w, np.exp(np.log(piv).median(axis=1)), "-", color=INK, lw=2.4, label="learned k(W), median (thin: each replicate)")
-        kt = true_k(truth, par, w)
+        kt = wc.true_k(truth, par, w)
         if kt is not None:
             a_.plot(w, kt, "--", color=INK, lw=2.0, label="true k(W)")
             a_.text(w[-1], kt[-1], " true", fontsize=9, va="center")
@@ -256,7 +203,7 @@ def main():
                          columns=["tail_id", "minutes_since_t0_trace", "A_db"]).to_pandas()
     nan_real = {t: g.sort_values("minutes_since_t0_trace").A_db.isna().to_numpy() for t, g in real.groupby("tail_id")}
     del real
-    nz, noise, offset_sd = st.load_noise()
+    nz, noise, offset_sd = dsets.load_noise()
     cal = pd.read_csv(P.SIM_CALIBRATION).set_index("law")
     par = {law: {k: float(cal.loc[law, k]) for k in ws.PARAMS[law]} for law in ("m1", "m3", "m4", "m5")}
     m6 = pd.read_csv(P.PER_TAIL_M6)
@@ -280,12 +227,12 @@ def main():
             f_ = sim_file(kind, t, rep)
             if not f_.exists():
                 if sk is None:
-                    sk = st.bootstrap_skeleton(skel, np.random.default_rng(seed))
+                    sk = dsets.bootstrap_skeleton(skel, np.random.default_rng(seed))
                     masks = {r.tail_id: nan_real[r.orig_tail_id] for r in sk.itertuples()}
                     z = ws.spread_z(sk, seed)
                 if kind == "T1" and noise_t1 is None:      # the T1 noise of step 3b-1c (same function, same settings)
                     block = int(round(nz[nz.source == "fit"].median_control_len_min.median() / 10) * 10)
-                    w_fast, _, _ = st.t1_noise(nz, block)
+                    w_fast, _, _ = dsets.t1_noise(nz, block)
                     T1N = S1C["t1_noise"]
                     noise_t1 = {r.sublink_id: (r.sigma_white_db, np.sqrt(w_fast) * r.sigma_slow_db, T1N["tau_fast_min"],
                                                np.sqrt(1 - w_fast) * r.sigma_slow_db, T1N["tau_slow_min"])
@@ -327,9 +274,9 @@ def main():
         print(f"plan from {rel(plan_file)}: cut: {plan['cuts'] or 'nothing'}")
     else:
         print("\ntiming one replicate (m6, replicate 0): likelihood evaluations in both windows ...", flush=True)
-        tails = load_tails(sim_file("main", "m6", 0))
+        tails = dsets.load_tails(sim_file("main", "m6", 0))
         cvt = wc.Curve(meta[("main", "m6", 0)]["knots"])
-        x = np.r_[start_theta(S["starts"]["flat"], cvt.knots), 0.0]
+        x = np.r_[wc.start_theta(S["starts"]["flat"], cvt.knots), 0.0]
         spp = []
         for wname, minutes in S["windows"].items():
             D = wp.pack(tails, noise, offset_sd, minutes, S["min_points"])
@@ -395,7 +342,7 @@ def main():
         reps = [by[(kind, truth, r, wname)] for r in range(R)]
         w = np.geomspace(S["w_floor_db"], min(r["w_hi"] for r in reps), S["grid_points"])   # common supported range
         grids[(kind, truth, wname)] = w
-        kt = true_k(truth, par, w)
+        kt = wc.true_k(truth, par, w)
         aw = wc.slope_weights(np.log(w))
         K = []
         for r in reps:
@@ -516,7 +463,7 @@ def main():
         aw = wc.slope_weights(np.log(w))
         K = np.array([wc.Curve(r["knots"]).k(np.asarray(r["x"])[:-1], w) for r in reps])
         slopes = np.log(K) @ aw
-        kt = true_k(truth, par, w)
+        kt = wc.true_k(truth, par, w)
         lam, sel2, coef2 = wc.name_curves(w, K * w, JGRID, S["j2_lambda_grid"])
         row = {"kind": kind, "truth": truth, "window": wname, "w_from_db": round(w[0], 3), "w_to_db": round(w[-1], 3),
                "band_coverage": np.nan if kt is None else round(float(np.mean((kt >= K.min(axis=0)) & (kt <= K.max(axis=0)))), 3),
@@ -658,7 +605,7 @@ Written by `research/wet_antenna/check_free_curve.py` (libraries `free_curve.py`
 - **Run time**: {plan['wall_s'] / 60:.0f} min wall time ({fits.seconds.sum() / 3600:.1f} process-hours; cached in
   `.cache/check_free_curve/`). This run: {time.time() - clock:.0f} s.
 
-{md(fit_sum)}
+{md_table(fit_sum)}
 
 ## 2. Spline, penalty, supported range, starts
 
@@ -677,13 +624,13 @@ Written by `research/wet_antenna/check_free_curve.py` (libraries `free_curve.py`
   over EVENT DRAWS (fit on one half of the event draws, log-likelihood of the other half, both ways; highest sum).
   Plus a weak prior on log k at every knot (sd {S['prior_sd_logk']} around log(1/30 min)). Chosen penalties (jobs):
 
-{md(lam_tab)}
+{md_table(lam_tab)}
 
 - **Starts**: {', '.join(S['starts'])} (flat = exponential), {S['maxfev']['start']} evaluations each with lambda =
   {S['lambda_start']}; the best is continued ({S['maxfev']['finish']} more). `start_spread` = worst minus best penalised
   cost after the first stage; `starts_within_2` = starts within 2 of the best. Best start (jobs):
 
-{md(start_tab)}
+{md_table(start_tab)}
 
 - **Uncertainty**: the band of a truth = min-max of its {R} replicates (each a new event bootstrap). Per replicate: a
   {z} sd interval from the curvature of the penalised fit (finite differences); `with_interval` = fits where that
@@ -696,7 +643,7 @@ Written by `research/wet_antenna/check_free_curve.py` (libraries `free_curve.py`
 vs log W over the range with its interval (flat = interval contains 0; rising = interval above 0), m6: mean k above
 2 A_c / mean k below A_c > {DEC['step_ratio']} (rule: in >= {DEC['min_reps']} of 5).
 
-{md(j1_show[j1_show.kind == 'main'].drop(columns='kind'))}
+{md_table(j1_show[j1_show.kind == 'main'].drop(columns='kind'))}
 
 {figs}
 
@@ -706,12 +653,12 @@ Two things went wrong with the judging itself: the per-replicate interval exists
 fails for lack of an interval; and the first knot (0.05 dB) is badly determined while the next knot is at
 {fits.knots_db.str.split().str[1].astype(float).min():.2f}-{fits.knots_db.str.split().str[1].astype(float).max():.2f} dB. Slope of log k vs log W per replicate over the WHOLE range (min / median / max):
 
-{md(fits.groupby(['kind', 'truth', 'window']).slope.agg(['min', 'median', 'max']).round(2).reset_index())}
+{md_table(fits.groupby(['kind', 'truth', 'window']).slope.agg(['min', 'median', 'max']).round(2).reset_index())}
 
 The same fits judged only ABOVE THE SECOND KNOT (band coverage, level, slope over the replicates against the true
 slope there, and the equation jump 2 gives on that range):
 
-{md(post)}
+{md_table(post)}
 
 ## 4. Jump 2: is the equation right? (`{rel(P.CURVE_J2_SEL)}`, `{rel(P.CURVE_J2_COEF)}`)
 
@@ -719,42 +666,42 @@ h(W) = W k(W) of every replicate on the grid, weights 1 / variance over the repl
 (sw x = max(W - x dB, 0)), thresholded backward elimination of `sindy.py`; threshold by leave-one-replicate-out
 cross-validation (one-SE rule). Replicates in which a term is selected (**bold** = a term of the true law):
 
-{md(pivot_sel('main'))}
+{md_table(pivot_sel('main'))}
 
-{md(j2[j2.kind == 'main'][[c for c in j2_cols if c in j2]])}
+{md_table(j2[j2.kind == 'main'][[c for c in j2_cols if c in j2]])}
 
 Coefficients, fitted / true (0 where not selected):
 
-{md(coefs[coefs.kind == 'main'].drop(columns='kind')) if len(coefs) else ''}
+{md_table(coefs[coefs.kind == 'main'].drop(columns='kind')) if len(coefs) else ''}
 
 ## 5. m4 (two layers: not one curve): warning sign or not (`{rel(P.CURVE_MENU)}`)
 
 Warning = the 60 min and 6 h curves of a replicate do not overlap (their {z} sd intervals) on more than
 {W_['disagree_share']:.0%} of the range, OR BIC(free curve) - BIC(F4) > {W_['dbic_vs_f4']:g} in either window.
 
-{md(m4.drop(columns=['truth']))}
+{md_table(m4.drop(columns=['truth']))}
 
 The same signs for every truth (false alarms on the single-curve truths; F4 in the 6 h window was fitted for m4 only):
 
-{md(warn_tab)}
+{md_table(warn_tab)}
 
 ## 6. Robustness: no spread, T1 noise
 
-{md(j1_show[j1_show.kind != 'main']) if (j1_show.kind != 'main').any() else 'Not run (cut for time).'}
+{md_table(j1_show[j1_show.kind != 'main']) if (j1_show.kind != 'main').any() else 'Not run (cut for time).'}
 
-{md(j2[j2.kind != 'main'][[c for c in ['kind'] + j2_cols if c in j2]]) if (j2.kind != 'main').any() else ''}
+{md_table(j2[j2.kind != 'main'][[c for c in ['kind'] + j2_cols if c in j2]]) if (j2.kind != 'main').any() else ''}
 
 Fitted spread s (median): {', '.join(f"{k} {t} {w_}: {v:.2f}" for (k, t, w_), v in fits.groupby(['kind', 'truth', 'window']).s.median().items())}.
 
 ## 7. Comparison with the menu fit (first 60 min; best of 4 starts, steps 3b-1c / 3b-2)
 
-{md(menu[[c for c in ['truth', 'rep', 'menu_winner_60min', 'menu_dbic_to_second', 'curve_minus_best_menu_bic_60min'] if c in menu]].groupby('truth').agg(menu_winners=('menu_winner_60min', lambda v: ', '.join(f"{k} x{n}" for k, n in v.value_counts().items())), menu_dbic_to_second=('menu_dbic_to_second', 'median'), curve_minus_best_menu_bic=('curve_minus_best_menu_bic_60min', 'median')).reset_index())}
+{md_table(menu[[c for c in ['truth', 'rep', 'menu_winner_60min', 'menu_dbic_to_second', 'curve_minus_best_menu_bic_60min'] if c in menu]].groupby('truth').agg(menu_winners=('menu_winner_60min', lambda v: ', '.join(f"{k} x{n}" for k, n in v.value_counts().items())), menu_dbic_to_second=('menu_dbic_to_second', 'median'), curve_minus_best_menu_bic=('curve_minus_best_menu_bic_60min', 'median')).reset_index())}
 
 BIC of the free curve counts {S['knots'] + 1} parameters ({S['knots']} knots + s); positive = the menu law is preferred.
 
 ## 8. Verdict and what it means for Step 4
 
-{md(dec)}
+{md_table(dec)}
 
 **Overall: {overall}.** PASS = all three criteria (curve, shape, equation) in the better window; FAIL = none; m4: PASS =
 a warning sign in >= {DEC['min_reps']} of 5 replicates.
@@ -850,9 +797,6 @@ UNCLEAR = """1. **The low-W problem may be a property of the likelihood, not onl
     equation unstable (coefficient x-4 on the upper range) although the curve itself is flat there.
 12. **T1 noise** (first 60 min only): above the second knot m1 stays flat (slope -0.02, level x1.03) and m3 keeps
     W^2 x0.96, but the m1 equation picks up false terms in 4 of 5.
-13. **Key figure**: the limit of 6 is reached, so the five `step3b3_k_<truth>.png` are diag. If one should become
-    key I would take `check_free_curve_k_m1.png` only after the repairs above (it now shows the low-W artefact), and demote
-    `outputs/tables/check_pooled_fit_recovery.csv`.
 """
 
 

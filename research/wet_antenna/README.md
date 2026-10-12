@@ -55,6 +55,9 @@ Each script can also be run directly, e.g. `python -m research.wet_antenna.extra
 | file | what it does |
 |---|---|
 | `paths.py` | every folder and file location of this module |
+| `tails.py` | library: small helpers for the real tails (first run of a condition, window mean, counts of a tail set, Spearman correlation) |
+| `datasets.py` | library: what the fitting steps load and build: the noise tables, a tail set from disk, the event bootstrap, the A / A_start shape, the T1 noise |
+| `fit_jobs.py` | library: the fitting jobs that more than one script runs (menu fits of one dataset, free-curve fit of one dataset); each saves its stages in the calling script's cache folder |
 | `inventory.py` | measures every input (dims, columns, spans, coverage), prints one example event, writes `outputs/reports/inventory.md` |
 | `extract_tails.py` | cuts every tail, writes the two products, the A(t) check, the descriptive tables / figures and `outputs/reports/extract_tails.md` |
 | `select_tails.py` | applies the step 2 rules, writes `tails_selected.csv`, the fast-drop test, shape descriptors, curves, gallery and `outputs/reports/select_tails.md` |

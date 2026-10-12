@@ -464,7 +464,4 @@ exponential) for almost every truth, and where it adds a term the term is wrong.
     helps the no-spread quadratic laws (m5 met, m3 A^2 x0.65) and hurts m1 (false A^2 in 3 of 5 without spread).
     I did not study why.
 11. **5 replicates**, of very different size (135-753 tails): counts such as 2/5 vs 3/5 are not distinguishable.
-12. **Key figure**: the limit of 6 is reached, so `check_sindy_selection_frequency.png` is diag. I do not think a
-    negative method test must be key; if the learners want it, the candidate to demote is
-    `outputs/tables/check_pooled_fit_recovery.csv` (3b-1c's recovery table covers the same question under harder conditions).
 

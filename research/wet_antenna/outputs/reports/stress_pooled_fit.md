@@ -28,7 +28,7 @@ PASS = every cell meets the rule; PARTIAL = one or two of the three tests have a
   candidates x all starts) took 154 s; projected total 0.42 h on
   3 processes (budget 3.0 h).
 - **Total run time**: 38 min wall time for 750 fits (1.9
-  process-hours of fitting; cached in `.cache/stress_pooled_fit/`). This run: 19 s.
+  process-hours of fitting; cached in `.cache/stress_pooled_fit/`). This run: 22 s.
 
 ## 2. T1 noise check (`research/wet_antenna/outputs/tables/stress_pooled_fit_noise_check.csv`)
 
@@ -323,8 +323,6 @@ All of this is on fake tails whose truth is one of the candidates; real tails ma
 9. **Budget**: the generic starts got 800 evaluations, the calibration start 400 (as in 3b-1b); 5 of 100 T2
    calibration-start fits stopped at 400, no generic one stopped at 800. Part of "generic better than calib" may
    be this budget and not the start.
-10. **The key figure limit is reached** (6 key outputs in this module), so the win-share figure is saved as diag.
-    To make it key, another key output has to be demoted: the learners' choice.
-11. **Seeds**: new event draws (3000 + replicate), not the 3b-1b draws, so T2 is not a rerun of the same datasets;
+10. **Seeds**: new event draws (3000 + replicate), not the 3b-1b draws, so T2 is not a rerun of the same datasets;
     "the winner with the truth start" is fitted here on the new draws.
 

@@ -7,13 +7,12 @@ and the real-event part use v2 as adopted.
 
 Run after c1_fake_events.py and c3_daily_cycle.py: python -m research.baseline.validation.r1b_event_level
 """
-import sys
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from research.baseline.validation.common import (V, B, OUT, FIG, HERE, SPH, Timer, open_data, sublink_table, groups, load_panel, usable, window,
+from research.baseline.validation.common import (V, B, OUT, FIG, SPH, Timer, open_data, sublink_table, groups, load_panel, usable, window,
                     stat, m3_baseline)
 from research.common.save import save
 from research.baseline.validation.c2_after_window import deltas, curve

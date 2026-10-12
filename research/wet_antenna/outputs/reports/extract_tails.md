@@ -4,7 +4,7 @@ Written by `research/wet_antenna/extract_tails.py` (settings `wet_antenna` in `r
 the module README). Nothing here selects, fits or filters tails: every pair with a baseline and a wet bin is a tail.
 In a tail A_rain = 0 by construction, so A(t) = δ(t) = WAA + baseline residual.
 
-Run time 159 s. Products: `research/wet_antenna/outputs/products/tails_1min.parquet` (47 MB, 12412931 tail minutes),
+Run time 177 s. Products: `research/wet_antenna/outputs/products/tails_1min.parquet` (47 MB, 12412931 tail minutes),
 `research/wet_antenna/outputs/products/tails_index.csv` (20355 tails).
 
 ## A(t) check

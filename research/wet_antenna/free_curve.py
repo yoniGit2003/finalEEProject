@@ -49,7 +49,7 @@ class Curve:
         return np.exp(self.basis(np.log(np.asarray(w_db, float))) @ np.asarray(theta, float))
 
     def table(self, theta):
-        """The table that waa_pooled's law FC reads: [n, x_0, dx, T, k]."""
+        """The table that the law FC of pooled_fit.py reads: [n, x_0, dx, T, k]."""
         return self._pack_table(np.exp(np.clip(self.Bt @ np.asarray(theta, float), np.log(1e-4), 0.0)))
 
     def _pack_table(self, kt):
@@ -71,7 +71,7 @@ class Curve:
         return -self.loglik(x, D) + self.penalty(x[:-1], lam)
 
     def fit(self, D, x0, lam, maxfev, step=0.4, fatol=0.1):
-        """Nelder-Mead from x0 (as waa_pooled.fit: explicit simplex, `step` in every coordinate)."""
+        """Nelder-Mead from x0 (as pooled_fit.fit: explicit simplex, `step` in every coordinate)."""
         x0 = np.asarray(x0, float)
         simplex = np.vstack([x0] + [x0 + step * np.eye(len(x0))[i] for i in range(len(x0))])
         res = minimize(self.cost, x0, args=(D, lam), method="Nelder-Mead",
@@ -259,3 +259,26 @@ def bagged_select(w, h, terms, lam, n_boot, rng, method="waa_sindy"):
     med = np.array([np.median(coefs[coefs[:, j] != 0, j]) if inc[j] > 0 else 0.0 for j in range(len(terms))])
     return inc, med
 
+
+def true_k(truth, par, w):
+    """k(W) = -(dW/dt) / W of the base law of a simulated truth (speed factor 1); None for m4 (two states: not a
+    function of W). par: {truth: its parameters}."""
+    w = np.asarray(w, float)
+    p = par[truth]
+    if truth == "m1":
+        return np.full_like(w, 1 / p["tau"])
+    if truth == "m3":
+        return p["c"] * w ** (p["n"] - 1)
+    if truth == "m5":
+        return p["a"] + p["b"] * w
+    if truth == "m6":
+        return np.where(w > p["A_c"], p["k_evap"] + p["k_run"] * (1 - p["A_c"] / w), p["k_evap"])
+    return None
+
+
+def start_theta(spec, knots):
+    """Start values of log k at the knots from a start description of the config: a straight line in log-log
+    ({k1, slope}) or a step ({at_db, low, high})."""
+    if "slope" in spec:
+        return np.log(spec["k1"]) + spec["slope"] * np.log(knots)
+    return np.log(np.where(knots <= spec["at_db"], spec["low"], spec["high"]))

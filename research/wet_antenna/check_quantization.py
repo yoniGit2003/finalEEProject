@@ -20,7 +20,6 @@ import os
 os.environ.setdefault("NUMBA_NUM_THREADS", "1")            # one thread per process: the processes run in parallel
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from pathlib import Path
 import json
 import sys
 import time
@@ -34,14 +33,15 @@ import matplotlib.pyplot as plt
 
 from research.wet_antenna import paths as P
 from research.common.save import save
+from research.common.config import load_config
+from research.common.report import md_table, rel
+from research.wet_antenna import datasets as dsets
+from research.wet_antenna import fit_jobs as fj
 from research.wet_antenna import simulator as ws
 from research.wet_antenna import pooled_fit as wp
 from research.wet_antenna import free_curve as wc
-from research.wet_antenna import stress_pooled_fit as st                          # event bootstrap, noise tables
-from research.wet_antenna import check_free_curve as s3                   # load_tails, true_k, md, rel
-from research.wet_antenna import confirm_free_curve as s3b                             # run_job: the free-curve fit of 3b-3b
 
-CFG = s3.CFG
+CFG = load_config()
 SIM, S, S3B, FIT = (CFG["wet_antenna"][k] for k in ("simulator", "check_quantization", "confirm_free_curve", "check_free_curve"))
 B = CFG["wet_antenna"]["check_discovery_method"]["b"]                         # the step fit of 3b-3c part B, unchanged
 DEC, TRUTH, W_LO = S["decision"], S["truth"], S3B["w_lo_db"]
@@ -51,7 +51,6 @@ SPM = SIM["samples_per_min"]
 INK, INK2 = "#1a1a1a", "#52514e"
 CACHE = P.CACHE / "check_quantization"
 CACHE_3B, CACHE_3C = P.CACHE / "confirm_free_curve", P.CACHE / "check_discovery_method"
-md, rel = s3.md, s3.rel
 tag_of = lambda name, rep: f"q{SETTINGS[name]:g}_{TRUTH}_{rep}"   # noqa: E731
 
 
@@ -59,8 +58,7 @@ tag_of = lambda name, rep: f"q{SETTINGS[name]:g}_{TRUTH}_{rep}"   # noqa: E731
 def run_job(job):
     """ONE new dataset: the free-curve fit of 3b-3b (its own function, cached here), then the step fit of 3b-3c part
     B from that solution (same knots, same penalty, one start per W_c, the best continued)."""
-    s3b.CACHE = CACHE
-    r3 = s3b.run_job(job)
+    r3 = fj.free_curve_job({**job, "cache": str(CACHE)})
     f_ = CACHE / f"step_{job['tag']}.json"
     res = json.loads(f_.read_text()) if f_.exists() else {}
     if res.get("done"):
@@ -72,8 +70,8 @@ def run_job(job):
         tmp.replace(f_)
 
     t0 = time.time()
-    _, noise, offset_sd = st.load_noise()
-    D = wp.pack(s3.load_tails(job["sim"]), noise, offset_sd, S3B["window_min"], FIT["min_points"])
+    _, noise, offset_sd = dsets.load_noise()
+    D = wp.pack(dsets.load_tails(job["sim"]), noise, offset_sd, S3B["window_min"], FIT["min_points"])
     K, x3, lam = len(r3["knots"]), np.asarray(r3["x"]), r3["lam_star"]
     sc = wc.StepCurve(r3["knots"], B["wc_range_db"], B["width_logw"], prior_sd=FIT["prior_sd_logk"])
     res.setdefault("step_starts", {})
@@ -110,7 +108,7 @@ def figure(fits, par, summ):
             a_.plot([res["step"]["wc_db"]] * 2, [0, 0.05], "-", color=INK, lw=1.2, transform=a_.get_xaxis_transform())
             a_.text(res["step"]["wc_db"], 0.06 + 0.035 * rep, str(rep), fontsize=7.5, ha="center",
                     transform=a_.get_xaxis_transform())
-        kt = s3.true_k(TRUTH, par, w)
+        kt = wc.true_k(TRUTH, par, w)
         a_.plot(w, kt, "--", color=INK, lw=2.2, label="true k(W) (dashed)")
         a_.text(w[-1], kt[-1], " true", fontsize=9, va="center")
         a_.axvline(W_LO, color=INK2, lw=0.8, ls=":")
@@ -152,10 +150,10 @@ def main():
         real = pq.read_table(P.TAILS_MODEL, filters=[("split_event", "=", "train")],
                              columns=["tail_id", "minutes_since_t0_trace", "A_db"]).to_pandas()
         nan_real = {t: g.sort_values("minutes_since_t0_trace").A_db.isna().to_numpy() for t, g in real.groupby("tail_id")}
-        _, noise, _ = st.load_noise()
+        _, noise, _ = dsets.load_noise()
         for rep in range(R):
             seed = S3B["seed_base"] + rep
-            sk = st.bootstrap_skeleton(skel, np.random.default_rng(seed))
+            sk = dsets.bootstrap_skeleton(skel, np.random.default_rng(seed))
             masks = {r.tail_id: nan_real[r.orig_tail_id] for r in sk.itertuples()}
             f = np.exp(S3B["s_true"] * ws.spread_z(sk, seed))
             for name, step in SETTINGS.items():
@@ -222,7 +220,7 @@ def main():
             stp, gain = res["step"], r3["bic"] - res["step"]["bic"]
             plain, x = wc.Curve(r3["knots"]), np.asarray(r3["x"])[:-1]
             w_lo, w_hi = np.geomspace(*S["low_range_db"], 40), np.geomspace(W_LO, r3["w_hi"], FIT["grid_points"])
-            rat = lambda w: float(np.exp(np.median(np.log(plain.k(x, w) / s3.true_k(TRUTH, par, w)))))   # noqa: E731
+            rat = lambda w: float(np.exp(np.median(np.log(plain.k(x, w) / wc.true_k(TRUTH, par, w)))))   # noqa: E731
             rows.append({"setting": name, "rep": rep, "step_kept": bool(gain > B["bic_gain"]), "wc_db": round(stp["wc_db"], 3),
                          "bic_gain": round(gain, 1), "height_ln": round(stp["height"], 2),
                          "bic_no_step": round(r3["bic"], 1), "bic_step": round(stp["bic"], 1), "best_wc_start": stp["from"],
@@ -294,11 +292,11 @@ Timing: replicate 0 took {plan['wall_rep0_s'] / 60:.1f} min wall on {workers} pr
 step, median over [{S['low_range_db'][0]}, {S['low_range_db'][1]}] dB and over [{W_LO} dB, W_hi] (information only);
 `no_step_slope_above` = slope of log k vs log W above {W_LO} dB (true: 0).
 
-{md(show)}
+{md_table(show)}
 
 Per setting (`{rel(P.QUANT_DECISION)}`):
 
-{md(summ)}
+{md_table(summ)}
 
 ![m1 fits per quantization setting](../figures/{P.QUANT_FIG.name})
 
@@ -379,8 +377,7 @@ UNCLEAR = """1. **The cause of the false step is still open; this step only remo
    `sublinks`, read today; that the grid position is "arbitrary relative to W = 0" on real data is my argument
    (baseline subtraction), not something checked on tails.
 7. **This says nothing about other effects of the rounding** (the level error of +-20 %, the too narrow bootstrap
-   band of 3b-3c part D). Only the step was tested.
-8. **The figure is diag; no key figure proposed.**"""
+   band of 3b-3c part D). Only the step was tested."""
 
 
 if __name__ == "__main__":

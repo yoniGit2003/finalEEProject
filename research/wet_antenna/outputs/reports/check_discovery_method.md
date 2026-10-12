@@ -10,7 +10,7 @@ Written by `research/wet_antenna/check_discovery_method.py` (libraries `free_cur
 - **Data of B-E**: the cached fake datasets and free-curve fits of step 3b-3b (event bootstrap seeds
   4000 + replicate, 5 replicates, 3a-fix noise, spread s = 1.25, first 60 min,
   knots from 0.35 dB to W_hi). Nothing of 3b-3b was refitted.
-- **A** 640 small regressions (seconds: 77 s). **B + C** 25 datasets: the step fit
+- **A** 640 small regressions (seconds: 78 s). **B + C** 25 datasets: the step fit
   (3 starts), three jump-2 formulas, the step law if kept, and 5 menu laws from 4
   starts each, every candidate also on the two halves of the event draws. **D** 9 datasets x
   20 event bootstraps. **E** read from the F4 fits of C.
@@ -18,7 +18,7 @@ Written by `research/wet_antenna/check_discovery_method.py` (libraries `free_cur
   processes; projected total 1.29 h (budget 3.0 h). Cut:
   nothing.
 - **Run time**: 93 min wall (3.2 process-hours B + C, 1.3 D; cached in
-  `.cache/check_discovery_method/`). This run: 94 s.
+  `.cache/check_discovery_method/`). This run: 95 s.
 - **Software**: pysindy 2.1.0 installed (STLSQ used inside the bagging loop); PySR: 160 fits (15 min in a separate process). `pip install pysindy pysr sympy` worked (pysindy 2.1.0, PySR 2.7.0, scikit-learn 1.9.1, sympy 1.14.0 added
   to the miniconda environment). PySR's Julia backend (Julia 1.11.9, about 1 GB under `miniconda3/julia_env`) failed
   twice because drive C: was full; after C: was cleaned it installed in 11 min (inside the 15 min allowed). PySR

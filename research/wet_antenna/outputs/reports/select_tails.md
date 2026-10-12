@@ -3,7 +3,7 @@
 Written by `research/wet_antenna/select_tails.py` (settings `wet_antenna.selection` in `research/config.yaml`, fixed
 before the run). No fitting. No tail is kept or dropped by its shape. Every number below uses **TRAIN events only**.
 The 4985 VAL tails carry the same columns in `research/wet_antenna/outputs/products/tails_selected.csv` but are not looked at here.
-Run time 78 s.
+Run time 81 s.
 
 ## 1. Exclusions (pre-defined, non-shape)
 

@@ -16,7 +16,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from research.baseline.validation.common import (V, P, OUT, FIG, SPH, HERE, Timer, open_data, sublink_table, load_panel, usable, window, stat)
+from research.baseline.validation.common import (V, P, OUT, FIG, SPH, Timer, open_data, sublink_table, load_panel, usable, window, stat)
 from research.common.save import save
 from research.baseline.validation.c2_after_window import deltas
 

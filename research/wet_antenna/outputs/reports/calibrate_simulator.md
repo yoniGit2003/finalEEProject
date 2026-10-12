@@ -2,7 +2,7 @@
 
 Written by `research/wet_antenna/calibrate_simulator.py` (library `research/wet_antenna/simulator.py`, settings `wet_antenna.simulator`); this
 replaces the step 3a calibration (m2 dropped: it is m1 with spread). Skeleton = the 429 TRAIN v1 tails.
-Switches: {'offset': True, 'noise': True, 'slow_noise': True, 'quantization': True, 'real_nan_mask': True, 'spread': True}. Run time 132 s.
+Switches: {'offset': True, 'noise': True, 'slow_noise': True, 'quantization': True, 'real_nan_mask': True, 'spread': True}. Run time 139 s.
 
 ## 1. Slow noise (per sub-link, real control tails)
 

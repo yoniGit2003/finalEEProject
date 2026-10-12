@@ -255,6 +255,3 @@ which is why the overall verdict is PARTIAL.**
    common part, so the top knot of most replicates lies above it. On real tails there is one W_hi.
 10. **Timing**: replicate 0 was run and timed in full this time (7.7 min, projected 0.64 h); the run took 32 min,
     nothing was cut.
-11. **Key figure**: the limit of 6 is reached, so the five `step3b3b_k_<truth>.png` are diag. If one should become
-    key I would take `confirm_free_curve_k_m1.png` (flat curve inside the band despite the spread) and demote
-    `outputs/tables/check_pooled_fit_recovery.csv`. The real-tail curve of Step 4 is the better candidate, so I would wait.

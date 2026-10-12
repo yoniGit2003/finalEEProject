@@ -15,14 +15,12 @@ Run from the repository root (about 80 minutes with 4 workers; reruns use the ca
     python -m research.wet_antenna.check_per_tail_fit
 """
 from concurrent.futures import ProcessPoolExecutor
-from pathlib import Path
 import sys
 import time
 
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
-import yaml
 from scipy.optimize import least_squares
 import matplotlib
 matplotlib.use("Agg")
@@ -30,32 +28,18 @@ import matplotlib.pyplot as plt
 
 from research.wet_antenna import paths as P
 from research.common.save import save
+from research.common.config import load_config
+from research.common.report import md_table, rel
+from research.common.plotting import style_axes
 from research.wet_antenna import simulator as ws
 from research.wet_antenna import per_tail_fit as wf
 
-CFG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
+CFG = load_config()
 SIM, F = CFG["wet_antenna"]["simulator"], CFG["wet_antenna"]["check_per_tail_fit"]
 STEP, SPM, H = SIM["rsl_step_db"], SIM["samples_per_min"], SIM["horizon_min"]
 OWN = {"m1": "F1", "m3": "F3", "m4": "F4", "m5": "F5"}             # each truth's own candidate
 INK, INK2 = "#1a1a1a", "#52514e"
 CACHE = P.CACHE / "check_per_tail_fit"
-
-
-def tidy(ax):
-    ax.grid(alpha=0.25)
-    for sp in ("top", "right"):
-        ax.spines[sp].set_visible(False)
-
-
-def rel(p):
-    return Path(p).resolve().relative_to(P.REPO).as_posix()
-
-
-def md(df, index=True):
-    df = df.reset_index() if index else df
-    head = "| " + " | ".join(map(str, df.columns)) + " |\n|" + "---|" * len(df.columns)
-    return head + "\n" + "\n".join("| " + " | ".join("" if pd.isna(x) else str(x) for x in row) + " |"
-                                   for row in df.itertuples(index=False))
 
 
 def curve_stats(df, col="A_norm", horizon=H):
@@ -322,7 +306,7 @@ def main():
         a_.set_xticks(xs, blabels, fontsize=8)
         a_.set_title(f"truth {law}: real inside {int(g.real_inside.sum())} / {len(g)} bins", fontsize=9)
         a_.set_xlabel("A_start bin (dB)", fontsize=8)
-        tidy(a_)
+        style_axes(a_)
     np.atleast_1d(ax)[0].set_ylabel("median t_half (min)")
     np.atleast_1d(ax)[0].legend(frameon=False, fontsize=7)
     fig.suptitle(f"t_half per A_start bin: {F['replicates']} simulated replicates per truth (hatched = min-max) vs real",
@@ -355,7 +339,7 @@ def main():
             if i == 0:
                 a_.set_title(f"truth {law}: real inside {int(g.real_inside.fillna(False).sum())} / "
                              f"{int(g.real_inside.notna().sum())} bins", fontsize=9)
-            tidy(a_)
+            style_axes(a_)
     ax[0, 0].set_ylabel("drying rate -dA/dt (dB/min)")
     ax[1, 0].set_ylabel("-dA/dt (dB/min), log")
     ax[0, 0].legend(frameon=False, fontsize=7)
@@ -423,17 +407,17 @@ One effective sample size per tail from the lag-1 autocorrelation rho of the F4 
 
 Per tail (mean share over replicates):
 
-{md(full_t.round(3))}
+{md_table(full_t.round(3), index=True)}
 
 Per dataset (share of replicates won by the summed BIC):
 
-{md(full_d.round(2))}
+{md_table(full_d.round(2), index=True)}
 
 AIC, per tail / per dataset:
 
-{md(full_t_aic.round(3))}
+{md_table(full_t_aic.round(3), index=True)}
 
-{md(full_d_aic.round(2))}
+{md_table(full_d_aic.round(2), index=True)}
 
 ![confusion](../figures/{P.PER_TAIL_FIG_CONFUSION.name})
 
@@ -442,18 +426,18 @@ AIC, per tail / per dataset:
 Scale parameters: fitted / true per tail (1 = unbiased); phi, n: fitted - true; c: fitted - the true offset (the slow
 noise also shifts the tail mean, so c is not expected to hit the offset exactly); W0: fitted - A_start.
 
-{md(rec_show, index=False)}
+{md_table(rec_show, index=False)}
 
 ## 4. Population tests (all replicates of each truth vs the real TRAIN v1 tails)
 
 **a. t_half per A_start bin** (`{rel(P.PER_TAIL_THALF)}`): real median with 95 % CI (resampling events) vs the min-max
 of the {F['replicates']} replicate medians.
 
-{md(rng_tab.pivot(index='bin', columns='law', values='real_inside').reindex(blabels))}
+{md_table(rng_tab.pivot(index='bin', columns='law', values='real_inside').reindex(blabels), index=True)}
 
 Real (median t_half in min, 95 % CI from resampling events):
 
-{md(real_th_tab.round(1))}
+{md_table(real_th_tab.round(1), index=True)}
 
 Pairs of truths whose replicate ranges do not overlap (bins): {sep_th}.
 
@@ -469,11 +453,11 @@ Pairs of truths that do not overlap (bins): {sep_dd}.
 
 Per tail, share choosing each candidate:
 
-{md(abl_own)}
+{md_table(abl_own, index=True)}
 
 Per dataset, share of replicates won:
 
-{md(abl_ds)}
+{md_table(abl_ds, index=True)}
 
 ![ablation](../figures/{P.PER_TAIL_FIG_ABLATION.name})
 

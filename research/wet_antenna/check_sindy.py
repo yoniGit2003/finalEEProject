@@ -31,7 +31,6 @@ import os
 os.environ.setdefault("NUMBA_NUM_THREADS", "1")            # one thread per process: the processes run in parallel
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from pathlib import Path
 import json
 import sys
 import time
@@ -39,19 +38,20 @@ import time
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
-import yaml
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from research.wet_antenna import paths as P
 from research.common.save import save
+from research.common.config import load_config
+from research.common.report import md_table, rel
+from research.wet_antenna import datasets as dsets
 from research.wet_antenna import simulator as ws
 from research.wet_antenna import pooled_fit as wp
 from research.wet_antenna import sindy as sd
-from research.wet_antenna import stress_pooled_fit as st                          # the same event bootstrap, noise tables and T2 starts
 
-CFG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
+CFG = load_config()
 SIM, S, S1C = CFG["wet_antenna"]["simulator"], CFG["wet_antenna"]["check_sindy"], CFG["wet_antenna"]["stress_pooled_fit"]
 STEP, SPM = SIM["rsl_step_db"], SIM["samples_per_min"]
 GRID = S["switch_grid_db"]
@@ -63,17 +63,6 @@ FAMILY = {"F1": "exponential", "F3": "nonlinear", "F5": "nonlinear", "F6": "swit
 INK, INK2 = "#1a1a1a", "#52514e"
 CACHE = P.CACHE / "check_sindy"
 STRESS_CACHE = P.CACHE / "stress_pooled_fit"                        # T2 fits of step 3b-1c (reused when the data are identical)
-
-
-def rel(p):
-    return Path(p).resolve().relative_to(P.REPO).as_posix()
-
-
-def md(df, index=False):
-    df = df.reset_index() if index else df
-    head = "| " + " | ".join(map(str, df.columns)) + " |\n|" + "---|" * len(df.columns)
-    return head + "\n" + "\n".join("| " + " | ".join("" if pd.isna(x) else str(x) for x in row) + " |"
-                                   for row in df.itertuples(index=False))
 
 
 def tag(job):
@@ -105,7 +94,7 @@ def pooled_part(job, tails, noise, offset_sd):
                 f_.write_text(json.dumps(r))
             else:
                 if label == "f1sol":
-                    theta0, s0 = st.f1_start(cand, f1_best["theta"][0]), f1_best["s"]
+                    theta0, s0 = wp.f1_start(cand, f1_best["theta"][0]), f1_best["s"]
                 r = wp.fit(cand, D, theta0, s0, S1C["maxfev_generic"])
                 r.update({"candidate": cand, "start": label, "n_independent": n_ind, "k": len(wp.NAMES[cand]) + 1,
                           "reused": False})
@@ -169,7 +158,7 @@ def run_dataset(job):
     if f_.exists():
         return json.loads(f_.read_text())
     if not _INPUTS:
-        _, _INPUTS["noise"], _INPUTS["offset_sd"] = st.load_noise()
+        _, _INPUTS["noise"], _INPUTS["offset_sd"] = dsets.load_noise()
     noise, offset_sd = _INPUTS["noise"], _INPUTS["offset_sd"]
     sigma = {k: float(np.sqrt(v[1] ** 2 + (v[0] ** 2 + STEP ** 2 / 12) / SPM)) for k, v in noise.items()}   # 1 min noise sd
     rows = pd.read_parquet(job["sim"]).sort_values(["tail_id", "minutes_since_t0_trace"])
@@ -297,7 +286,7 @@ def main():
                          columns=["tail_id", "minutes_since_t0_trace", "A_db"]).to_pandas()
     nan_real = {t: g.sort_values("minutes_since_t0_trace").A_db.isna().to_numpy() for t, g in real.groupby("tail_id")}
     del real
-    _, noise, _ = st.load_noise()
+    _, noise, _ = dsets.load_noise()
     cal = pd.read_csv(P.SIM_CALIBRATION).set_index("law")
     par = {law: {k: float(cal.loc[law, k]) for k in ws.PARAMS[law]} for law in ("m1", "m3", "m4", "m5")}
     m6 = pd.read_csv(P.PER_TAIL_M6)
@@ -314,7 +303,7 @@ def main():
     reuse = {}
     for rep in range(R0):
         seed = S["seed_base"] + rep
-        sk = st.bootstrap_skeleton(skel, np.random.default_rng(seed))
+        sk = dsets.bootstrap_skeleton(skel, np.random.default_rng(seed))
         masks = {r.tail_id: nan_real[r.orig_tail_id] for r in sk.itertuples()}
         z = ws.spread_z(sk, seed)
         for spread in (True, False):
@@ -570,7 +559,7 @@ Written by `research/wet_antenna/check_sindy.py` (libraries `sindy.py`, `simulat
   are interpolated, a window with a NaN left is skipped. Rows of a tail are weighted by 1 / (1 min noise sd of its
   sub-link, from `sim_noise_params.csv`). Median rows and tails per dataset:
 
-{md(rows_tab)}
+{md_table(rows_tab)}
 
 - **Sparse regression**: thresholded backward elimination (`waa_sindy.select`). The usual STLSQ (drop small
   coefficients) failed a noise-free self-test: while A > 0.1 dB the term max(A - 0.1, 0) is A minus a constant, the
@@ -581,7 +570,7 @@ Written by `research/wet_antenna/check_sindy.py` (libraries `sindy.py`, `simulat
   (all tails of an event draw are held out together), one-standard-error rule (largest threshold within one SE of
   the best held-out error). Chosen thresholds (median, min, max):
 
-{md(lam_tab)}
+{md_table(lam_tab)}
 
 - **Stability selection**: {S['stability']['resamples']} bootstrap resamples of the event draws at the chosen threshold; a
   term counts as **selected in a replicate if its frequency is >= {THR}**. Coefficients: ordinary least squares on the
@@ -607,23 +596,23 @@ Replicates (of {R}) in which the term is selected; **bold** = a term of the true
 
 **With spread (the configuration of the rule):**
 
-{md(pivot(main_q + " and spread"))}
+{md_table(pivot(main_q + " and spread"))}
 
-{md(returned(main_q + " and spread"))}
+{md_table(returned(main_q + " and spread"))}
 
 **No spread (s = 0):**
 
-{md(pivot(main_q + " and not spread"))}
+{md_table(pivot(main_q + " and not spread"))}
 
-{md(returned(main_q + " and not spread"))}
+{md_table(returned(main_q + " and not spread"))}
 
 **With spread, time rescaled by the pooled-fit speed:**
 
-{md(pivot(f"{w60} and rescale == 'fit'"))}
+{md_table(pivot(f"{w60} and rescale == 'fit'"))}
 
 **With spread, time rescaled by the TRUE speed:**
 
-{md(pivot(f"{w60} and rescale == 'true'"))}
+{md_table(pivot(f"{w60} and rescale == 'true'"))}
 
 ![selection](../figures/{P.SINDY_FIG_SELECTION.name})
 
@@ -632,51 +621,51 @@ with spread counts for Q1; the others show what helps and what hurts.
 
 With spread:
 
-{md(rule_grid(True))}
+{md_table(rule_grid(True))}
 
 No spread:
 
-{md(rule_grid(False))}
+{md_table(rule_grid(False))}
 
 **Post hoc diagnostic, added after the first complete run (it changes no verdict).** In the rule's configuration
 the one-standard-error rule picked the largest threshold of the grid in most runs. Held-out error (share of the
 squared left-hand side that is NOT explained; medians over the replicates) with the rule's threshold, with the
 threshold of lowest error, and with the largest threshold of the grid:
 
-{md(cv_tab)}
+{md_table(cv_tab)}
 
 What comes out, first 60 min, handled offset, if the threshold of LOWEST held-out error is used instead:
 
-{md(what(alt, ['spread', 'rescale', 'truth']))}
+{md_table(what(alt, ['spread', 'rescale', 'truth']))}
 
 The rule evaluated on that variant (for information only):
 
-{md(alt_rule[['spread', 'rescale', 'truth', 'true_selected', 'spurious', 'coef_ratios', 'met']])}
+{md_table(alt_rule[['spread', 'rescale', 'truth', 'true_selected', 'spurious', 'coef_ratios', 'met']])}
 
 ## 4. Coefficient recovery (`{rel(P.SINDY_COEFS)}`)
 
 fitted / true (median, min, max over the replicates; 0 where the term is not selected), first 60 min, handled
 offset. True = the base law (speed factor 1). `counted` = part of the rule.
 
-{md(coef_show)}
+{md_table(coef_show)}
 
 ## 5. m4 (hidden state) and the spread mixture
 
 **m4 (two layers), first 60 min:**
 
-{md(what(fits[(fits.truth == 'm4') & (fits.window == M['window'])], ['offset', 'rescale']))}
+{md_table(what(fits[(fits.truth == 'm4') & (fits.window == M['window'])], ['offset', 'rescale']))}
 
 **m1 (exponential), first 60 min: no spread vs spread vs rescaled:**
 
-{md(what(fits[(fits.truth == 'm1') & (fits.window == M['window'])], ['spread', 'offset', 'rescale']))}
+{md_table(what(fits[(fits.truth == 'm1') & (fits.window == M['window'])], ['spread', 'offset', 'rescale']))}
 
 ## 6. Offset: naive vs handled vs oracle (first 60 min, not rescaled)
 
-{md(what(fits[(fits.window == M['window']) & (fits.rescale == 'none')], ['spread', 'truth', 'offset']))}
+{md_table(what(fits[(fits.window == M['window']) & (fits.rescale == 'none')], ['spread', 'truth', 'offset']))}
 
 Coefficients (fitted / true, median):
 
-{md(coef_main[coef_main.rescale == 'none'].pivot(index=['spread', 'truth', 'coefficient'], columns='offset', values='median_ratio').reset_index())}
+{md_table(coef_main[coef_main.rescale == 'none'].pivot(index=['spread', 'truth', 'coefficient'], columns='offset', values='median_ratio').reset_index())}
 
 ## 7. Agreement with the pooled fit (`{rel(P.SINDY_AGREEMENT)}`)
 
@@ -684,19 +673,19 @@ Per spread dataset: the BIC winner of the pooled fit (best of 4 starts, first 60
 SINDy terms (first 60 min, handled offset). Families: exponential (F1; only A), nonlinear (F3 / F5; A^2 or A^3),
 switch (F6; a switch term), two layers (F4; no SINDy family). Counted for Q4: m1, m3, m5, m6.
 
-{md(agree.groupby('truth').agg(datasets=('agree', 'size'), pooled_winners=('pooled_winner', lambda v: ', '.join(f"{k} x{n}" for k, n in v.value_counts().items())), sindy_families=('sindy_family', lambda v: ', '.join(f"{k} x{n}" for k, n in v.value_counts().items())), agree=('agree', 'sum'), sindy_rescaled_families=('sindy_rescaled_family', lambda v: ', '.join(f"{k} x{n}" for k, n in v.value_counts().items())), agree_rescaled=('agree_rescaled', 'sum')).reset_index())}
+{md_table(agree.groupby('truth').agg(datasets=('agree', 'size'), pooled_winners=('pooled_winner', lambda v: ', '.join(f"{k} x{n}" for k, n in v.value_counts().items())), sindy_families=('sindy_family', lambda v: ', '.join(f"{k} x{n}" for k, n in v.value_counts().items())), agree=('agree', 'sum'), sindy_rescaled_families=('sindy_rescaled_family', lambda v: ', '.join(f"{k} x{n}" for k, n in v.value_counts().items())), agree_rescaled=('agree_rescaled', 'sum')).reset_index())}
 
 Linear rate (1 / min): 1 / tau of the pooled F1 fit vs the SINDy coefficient of A (0 = A not selected), medians per truth:
 
-{md(agree.groupby('truth')[['pooled_F1_rate', 'sindy_A_coef', 'sindy_rescaled_A_coef']].median().round(4).reset_index())}
+{md_table(agree.groupby('truth')[['pooled_F1_rate', 'sindy_A_coef', 'sindy_rescaled_A_coef']].median().round(4).reset_index())}
 
 ## 8. Verdicts and what they mean for Step 5
 
-{md(verdicts)}
+{md_table(verdicts)}
 
 Rule per truth (first 60 min, handled offset, with spread, not rescaled):
 
-{md(q1[['truth', 'true_selected', 'spurious', 'coef_ratios', 'true_ok', 'spurious_ok', 'coef_ok', 'met']])}
+{md_table(q1[['truth', 'true_selected', 'spurious', 'coef_ratios', 'true_ok', 'spurious_ok', 'coef_ok', 'met']])}
 
 {MEANING}
 
@@ -786,9 +775,6 @@ UNCLEAR = """1. **The sparse regression is mine, not the textbook one.** STLSQ f
     helps the no-spread quadratic laws (m5 met, m3 A^2 x0.65) and hurts m1 (false A^2 in 3 of 5 without spread).
     I did not study why.
 11. **5 replicates**, of very different size (135-753 tails): counts such as 2/5 vs 3/5 are not distinguishable.
-12. **Key figure**: the limit of 6 is reached, so `check_sindy_selection_frequency.png` is diag. I do not think a
-    negative method test must be key; if the learners want it, the candidate to demote is
-    `outputs/tables/check_pooled_fit_recovery.csv` (3b-1c's recovery table covers the same question under harder conditions).
 """
 
 

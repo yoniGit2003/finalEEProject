@@ -61,7 +61,7 @@ steps:
     module: research.wet_antenna.select_tails
     id: "2"
     what: "Selection of usable tails by rules fixed in advance; test of the 'fast drop'"
-    needs: [release]
+    needs: []
     time: "1.5 min"
     report: research/wet_antenna/outputs/reports/select_tails.md
   - name: refine_selection

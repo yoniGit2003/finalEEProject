@@ -440,14 +440,13 @@ sub-link; `network_event` = network event id. Full table also in `research/wet_a
     the START of its hour. A possible 1 h ambiguity for dew risk.
 11. **Sub-links with no data.** 16 sub-links have no valid 5 min `tl_mean` at all; status over all 728:
     {'good': 641, 'degraded': 67, 'unusable': 20}. Unusable sub-links have no baseline rows.
-12. **Committed table lacks columns:** `r1b_real_events.csv.gz` has no `dew_risk_during_event` (already noted in the
-    baseline CATALOG).
+12. **Committed table lacks columns:** `r1b_real_events.csv.gz` has no `dew_risk_during_event`.
 13. **Exploration results are not module inputs.** `tail_sample.py` / `gauge_radius.py` hold the learners' tail
     decisions (start = first non-wet bin; end = next wet bin or a maximum length; max 6 h in the sample, where 10 of
-    12 tails reached 6 h, i.e. the 6 h cap was often binding). ORGANIZATION.md: modules never read from
+    12 tails reached 6 h, i.e. the 6 h cap was often binding). Modules never read from
     `explorations/`, so the decisions must be re-stated in this module.
-14. **Folder layout.** Step 0 first used `scripts/`, `outputs/`, `reports/`; since step 1 the module follows
-    ORGANIZATION.md (code at the root, `outputs/{products,tables,figures,reports}/`, README.md, CATALOG.md).
+14. **Folder layout.** Step 0 first used `scripts/`, `outputs/`, `reports/`; since step 1 the module has its
+    code at the root and `outputs/{products,tables,figures,reports}/`.
 15. **Flag gap seen in the example.** In 10011_2 a dry-weather rise of A (link_state dry, no rain on radar /
     gauge, dew-risk hours) is below the 1 dB `dry_jumps` threshold, so no time-resolved flag marks it; only the
     hourly `dew_risk` is set. A tail that ran into such a period would carry it. (Observation, not analysed.)

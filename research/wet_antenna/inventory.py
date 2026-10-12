@@ -21,7 +21,6 @@ import sys
 
 import numpy as np
 import pandas as pd
-import yaml
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -29,6 +28,8 @@ from cmlpipe.api import CMLData
 
 from research.wet_antenna import paths as P                                          # every location of this module
 from research.common.save import save
+from research.common.config import load_config
+from research.common.report import md_table
 from research.baseline import baseline as bl                                               # frozen baseline v2: a_of_t, dew_mask_5min
 from research.baseline import paths as BP                                    # where the frozen baseline products are
 
@@ -40,235 +41,229 @@ STATE_REASON_BITS = {1: "radar_wet", 2: "gauge_wet", 4: "radar_missing", 8: "mar
 STATE_NAME = {0: "dry", 1: "wet", -1: "unknown"}
 
 sys.stdout.reconfigure(encoding="utf-8")                            # the report has δ, R̄: Windows consoles are cp1252
-for p in (P.FIGURES, P.TABLES, P.REPORTS):
-    p.mkdir(parents=True, exist_ok=True)
 
-cfg = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
-RELEASE = P.REPO / "data" / "release" / cfg["release"]
-d = CMLData.open(RELEASE)
-N = {}                                                              # every number that goes into the report
+def main():
+    for p in (P.FIGURES, P.TABLES, P.REPORTS):
+        p.mkdir(parents=True, exist_ok=True)
 
-
-def bits(value, names):
-    """Bitmask -> 'name1|name2' ('' if no bit is set)."""
-    v = int(value) if not pd.isna(value) else 0
-    return "|".join(n for b, n in names.items() if v & b)
+    cfg = load_config()
+    RELEASE = P.REPO / "data" / "release" / cfg["release"]
+    d = CMLData.open(RELEASE)
+    N = {}                                                              # every number that goes into the report
 
 
-def span(ds):
-    """'first .. last (n steps)' of a dataset's time axis."""
-    t = pd.DatetimeIndex(ds.time.values)
-    return f"{t[0]:%Y-%m-%d %H:%M} .. {t[-1]:%Y-%m-%d %H:%M} ({len(t)} steps)"
+    def bits(value, names):
+        """Bitmask -> 'name1|name2' ('' if no bit is set)."""
+        v = int(value) if not pd.isna(value) else 0
+        return "|".join(n for b, n in names.items() if v & b)
 
 
-def md_table(df):
-    """A small DataFrame as a markdown table (no extra dependency)."""
-    cols = [str(c) for c in df.columns]
-    out = ["| " + " | ".join(cols) + " |", "|" + "---|" * len(cols)]
-    out += ["| " + " | ".join("" if pd.isna(v) else str(v) for v in row) + " |" for row in df.itertuples(index=False)]
-    return "\n".join(out)
+    def span(ds):
+        """'first .. last (n steps)' of a dataset's time axis."""
+        t = pd.DatetimeIndex(ds.time.values)
+        return f"{t[0]:%Y-%m-%d %H:%M} .. {t[-1]:%Y-%m-%d %H:%M} ({len(t)} steps)"
 
 
-print("1. measuring the inputs ...")
-# ---------------------------------------------------------------------------------------------- a. A(t) / baseline
-b = pd.read_csv(BP.BASELINES, parse_dates=["event_start", "event_end", "last_wet_end"])
-N["b_rows"], N["b_sub"], N["b_links"] = len(b), b.sublink_id.nunique(), b.cml_id.nunique()
-N["b_events"] = b.event_id.nunique()
-N["b_split"] = b.groupby("split_event").event_id.nunique().to_dict()
-N["b_missing"] = int(b.missing.sum())
-N["b_waa_main"] = int(b.use_in_waa_main.sum())
-sig_tr = b[(b.split_event == "train") & b.significant]
-N["b_waa_sig_train"] = int((sig_tr.use_in_waa_main & sig_tr.link_has_wet_slot).sum())
-N["b_waa_sig_train_sub"] = sig_tr[sig_tr.use_in_waa_main & sig_tr.link_has_wet_slot].sublink_id.nunique()
-N["b_flag_counts"] = {f: int(b[f].sum()) for f in ("missing", "excursion", "dew_risk_in_window",
-                                                   "dew_risk_during_event", "daily_cycle_large", "degraded",
-                                                   "toggling", "use_in_waa_main")}
-N["b_status"] = b.drop_duplicates("sublink_id").status.value_counts().to_dict()
-N["b_columns"] = list(b.columns)
-src, first = inspect.getsourcelines(bl.a_of_t)                      # show THE line that subtracts the baseline
-sub = [(first + i, s.rstrip()) for i, s in enumerate(src) if "tl[base.index] - base" in s]
-N["sub_line"] = sub[0] if sub else (None, "NOT FOUND (baseline.py changed?)")
-unc = pd.read_csv(BP.BASELINE_UNCERTAINTY)
-N["unc_rows"] = len(unc)
+    print("1. measuring the inputs ...")
+    # ---------------------------------------------------------------------------------------------- a. A(t) / baseline
+    b = pd.read_csv(BP.BASELINES, parse_dates=["event_start", "event_end", "last_wet_end"])
+    N["b_rows"], N["b_sub"], N["b_links"] = len(b), b.sublink_id.nunique(), b.cml_id.nunique()
+    N["b_events"] = b.event_id.nunique()
+    N["b_split"] = b.groupby("split_event").event_id.nunique().to_dict()
+    N["b_missing"] = int(b.missing.sum())
+    N["b_waa_main"] = int(b.use_in_waa_main.sum())
+    sig_tr = b[(b.split_event == "train") & b.significant]
+    N["b_waa_sig_train"] = int((sig_tr.use_in_waa_main & sig_tr.link_has_wet_slot).sum())
+    N["b_waa_sig_train_sub"] = sig_tr[sig_tr.use_in_waa_main & sig_tr.link_has_wet_slot].sublink_id.nunique()
+    N["b_flag_counts"] = {f: int(b[f].sum()) for f in ("missing", "excursion", "dew_risk_in_window",
+                                                       "dew_risk_during_event", "daily_cycle_large", "degraded",
+                                                       "toggling", "use_in_waa_main")}
+    N["b_status"] = b.drop_duplicates("sublink_id").status.value_counts().to_dict()
+    N["b_columns"] = list(b.columns)
+    src, first = inspect.getsourcelines(bl.a_of_t)                      # show THE line that subtracts the baseline
+    sub = [(first + i, s.rstrip()) for i, s in enumerate(src) if "tl[base.index] - base" in s]
+    N["sub_line"] = sub[0] if sub else (None, "NOT FOUND (baseline.py changed?)")
+    unc = pd.read_csv(BP.BASELINE_UNCERTAINTY)
+    N["unc_rows"] = len(unc)
 
-# ---------------------------------------------------------------------------------------------- b. link_state
-ls = d.store("link_reference_state_5min")
-st = ls.state.load().to_pandas()                                    # (time, cml_id) int8
-rs = ls.reasons.load().to_pandas()
-N["ls_dims"], N["ls_span"] = dict(ls.sizes), span(ls)
-vals = st.to_numpy().ravel()
-N["ls_share"] = {STATE_NAME[k]: round(float((vals == k).mean()), 3) for k in (0, 1, -1)}
-unk = st.to_numpy() == -1
-rr = rs.to_numpy()
-N["ls_unknown_margin_share"] = round(float(((rr[unk] & 8) > 0).mean()), 3)
-N["ls_unknown_radar_missing_share"] = round(float(((rr[unk] & 4) > 0).mean()), 3)
+    # ---------------------------------------------------------------------------------------------- b. link_state
+    ls = d.store("link_reference_state_5min")
+    st = ls.state.load().to_pandas()                                    # (time, cml_id) int8
+    rs = ls.reasons.load().to_pandas()
+    N["ls_dims"], N["ls_span"] = dict(ls.sizes), span(ls)
+    vals = st.to_numpy().ravel()
+    N["ls_share"] = {STATE_NAME[k]: round(float((vals == k).mean()), 3) for k in (0, 1, -1)}
+    unk = st.to_numpy() == -1
+    rr = rs.to_numpy()
+    N["ls_unknown_margin_share"] = round(float(((rr[unk] & 8) > 0).mean()), 3)
+    N["ls_unknown_radar_missing_share"] = round(float(((rr[unk] & 4) > 0).mean()), 3)
 
-# ---------------------------------------------------------------------------------------------- c. flags
-c5 = d.store("cml_5min")
-fl = c5.flags_or.load().to_numpy()                                  # (time, sublink_id) uint16, OR over the bin
-N["c5_dims"], N["c5_span"] = dict(c5.sizes), span(c5)
-N["flag_share"] = {n: round(float(((fl & bit) > 0).mean()), 4) for bit, n in QC_BITS.items()}
-tl5 = c5.tl_mean.load().to_numpy()
-N["tl_nan_share"] = round(float(np.isnan(tl5).mean()), 4)
-N["sub_all_nan"] = int(np.isnan(tl5).all(axis=0).sum())
-N["c10_dims"], N["c1_dims"] = dict(d.store("cml_10s").sizes), dict(d.store("cml_1min").sizes)
-jumps = pd.read_csv(BP.DRY_JUMPS, parse_dates=["start_utc", "end_utc"])
-N["jumps"], N["jumps_sub"] = len(jumps), jumps.sublink_id.nunique()
-N["jumps_sign"] = jumps.sign.value_counts().to_dict()
-dew = pd.read_csv(BP.DEW_RISK_HOURLY, parse_dates=["time_utc"])
-N["dew_rows"], N["dew_share"] = len(dew), round(float(dew.dew_risk.mean()), 3)
-N["dew_span"] = f"{dew.time_utc.min():%Y-%m-%d %H:%M} .. {dew.time_utc.max():%Y-%m-%d %H:%M}"
-gaps = d.table("network_gaps")
-N["gaps"] = len(gaps)
-qs = d.status()
-N["status_all"] = qs.status.value_counts().to_dict()
+    # ---------------------------------------------------------------------------------------------- c. flags
+    c5 = d.store("cml_5min")
+    fl = c5.flags_or.load().to_numpy()                                  # (time, sublink_id) uint16, OR over the bin
+    N["c5_dims"], N["c5_span"] = dict(c5.sizes), span(c5)
+    N["flag_share"] = {n: round(float(((fl & bit) > 0).mean()), 4) for bit, n in QC_BITS.items()}
+    tl5 = c5.tl_mean.load().to_numpy()
+    N["tl_nan_share"] = round(float(np.isnan(tl5).mean()), 4)
+    N["sub_all_nan"] = int(np.isnan(tl5).all(axis=0).sum())
+    N["c10_dims"], N["c1_dims"] = dict(d.store("cml_10s").sizes), dict(d.store("cml_1min").sizes)
+    jumps = pd.read_csv(BP.DRY_JUMPS, parse_dates=["start_utc", "end_utc"])
+    N["jumps"], N["jumps_sub"] = len(jumps), jumps.sublink_id.nunique()
+    N["jumps_sign"] = jumps.sign.value_counts().to_dict()
+    dew = pd.read_csv(BP.DEW_RISK_HOURLY, parse_dates=["time_utc"])
+    N["dew_rows"], N["dew_share"] = len(dew), round(float(dew.dew_risk.mean()), 3)
+    N["dew_span"] = f"{dew.time_utc.min():%Y-%m-%d %H:%M} .. {dew.time_utc.max():%Y-%m-%d %H:%M}"
+    gaps = d.table("network_gaps")
+    N["gaps"] = len(gaps)
+    qs = d.status()
+    N["status_all"] = qs.status.value_counts().to_dict()
 
-# ---------------------------------------------------------------------------------------------- d. splits
-se, sl = d.table("split_events"), d.table("split_links")
-ev = d.events()
-N["split_events"] = se.split_event.value_counts().to_dict()
-N["split_links"] = sl.split_link.value_counts().to_dict()
-N["sig_by_split"] = ev[ev.significant].split_event.value_counts().to_dict()
+    # ---------------------------------------------------------------------------------------------- d. splits
+    se, sl = d.table("split_events"), d.table("split_links")
+    ev = d.events()
+    N["split_events"] = se.split_event.value_counts().to_dict()
+    N["split_links"] = sl.split_link.value_counts().to_dict()
+    N["sig_by_split"] = ev[ev.significant].split_event.value_counts().to_dict()
 
-# ---------------------------------------------------------------------------------------------- e. rain references
-links = d.links()
-ra = d.store("radar_along_links_5min")
-N["radar_dims"], N["radar_span"] = dict(ra.sizes), span(ra)
-N["radar_valid_share"] = round(float(ra.R_mean.notnull().mean()), 4)
-N["gauge_1km"] = int(links.has_gauge_within_1km.sum())
-N["gauge_1km_train"] = int((links.has_gauge_within_1km & (links.split_link == "train")).sum())
-N["single_cell"] = int(links.single_radar_cell.sum())
-gauges = d.gauges()
-N["gauges"] = gauges[[c for c in ("gauge_id", "network", "gauge_type") if c in gauges.columns]].to_dict("records")
-lgm = d.table("link_gauge_matches")
-N["lgm_rows"] = len(lgm)
+    # ---------------------------------------------------------------------------------------------- e. rain references
+    links = d.links()
+    ra = d.store("radar_along_links_5min")
+    N["radar_dims"], N["radar_span"] = dict(ra.sizes), span(ra)
+    N["radar_valid_share"] = round(float(ra.R_mean.notnull().mean()), 4)
+    N["gauge_1km"] = int(links.has_gauge_within_1km.sum())
+    N["gauge_1km_train"] = int((links.has_gauge_within_1km & (links.split_link == "train")).sum())
+    N["single_cell"] = int(links.single_radar_cell.sum())
+    gauges = d.gauges()
+    N["gauges"] = gauges[[c for c in ("gauge_id", "network", "gauge_type") if c in gauges.columns]].to_dict("records")
+    lgm = d.table("link_gauge_matches")
+    N["lgm_rows"] = len(lgm)
 
-# ---------------------------------------------------------------------------------------------- f. metadata
-sb = d.sublinks()
-N["sub_rows"] = len(sb)
-N["pairs_complete"] = int((sb.groupby("cml_id").size() == 2).sum())
-N["dir_map"] = sb.groupby("sublink").direction.unique().apply(list).to_dict()
-N["pol"] = sb.polarization.value_counts().to_dict()
-N["freq_range"] = (round(sb.frequency_ghz.min(), 2), round(sb.frequency_ghz.max(), 2))
-N["len_range_km"] = (round(sb.length_m.min() / 1000, 2), round(sb.length_m.median() / 1000, 2),
-                     round(sb.length_m.max() / 1000, 2))
-ant = sb[["site_0_antenna_diameter_m", "site_1_antenna_diameter_m"]]
-N["ant_missing"] = int(ant.isna().any(axis=1).sum())
-N["ant_values"] = sorted(pd.unique(ant.to_numpy().ravel()[~np.isnan(ant.to_numpy().ravel())]).round(2).tolist())
-fd = links.frequency_ghz_sublink_2 - links.frequency_ghz_sublink_1
-N["freq_diff"] = (round(float(fd.abs().min()), 3), round(float(fd.abs().max()), 3))
-N["freq_same"] = int((fd.abs() < 1e-6).sum())                       # links whose two directions have one frequency
+    # ---------------------------------------------------------------------------------------------- f. metadata
+    sb = d.sublinks()
+    N["sub_rows"] = len(sb)
+    N["pairs_complete"] = int((sb.groupby("cml_id").size() == 2).sum())
+    N["dir_map"] = sb.groupby("sublink").direction.unique().apply(list).to_dict()
+    N["pol"] = sb.polarization.value_counts().to_dict()
+    N["freq_range"] = (round(sb.frequency_ghz.min(), 2), round(sb.frequency_ghz.max(), 2))
+    N["len_range_km"] = (round(sb.length_m.min() / 1000, 2), round(sb.length_m.median() / 1000, 2),
+                         round(sb.length_m.max() / 1000, 2))
+    ant = sb[["site_0_antenna_diameter_m", "site_1_antenna_diameter_m"]]
+    N["ant_missing"] = int(ant.isna().any(axis=1).sum())
+    N["ant_values"] = sorted(pd.unique(ant.to_numpy().ravel()[~np.isnan(ant.to_numpy().ravel())]).round(2).tolist())
+    fd = links.frequency_ghz_sublink_2 - links.frequency_ghz_sublink_1
+    N["freq_diff"] = (round(float(fd.abs().min()), 3), round(float(fd.abs().max()), 3))
+    N["freq_same"] = int((fd.abs() < 1e-6).sum())                       # links whose two directions have one frequency
 
-# ---------------------------------------------------------------------------------------------- g. weather
-met = d.store("met_1h")
-N["met_vars"], N["met_span"] = [v for v in met.data_vars if not v.startswith("qc_")], span(met)
+    # ---------------------------------------------------------------------------------------------- g. weather
+    met = d.store("met_1h")
+    N["met_vars"], N["met_span"] = [v for v in met.data_vars if not v.startswith("qc_")], span(met)
 
-# ---------------------------------------------------------------------------------------------- h. tail scripts
+    # ---------------------------------------------------------------------------------------------- h. tail scripts
 
-print("2. the example ...")
-# ---------------------------------------------------------------------------------------------- example choice
-el = d.table("event_links")[["event_id", "cml_id", "radar_total_mm", "gauge_id", "gauge_distance_to_path_m",
-                             "has_reference_gauge"]]
-pool = b[(b.split_event == "train") & b.significant & b.use_in_waa_main & b.link_has_wet_slot]
-pool = pool.merge(el, on=["event_id", "cml_id"])
-dur_h = (pool.event_end - pool.event_start) / pd.Timedelta(hours=1)
-pool = pool[pool.has_reference_gauge & (pool.run_count == 1) & (dur_h <= MAX_EVENT_H)].sort_values(["radar_total_mm", "sublink_id"], ascending=[False, True])
-ex = None
-for r in pool.itertuples():
-    after = st[r.cml_id].loc[r.last_wet_end:r.last_wet_end + pd.Timedelta(hours=POST_H)]
-    if (after != 1).all():                                          # no wet bin for 12 h after the rain ended
-        ex = r
-        break
-if ex is None:
-    raise SystemExit("no example found with the rule above")
-t0 = ex.event_start - pd.Timedelta(hours=PRE_H)
-t1 = ex.event_end + pd.Timedelta(hours=POST_H)
-pad = f"{max(PRE_H, POST_H)}h"
+    print("2. the example ...")
+    # ---------------------------------------------------------------------------------------------- example choice
+    el = d.table("event_links")[["event_id", "cml_id", "radar_total_mm", "gauge_id", "gauge_distance_to_path_m",
+                                 "has_reference_gauge"]]
+    pool = b[(b.split_event == "train") & b.significant & b.use_in_waa_main & b.link_has_wet_slot]
+    pool = pool.merge(el, on=["event_id", "cml_id"])
+    dur_h = (pool.event_end - pool.event_start) / pd.Timedelta(hours=1)
+    pool = pool[pool.has_reference_gauge & (pool.run_count == 1) & (dur_h <= MAX_EVENT_H)].sort_values(["radar_total_mm", "sublink_id"], ascending=[False, True])
+    ex = None
+    for r in pool.itertuples():
+        after = st[r.cml_id].loc[r.last_wet_end:r.last_wet_end + pd.Timedelta(hours=POST_H)]
+        if (after != 1).all():                                          # no wet bin for 12 h after the rain ended
+            ex = r
+            break
+    if ex is None:
+        raise SystemExit("no example found with the rule above")
+    t0 = ex.event_start - pd.Timedelta(hours=PRE_H)
+    t1 = ex.event_end + pd.Timedelta(hours=POST_H)
+    pad = f"{max(PRE_H, POST_H)}h"
 
-A = bl.a_of_t(ex.cml_id, ex.event_id, res="5min", pad=pad, d=d)[ex.sublink_id].loc[t0:t1 - pd.Timedelta("1ns")]
-cm = d.cml([ex.sublink_id], t0, t1, res="5min", variables=["tl_mean", "n_valid_tl", "flags_or"], qc="flags")
-lst = d.link_state([ex.cml_id], t0, t1)
-rad = d.radar_along([ex.cml_id], t0, t1)
-g_res = "5min" if ex.gauge_id != "GbgA" else "15min"
-gau = d.gauge([ex.gauge_id], t0, t1, res=g_res).rate_mm_h.to_pandas().iloc[:, 0]
-idx = A.index
-jump_on = np.zeros(len(idx), bool)
-for j in jumps[jumps.sublink_id == ex.sublink_id].itertuples():
-    jump_on |= (idx >= j.start_utc) & (idx < j.end_utc)
-net = d.network_state(t0, t1).event_id.to_pandas()
+    A = bl.a_of_t(ex.cml_id, ex.event_id, res="5min", pad=pad, d=d)[ex.sublink_id].loc[t0:t1 - pd.Timedelta("1ns")]
+    cm = d.cml([ex.sublink_id], t0, t1, res="5min", variables=["tl_mean", "n_valid_tl", "flags_or"], qc="flags")
+    lst = d.link_state([ex.cml_id], t0, t1)
+    rad = d.radar_along([ex.cml_id], t0, t1)
+    g_res = "5min" if ex.gauge_id != "GbgA" else "15min"
+    gau = d.gauge([ex.gauge_id], t0, t1, res=g_res).rate_mm_h.to_pandas().iloc[:, 0]
+    idx = A.index
+    jump_on = np.zeros(len(idx), bool)
+    for j in jumps[jumps.sublink_id == ex.sublink_id].itertuples():
+        jump_on |= (idx >= j.start_utc) & (idx < j.end_utc)
+    net = d.network_state(t0, t1).event_id.to_pandas()
 
-w = pd.DataFrame({
-    "A_db": A.round(2),
-    "tl_mean_db": cm.tl_mean.to_pandas().iloc[:, 0].round(2),
-    "n_valid_tl": cm.n_valid_tl.to_pandas().iloc[:, 0],
-    "link_state": lst.state.to_pandas().iloc[:, 0].map(STATE_NAME),
-    "state_reasons": [bits(v, STATE_REASON_BITS) for v in lst.reasons.to_pandas().iloc[:, 0]],
-    "qc_flags_or": [bits(v, QC_BITS) for v in cm.flags_or.to_pandas().iloc[:, 0]],
-    "dew_risk_hour": bl.dew_mask_5min(idx),
-    "in_dry_jump": jump_on,
-    "network_event": net.reindex(idx).replace("", "-"),
-    "radar_R_mean_mmh": rad.R_mean.to_pandas().iloc[:, 0].round(2),
-    f"gauge_{ex.gauge_id}_mmh": gau.reindex(idx, method="ffill" if g_res == "15min" else None).round(2),
-}, index=idx)
-w.index.name = "time_utc"
-save(w, P.INVENTORY_EXAMPLE_CSV)
-pair_flags = {k: getattr(ex, k) for k in ("baseline_db", "window_h", "n_usable_slots", "missing", "excursion",
-                                          "dew_risk_in_window", "dew_risk_during_event", "daily_cycle_large",
-                                          "degraded", "toggling", "use_in_waa_main", "offset_std",
-                                          "offset_p90_abs")}
-N["ex"] = dict(event_id=ex.event_id, sublink_id=ex.sublink_id, cml_id=int(ex.cml_id),
-               event_start=ex.event_start, event_end=ex.event_end, last_wet_end=ex.last_wet_end,
-               radar_total_mm=round(ex.radar_total_mm, 1), gauge=ex.gauge_id,
-               gauge_dist_m=round(ex.gauge_distance_to_path_m), n_candidates=len(pool),
-               length_km=round(links.set_index("cml_id").length_m[ex.cml_id] / 1000, 2),
-               freq=float(sb.set_index("sublink_id").frequency_ghz[ex.sublink_id]))
+    w = pd.DataFrame({
+        "A_db": A.round(2),
+        "tl_mean_db": cm.tl_mean.to_pandas().iloc[:, 0].round(2),
+        "n_valid_tl": cm.n_valid_tl.to_pandas().iloc[:, 0],
+        "link_state": lst.state.to_pandas().iloc[:, 0].map(STATE_NAME),
+        "state_reasons": [bits(v, STATE_REASON_BITS) for v in lst.reasons.to_pandas().iloc[:, 0]],
+        "qc_flags_or": [bits(v, QC_BITS) for v in cm.flags_or.to_pandas().iloc[:, 0]],
+        "dew_risk_hour": bl.dew_mask_5min(idx),
+        "in_dry_jump": jump_on,
+        "network_event": net.reindex(idx).replace("", "-"),
+        "radar_R_mean_mmh": rad.R_mean.to_pandas().iloc[:, 0].round(2),
+        f"gauge_{ex.gauge_id}_mmh": gau.reindex(idx, method="ffill" if g_res == "15min" else None).round(2),
+    }, index=idx)
+    w.index.name = "time_utc"
+    save(w, P.INVENTORY_EXAMPLE_CSV)
+    pair_flags = {k: getattr(ex, k) for k in ("baseline_db", "window_h", "n_usable_slots", "missing", "excursion",
+                                              "dew_risk_in_window", "dew_risk_during_event", "daily_cycle_large",
+                                              "degraded", "toggling", "use_in_waa_main", "offset_std",
+                                              "offset_p90_abs")}
+    N["ex"] = dict(event_id=ex.event_id, sublink_id=ex.sublink_id, cml_id=int(ex.cml_id),
+                   event_start=ex.event_start, event_end=ex.event_end, last_wet_end=ex.last_wet_end,
+                   radar_total_mm=round(ex.radar_total_mm, 1), gauge=ex.gauge_id,
+                   gauge_dist_m=round(ex.gauge_distance_to_path_m), n_candidates=len(pool),
+                   length_km=round(links.set_index("cml_id").length_m[ex.cml_id] / 1000, 2),
+                   freq=float(sb.set_index("sublink_id").frequency_ghz[ex.sublink_id]))
 
-pd.set_option("display.width", 250, "display.max_rows", 1000, "display.max_columns", 30)
-print(f"\nExample: {ex.sublink_id}, event {ex.event_id}; pair-level flags (one value per event and sub-link):")
-print(pair_flags)
-print(w.to_string())
+    pd.set_option("display.width", 250, "display.max_rows", 1000, "display.max_columns", 30)
+    print(f"\nExample: {ex.sublink_id}, event {ex.event_id}; pair-level flags (one value per event and sub-link):")
+    print(pair_flags)
+    print(w.to_string())
 
-# ---------------------------------------------------------------------------------------------- the figure
-# Two panels on one time axis (no second y axis): A with the link_state as background, radar + gauge below.
-fig, (a1, a2) = plt.subplots(2, 1, figsize=(12, 6), sharex=True, gridspec_kw={"height_ratios": [3, 1.3]})
-stc = lst.state.to_pandas().iloc[:, 0]
-for ax in (a1, a2):
-    for ti, s in stc.items():
-        if s == 1:
-            ax.axvspan(ti, ti + pd.Timedelta("5min"), color="#4c8ed9", alpha=0.25, lw=0)
-        elif s == -1:
-            ax.axvspan(ti, ti + pd.Timedelta("5min"), color="#999999", alpha=0.15, lw=0)
-    for t, ls_ in ((ex.event_start, "--"), (ex.event_end, "--"), (ex.last_wet_end, ":")):
-        ax.axvline(t, color="#333333", ls=ls_, lw=1)
-a1.step(A.index, A.to_numpy(), where="post", color="#1a1a1a", lw=1.2)
-a1.axhline(0, color="#777777", lw=0.8)
-a1.set_ylabel("A = tl_mean - baseline v2 (dB)")
-a1.set_title(f"{ex.sublink_id} ({N['ex']['length_km']} km, {N['ex']['freq']:.1f} GHz), event {ex.event_id}. "
-             "Background: link_state wet (blue) / unknown (grey) / dry (white). "
-             "Dashed: event start / end; dotted: end of last wet bin", fontsize=9)
-a2.step(rad.time.values, rad.R_mean.to_pandas().iloc[:, 0].to_numpy(), where="post", color="#1f5fa8", lw=1.2,
-        label="radar R_mean along path")
-a2.step(gau.index, gau.to_numpy(), where="post", color="#c0661b", lw=1.2,
-        label=f"gauge {ex.gauge_id} ({N['ex']['gauge_dist_m']} m from path)")
-a2.set_ylabel("rain (mm/h)")
-a2.legend(fontsize=8, loc="upper right", frameon=False)
-for ax in (a1, a2):
-    ax.grid(alpha=0.25)
-    for s in ("top", "right"):
-        ax.spines[s].set_visible(False)
-a2.set_xlabel("time (UTC)")
-fig.tight_layout()
-save(fig, P.INVENTORY_EXAMPLE_PNG, dpi=120)
-plt.close(fig)
+    # ---------------------------------------------------------------------------------------------- the figure
+    # Two panels on one time axis (no second y axis): A with the link_state as background, radar + gauge below.
+    fig, (a1, a2) = plt.subplots(2, 1, figsize=(12, 6), sharex=True, gridspec_kw={"height_ratios": [3, 1.3]})
+    stc = lst.state.to_pandas().iloc[:, 0]
+    for ax in (a1, a2):
+        for ti, s in stc.items():
+            if s == 1:
+                ax.axvspan(ti, ti + pd.Timedelta("5min"), color="#4c8ed9", alpha=0.25, lw=0)
+            elif s == -1:
+                ax.axvspan(ti, ti + pd.Timedelta("5min"), color="#999999", alpha=0.15, lw=0)
+        for t, ls_ in ((ex.event_start, "--"), (ex.event_end, "--"), (ex.last_wet_end, ":")):
+            ax.axvline(t, color="#333333", ls=ls_, lw=1)
+    a1.step(A.index, A.to_numpy(), where="post", color="#1a1a1a", lw=1.2)
+    a1.axhline(0, color="#777777", lw=0.8)
+    a1.set_ylabel("A = tl_mean - baseline v2 (dB)")
+    a1.set_title(f"{ex.sublink_id} ({N['ex']['length_km']} km, {N['ex']['freq']:.1f} GHz), event {ex.event_id}. "
+                 "Background: link_state wet (blue) / unknown (grey) / dry (white). "
+                 "Dashed: event start / end; dotted: end of last wet bin", fontsize=9)
+    a2.step(rad.time.values, rad.R_mean.to_pandas().iloc[:, 0].to_numpy(), where="post", color="#1f5fa8", lw=1.2,
+            label="radar R_mean along path")
+    a2.step(gau.index, gau.to_numpy(), where="post", color="#c0661b", lw=1.2,
+            label=f"gauge {ex.gauge_id} ({N['ex']['gauge_dist_m']} m from path)")
+    a2.set_ylabel("rain (mm/h)")
+    a2.legend(fontsize=8, loc="upper right", frameon=False)
+    for ax in (a1, a2):
+        ax.grid(alpha=0.25)
+        for s in ("top", "right"):
+            ax.spines[s].set_visible(False)
+    a2.set_xlabel("time (UTC)")
+    fig.tight_layout()
+    save(fig, P.INVENTORY_EXAMPLE_PNG, dpi=120)
+    plt.close(fig)
 
-print("3. writing the report ...")
-REL = lambda p: Path(p).resolve().relative_to(P.REPO).as_posix()     # noqa: E731  repo-relative path for the report
-x = N["ex"]
-gauge_rows = pd.DataFrame(N["gauges"])
-example_rows = w.reset_index()
-example_rows["time_utc"] = example_rows.time_utc.dt.strftime("%m-%d %H:%M")
+    print("3. writing the report ...")
+    REL = lambda p: Path(p).resolve().relative_to(P.REPO).as_posix()     # noqa: E731  repo-relative path for the report
+    x = N["ex"]
+    gauge_rows = pd.DataFrame(N["gauges"])
+    example_rows = w.reset_index()
+    example_rows["time_utc"] = example_rows.time_utc.dt.strftime("%m-%d %H:%M")
 
-report = f"""# wet_antenna step 0: inventory of the inputs
+    report = f"""# wet_antenna step 0: inventory of the inputs
 
 Written by `research/wet_antenna/inventory.py` (rerunnable; every number below is measured by that script
 on release `{cfg['release']}` and the frozen baseline products). Inventory only: nothing is analysed, fitted or
@@ -479,19 +474,22 @@ sub-link; `network_event` = network event id. Full table also in `{REL(P.INVENTO
     the START of its hour. A possible 1 h ambiguity for dew risk.
 11. **Sub-links with no data.** {N['sub_all_nan']} sub-links have no valid 5 min `tl_mean` at all; status over all 728:
     {N['status_all']}. Unusable sub-links have no baseline rows.
-12. **Committed table lacks columns:** `r1b_real_events.csv.gz` has no `dew_risk_during_event` (already noted in the
-    baseline CATALOG).
+12. **Committed table lacks columns:** `r1b_real_events.csv.gz` has no `dew_risk_during_event`.
 13. **Exploration results are not module inputs.** `tail_sample.py` / `gauge_radius.py` hold the learners' tail
     decisions (start = first non-wet bin; end = next wet bin or a maximum length; max 6 h in the sample, where 10 of
-    12 tails reached 6 h, i.e. the 6 h cap was often binding). ORGANIZATION.md: modules never read from
+    12 tails reached 6 h, i.e. the 6 h cap was often binding). Modules never read from
     `explorations/`, so the decisions must be re-stated in this module.
-14. **Folder layout.** Step 0 first used `scripts/`, `outputs/`, `reports/`; since step 1 the module follows
-    ORGANIZATION.md (code at the root, `outputs/{{products,tables,figures,reports}}/`, README.md, CATALOG.md).
+14. **Folder layout.** Step 0 first used `scripts/`, `outputs/`, `reports/`; since step 1 the module has its
+    code at the root and `outputs/{{products,tables,figures,reports}}/`.
 15. **Flag gap seen in the example.** In {x['sublink_id']} a dry-weather rise of A (link_state dry, no rain on radar /
     gauge, dew-risk hours) is below the 1 dB `dry_jumps` threshold, so no time-resolved flag marks it; only the
     hourly `dew_risk` is set. A tail that ran into such a period would carry it. (Observation, not analysed.)
 """
-save(report, P.INVENTORY_REPORT)
-print("\n" + "=" * 100 + "\n")
-print(report)
-print(f"\nwrote {REL(P.INVENTORY_REPORT)}, {REL(P.INVENTORY_EXAMPLE_PNG)}, {REL(P.INVENTORY_EXAMPLE_CSV)}")
+    save(report, P.INVENTORY_REPORT)
+    print("\n" + "=" * 100 + "\n")
+    print(report)
+    print(f"\nwrote {REL(P.INVENTORY_REPORT)}, {REL(P.INVENTORY_EXAMPLE_PNG)}, {REL(P.INVENTORY_EXAMPLE_CSV)}")
+
+
+if __name__ == "__main__":
+    main()

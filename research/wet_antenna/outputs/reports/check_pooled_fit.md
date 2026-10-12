@@ -1,7 +1,7 @@
 # wet_antenna step 3b-1b: pooled fit, re-tested on simulated tails (known truth)
 
 Written by `research/wet_antenna/check_pooled_fit.py` (libraries `pooled_fit.py`, `simulator.py`, `per_tail_fit.py`; settings
-`wet_antenna.check_pooled_fit`). No real tail is fitted. Run time 27 s (fits cached in `.cache/check_pooled_fit/`).
+`wet_antenna.check_pooled_fit`). No real tail is fitted. Run time 31 s (fits cached in `.cache/check_pooled_fit/`).
 
 ## Summary in plain words
 

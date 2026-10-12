@@ -154,7 +154,7 @@ wet_antenna:
     gallery_seed: 2
     gallery_hours: 6
   freeze:                    # step 2c (freeze_tail_set.py): last fixes, then the frozen tail set for modelling
-    tail_set: v1             # id written into every frozen file (file names carry no version: ORGANIZATION.md)
+    tail_set: v1             # id written into every frozen file (file names carry no version)
     radar_nan_is_unknown: true   # a radar NaN bin on the path counts like a rain trace (start and strict end)
     rise_smooth_min: 10      # rise cut v2: trailing median of A over this many minutes ...
     rise_db: 0.6             # ... >= this above its running minimum since t0_trace, on ALL minutes ...

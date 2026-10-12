@@ -2,7 +2,7 @@
 
 Written by `research/wet_antenna/refine_selection.py` (settings `wet_antenna.refine_selection`, plus `wet_antenna.selection` for the
 step 2 rules it keeps). No fitting, no shape-based selection. TRAIN events only; VAL rows of
-`research/wet_antenna/outputs/products/tails_selected.csv` carry the same new columns. Run time 54 s.
+`research/wet_antenna/outputs/products/tails_selected.csv` carry the same new columns. Run time 55 s.
 
 ## 1. New tail start t0_trace
 

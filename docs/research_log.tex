@@ -76,7 +76,7 @@
 CellEnMon lab, final-year electrical engineering project\par
 Data-driven discovery of rain-induced and wet-antenna attenuation laws in commercial microwave links\par
 \vspace{0.6em}
-11 October 2026
+12 October 2026
 \end{center}
 
 \vspace{1em}
@@ -94,10 +94,13 @@ almost every truth. It was replaced by two jumps. The pooled fit first draws a f
 sparse regression then names the equation of that clean curve. On simulated data this recovers an exponential and a
 quadratic law for $W$ above $0.35\dB$ in the first hour, and the result was confirmed on fresh data with the rule fixed
 in advance. Three additions failed their tests and will not be used: a curve that may contain a step, a choice between
-laws by held-out likelihood, and an uncertainty band from resampling one data set. No law has been fitted to real
-tails yet. Still to come are the drying law itself on the real tails, the wetting law from very short links, the
-verification on unseen events, and then the two later stages of the project: the path law $f(L,\Rbar,Z)$ and the rain
-estimate.
+laws by held-out likelihood, and an uncertainty band from resampling one data set. The tools that passed were then
+applied to the real tails for the first time. They did \emph{not} identify a drying law: the drying rate per dB of
+water falls as $W$ grows, a shape that none of the candidate laws has, because about one tail in five stays flat or
+rises after the rain has stopped. Without the events in which this is common, the tails are close to an exponential
+with a time constant of about 15 minutes. Which tails count as drying has to be decided before the next step. Still
+to come are the drying law itself, the wetting law from very short links, the verification on unseen events, and then
+the two later stages of the project: the path law $f(L,\Rbar,Z)$ and the rain estimate.
 
 \enlargethispage{2\baselineskip}
 \tableofcontents
@@ -108,7 +111,7 @@ estimate.
 
 \subsection{What this report covers}
 
-The report covers the research folder of the repository as it stood on 11 October 2026: the baseline module and the
+The report covers the research folder of the repository as it stood on 12 October 2026: the baseline module and the
 WAA module. The data layer below it (the pipeline that turns the raw OpenMRG files into a verified data set) has its
 own technical report and is summarised here in one page (Section~\ref{sec:data}). Every number in this report is
 taken from the documents the two modules keep: their method descriptions, their decision logs and their step reports
@@ -140,7 +143,7 @@ Figure~\ref{fig:roadmap} shows the whole project and Table~\ref{tab:status} the 
 \node[lab, above=1mm of path] {PLANNED};
 \node[lab, above=1mm of eval] {PLANNED};
 % inside stage 1
-\node[todo, text width=23mm, below=17mm of waa] (s3) {Drying law\\{\scriptsize $h(W)$, real tails}};
+\node[doing, text width=23mm, below=17mm of waa] (s3) {Drying law\\{\scriptsize $h(W)$, real tails}};
 \node[done, text width=23mm, left=of s3] (s2) {Test the tools\\{\scriptsize on simulated tails}};
 \node[done, text width=23mm, left=of s2] (s1) {Drying tails\\{\scriptsize frozen set of 429}};
 \node[todo, text width=23mm, right=of s3] (s4) {Wetting law\\{\scriptsize $g(R,W)$, short links}};
@@ -148,7 +151,7 @@ Figure~\ref{fig:roadmap} shows the whole project and Table~\ref{tab:status} the 
 \draw[arr] (s1) -- (s2); \draw[arr] (s2) -- (s3); \draw[arr] (s3) -- (s4); \draw[arr] (s4) -- (s5);
 \node[draw, densely dashed, rounded corners=3pt, inner sep=4pt, fit=(s1)(s5)] (grp) {};
 \node[lab, anchor=south west] at ($(grp.north west)+(0,0.5mm)$) {Inside Stage 1:};
-\draw[densely dashed] (wet_antenna.south) -- (wet_antenna.south |- grp.north);
+\draw[densely dashed] (waa.south) -- (waa.south |- grp.north);
 \end{tikzpicture}
 \caption{The project, and the inside of Stage~1. Thick solid border with grey fill: done. Thick dashed border: in
 progress. Dotted border: planned.}
@@ -157,7 +160,7 @@ progress. Dotted border: planned.}
 
 \begin{table}[H]
 \centering
-\caption{Steps of the research part and their state on 11 October 2026.}
+\caption{Steps of the research part and their state on 12 October 2026.}
 \label{tab:status}
 \small
 \begin{tabularx}{\linewidth}{@{}l Y l l@{}}
@@ -174,7 +177,8 @@ WAA 3b-1c & Stress test of that fit & done: partly passed & \ref{sec:stress} \\
 WAA 3b-2 & SINDy directly on simulated tails & done: failed & \ref{sec:sindy} \\
 WAA 3b-3, 3b-3b & Two jumps: draw the drying curve, then name its equation & done: partly passed & \ref{sec:twojumps} \\
 WAA 3b-3c, 3b-4 & The rest of the discovery method; the cause of a false step & done: partly passed & \ref{sec:method} \\
-WAA 4, 6 & Drying law $h(W)$ on real tails (next); what it depends on & not started & \ref{sec:next} \\
+WAA 4 & Drying law $h(W)$ on the real tails, first fit & done: no law identified & \ref{sec:real} \\
+WAA 6 & What the drying depends on & not started & \ref{sec:next} \\
 WAA 3c, 7 & Simulator of whole events; wetting law $g(R,W)$ from very short links & not started & \ref{sec:next} \\
 WAA 8--9 & Verification; final WAA equation & not started & \ref{sec:next} \\
 Stage 2 & Path law $f(L,\Rbar,Z)$ with symbolic regression & not started & \ref{sec:next} \\
@@ -1119,7 +1123,108 @@ laws, and that fitting single tails cannot either. Fitting all tails together, w
 tail, a bounded offset and a correlated-noise model, recovers the right law and its parameters on simulated data.
 SINDy on the raw tails does not. Drawing a free drying curve with the pooled fit and then naming its equation does,
 for $W$ above $0.35\dB$ in the first hour. A step in the curve, a choice by held-out likelihood and a resampling band
-failed their tests. All of this is on simulated data: no law has been fitted to the real tails.}
+failed their tests. All of this is on simulated data; the first fit of the real tails is the next section.}
+
+% =====================================================================================================================
+\section{The first fit of the real tails}
+\label{sec:real}
+
+\subsection{What was done}
+
+This is the first step that fits a law to real data. It uses the frozen tail set, training events only: 429 tails
+from 24 events on 159 links. The 123 validation tails were not read. Only the tools that passed on simulated data
+were used, with their settings unchanged, and the rule for reading the result was written down before the run:
+
+\begin{itemize}
+\item the five named laws, each fitted to all tails together from four starting points and compared by BIC;
+\item the free drying curve $k(W)$ of Eq.~\eqref{eq:freecurve}, drawn from the first 60 minutes of the tails and read
+between $0.35\dB$ and $2.83\dB$ (the top of the data), with a band from 20 refits on resampled events;
+\item the naming of that curve by sparse regression, with symbolic regression as a cross-check.
+\end{itemize}
+
+Every result was repeated on other versions of the set: without the events flagged for many rising tails, without
+the tails with a level flag, on the alternative set with weaker tails, and with each of the three largest events left
+out in turn.
+
+\subsection{What was found}
+
+\textbf{No drying law is identified.} The free curve \emph{falls} as $W$ grows: the slope of $\log k$ against
+$\log W$ is $-0.87$ on the main set ($-1.43$ to $-0.82$ over the resampled refits). In words, a wetter antenna would
+dry \emph{more slowly} per dB of water: the time constant $1/k$ is 6 minutes at $0.35\dB$, 33 minutes at $1\dB$ and 71
+minutes at $2.83\dB$. None of the simulated truths has this shape: an exponential gives slope 0, and the nonlinear
+laws give a rising curve. A direct look at the measured rate of decrease, with no model, shows the same trend, so it
+is in the data and not made by the fit.
+
+\textbf{Where it comes from.} Many tails do not decay at first. Ten minutes after the tail starts, 21\,\% of the
+tails are still at 90\,\% or more of their starting level. In the events that had been flagged for many rising tails
+this share is 38\,\%; in the other events it is 11\,\%. A tail that stays flat at a high level tells the fit that
+strong attenuation dries slowly. Table~\ref{tab:realsens} shows how much the result depends on which tails are
+included.
+
+\begin{table}[H]
+\centering
+\caption{Slope of the free drying curve on the real tails, for different versions of the tail set. Slope 0 means an
+exponential law.}
+\label{tab:realsens}
+\small
+\begin{tabularx}{0.9\linewidth}{@{}Y l@{}}
+\toprule
+\textbf{Tails used} & \textbf{Slope of $\log k$ against $\log W$} \\
+\midrule
+Main set (429 tails) & $-0.87$ \\
+Without the events flagged for many rising tails & $-0.05$ \\
+Without the tails with a level flag & $-0.79$ \\
+Alternative set (weaker tails included) & $-0.69$ \\
+One of the three largest events left out, in turn & $-0.60$, $-1.60$, $-0.46$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Without the flagged events the curve is flat, which is the exponential law, with a time constant of about 15
+minutes. So the answer depends on a choice that has not been made: which tails count as drying.
+
+\textbf{The curve is badly determined.} The four starting points of the fit end far apart (800 to 1700 units of the
+fit's cost; on simulated data the difference was about 8), and the resampling band is $\pm 94\,\%$ wide. A dip near
+$0.9\dB$ moves when a knot of the curve is moved, so it is not read.
+
+\textbf{No equation.} Sparse regression keeps all five terms of its library, which means it finds no short formula.
+The best formula with one term misses the curve by 61\,\% (root mean square), and the simplest formula from symbolic
+regression is a constant rate, which misses it by 49\,\%.
+
+\textbf{The named laws, and a fault in the comparison.} As run, the exponential law wins by BIC, with a time
+constant of 25.2 minutes. Looking into this found a fault in our own tool: for the exponential and the two-layer law
+the starting level of a tail may be fitted as negative, while the other laws and the free curve keep it positive.
+Three rising tails with a negative start account for the whole advantage of the exponential over the power law with
+exponent 1, which is the same law. Compared like for like, the switch law is ahead of the exponential by 21.5 BIC
+on the main set; over the other versions of the set this ranges from the exponential ahead by 0.9 to the switch
+ahead by 216. This is not decisive either. The residuals of the fit have 4.1 times the variance that the dry-weather
+noise model allows, so every BIC difference is overstated, and the switch law depends on its starting point. One
+thing is stable in all seven versions of the set: the power law ends at exponent 1 and the linear + quadratic law
+ends with no quadratic term. A drying rate that \emph{rises} with $W$ is therefore not supported in the first hour.
+
+\textbf{Shape of the real tails.} The median of $A/\Astart$ is 0.568, 0.229 and 0.142 at 10, 30 and 60 minutes.
+
+\textbf{Literature.} The comparison with a published drying time constant could not be made: neither the proposal
+nor the other documents of the project quote one, and none was invented. The values have to be read from [1] and [9].
+
+\subsection{How we read it}
+
+The model that was tested, $dW/dt = -h(W)$ with one curve for all tails and a random speed per tail, does not
+describe the first hour of the real tails. A tail that stays flat or rises after the last trace of rain points to
+something the model leaves out: water still arriving (light rain or drizzle below what the references see, or
+condensation), which belongs to the wetting term $g(R,W)$ of Eq.~\eqref{eq:target}, or a tail that starts too early.
+The exponential with a time constant of 15 to 28 minutes is a placeholder, not a discovered law.
+
+Three decisions are open before the next step: (a) which tails define drying (all of the frozen set; the set without
+the flagged events; or tails restarted where the decay begins, which would be a new frozen set); (b) repairing the
+fault in the starting level and repeating the tests on simulated data, this time with some rising tails among them;
+(c) a larger noise level, or a fitted one, for drying tails.
+
+\inshort{The first fit of the real tails did not find a drying law. The drying rate falls with $W$ (slope $-0.87$),
+because about one tail in five stays flat or rises after the rain. Without the events where this is common the tails
+are close to an exponential with a time constant of about 15 minutes. No short equation fits the curve, the
+comparison of the named laws is not decisive, and a fault in that comparison was found. A drying rate that rises with
+$W$ is not supported.}
 
 % =====================================================================================================================
 \section{Where we stand}
@@ -1127,7 +1232,7 @@ failed their tests. All of this is on simulated data: no law has been fitted to 
 
 \begin{table}[H]
 \centering
-\caption{What is established, and what is not, on 11 October 2026.}
+\caption{What is established, and what is not, on 12 October 2026.}
 \label{tab:stand}
 \small
 \begin{tabularx}{\linewidth}{@{}Y Y@{}}
@@ -1139,7 +1244,7 @@ Baselines for the test events and test links (needed for the final held-out chec
 The baseline does not absorb the drying after rain. &
 Whether the attenuation at the start of a tail is the antenna or residual light rain on the path. \\
 A memory after rain exists: strong tails take hours to return to the dry level. &
-The form of the drying law. No law has been fitted to real tails. \\
+The form of the drying law. The first fit of the real tails did not identify one (Section~\ref{sec:real}). \\
 A frozen, non-circular set of 429 drying tails (and 123 validation tails not yet looked at). &
 What the unexplained night-time rises are (drizzle or condensation). \\
 The median tail halves in about 15 minutes and has a slow remainder. &
@@ -1149,9 +1254,11 @@ Whether a trustworthy uncertainty band can be made from one data set (resampling
 SINDy on the raw tails does not recover a known law on simulated data. In two jumps (a free drying curve, then sparse regression) an exponential and a quadratic law are recovered for $W$ above $0.35\dB$ in the first hour, also on fresh data. &
 Anything below $0.35\dB$, a switch level included, and why the fit prefers a false step there (it is not the $0.3\dB$ quantization). \\
 On simulated data the power law and the linear + quadratic law cannot be told apart. &
-Which law the real tails follow, and whether the real noise is close enough to the two noise models tested. \\
+Which law the real tails follow. The real residuals have 4.1 times the variance of the noise model, so the real noise is \emph{not} close enough to it. \\
 Dry-weather noise is correlated over tens of minutes; dew produces WAA-like jumps at night. &
 The wetting law, the path law $f$, and the rain estimate: not started. \\
+On the real tails, a drying rate that rises with $W$ is not supported in the first hour; about one tail in five stays flat or rises after the rain. &
+Which tails count as drying, and what keeps the others flat or rising (rain below the references, condensation, or a tail that starts too early). \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -1185,7 +1292,7 @@ links, where the path term is small. Figure~\ref{fig:plan} shows the route.
 \centering
 \begin{tikzpicture}[node distance=5mm and 5mm]
 \node[done, text width=40mm] (a) {Tool tests for drying\\{\scriptsize simulated tails: pooled fit, two jumps}};
-\node[todo, text width=40mm, right=of a] (b) {Drying law $h(W)$\\{\scriptsize free curve, its equation and the named laws, on the real tails}};
+\node[doing, text width=40mm, right=of a] (b) {Drying law $h(W)$\\{\scriptsize first fit of the real tails done: no law yet}};
 \node[todo, text width=40mm, right=of b] (c) {What drying depends on\\{\scriptsize frequency, antenna, wind, temperature, humidity}};
 \node[todo, text width=40mm, below=10mm of a] (d) {Wetting law $g(R,W)$\\{\scriptsize simulator of whole events first; very short links, $h$ kept fixed}};
 \node[todo, text width=40mm, right=of d] (e) {Verification\\{\scriptsize unseen events; longer links; dew events}};
@@ -1194,21 +1301,18 @@ links, where the path term is small. Figure~\ref{fig:plan} shows the route.
 \draw[arr] (c.south) -- ++(0,-4mm) -| (d.north);
 \draw[arr] (d)--(e); \draw[arr] (e)--(f);
 \end{tikzpicture}
-\caption{The remaining route of Stage 1. Grey fill: done. Dotted border: planned.}
+\caption{The remaining route of Stage 1. Grey fill: done. Dashed border: in progress. Dotted border: planned.}
 \label{fig:plan}
 \end{figure}
 
 \subsection{The steps}
 
 \begin{enumerate}
-\item \textbf{The drying law on real tails (next).} Only what passed on simulated data is used
-(Section~\ref{sec:method}). The free drying curve is drawn from the frozen set, first 60 minutes, and read for $W$
-above $0.35\dB$; its shape is given as a slope; its equation is named by sparse regression on resampled points, with
-symbolic regression as a cross-check. Next to it the five named laws are fitted with the pooled method, each from
-several starting points, and compared by BIC. Every result is repeated on four versions of the set (the main set;
-without the flagged events; without the tails with a level flag; the alternative set). The resampling band is shown
-with the warning that it was too narrow on simulated data. The exponential drying of the literature is one of the
-candidates, so the comparison with the literature is built in.
+\item \textbf{The drying law on real tails (first fit done, no law yet).} The first fit
+(Section~\ref{sec:real}) did not identify a law. Before it is repeated, three things are decided and repaired: which
+tails define drying; the fault in the starting level of a tail, followed by a repeat of the tests on simulated data
+with some rising tails among them; and the noise level used for drying tails. The drying time constants of the
+literature [1], [9] are read from the papers, so that the comparison can be made with numbers.
 \item \textbf{What drying depends on.} Relate the drying speed to frequency, antenna size, time of day, temperature,
 wind and humidity.
 \item \textbf{The wetting law, from very short links.} On links shorter than about $0.6$ km the path term is small, so
@@ -1244,7 +1348,14 @@ under resampling.
 \begin{itemize}
 \item Why does the fit prefer a false step at low $W$ on simulated data? It is not the quantization. What is left to
 test: whether the fit without a step had simply not searched long enough, the bound on the baseline offset, and the
-very narrow shape of the step. Should this be found before the real tails are fitted, or after?
+very narrow shape of the step.
+\item Which tails define drying: all of the frozen set, the set without the events with many rising tails, or
+tails restarted where the decay begins?
+\item What keeps the attenuation flat or rising after the last trace of rain in about one tail in five: rain or
+drizzle below what the references see, re-wetting, condensation, or attenuation along the path? The answer decides
+whether those minutes belong to the drying term or to the wetting term.
+\item The residuals of the real tails have 4.1 times the variance of the dry-weather noise model. Should the noise
+level of drying tails be larger, or fitted?
 \item Which is wrong in the resampling band: the resampling itself, or the short search each refit was given?
 \item Are the night-time rises after rain drizzle that the radar misses, or condensation? The humidity record has
 gaps exactly there.
@@ -1326,17 +1437,17 @@ research folder.
 \toprule
 \textbf{Topic} & \textbf{Document} \\
 \midrule
-Baseline method, flags, accuracy & \code{baseline\_estm/METHOD.md} \\
-Baseline validation & \code{R1\_validation.md} and \code{R1b\_validation.md}, in the reports folder of \code{baseline\_estm} \\
-Tail definitions, rules of set v1 & \code{WAA\_estm/README.md} \\
-What each WAA step decided & \code{WAA\_estm/DECISIONS.md} \\
-Frozen tail set & \code{step2c\_freeze.md}, in the reports folder of \code{WAA\_estm} \\
-Simulator and its calibration & \code{step3a\_fix.md}, same folder \\
-Pooled fit on simulated tails & \code{step3b1b\_pooled\_fit.md}, same folder \\
-SINDy on simulated tails & \code{step3b2\_sindy\_fake.md}, same folder \\
-The two jumps and their confirmation & \code{step3b3\_curve\_then\_equation.md} and \code{step3b3b\_confirm.md}, same folder \\
-The rest of the method; the false step & \code{step3b3c\_method.md} and \code{step3b4\_quantization.md}, same folder \\
-The WAA plan & \code{WAA\_estm/roadmap.md} \\
+Baseline method, flags, accuracy, decisions & \code{baseline/METHOD.md} \\
+Baseline validation & \code{R1\_validation.md} and \code{R1b\_validation.md}, in the reports folder of \code{baseline} \\
+Tail definitions, rules of set v1, what each WAA step decided & \code{wet\_antenna/METHOD.md} \\
+Frozen tail set & \code{freeze\_tail\_set.md}, in the reports folder of \code{wet\_antenna} \\
+Simulator and its calibration & \code{calibrate\_simulator.md}, same folder \\
+Pooled fit on simulated tails & \code{check\_pooled\_fit.md}, same folder \\
+SINDy on simulated tails & \code{check\_sindy.md}, same folder \\
+The two jumps and their confirmation & \code{check\_free\_curve.md} and \code{confirm\_free\_curve.md}, same folder \\
+The rest of the method; the false step & \code{check\_discovery\_method.md} and \code{check\_quantization.md}, same folder \\
+The first fit of the real tails & \code{fit\_real\_drying.md}, same folder \\
+The plan, and how to rerun every step & \code{docs/ROADMAP.md} and \code{docs/REPRODUCE.md} \\
 The data layer & \code{docs/pipeline\_log.pdf} (next to this report) \\
 \bottomrule
 \end{tabularx}}

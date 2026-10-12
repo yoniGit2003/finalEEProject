@@ -36,13 +36,14 @@ import matplotlib.pyplot as plt
 
 from research.wet_antenna import paths as P
 from research.common.save import save
+from research.common.config import load_config
+from research.common.report import md_table, rel
+from research.wet_antenna import datasets as dsets
+from research.wet_antenna import fit_jobs as fj
 from research.wet_antenna import simulator as ws
-from research.wet_antenna import pooled_fit as wp
 from research.wet_antenna import free_curve as wc
-from research.wet_antenna import stress_pooled_fit as st                          # event bootstrap, noise tables, T1 noise
-from research.wet_antenna import check_free_curve as s3                   # load_tails, true_k, start_theta, menu_fit, md, rel
 
-CFG = s3.CFG
+CFG = load_config()
 SIM, S, FIT, S1C = CFG["wet_antenna"]["simulator"], CFG["wet_antenna"]["confirm_free_curve"], CFG["wet_antenna"]["check_free_curve"], CFG["wet_antenna"]["stress_pooled_fit"]
 STEP, SPM = SIM["rsl_step_db"], SIM["samples_per_min"]
 DEC = S["decision"]
@@ -52,85 +53,6 @@ JTERMS = wc.curve_terms(JGRID)
 KINDS = {"main": "spread 1.25, 3a-fix noise", "T1": "spread 1.25, T1 noise"}
 INK, INK2 = "#1a1a1a", "#52514e"
 CACHE = P.CACHE / "confirm_free_curve"
-md, rel = s3.md, s3.rel
-
-
-# =================================================================================================== one job (worker)
-_INPUTS = {}
-
-
-def run_job(job):
-    """Free-curve pooled fit of ONE dataset (first 60 min). The stages are those of step 3b-3 (without the curvature
-    interval, which is not used here); each is cached in one json file per job."""
-    f_ = CACHE / f"job_{job['tag']}.json"
-    res = json.loads(f_.read_text()) if f_.exists() else {}
-    if res.get("done"):
-        return res
-    if not _INPUTS:
-        _, _INPUTS["noise"], _INPUTS["offset_sd"] = st.load_noise()
-    noise, offset_sd = _INPUTS["noise"], _INPUTS["offset_sd"]
-
-    def save():
-        tmp = f_.with_suffix(".tmp")
-        tmp.write_text(json.dumps(res))
-        tmp.replace(f_)
-
-    t0 = time.time()
-    tails = s3.load_tails(job["sim"])
-    D = wp.pack(tails, noise, offset_sd, S["window_min"], FIT["min_points"])
-    used = set(D["tail_id"])
-    n_ind = len({(tl["cml_id"], tl["event_copy"]) for tl in tails if tl["tail_id"] in used})
-    cv = wc.Curve(job["knots"], prior_sd=FIT["prior_sd_logk"])
-    lam0, mf = FIT["lambda_start"], FIT["maxfev"]
-    res.update({k: job[k] for k in ("tag", "truth", "kind", "rep", "knots", "w_hi", "minutes_in_range")})
-    res.update({"n_tails": len(D["tail_id"]), "n_independent": n_ind, "n_points": int(len(D["T"]))})
-
-    # 1. the starts with the middle penalty; the best one is continued
-    res.setdefault("starts", {})
-    for name, spec in FIT["starts"].items():
-        if name not in res["starts"]:
-            x0 = np.r_[s3.start_theta(spec, cv.knots), np.log(FIT["s_start"])]
-            res["starts"][name] = cv.fit(D, x0, lam0, mf["start"])
-            save()
-    res.setdefault("lam", {})
-    if str(lam0) not in res["lam"]:
-        best = min(res["starts"], key=lambda n: res["starts"][n]["cost"])
-        res["lam"][str(lam0)] = {**cv.fit(D, res["starts"][best]["x"], lam0, mf["finish"]), "from": best}
-        save()
-    x_mid = res["lam"][str(lam0)]["x"]
-    # 2. the other penalties, from that solution
-    for lam in FIT["lambda_grid"]:
-        if str(lam) not in res["lam"]:
-            res["lam"][str(lam)] = cv.fit(D, x_mid, lam, mf["other_lambda"])
-            save()
-    # 3. 2-fold cross-validation over event draws: fit on one half, log-likelihood of the other half
-    res.setdefault("cv", {})
-    evs = np.random.default_rng([S["seed_base"], job["rep"]]).permutation(sorted({tl["event_copy"] for tl in tails}))
-    half = [set(evs[::2].tolist()), set(evs[1::2].tolist())]
-    Dh = None
-    for lam in FIT["lambda_grid"]:
-        if str(lam) not in res["cv"]:
-            if Dh is None:
-                Dh = [wp.pack([tl for tl in tails if tl["event_copy"] in h], noise, offset_sd, S["window_min"],
-                              FIT["min_points"]) for h in half]
-            out = 0.0
-            for a, b in ((0, 1), (1, 0)):
-                r = cv.fit(Dh[a], res["lam"][str(lam)]["x"], lam, mf["cv"])
-                out += cv.loglik(np.asarray(r["x"]), Dh[b])
-            res["cv"][str(lam)] = out
-            save()
-    lam_star = max(FIT["lambda_grid"], key=lambda v: res["cv"][str(v)])
-    fit = res["lam"][str(lam_star)]
-    res.update({"lam_star": lam_star, "x": fit["x"], "ll": fit["ll"], "s": float(np.exp(fit["x"][-1])),
-                "bic": -2 * fit["ll"] + (cv.K + 1) * np.log(n_ind),
-                "nfev": sum(r["nfev"] for r in list(res["starts"].values()) + list(res["lam"].values()))})
-    # 4. F4 menu fit (m4 only): for the "free curve worse than F4" warning sign
-    if job["menu_f4"]:
-        s3.menu_fit(job, D, n_ind, "F4", S["menu_f4_starts"], res, save)
-    res["seconds"] = round(res.get("seconds", 0.0) + time.time() - t0, 1)
-    res["done"] = True
-    save()
-    return res
 
 
 # =================================================================================================== figure
@@ -147,7 +69,7 @@ def k_figure(truth, reps, w, K, par, cover):
     med = np.exp(np.median(np.log(Kf), axis=0))
     ax.plot(wf, med, "-", color=INK, lw=2.4, label="learned k(W): median (thick solid), each replicate (thin solid)")
     ax.text(wf[-1], med[-1], " learned", fontsize=9, va="center")
-    kt = s3.true_k(truth, par, wf)
+    kt = wc.true_k(truth, par, wf)
     if kt is not None:
         ax.plot(wf, kt, "--", color=INK, lw=2.0, label="true k(W) (dashed)")
         ax.text(wf[-1], kt[-1] * 0.9, " true", fontsize=9, va="top")
@@ -187,7 +109,7 @@ def main():
                          columns=["tail_id", "minutes_since_t0_trace", "A_db"]).to_pandas()
     nan_real = {t: g.sort_values("minutes_since_t0_trace").A_db.isna().to_numpy() for t, g in real.groupby("tail_id")}
     del real
-    nz, noise, _ = st.load_noise()
+    nz, noise, _ = dsets.load_noise()
     cal = pd.read_csv(P.SIM_CALIBRATION).set_index("law")
     par = {law: {k: float(cal.loc[law, k]) for k in ws.PARAMS[law]} for law in ("m1", "m3", "m4", "m5")}
     m6 = pd.read_csv(P.PER_TAIL_M6)
@@ -209,12 +131,12 @@ def main():
             f_ = sim_file(kind, t, rep)
             if not f_.exists():
                 if sk is None:
-                    sk = st.bootstrap_skeleton(skel, np.random.default_rng(seed))
+                    sk = dsets.bootstrap_skeleton(skel, np.random.default_rng(seed))
                     masks = {r.tail_id: nan_real[r.orig_tail_id] for r in sk.itertuples()}
                     z = ws.spread_z(sk, seed)
                 if kind == "T1" and noise_t1 is None:      # the T1 noise of step 3b-1c (same function, same settings)
                     block = int(round(nz[nz.source == "fit"].median_control_len_min.median() / 10) * 10)
-                    w_fast, _, _ = st.t1_noise(nz, block)
+                    w_fast, _, _ = dsets.t1_noise(nz, block)
                     T1N = S1C["t1_noise"]
                     noise_t1 = {r.sublink_id: (r.sigma_white_db, np.sqrt(w_fast) * r.sigma_slow_db, T1N["tau_fast_min"],
                                                np.sqrt(1 - w_fast) * r.sigma_slow_db, T1N["tau_slow_min"])
@@ -234,7 +156,7 @@ def main():
           f"{min(m['w_hi'] for m in meta.values()):.2f}-{max(m['w_hi'] for m in meta.values()):.2f} dB")
 
     def jobs_for(reps, kinds):
-        jobs = [{"tag": f"{kind}_{t}_{rep}", "truth": t, "kind": kind, "rep": rep, "sim": str(sim_file(kind, t, rep)),
+        jobs = [{"tag": f"{kind}_{t}_{rep}", "truth": t, "kind": kind, "rep": rep, "sim": str(sim_file(kind, t, rep)), "cache": str(CACHE),
                  "knots": m["knots"], "w_hi": m["w_hi"], "points": m["points"], "minutes_in_range": m["minutes_in_range"],
                  "menu_f4": kind == "main" and t == "m4"}
                 for (kind, t, rep), m in meta.items() if rep in reps and kind in kinds]
@@ -243,7 +165,7 @@ def main():
     def run(jobs, label):
         t_run, out = time.time(), []
         with ProcessPoolExecutor(max_workers=workers) as pool:
-            futs = {pool.submit(run_job, j): j for j in jobs}
+            futs = {pool.submit(fj.free_curve_job, j): j for j in jobs}
             for k, fu in enumerate(as_completed(futs)):
                 out.append(fu.result())
                 print(f"   {label} {k + 1}/{len(jobs)}: {futs[fu]['tag']} ({time.time() - t_run:.0f} s)", flush=True)
@@ -290,7 +212,7 @@ def main():
         aw = wc.slope_weights(np.log(w))
         K = np.array([wc.Curve(r["knots"]).k(np.asarray(r["x"])[:-1], w) for r in reps])
         slopes = np.log(K) @ aw
-        kt = s3.true_k(truth, par, w)
+        kt = wc.true_k(truth, par, w)
         store[(kind, truth)] = (reps, w, K)
         for r, k_, sl in zip(reps, K, slopes):
             costs = {n: v["cost"] for n, v in r["starts"].items()}
@@ -452,15 +374,15 @@ tail set v1 is not changed.
 - **Run time**: {plan['wall_s'] / 60:.0f} min wall ({fits.seconds.sum() / 3600:.1f} process-hours; cached in
   `.cache/confirm_free_curve/`). This run: {time.time() - clock:.0f} s.
 
-{md(fit_sum)}
+{md_table(fit_sum)}
 
 Chosen penalty (fits):
 
-{md(lam_tab)}
+{md_table(lam_tab)}
 
 Best start (fits; with all knots above 0.2 dB the "step" start is a flat start at k = {FIT['starts']['step']['high']} / min):
 
-{md(start_tab)}
+{md_table(start_tab)}
 
 ## 2. Judged range per dataset
 
@@ -469,14 +391,14 @@ W_lo = {W_LO} dB (fixed). W_hi = the level with {FIT['support_min_minutes']} tai
 [W_lo, `w_hi_judged`] = the range common to the {R} replicates, on {FIT['grid_points']} log-spaced points.
 `minutes_in_range` = tail-minutes with A inside the range (median over replicates).
 
-{md(rng_tab)}
+{md_table(rng_tab)}
 
 ## 3. Curve (`{rel(P.CONFIRM_CURVE_SHAPE)}`)
 
 Rule: the true k(W) inside the min-max band of the {R} replicates on >= {DEC['band_coverage']:.0%} of the judged range,
 AND the median learned / true k within +-{DEC['level_tol']:.0%}.
 
-{md(main_cs[main_cs.truth.isin(DEC['shape'])][curve_cols])}
+{md_table(main_cs[main_cs.truth.isin(DEC['shape'])][curve_cols])}
 
 {figs}
 
@@ -486,7 +408,7 @@ Slope of log k vs log W over the judged range, one number per replicate (least s
 |slope| < {DEC['flat_abs_slope']} in >= {need} of {R}; m3, m5 rising = slope > {DEC['rising_slope']} in >= {need} of {R}.
 m4 and m6 are listed for comparison (no rule).
 
-{md(main_cs[shape_cols])}
+{md_table(main_cs[shape_cols])}
 
 ## 5. Jump 2: terms and coefficients (`{rel(P.CONFIRM_J2_SEL)}`, `{rel(P.CONFIRM_J2_COEF)}`)
 
@@ -494,14 +416,14 @@ h(W) = W k(W) of every replicate on the judged grid; library {', '.join(JTERMS)}
 thresholded backward elimination and threshold choice of 3b-3 (leave-one-replicate-out, one-SE rule). Replicates in
 which a term is selected (**bold** = a term of the true law):
 
-{md(sel_piv)}
+{md_table(sel_piv)}
 
 Rule: true terms in >= {need} of {R}, no other term in more than {DEC['max_spurious']} of {R}, counted coefficient
 (median of fitted / true, 0 where not selected) within +-{DEC['coef_tol']:.0%}.
 
-{md(main_j2[main_j2.truth.isin(DEC['j2_terms'])][j2_cols])}
+{md_table(main_j2[main_j2.truth.isin(DEC['j2_terms'])][j2_cols])}
 
-{md(coefs[coefs.kind == 'main'].drop(columns='kind'))}
+{md_table(coefs[coefs.kind == 'main'].drop(columns='kind'))}
 
 ## 6. m6 and m4
 
@@ -514,20 +436,20 @@ x{six.median_k_ratio}. Jump 2 returns: {main_j2[main_j2.truth == 'm6'].returned.
 **m4 (two layers: no single curve).** Rule: PASS if BIC(free curve) - BIC(F4) > {DEC['m4_dbic_vs_f4']:g} in >= {need} of {R}.
 The free curve counts {S['knots'] + 1} parameters ({S['knots']} knots + s), F4 counts 4.
 
-{md(m4)}
+{md_table(m4)}
 
 What the free curve draws for m4 over the judged range: slopes {main_cs[main_cs.truth == 'm4'].slopes.iloc[0]}; jump 2
 returns {main_j2[main_j2.truth == 'm4'].returned.iloc[0]}.
 
 ## 7. T1 robustness (noise the fit does not know)
 
-{('Same tests as the main data; reported, not part of the verdict.' + chr(10) + chr(10) + md(cs[cs.kind == 'T1'][curve_cols + shape_cols[1:]]) + chr(10) + chr(10) + md(j2[j2.kind == 'T1'][j2_cols])) if t1 else 'Not run (cut for time).'}
+{('Same tests as the main data; reported, not part of the verdict.' + chr(10) + chr(10) + md_table(cs[cs.kind == 'T1'][curve_cols + shape_cols[1:]]) + chr(10) + chr(10) + md_table(j2[j2.kind == 'T1'][j2_cols])) if t1 else 'Not run (cut for time).'}
 
 Fitted spread s (true {S['s_true']}), median: {', '.join(f"{k} {t}: {v:.2f}" for (k, t), v in fits.groupby(['kind', 'truth']).s.median().items())}.
 
 ## 8. Verdict and what it means for Step 4
 
-{md(dec)}
+{md_table(dec)}
 
 **Overall: {overall}** (over m1, m3, m5, m4; PASS = every criterion of every truth).
 
@@ -616,10 +538,7 @@ UNCLEAR = """1. **The F4 fit behind the m4 test may be too weak, and I did not c
 9. **W_hi differs between replicates** (1.9-3.5 dB) because it follows the bootstrap draw; the judged range is the
    common part, so the top knot of most replicates lies above it. On real tails there is one W_hi.
 10. **Timing**: replicate 0 was run and timed in full this time (7.7 min, projected 0.64 h); the run took 32 min,
-    nothing was cut.
-11. **Key figure**: the limit of 6 is reached, so the five `step3b3b_k_<truth>.png` are diag. If one should become
-    key I would take `confirm_free_curve_k_m1.png` (flat curve inside the band despite the spread) and demote
-    `outputs/tables/check_pooled_fit_recovery.csv`. The real-tail curve of Step 4 is the better candidate, so I would wait."""
+    nothing was cut."""
 
 
 if __name__ == "__main__":

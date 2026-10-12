@@ -23,7 +23,6 @@ import os
 os.environ.setdefault("NUMBA_NUM_THREADS", "1")            # one thread per process: the processes run in parallel
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from pathlib import Path
 import json
 import subprocess
 import sys
@@ -39,13 +38,14 @@ import matplotlib.pyplot as plt
 
 from research.wet_antenna import paths as P
 from research.common.save import save
+from research.common.config import load_config
+from research.common.report import md_table, rel
+from research.wet_antenna import datasets as dsets
 from research.wet_antenna import pooled_fit as wp
 from research.wet_antenna import free_curve as wc
 from research.wet_antenna import sindy as sd
-from research.wet_antenna import stress_pooled_fit as st                          # load_noise, f1_start, shape
-from research.wet_antenna import check_free_curve as s3                   # load_tails, start_theta, md, rel
 
-CFG = s3.CFG
+CFG = load_config()
 W = CFG["wet_antenna"]
 S, S1C, FIT, S3B, A3C, D3C = W["fit_real_drying"], W["stress_pooled_fit"], W["check_free_curve"], W["confirm_free_curve"], W["check_discovery_method"]["a"], W["check_discovery_method"]["d"]
 W_LO = S3B["w_lo_db"]
@@ -55,7 +55,6 @@ FAMILY = {"F1": "exponential", "F3": "nonlinear in W (F3 / F5)", "F5": "nonlinea
           "F4": "two layers", "F6": "state switch"}
 INK, INK2 = "#1a1a1a", "#52514e"
 CACHE = P.CACHE / "fit_real_drying"
-md, rel = s3.md, s3.rel
 
 
 # =================================================================================================== data
@@ -66,7 +65,7 @@ class _Noise(dict):
 
 
 def load_noise():
-    nz, noise, offset_sd = st.load_noise()
+    nz, noise, offset_sd = dsets.load_noise()
     out = _Noise(noise)
     out.default = tuple(float(nz[c].median()) for c in ("sigma_white_db", "sigma_slow_db", "tau_noise_min"))
     return nz, out, offset_sd
@@ -83,7 +82,7 @@ def pack_set(name, window):
     """Tails of one dataset and its packed arrays for the first `window` minutes; N of the BIC = (link, event) pairs."""
     if not _INPUTS:
         _, _INPUTS["noise"], _INPUTS["offset_sd"] = load_noise()
-    tails = s3.load_tails(data_file(name))
+    tails = dsets.load_tails(data_file(name))
     D = wp.pack(tails, _INPUTS["noise"], _INPUTS["offset_sd"], window, FIT["min_points"])
     used = set(D["tail_id"])
     n_ind = len({(tl["cml_id"], tl["event_copy"]) for tl in tails if tl["tail_id"] in used})
@@ -120,7 +119,7 @@ def run_menu(job):
         if label == "f1sol":                               # the best F1 fit of this dataset (finished in phase 1)
             f1 = max((json.loads(menu_file(name, window, "F1", lb).read_text()) for lb in menu_starts("F1")),
                      key=lambda r: r["ll"])
-            theta0, s0 = st.f1_start(cand, f1["theta"][0]), f1["s"]
+            theta0, s0 = wp.f1_start(cand, f1["theta"][0]), f1["s"]
         else:
             theta0, s0 = S1C["t2_starts"][cand][label]
         t0 = time.time()
@@ -150,7 +149,7 @@ def run_curve(job):
     res.setdefault("starts", {})
     for name, spec in FIT["starts"].items():
         if name not in res["starts"]:
-            res["starts"][name] = cv.fit(D, np.r_[s3.start_theta(spec, cv.knots), np.log(FIT["s_start"])], lam0, mf["start"])
+            res["starts"][name] = cv.fit(D, np.r_[wc.start_theta(spec, cv.knots), np.log(FIT["s_start"])], lam0, mf["start"])
             _save(f_, res)
     res.setdefault("lam", {})
     if str(lam0) not in res["lam"]:
@@ -198,7 +197,7 @@ def run_boot(job):
     Db = wp.pack([tl for e in drawn for tl in by_ev[e]], _INPUTS["noise"], _INPUTS["offset_sd"], WIN, FIT["min_points"])
     cv = wc.Curve(job["knots"], prior_sd=FIT["prior_sd_logk"])
     x0 = {"fit": np.asarray(job["x"]),
-          "flat": np.r_[s3.start_theta(FIT["starts"]["flat"], cv.knots), np.log(FIT["s_start"])]}
+          "flat": np.r_[wc.start_theta(FIT["starts"]["flat"], cv.knots), np.log(FIT["s_start"])]}
     fits = {k: cv.fit(Db, x0[k], job["lam"], D3C["maxfev"]) for k in S["bootstrap_starts"]}
     best = min(fits, key=lambda k: fits[k]["cost"])
     res = {"b": job["b"], "events": drawn, "x": fits[best]["x"], "from": best,
@@ -356,7 +355,7 @@ def jump2(w, k, rng):
 # =================================================================================================== check 4 helpers
 def tail_fits(cand, theta, s, D):
     """Per tail of D: the fitted curve of a menu law at the tail's speed factor (posterior mode, as
-    waa_pooled.tail_speed_factors), with its profiled start W0 and offset c. Returns a list of dicts in D's order."""
+    pooled_fit.tail_speed_factors), with its profiled start W0 and offset c. Returns a list of dicts in D's order."""
     code, lin, th = wp.CAND_CODE[cand], cand in wp.LINEAR, np.asarray(theta, float)
     _, gstar, kap = wp._tails_laplace(code, lin, th, float(s), D["T"], D["FY"], D["F1"], D["start"], D["length"], D["rho"],
                                       D["ma"], D["s2"], D["g0"], D["o2"], D["a0"], wp.G_LATTICE)
@@ -562,7 +561,7 @@ def main():
     else:
         _, D, _ = pack_set("main", WIN)
         cv = wc.Curve(M["knots"], prior_sd=FIT["prior_sd_logk"])
-        x_flat = np.r_[s3.start_theta(FIT["starts"]["flat"], cv.knots), 0.0]
+        x_flat = np.r_[wc.start_theta(FIT["starts"]["flat"], cv.knots), 0.0]
         wp.pooled_loglik("F1", [30.0], 1.0, D), cv.loglik(x_flat, D)        # compile
         t0 = time.time()
         for _ in range(5):
@@ -668,7 +667,7 @@ def main():
                               "theta": json.dumps([round(float(v), 6) for v in r.theta])})
     menu = pd.DataFrame(menu_rows)
     # Like-for-like reading (added after the first run, see the report). F1 and F4 are linear in the start W0, and
-    # waa_pooled profiles it without a bound: a tail that RISES gets a negative W0 (negative water). F3, F5, F6 and the
+    # pooled_fit.py profiles it without a bound: a tail that RISES gets a negative W0 (negative water). F3, F5, F6 and the
     # free curve keep W0 >= 0.001 dB. "F1+" = the exponential with W0 >= 0: the F3 code at n = 1 with F1's fitted tau
     # and s (one likelihood evaluation; F3's own fit is used instead if it ended at n = 1 with a higher likelihood).
     plus_rows, neg_start = [], {}
@@ -859,7 +858,7 @@ def main():
             sh = []
             for f_ in files:
                 d = pd.read_parquet(f_, columns=["tail_id", "minutes_since_t0_trace", "A_db", "A_start_trace_db"])
-                sh.append(st.shape(d, d.groupby("tail_id").A_start_trace_db.first().to_dict(), mins))
+                sh.append(dsets.shape(d, d.groupby("tail_id").A_start_trace_db.first().to_dict(), mins))
             for k in mins:
                 v = [s_[k] for s_ in sh]
                 row[f"ratio_{k}min"] = round(float(np.median(v)), 3)
@@ -887,7 +886,7 @@ def main():
     # ------------------------------------------------------------------------------------------- report
     def menu_md(name, window):
         g = menu[(menu.dataset == name) & (menu.window_min == window)]
-        return md(g[["candidate", "family", "k", "ll", "bic", "dbic", "dbic_like_for_like", "parameters", "s", "best_start",
+        return md_table(g[["candidate", "family", "k", "ll", "bic", "dbic", "dbic_like_for_like", "parameters", "s", "best_start",
                      "bic_spread_starts"]])
 
     def read_md(rd):
@@ -960,7 +959,7 @@ Main set: **{M['tails']} tails, {M['events']} events, {M['links']} links** ({M['
 {FIT['support_min_minutes']} tail-minutes of A above it in the first {WIN} min); {M['minutes_in_range']} of {M['points']}
 tail-minutes lie inside [{W_LO}, W_hi]. Knots: {', '.join(f'{v:.2f}' for v in M['knots'])} dB. The 3 big events:
 
-{md(ev_tab)}
+{md_table(ev_tab)}
 
 ## 3. Menu fits, main set, first {WIN} min (`{rel(P.REAL_MENU)}`)
 
@@ -1002,9 +1001,9 @@ b = {F0['f5_b']:.1g}: the data do not want a rate that RISES with W. On fake dat
 - Information only: BIC(free curve) - BIC(menu winner) = {S0.curve_minus_winner_bic:+.1f} (the free curve had a lower BIC
   than the TRUE law on fake data too, 3b-3; not a test).
 
-{md(grid_tab)}
+{md_table(grid_tab)}
 
-{md(cinfo)}
+{md_table(cinfo)}
 
 `start_cost_spread` = worst minus best of the 4 starts after 150 evaluations (fake data, 3b-3b: median 8).
 
@@ -1012,18 +1011,18 @@ b = {F0['f5_b']:.1g}: the data do not want a rate that RISES with W. On fake dat
 {S['raw_rate']['smooth_min']} min per tail, dA/dt by central difference, k = -mean(dA/dt) / median(A) per level bin.
 No offset, no speed factor, no noise model: only a check that the falling trend is in the data and not made by the fit.
 
-{md(raw)}
+{md_table(raw)}
 
 Tails that do not decay (A / A_start, mean of A over 5 min):
 
-{md(stay)}
+{md_table(stay)}
 
 ## 5. Jump 2 on the curve above {W_LO} dB (`{rel(P.REAL_JUMP2)}`)
 
 Library {', '.join(JTERMS)} (sw x = max(W - x dB, 0)); h(W) = W k(W) on {FIT['grid_points']} log-spaced points.
 `relative_rms_misfit` = rms of formula / curve - 1. Main set:
 
-{md(jt[jt.dataset == 'main'].drop(columns=['dataset', 'terms']))}
+{md_table(jt[jt.dataset == 'main'].drop(columns=['dataset', 'terms']))}
 
 - **E-SINDy (main tool): h(W) = {formula_text(j2['main']['esindy'])}** ({S0.jump2_family}).
 - The same elimination on each of the {len(boots)} bootstrap curves: {', '.join(f'"{k}" x{v}' for k, v in boot_formulas.items())}.
@@ -1047,11 +1046,11 @@ like on fake data).
 
 ### Checks 1 and 2: sensitivity sets and leaving out each big event (`{rel(P.REAL_SUMMARY)}`)
 
-{md(summ[sens_cols])}
+{md_table(summ[sens_cols])}
 
 Jump 2 per sensitivity set (E-SINDy formula; PySR's own pick):
 
-{md(j2_sets[j2_sets.dataset.isin(SENS)])}
+{md_table(j2_sets[j2_sets.dataset.isin(SENS)])}
 
 `curve_slope` is over each set's own [{W_LO}, W_hi]; `curve_slope_common_range` over [{W_LO}, {w_common[-1]:.2f}] dB.
 `tails_big3` = tails from the 3 big events.
@@ -1070,7 +1069,7 @@ minutes. `whitened_variance_ratio` = variance of the residuals after the noise f
 what the dry noise would give (1 = the residuals are exactly dry noise). Statistics inside a {WIN} min window are not
 comparable with the control-tail row (tails about 12 h long): compare each row with its own `noise_model_*`.
 
-{md(quality)}
+{md_table(quality)}
 
 ![gallery](../figures/{P.REAL_FIG_GALLERY.name})
 
@@ -1079,7 +1078,7 @@ comparable with the control-tail row (tails about 12 h long): compare each row w
 Slope over the read range, and median A / A_start at 10 / 30 / 60 min (mean of A over 5 min). `slope_inside` allows
 +-{q['slope']}. Real ranges: bootstrap over events, 5-95 %.
 
-{md(fake)}
+{md_table(fake)}
 
 ## 8. The result in one sentence
 
@@ -1108,9 +1107,9 @@ and 25-28 min (the others); on the first 6 h of the main set 18.7 min.
 `docs/proposal.md` names the dynamic model of Schleiss et al. [1] and the corrections of Pastorek et al. [9] without any
 number; `pipeline/docs/openmrg_summary.md` only says that the RSL recovery lags the rain in the Torslanda case;
 `pipeline/docs/reference/cml_libraries_howto.md` lists pycomlink's `waa_schleiss_2013(..., tau)` without a value;
-`roadmap.md` names "Minda & Nakamura exponential drying", which is not in the proposal's reference list and has no
+`docs/ROADMAP.md` names "Minda & Nakamura exponential drying", which is not in the proposal's reference list and has no
 value either. The only paper stored in the repository is the OpenMRG paper [13]. To do before Step 8a: read the time
-constants from [1] and [9] themselves and add them, with page numbers, to `roadmap.md`."""
+constants from [1] and [9] themselves and add them, with page numbers, to `docs/ROADMAP.md`."""
 PLAIN = """**The tools were built to answer "exponential, quadratic, or something in between". The real tails gave an answer
 that was not on the list, and they also exposed a fault in the menu comparison. Step 4 does NOT deliver a drying law.**
 
@@ -1191,10 +1190,7 @@ UNCLEAR = """1. **The menu comparison has a fault that only real data showed.** 
     every fake truth, which means the fake data did not contain the real behaviour: the tools were not tested on
     tails that plateau or rise.
 13. **Cross-validation halves**: events are split 12 / 12 at random; with 3 big events the halves are unequal in
-    tails. Seed fixed in `wet_antenna.fit_real_drying.cv_seed`; not varied.
-14. **Key figure**: `fit_real_drying_k_real.png` is saved as diag (the module has 6 key outputs). If it is promoted, the output to
-    demote is `outputs/tables/check_pooled_fit_recovery.csv` (as proposed in 3b-2 and 3b-3b). My advice is to wait: the curve
-    is not yet a result to show as "the law"."""
+    tails. Seed fixed in `wet_antenna.fit_real_drying.cv_seed`; not varied."""
 
 
 if __name__ == "__main__":

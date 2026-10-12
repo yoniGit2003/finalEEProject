@@ -3,7 +3,7 @@
 Five parts, each with its own rule fixed before the run (`wet_antenna.check_discovery_method` in research/config.yaml):
   A  Jump 2 alone: the TRUE h(W) = W k(W) of m1, m3, m5, m6 plus 2 % / 5 % noise; does best-subset + BIC (and
      ensemble SINDy) name the true terms?
-  B  Jump 1 with an optional step: free curve x smooth step at a fitted W_c (waa_curve.StepCurve); kept only if BIC
+  B  Jump 1 with an optional step: free curve x smooth step at a fitted W_c (free_curve.StepCurve); kept only if BIC
      improves by > 6. Must find the switch of m6 and no step for m1, m3, m5.
   C  Jump 3: every candidate (the jump-2 formulas, the step law, the menu laws F1, F3, F4, F5, F6) is refitted in the
      pooled model on half of the event draws and scored by the log-likelihood of the other half (both ways).
@@ -36,13 +36,15 @@ import matplotlib.pyplot as plt
 
 from research.wet_antenna import paths as P
 from research.common.save import save
+from research.common.config import load_config
+from research.common.report import md_table, rel
+from research.wet_antenna import datasets as dsets
+from research.wet_antenna import fit_jobs as fj
 from research.wet_antenna import simulator as ws
 from research.wet_antenna import pooled_fit as wp
 from research.wet_antenna import free_curve as wc
-from research.wet_antenna import stress_pooled_fit as st                          # noise tables, menu fits from several starts
-from research.wet_antenna import check_free_curve as s3                   # load_tails, true_k, md, rel
 
-CFG = s3.CFG
+CFG = load_config()
 S, S3B, FIT, S1C = (CFG["wet_antenna"][k] for k in ("check_discovery_method", "confirm_free_curve", "check_free_curve", "stress_pooled_fit"))
 A, B, C, D_ = S["a"], S["b"], S["c"], S["d"]
 W_LO = S3B["w_lo_db"]
@@ -52,7 +54,6 @@ INK, INK2 = "#1a1a1a", "#52514e"
 CACHE = P.CACHE / "check_discovery_method"
 CACHE_3B = P.CACHE / "confirm_free_curve"
 FAMILY = {"F1": "exponential", "F3": "quadratic", "F5": "quadratic", "F4": "two layers", "F6": "switch", "step": "switch"}
-md, rel = s3.md, s3.rel
 
 
 def formula_family(terms):
@@ -75,8 +76,8 @@ _INPUTS = {}
 
 def _load(job):
     if not _INPUTS:
-        _, _INPUTS["noise"], _INPUTS["offset_sd"] = st.load_noise()
-    tails = s3.load_tails(CACHE_3B / f"sim_main_{job['truth']}_{job['rep']}.parquet")
+        _, _INPUTS["noise"], _INPUTS["offset_sd"] = dsets.load_noise()
+    tails = dsets.load_tails(CACHE_3B / f"sim_main_{job['truth']}_{job['rep']}.parquet")
     r3 = json.loads((CACHE_3B / f"job_main_{job['truth']}_{job['rep']}.json").read_text())
     return tails, r3, _INPUTS["noise"], _INPUTS["offset_sd"]
 
@@ -169,14 +170,14 @@ def run_bc(job):
                                "k": K + 3, "held": held}
         save()
     if "menu_done" not in res:
-        st.CACHE = CACHE                                   # the menu fits of this step are cached in check_discovery_method/
         starts = {}
         for c in C["menu"]:
             starts[c] = {k: [v[0], v[1], S1C["maxfev_generic"]] for k, v in S1C["t2_starts"][c].items()}
             if c != "F1":
                 starts[c]["f1sol"] = [None, None, S1C["maxfev_generic"]]
-        rows = st.fit_dataset({"test": "c", "truth": job["truth"], "rep": job["rep"], "starts": starts,
-                               "sim": str(CACHE_3B / f"sim_main_{job['truth']}_{job['rep']}.parquet")})
+        rows = fj.menu_fits_job({"test": "c", "truth": job["truth"], "rep": job["rep"], "starts": starts,
+                                  "cache": str(CACHE),   # the menu fits of this step are cached in its own folder
+                                  "sim": str(CACHE_3B / f"sim_main_{job['truth']}_{job['rep']}.parquet")})
         for c in C["menu"]:
             fits = [r for r in rows if r["candidate"] == c]
             best = max(fits, key=lambda r: r["ll"])
@@ -240,7 +241,7 @@ def part_a(par):
     E = A["esindy"]
     rows = []
     for i, truth in enumerate(A["truths"]):
-        h = w * s3.true_k(truth, par, w)
+        h = w * wc.true_k(truth, par, w)
         for j, sig in enumerate(A["noise"]):
             for d in range(A["draws"]):
                 rng = np.random.default_rng([A["seed"], i, j, d])
@@ -326,7 +327,7 @@ def part_a_pysr(par):
     done = json.loads(f_.read_text()) if f_.exists() else {}
     w = np.geomspace(*A["w_range_db"], A["grid_points"])
     for i, truth in enumerate(A["truths"]):
-        h = w * s3.true_k(truth, par, w)
+        h = w * wc.true_k(truth, par, w)
         for j, sig in enumerate(A["noise"]):
             for d in range(A["draws"]):
                 key = f"{truth}_{sig}_{d}"
@@ -362,7 +363,7 @@ def pysr_rows(par):
     w = np.geomspace(*A["w_range_db"], A["grid_points"])
     rows = []
     for truth in A["truths"]:
-        h = w * s3.true_k(truth, par, w)
+        h = w * wc.true_k(truth, par, w)
         for sig in A["noise"]:
             for d in range(A["draws"]):
                 r = done.get(f"{truth}_{sig}_{d}")
@@ -391,7 +392,7 @@ def fig_b(truth, rows, par):
         sc = wc.StepCurve(r3["knots"], B["wc_range_db"], B["width_logw"])
         a_.plot(w, plain.k(np.asarray(r3["x"])[:-1], w), "-", color=INK2, lw=1.0, label="without the step (thin solid)")
         a_.plot(w, sc.k(res["step"]["x"][:-1], w), "-", color=INK, lw=2.3, label="with the step (thick solid)")
-        a_.plot(w, s3.true_k(truth, par, w), "--", color=INK, lw=1.6, label="true k(W) (dashed)")
+        a_.plot(w, wc.true_k(truth, par, w), "--", color=INK, lw=1.6, label="true k(W) (dashed)")
         a_.axvline(res["step"]["wc_db"], color=INK, lw=0.8, ls=":")
         a_.text(res["step"]["wc_db"], 0.97, f" W_c = {res['step']['wc_db']:.2f} dB", transform=a_.get_xaxis_transform(),
                 fontsize=8, va="top")
@@ -546,7 +547,7 @@ def main():
         for lo, name in ((W_LO, "above_0.35"), (B["step_range_lo_db"], "above_0.1")):
             w = np.geomspace(lo, min(r3[(t, r)]["w_hi"] for r in range(R)), FIT["grid_points"])
             Kc = np.array([f(x, w) for f, x in chosen])
-            kt = s3.true_k(t, par, w)
+            kt = wc.true_k(t, par, w)
             row[f"coverage_{name}"] = round(float(np.mean((kt >= Kc.min(axis=0)) & (kt <= Kc.max(axis=0)))), 3)
             row[f"k_ratio_{name}"] = round(float(np.exp(np.median(np.log(Kc / kt)))), 3)
         if t == "m6":
@@ -638,7 +639,7 @@ def main():
             w = np.geomspace(W_LO, q["w_hi"], FIT["grid_points"])
             Kb = np.array([cv.k(np.asarray(x)[:-1], w) for x in dd[(t, r)]["x"][:plan["bootstraps"]]])
             lo, hi = np.percentile(Kb, D_["band"], axis=0)
-            kt, kf = s3.true_k(t, par, w), cv.k(np.asarray(q["x"])[:-1], w)
+            kt, kf = wc.true_k(t, par, w), cv.k(np.asarray(q["x"])[:-1], w)
             aw = wc.slope_weights(np.log(w))
             sl = np.log(Kb) @ aw
             d_rows.append({"truth": t, "dataset": r, "w_hi_db": round(q["w_hi"], 3), "bootstraps": len(Kb),
@@ -742,7 +743,7 @@ Rule (judged on best-subset, the main tool; the others are cross-checks): `exact
 {A['min_draws']} of {A['draws']} draws, and the median coefficient within +-{A['coef_tol']:.0%}. m6: W plus one or both of
 {', '.join(A['m6_switch_terms'])} (the true A_c = {par['m6']['A_c']:.2f} dB lies between them; their sum is compared with k_run).
 
-{md(a_show)}
+{md_table(a_show)}
 
 ## 3. Part B: jump 1 with an optional step (`{rel(P.METHOD_B)}`) - {pv['B']}
 
@@ -754,9 +755,9 @@ BIC(no step) - BIC(step) > {B['bic_gain']:g}. Rule: m6 step kept in >= {need} of
 within +-{B['wc_tol']:.0%} of {par['m6']['A_c']:.2f} dB; m1, m3, m5 no step in >= {need} of {R} and the true k inside the band
 of the chosen curves on >= {B['band_coverage']:.0%} of [{W_LO} dB, W_hi].
 
-{md(b_sum)}
+{md_table(b_sum)}
 
-{md(b_tab)}
+{md_table(b_tab)}
 
 {figs_b}
 
@@ -771,24 +772,24 @@ of 3b-3b); winner = highest sum. Families: F1 / "W" = exponential; F3 / F5 / "W^
 "W + switch at <= 0.3 dB" = switch; F4 = two layers; other formulas = other. Rule: winner in the true family in >=
 {C['min_reps']} of {R}.
 
-{md(c_sum)}
+{md_table(c_sum)}
 
 `margin_to_other_family` = held-out log-likelihood of the winner minus the best candidate of another family;
 `simplest_within_2` = the candidate with the fewest parameters within 2 of the winner; `bic_winner` = lowest BIC on
 the whole dataset; `free_curve_minus_winner` = the free curve (reference, not a candidate) minus the winner;
 `j2_bic_pick` = what BIC alone would pick on the curve.
 
-{md(c_show)}
+{md_table(c_show)}
 
 Held-out log-likelihood of every candidate minus the best one of its dataset:
 
-{md(held_piv)}
+{md_table(held_piv)}
 
 **Post hoc, added after the first complete run (no refit; no verdict uses it): the menu laws only.** The step law
 wins for every truth (see part B), and the jump-2 formulas were read from the curve with the step. The same held-out
 scores, restricted to F1, F3, F4, F5, F6:
 
-{md(mo_sum)}
+{md_table(mo_sum)}
 
 ## 5. Part D: the band for real data (`{rel(P.METHOD_D)}`) - {pv['D']}
 
@@ -799,7 +800,7 @@ Rule: true k inside that band on >= {D_['coverage']:.0%} of [{W_LO} dB, W_hi] in
 {len(D_['datasets'])} datasets per truth. `band_half_width_pct` = median half-width of the band (+- %);
 `slope_lo`-`slope_hi` = the same percentiles of the slope of log k vs log W.
 
-{md(d_tab)}
+{md_table(d_tab)}
 
 {figs_d}
 
@@ -808,13 +809,13 @@ Rule: true k inside that band on >= {D_['coverage']:.0%} of [{W_LO} dB, W_hi] in
 3b-3b fitted F4 from 3 generic starts and found BIC(free curve) - BIC(F4) > 10 in 2 of 5. Here F4 also starts from
 the F1 solution of the dataset. The 3b-3b verdict stays as written.
 
-{md(e_tab)}
+{md_table(e_tab)}
 
 With the extra start: > {S3B['decision']['m4_dbic_vs_f4']:g} in {int(e_tab.warning_now.sum())} of {R}.
 
 ## 7. The Step 4 recipe that follows
 
-{md(dec)}
+{md_table(dec)}
 
 {RECIPE}
 

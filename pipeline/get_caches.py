@@ -32,7 +32,7 @@ CACHE = REPO / "research" / ".cache"
 GITHUB = "yoniGit2003/finalEEProject"
 TAG = "fit-caches-2026-10-12"                               # the GitHub release that holds the zip
 ASSET = "fit_caches.zip"
-SHA256 = ""                                                 # of the published zip (printed by --pack); "" = not checked
+SHA256 = "272b39d7fae03db1a61181dab97a26cff76da4abfb40749d173124b4018da258"   # of the published zip (printed by --pack)
 # what goes into the zip: the folders with cached fits (one per script). Logs, PySR working files and loaded-data
 # caches are left out: the scripts rebuild them.
 FOLDERS = ["wet_antenna/check_per_tail_fit", "wet_antenna/check_pooled_fit", "wet_antenna/stress_pooled_fit",

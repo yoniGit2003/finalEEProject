@@ -4,11 +4,10 @@ variants and small statistics helpers. Every check script (c1_ ... c6_) imports 
 Settings: section `baseline_validation` (and `baseline`) of research/config.yaml.
 Data: only through cmlpipe.api.CMLData, on the release pinned in research/config.yaml.
 Outputs: research/baseline/outputs/tables/ and outputs/figures/ (FULL sample) or .cache/dev/ (DEV sample);
-locations in paths.py, every file described in CATALOG.md.
+locations in paths.py.
 """
 import os
 from pathlib import Path
-import sys
 import time
 import numpy as np
 import pandas as pd

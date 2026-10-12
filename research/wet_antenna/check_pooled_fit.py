@@ -15,7 +15,6 @@ Settings: `wet_antenna.check_pooled_fit` (the decision rule was fixed there befo
 .cache/check_pooled_fit/ (delete to redo). Run from the repository root (several hours the first time):
     python -m research.wet_antenna.check_pooled_fit
 """
-from pathlib import Path
 import json
 import sys
 import time
@@ -23,18 +22,21 @@ import time
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
-import yaml
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from research.wet_antenna import paths as P
 from research.common.save import save
+from research.common.config import load_config
+from research.common.report import md_table, rel
+from research.common.plotting import style_axes
+from research.wet_antenna import datasets as dsets
 from research.wet_antenna import simulator as ws
 from research.wet_antenna import per_tail_fit as wf
 from research.wet_antenna import pooled_fit as wp
 
-CFG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
+CFG = load_config()
 SIM, B = CFG["wet_antenna"]["simulator"], CFG["wet_antenna"]["check_pooled_fit"]
 STEP, SPM = SIM["rsl_step_db"], SIM["samples_per_min"]
 OWN = {"m1": "F1", "m3": "F3", "m4": "F4", "m5": "F5", "m6": "F6"}
@@ -43,36 +45,6 @@ KEY_PARAMS = {"m1": {"tau": "tau"}, "m3": {"k": "c", "n": "n"}, "m4": {"tau_f": 
               "m5": {"a": "a", "b": "b"}, "m6": {"k_run": "k_run", "k_evap": "k_evap", "A_c": "A_c"}}
 INK, INK2 = "#1a1a1a", "#52514e"
 CACHE = P.CACHE / "check_pooled_fit"
-
-
-def tidy(ax):
-    ax.grid(alpha=0.25)
-    for sp in ("top", "right"):
-        ax.spines[sp].set_visible(False)
-
-
-def rel(p):
-    return Path(p).resolve().relative_to(P.REPO).as_posix()
-
-
-def md(df, index=True):
-    df = df.reset_index() if index else df
-    head = "| " + " | ".join(map(str, df.columns)) + " |\n|" + "---|" * len(df.columns)
-    return head + "\n" + "\n".join("| " + " | ".join("" if pd.isna(x) else str(x) for x in row) + " |"
-                                   for row in df.itertuples(index=False))
-
-
-def bootstrap_skeleton(skel, rng):
-    """Draw events with replacement and take all their tails; new tail ids, event_copy = draw number."""
-    evs = np.sort(skel.event_id.unique())
-    parts = []
-    for k, e in enumerate(rng.choice(evs, len(evs), replace=True)):
-        g = skel[skel.event_id == e].copy()
-        g["orig_tail_id"] = g.tail_id
-        g["tail_id"] = (k + 1) * 100000 + g.tail_id
-        g["event_copy"] = k
-        parts.append(g)
-    return pd.concat(parts, ignore_index=True)
 
 
 def main():
@@ -104,7 +76,7 @@ def main():
     sims = {}
     for rep in range(B["replicates"]):
         seed = B["seed_base"] + rep
-        sk = bootstrap_skeleton(skel, np.random.default_rng(seed))
+        sk = dsets.bootstrap_skeleton(skel, np.random.default_rng(seed))
         masks = {r.tail_id: nan_real[r.orig_tail_id] for r in sk.itertuples()}
         z = ws.spread_z(sk, seed)
         for law, (p, s) in truths.items():
@@ -284,7 +256,7 @@ def main():
             a_.plot([i, i], [r_[f"{law}_min"], r_[f"{law}_max"]], color=INK2, lw=5, solid_capstyle="butt")
         a_.set_xticks(range(len(truths)), list(truths))
         a_.set_title(st + (f"\nseparates: {r_.separates}" if r_.separates else "\nseparates: none"), fontsize=8)
-        tidy(a_)
+        style_axes(a_)
     ax.ravel()[0].legend(frameon=False, fontsize=7)
     fig.suptitle(f"Population statistics: range over {B['replicates']} event-bootstrap replicates per truth (bars) vs "
                  "the real TRAIN v1 value (line) and its 95 % CI from resampling events (hatched)", fontsize=10)
@@ -293,7 +265,7 @@ def main():
     plt.close(fig)
 
     # =============================================================================================== report
-    conf_txt = "\n\n".join(f"**{w}**\n\n{md(conf[w].round(2))}" for w in wins)
+    conf_txt = "\n\n".join(f"**{w}**\n\n{md_table(conf[w].round(2), index=True)}" for w in wins)
     marg = (f"median dBIC to the second candidate: " + ", ".join(
         f"{w} {second.xs(w, level='window').median():.1f}" for w in wins))
     dec_show = dec.assign(own_win_share=dec.own_win_share.round(2))
@@ -343,18 +315,18 @@ Written by `research/wet_antenna/check_pooled_fit.py` (libraries `pooled_fit.py`
 fitted / true per replicate: median and 10-90 % over the {B['replicates']} replicates; within_tol = |median - 1| <=
 {B['decision']['param_tol']}.
 
-{md(rec_show, index=False)}
+{md_table(rec_show, index=False)}
 
 ## c. Population statistics (`{rel(P.POOLED_POPULATION)}`)
 
 Real value with its 95 % CI (resampling events) vs the min-max over the replicates of each truth. Statistics that
 separate at least one pair of truths (non-overlapping ranges):
 
-{md(sep_any, index=False) if len(sep_any) else "none"}
+{md_table(sep_any, index=False) if len(sep_any) else "none"}
 
 Real value inside each truth's range (number of the {len(stat_names)} statistics): {inside}.
 
-{md(pop[['statistic', 'real', 'real_ci_low', 'real_ci_high'] + [c for c in pop.columns if c.endswith(('_min', '_max'))]].round(3), index=False)}
+{md_table(pop[['statistic', 'real', 'real_ci_low', 'real_ci_high'] + [c for c in pop.columns if c.endswith(('_min', '_max'))]].round(3), index=False)}
 
 ![population](../figures/{P.POOLED_FIG_POPULATION.name})
 
@@ -364,7 +336,7 @@ Useful if, per dataset, the truth's own candidate wins >= {B['decision']['own_wi
 {', '.join(B['decision']['laws'])}, and every key law parameter is recovered within +-{B['decision']['param_tol']:.0%}
 (median). Met per window (all four truths): {rule.to_dict()}.
 
-{md(dec_show, index=False)}
+{md_table(dec_show, index=False)}
 
 ## Unclear
 

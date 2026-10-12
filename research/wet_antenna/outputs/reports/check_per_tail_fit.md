@@ -4,7 +4,7 @@ Written by `research/wet_antenna/check_per_tail_fit.py` (libraries `simulator.py
 No real tail is fitted. Truths: m1, m3, m4, m5, m6 (step 3a-fix parameters and spread; m6: included: k_run = 0.04374, k_evap = 0.00554, A_c = 0.1615, s = 1.25).
 10 replicate datasets per truth on the 429-tail TRAIN v1 skeleton (seeds 1000 ..
 1009); ablation 10 replicates per variant. Fits: 257400 rows
-(64350 tail fits x candidates). Run time 144 s.
+(64350 tail fits x candidates). Run time 141 s.
 
 ## Summary in plain words
 

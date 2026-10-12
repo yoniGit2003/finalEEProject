@@ -83,7 +83,7 @@ FREEZE_REPORT = REPORTS / "freeze_tail_set.md"
 
 # ---- step 3a (+ 3a-fix): tail simulator (simulator.py = library, calibrate_simulator.py = calibration + checks) ----------
 SIM_TAILS_M1 = PRODUCTS / "sim_tails_m1.parquet"          # simulated tail set per law, 1 min rows (one file per law)
-SIM_TAILS_M3 = PRODUCTS / "sim_tails_m3.parquet"          #   file, so /tidy can see that calibrate_simulator.py writes it)
+SIM_TAILS_M3 = PRODUCTS / "sim_tails_m3.parquet"          #   file)
 SIM_TAILS_M4 = PRODUCTS / "sim_tails_m4.parquet"
 SIM_TAILS_M5 = PRODUCTS / "sim_tails_m5.parquet"
 SIM_INDEX = PRODUCTS / "sim_tails_index.csv"               # per law and tail: time-scale factor, offset, noise, phase

@@ -26,7 +26,6 @@ import os
 os.environ.setdefault("NUMBA_NUM_THREADS", "1")            # one thread per process: the processes run in parallel
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from pathlib import Path
 import json
 import sys
 import time
@@ -35,7 +34,6 @@ import warnings
 import numpy as np
 import pandas as pd
 import pyarrow.parquet as pq
-import yaml
 from scipy.optimize import least_squares
 import matplotlib
 matplotlib.use("Agg")
@@ -43,10 +41,14 @@ import matplotlib.pyplot as plt
 
 from research.wet_antenna import paths as P
 from research.common.save import save
+from research.common.config import load_config
+from research.common.report import md_table, rel
+from research.wet_antenna import datasets as dsets
+from research.wet_antenna import fit_jobs as fj
 from research.wet_antenna import simulator as ws
 from research.wet_antenna import pooled_fit as wp
 
-CFG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
+CFG = load_config()
 SIM, S = CFG["wet_antenna"]["simulator"], CFG["wet_antenna"]["stress_pooled_fit"]
 STEP, SPM, LAGS = SIM["rsl_step_db"], SIM["samples_per_min"], SIM["noise_acf_lags_min"]
 OWN = {"m1": "F1", "m4": "F4", "m5": "F5", "m6": "F6"}     # truth -> the candidate with the same form
@@ -56,106 +58,7 @@ INK, INK2 = "#1a1a1a", "#52514e"
 CACHE = P.CACHE / "stress_pooled_fit"
 
 
-def rel(p):
-    return Path(p).resolve().relative_to(P.REPO).as_posix()
-
-
-def md(df, index=False):
-    df = df.reset_index() if index else df
-    head = "| " + " | ".join(map(str, df.columns)) + " |\n|" + "---|" * len(df.columns)
-    return head + "\n" + "\n".join("| " + " | ".join("" if pd.isna(x) else str(x) for x in row) + " |"
-                                   for row in df.itertuples(index=False))
-
-
-def load_noise():
-    """Noise of the FIT (3a-fix, one AR(1) per sub-link) and the offset prior per sub-link."""
-    nz = pd.read_csv(P.SIM_NOISE)
-    noise = {r.sublink_id: (r.sigma_white_db, r.sigma_slow_db, r.tau_noise_min) for r in nz.itertuples()}
-    offset_sd = pd.read_csv(P.BASELINE_UNCERTAINTY).set_index("sublink_id").offset_std.to_dict()
-    return nz, noise, offset_sd
-
-
-# =================================================================================================== one job (worker)
-def f1_start(cand, tau1):
-    """A start for `cand` that is close to the F1 (exponential) solution with time constant tau1 (minutes)."""
-    return {"F3": [1 / tau1, 1.05],                        # n near 1 = exponential with rate k = 1 / tau
-            "F4": [tau1, 5 * tau1, 0.05],                  # nearly all weight in one layer
-            "F5": [1 / tau1, 0.1 / tau1],                  # small quadratic term
-            "F6": [0.1 / tau1, 1 / tau1, 1.0]}[cand]       # weak run-off, evaporation rate 1 / tau
-
-
-_INPUTS = {}                                               # per process: noise and offset tables (read once)
-
-
-def fit_dataset(job):
-    """Fit every candidate from every start to ONE simulated dataset; each fit is cached as a json file.
-    job: test, truth, rep, sim (parquet file), starts {candidate: {label: [theta0, s0, maxfev]}} (theta0 = None for
-    the label `f1sol`: built from the best generic F1 fit of this dataset). Returns the list of fit rows."""
-    if not _INPUTS:
-        _, _INPUTS["noise"], _INPUTS["offset_sd"] = load_noise()
-    data = {}
-
-    def dataset():
-        if not data:                                       # only loaded if a fit is missing from the cache
-            rows = pd.read_parquet(job["sim"])
-            tails = [{"tail_id": t, "sublink_id": g.sublink_id.iloc[0], "cml_id": g.cml_id.iloc[0],
-                      "event_copy": g.event_copy.iloc[0], "A_start": g.A_start_trace_db.iloc[0],
-                      "t": g.minutes_since_t0_trace.to_numpy(), "a": g.A_db.to_numpy()} for t, g in rows.groupby("tail_id")]
-            D = wp.pack(tails, _INPUTS["noise"], _INPUTS["offset_sd"], S["window_min"], S["min_points"])
-            used = set(D["tail_id"])
-            data["D"] = D                                  # N of the BIC: distinct (link, event draw) pairs
-            data["n_ind"] = len({(tl["cml_id"], tl["event_copy"]) for tl in tails if tl["tail_id"] in used})
-        return data["D"], data["n_ind"]
-
-    out, f1_best = [], None
-    for cand in S["candidates"]:
-        for label, (theta0, s0, maxfev) in job["starts"][cand].items():
-            f_ = CACHE / f"fit_{job['test']}_{job['truth']}_{job['rep']}_{cand}_{label}.json"
-            if f_.exists():
-                r = json.loads(f_.read_text())
-            else:
-                D, n_ind = dataset()
-                if label == "f1sol":
-                    theta0, s0 = f1_start(cand, f1_best["theta"][0]), f1_best["s"]
-                t0 = time.time()
-                r = wp.fit(cand, D, theta0, s0, maxfev)
-                r.update({"test": job["test"], "truth": job["truth"], "rep": job["rep"], "candidate": cand,
-                          "start": label, "theta0": [float(v) for v in theta0], "s0": float(s0),
-                          "n_tails": len(D["tail_id"]), "n_independent": n_ind, "k": len(wp.NAMES[cand]) + 1,
-                          "seconds": round(time.time() - t0, 1)})
-                tmp = f_.with_suffix(".tmp")
-                tmp.write_text(json.dumps(r))
-                tmp.replace(f_)
-            out.append(r)
-        if cand == "F1":                                   # the best generic F1 fit seeds the `f1sol` starts
-            gen = [r for r in out if r["candidate"] == "F1" and r["start"] != "calib"]
-            f1_best = max(gen, key=lambda r: r["ll"]) if gen else None
-    return out
-
-
 # =================================================================================================== helpers (main)
-def bootstrap_skeleton(skel, rng):
-    """Draw events with replacement and take all their tails; new tail ids, event_copy = draw number (as 3b-1b)."""
-    evs = np.sort(skel.event_id.unique())
-    parts = []
-    for k, e in enumerate(rng.choice(evs, len(evs), replace=True)):
-        g = skel[skel.event_id == e].copy()
-        g["orig_tail_id"] = g.tail_id
-        g["tail_id"] = (k + 1) * 100000 + g.tail_id
-        g["event_copy"] = k
-        parts.append(g)
-    return pd.concat(parts, ignore_index=True)
-
-
-def shape(df, a0, minutes):
-    """Median over tails of A / A_start at k minutes (mean of A over [k, k + 5)), as in step 3b-1b."""
-    out = {}
-    for k in minutes:
-        v = df[(df.minutes_since_t0_trace >= k) & (df.minutes_since_t0_trace < k + 5)].groupby("tail_id").A_db.mean()
-        out[k] = float((v / v.index.map(a0)).median())
-    return out
-
-
 def free_names(law):
     """The parameters the T3 recalibration may change (the slow ones in `t3.keep` stay at their 3a-fix value)."""
     return [k for k in ws.PARAMS[law] if k not in S["t3"]["keep"].get(law, [])]
@@ -171,41 +74,6 @@ def to_p(law, x, base):
 
 def from_p(law, p):
     return [np.log(p[k] / (1 - p[k])) if k == "phi" else np.log(p[k]) for k in free_names(law)]
-
-
-def t1_noise(nz, block):
-    """T1 noise: per sub-link the same white sigma and the same TOTAL slow variance as the 3a-fix noise (median
-    0.15^2 dB^2), but split over two AR(1) wanders (tau_fast, tau_slow). The share of the fast part is one number for
-    the whole network, chosen on a grid so that dry simulated series match the real control-tail statistics
-    (within-tail std, ACF at 1 / 10 / 60 min). Returns (share, check table, per-share scores)."""
-    T = S["t1_noise"]
-    rng = np.random.default_rng(T["seed"])
-    nb = T["blocks"]
-    eps = rng.standard_normal((nb, block, SPM))                    # the same unit random numbers for every sub-link
-    ph = rng.uniform(0, STEP, (nb, 1, 1))
-    unit = [np.stack([ws.ar1(rng.standard_normal(block), 1.0, tau, rng.standard_normal()) for _ in range(nb)])
-            for tau in (T["tau_fast_min"], T["tau_slow_min"])]
-    fz = nz[nz.source == "fit"]
-    cols = ["within_std_db", "on_level_share"] + [f"acf_{k}" for k in LAGS]
-    scale = {"within_std_db": SIM["noise_weights"]["std_db"], **{f"acf_{k}": SIM["noise_weights"]["acf"] for k in LAGS}}
-    sims, scores = {}, []
-    for w in T["fast_share_grid"]:
-        slow = (np.sqrt(w) * unit[0] + np.sqrt(1 - w) * unit[1])[:, :, None]
-        rows = []
-        for r in fz.itertuples():
-            q = ws.quantize(r.sigma_slow_db * slow + r.sigma_white_db * eps, ph, STEP)
-            rows.append(ws.dry_stats(q.mean(axis=2), q, LAGS))
-        sims[w] = pd.DataFrame(rows, index=fz.index)
-        err = {c: float((sims[w][c] - fz[c]).abs().median()) for c in scale}
-        scores.append({"fast_share": w, **{f"abs_err_{c}": round(v, 4) for c, v in err.items()},
-                       "score": round(sum((err[c] / scale[c]) ** 2 for c in scale), 4)})
-    scores = pd.DataFrame(scores)
-    w = float(scores.loc[scores.score.idxmin(), "fast_share"])
-    chk = pd.DataFrame([{"statistic": c, "real_median": fz[c].median(), "sim_3afix_median": fz[f"sim_{c}"].median(),
-                         "sim_T1_median": sims[w][c].median(),
-                         "abs_err_3afix": (fz[f"sim_{c}"] - fz[c]).abs().median(),
-                         "abs_err_T1": (sims[w][c] - fz[c]).abs().median()} for c in cols]).round(4)
-    return w, chk, scores
 
 
 def win_figure(dec, replicates):
@@ -252,9 +120,9 @@ def main():
     real = pq.read_table(P.TAILS_MODEL, filters=[("split_event", "=", "train")],
                          columns=["tail_id", "minutes_since_t0_trace", "A_db"]).to_pandas()
     nan_real = {t: g.sort_values("minutes_since_t0_trace").A_db.isna().to_numpy() for t, g in real.groupby("tail_id")}
-    real_shape = shape(real, skel.set_index("tail_id").A_start_trace_db.to_dict(), MIN)
+    real_shape = dsets.shape(real, skel.set_index("tail_id").A_start_trace_db.to_dict(), MIN)
     del real
-    nz, noise, _ = load_noise()
+    nz, noise, _ = dsets.load_noise()
     cal = pd.read_csv(P.SIM_CALIBRATION).set_index("law")
     old = {law: {k: float(cal.loc[law, k]) for k in ws.PARAMS[law]} for law in ("m1", "m3", "m4", "m5")}
     m6 = pd.read_csv(P.PER_TAIL_M6)
@@ -272,7 +140,7 @@ def main():
 
     # ------------------------------------------------------------------------------------------- T1: the unknown noise
     block = int(round(nz[nz.source == "fit"].median_control_len_min.median() / 10) * 10)
-    w_fast, noise_chk, noise_scores = t1_noise(nz, block)
+    w_fast, noise_chk, noise_scores = dsets.t1_noise(nz, block)
     T1N = S["t1_noise"]
     noise_t1 = {r.sublink_id: (r.sigma_white_db, np.sqrt(w_fast) * r.sigma_slow_db, T1N["tau_fast_min"],
                                np.sqrt(1 - w_fast) * r.sigma_slow_db, T1N["tau_slow_min"]) for r in nz.itertuples()}
@@ -317,7 +185,7 @@ def main():
     sim_shape = []
     for rep in range(R0):
         seed = S["seed_base"] + rep
-        sk = bootstrap_skeleton(skel, np.random.default_rng(seed))
+        sk = dsets.bootstrap_skeleton(skel, np.random.default_rng(seed))
         masks = {r.tail_id: nan_real[r.orig_tail_id] for r in sk.itertuples()}
         z = ws.spread_z(sk, seed)
         a0 = sk.set_index("tail_id").A_start_trace_db.to_dict()
@@ -331,7 +199,7 @@ def main():
                                           np.exp(s * z), STEP, SPM, masks)
                     rows = rows.merge(sk[["tail_id", "event_copy", "A_start_trace_db"]], on="tail_id")
                     rows.to_parquet(f_)
-                sim_shape.append({"test": test, "truth": t, "rep": rep, **shape(rows, a0, MIN)})
+                sim_shape.append({"test": test, "truth": t, "rep": rep, **dsets.shape(rows, a0, MIN)})
     sim_shape = pd.DataFrame(sim_shape)
     print(f"\nsimulated {len(sim_shape)} datasets ({time.time() - clock:.0f} s)")
 
@@ -374,7 +242,7 @@ def main():
                                 st["f1sol"] = [None, None, S["maxfev_generic"]]
                         st["calib"] = [calib[c], S["s_start"], S["maxfev"]]   # T2: the reference (not in the best-of)
                         starts[c] = st
-                    jobs.append({"test": test, "truth": t, "rep": rep, "sim": str(sim_file(test, t, rep)),
+                    jobs.append({"test": test, "truth": t, "rep": rep, "sim": str(sim_file(test, t, rep)), "cache": str(CACHE),
                                  "starts": starts})
         return jobs
 
@@ -393,7 +261,7 @@ def main():
         for c in S["candidates"]:                                   # compile the numba code before the clock starts
             wp.pooled_loglik(c, calib[c], 1.0, wp.pack(tiny, noise, {}, None, 10))
         t0 = time.time()
-        timed = fit_dataset(next(j for j in jobs_for(1, False, None) if j["test"] == "T2" and j["truth"] == "m4"))
+        timed = fj.menu_fits_job(next(j for j in jobs_for(1, False, None) if j["test"] == "T2" and j["truth"] == "m4"))
         t_all = time.time() - t0
         sec = {(r["candidate"], r["start"]): r["seconds"] for r in timed}
         t_calib = sum(v for (c, st), v in sec.items() if st == "calib")
@@ -428,7 +296,7 @@ def main():
     t_fit = time.time()
     fit_rows, done = [], 0
     with ProcessPoolExecutor(max_workers=workers) as pool:
-        futs = [pool.submit(fit_dataset, j) for j in jobs]
+        futs = [pool.submit(fj.menu_fits_job, j) for j in jobs]
         for k, fu in enumerate(as_completed(futs)):
             rws = fu.result()
             fit_rows += rws
@@ -609,11 +477,11 @@ the tau {T1N['tau_fast_min']} min part is {w_fast:g} for every sub-link (median 
 statistics best. Dry series of {block} min ({T1N['blocks']} per sub-link, {int((nz.source == 'fit').sum())}
 sub-links) against the real control tails; medians over sub-links and the median absolute error per sub-link:
 
-{md(noise_chk)}
+{md_table(noise_chk)}
 
 Score per share of the fast part (sum of squared scaled errors; lower is better):
 
-{md(noise_scores)}
+{md_table(noise_scores)}
 
 ## 3. T3 recalibration (`{rel(P.STRESS_RECAL)}`)
 
@@ -624,27 +492,27 @@ calibration averages over {S['t3']['z_draws']} spread draws on the full skeleton
 the first hour cannot fix a slow time constant (a first attempt with every parameter free gave m4 tau_s = 7e11 min
 and m6 k_evap = 4e-20 / min, i.e. a constant floor; no fit was run on those truths).
 
-{md(recal_par)}
+{md_table(recal_par)}
 
 Real vs simulated A / A_start (simulated = median over the {R0} replicates of the OBSERVED fake tails, with noise and
 event bootstrap; old = the 3b-1b truths):
 
-{md(recal_shape)}
+{md_table(recal_shape)}
 
 Noise-free calibration values (full skeleton):
 
-{md(recal_free)}
+{md_table(recal_free)}
 
 ## 4. Win shares and the decision rule (`{rel(P.STRESS_WIN)}`, `{rel(P.STRESS_DECISION)}`)
 
 Replicates (of {R}) won by each candidate (lowest pooled BIC); `win_ok` = own candidate wins >=
 {S['decision']['own_win_share']:.0%}; `params_ok` = every key parameter within +-{S['decision']['param_tol']:.0%}.
 
-{md(conf)}
+{md_table(conf)}
 
 Margins (dBIC = BIC of the own candidate minus the best other candidate; negative = the own candidate wins):
 
-{md(dec[['test', 'truth', 'own', 'own_wins', 'wins_instead', 'median_dbic_own_minus_best_other', 'median_dbic_where_lost']])}
+{md_table(dec[['test', 'truth', 'own', 'own_wins', 'wins_instead', 'median_dbic_own_minus_best_other', 'median_dbic_where_lost']])}
 
 Failing cells:
 
@@ -657,7 +525,7 @@ Failing cells:
 fitted / true of the own candidate: median, minimum and maximum over the {R} replicates. `s` is shown but is not in
 the rule.
 
-{md(rec.drop(columns=['candidate']))}
+{md_table(rec.drop(columns=['candidate']))}
 
 ## 6. Start sensitivity (T2; `{rel(P.STRESS_STARTS)}`)
 
@@ -672,11 +540,11 @@ in a worse place).
 
 Per candidate (all truths):
 
-{md(by_cand)}
+{md_table(by_cand)}
 
 Per truth and candidate:
 
-{md(sens)}
+{md_table(sens)}
 
 Winner with the generic starts vs winner with the truth start: the same in {int(same.same.sum())} of {len(same)}
 datasets{"." if same.same.all() else ": different in " + "; ".join(f"{r.truth} rep {r.rep} ({r.winner_calib} -> {r.winner})" for r in same[~same.same].itertuples()) + "."}
@@ -756,9 +624,7 @@ UNCLEAR = """1. **T3 recalibration is a choice of mine.** With every parameter f
 9. **Budget**: the generic starts got 800 evaluations, the calibration start 400 (as in 3b-1b); 5 of 100 T2
    calibration-start fits stopped at 400, no generic one stopped at 800. Part of "generic better than calib" may
    be this budget and not the start.
-10. **The key figure limit is reached** (6 key outputs in this module), so the win-share figure is saved as diag.
-    To make it key, another key output has to be demoted: the learners' choice.
-11. **Seeds**: new event draws (3000 + replicate), not the 3b-1b draws, so T2 is not a rerun of the same datasets;
+10. **Seeds**: new event draws (3000 + replicate), not the 3b-1b draws, so T2 is not a rerun of the same datasets;
     "the winner with the truth start" is fitted here on the new draws.
 """
 

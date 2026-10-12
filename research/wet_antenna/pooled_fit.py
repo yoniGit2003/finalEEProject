@@ -346,3 +346,11 @@ def tail_speed_factors(cand, theta, s, D):
                                    D["F1"], D["start"], D["length"], D["rho"], D["ma"], D["s2"], D["g0"], D["o2"],
                                    D["a0"], G_LATTICE)
     return dict(zip(D["tail_id"], np.exp(s * kap * gstar / (1 + kap))))
+
+
+def f1_start(cand, tau1):
+    """A start for `cand` that is close to the F1 (exponential) solution with time constant tau1 (minutes)."""
+    return {"F3": [1 / tau1, 1.05],                        # n near 1 = exponential with rate k = 1 / tau
+            "F4": [tau1, 5 * tau1, 0.05],                  # nearly all weight in one layer
+            "F5": [1 / tau1, 0.1 / tau1],                  # small quadratic term
+            "F6": [0.1 / tau1, 1 / tau1, 1.0]}[cand]       # weak run-off, evaporation rate 1 / tau

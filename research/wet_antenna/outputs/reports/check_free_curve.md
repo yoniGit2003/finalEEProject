@@ -17,7 +17,7 @@ Written by `research/wet_antenna/check_free_curve.py` (libraries `free_curve.py`
   microseconds per tail-minute and evaluation on one replicate (m6), 2053 evaluations planned per job;
   projected total 2.55 h on 3 processes (budget 3.0 h).
 - **Run time**: 127 min wall time (6.3 process-hours; cached in
-  `.cache/check_free_curve/`). This run: 14 s.
+  `.cache/check_free_curve/`). This run: 17 s.
 
 | kind | window | jobs | tails | s_median | converged | with_interval | start_spread_median | starts_within_2_median | minutes_median |
 |---|---|---|---|---|---|---|---|---|---|
@@ -330,7 +330,4 @@ below about 0.35 dB. Above it the free curve is right for every single-curve tru
     equation unstable (coefficient x-4 on the upper range) although the curve itself is flat there.
 12. **T1 noise** (first 60 min only): above the second knot m1 stays flat (slope -0.02, level x1.03) and m3 keeps
     W^2 x0.96, but the m1 equation picks up false terms in 4 of 5.
-13. **Key figure**: the limit of 6 is reached, so the five `step3b3_k_<truth>.png` are diag. If one should become
-    key I would take `check_free_curve_k_m1.png` only after the repairs above (it now shows the low-W artefact), and demote
-    `outputs/tables/check_pooled_fit_recovery.csv`.
 

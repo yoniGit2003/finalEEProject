@@ -2,7 +2,7 @@
 
 Written by `research/wet_antenna/freeze_tail_set.py` (settings `wet_antenna.freeze`; the rules of steps 2 and 2b stay). No fitting.
 TRAIN events for every number and figure; VAL gets the same rules and files and is only counted. Run time
-35 s.
+36 s.
 
 ## 1-2. Radar NaN as unknown, rise cut v2
 
@@ -110,5 +110,5 @@ Flags in the TRAIN main set: level_shift 29, undershoot
    ~02-03 local) A RISES by 0.5-1 dB right after t0_trace with no radar or gauge trace, stays up 1-2 h, then decays;
    the cut ends these tails within minutes. That can be drizzle below the radar beam (radar 78 km away) or
    condensation on wet radomes; with RH missing these hours the data here cannot decide.
-9. **File names** carry no version (`ORGANIZATION.md` forbids `_v1` on active paths): the set id `v1` is in
+9. **File names** carry no version: the set id `v1` is in
    config `wet_antenna.freeze.tail_set` and in the `tail_set` column of every frozen file.

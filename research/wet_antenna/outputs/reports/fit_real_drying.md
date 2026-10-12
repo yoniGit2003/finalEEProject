@@ -20,7 +20,7 @@ Frozen tail set v1, TRAIN tails only; the 123 VAL tails were not read.
   (free curve); one F1 fit 1.3 s. Projection 1.19 h on 3 processes
   (budget 3.0 h). **Cut: nothing.**
 - **Run time**: 36 min wall (1.8 process-hours; cached in `.cache/fit_real_drying/`). This run:
-  42 s.
+  31 s.
 - **Software**: numpy / scipy / numba (own code); PySR used for 4 curves.
 - **Added after the first run, from the cached fits (no fit was rerun, no setting changed)**: the like-for-like menu
   reading (row `F1+`, section 3), the model-free rate table and the share of tails that do not decay (section 4), the
@@ -78,9 +78,9 @@ and 25-28 min (the others); on the first 6 h of the main set 18.7 min.
 `docs/proposal.md` names the dynamic model of Schleiss et al. [1] and the corrections of Pastorek et al. [9] without any
 number; `pipeline/docs/openmrg_summary.md` only says that the RSL recovery lags the rain in the Torslanda case;
 `pipeline/docs/reference/cml_libraries_howto.md` lists pycomlink's `waa_schleiss_2013(..., tau)` without a value;
-`roadmap.md` names "Minda & Nakamura exponential drying", which is not in the proposal's reference list and has no
+`docs/ROADMAP.md` names "Minda & Nakamura exponential drying", which is not in the proposal's reference list and has no
 value either. The only paper stored in the repository is the OpenMRG paper [13]. To do before Step 8a: read the time
-constants from [1] and [9] themselves and add them, with page numbers, to `roadmap.md`.
+constants from [1] and [9] themselves and add them, with page numbers, to `docs/ROADMAP.md`.
 
 ## 4. Free curve (`research/wet_antenna/outputs/tables/fit_real_drying_curves.csv`)
 
@@ -347,6 +347,3 @@ that was not on the list, and they also exposed a fault in the menu comparison. 
     tails that plateau or rise.
 13. **Cross-validation halves**: events are split 12 / 12 at random; with 3 big events the halves are unequal in
     tails. Seed fixed in `wet_antenna.fit_real_drying.cv_seed`; not varied.
-14. **Key figure**: `fit_real_drying_k_real.png` is saved as diag (the module has 6 key outputs). If it is promoted, the output to
-    demote is `outputs/tables/check_pooled_fit_recovery.csv` (as proposed in 3b-2 and 3b-3b). My advice is to wait: the curve
-    is not yet a result to show as "the law".

@@ -27,7 +27,7 @@ research/    config.yaml (all settings), steps.yaml (every step in run order), _
   common/        save.py (save), report.py (md_table, rel), plotting.py (style_axes), config.py (load_config)
   baseline/      README, METHOD, paths.py, baseline.py, make_*.py, run_sample.py, validation/, outputs/
   wet_antenna/   README, METHOD, paths.py, libraries (simulator, per_tail_fit, pooled_fit, sindy, free_curve, tails,
-                 fit_jobs), one entry script per step, outputs/
+                 datasets, fit_jobs), one entry script per step, outputs/
   explorations/  playground, local only (git-ignored except its README)
   .cache/        saved fits and logs, git-ignored (research/.cache/<module>/<script>/, logs/)
 data/        NOT in git: raw/openmrg (never modified), work/openmrg (pipeline outputs), release/openmrg_<version>

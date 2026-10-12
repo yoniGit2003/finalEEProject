@@ -123,4 +123,3 @@ simulator: the 1 dB TSL steps (cut away by the tail rule) and the 7 s sampling w
    (baseline subtraction), not something checked on tails.
 7. **This says nothing about other effects of the rounding** (the level error of +-20 %, the too narrow bootstrap
    band of 3b-3c part D). Only the step was tested.
-8. **The figure is diag; no key figure proposed.**

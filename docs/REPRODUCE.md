@@ -72,7 +72,7 @@ figures into `research/<module>/outputs/`.
 | 5 | baseline_table | `python -m research.baseline.make_baseline_table` | The frozen baseline v2: one baseline per event and sub-link, with its uncertainty | release | 40 s | - |
 | 6 | inventory (step 0) | `python -m research.wet_antenna.inventory` | What data there is for WAA: links, events, references; one example event | release | 10 s | - |
 | 7 | extract_tails (step 1) | `python -m research.wet_antenna.extract_tails` | Every drying tail after every rain event, with no selection | release | 2.5 min | - |
-| 8 | select_tails (step 2) | `python -m research.wet_antenna.select_tails` | Selection of usable tails by rules fixed in advance; test of the 'fast drop' | release | 1.5 min | - |
+| 8 | select_tails (step 2) | `python -m research.wet_antenna.select_tails` | Selection of usable tails by rules fixed in advance; test of the 'fast drop' | - | 1.5 min | - |
 | 9 | refine_selection (step 2b) | `python -m research.wet_antenna.refine_selection` | Fixes after looking at the selected tails (start at the last rain trace, noisy baselines, flags) | release | 1 min | - |
 | 10 | freeze_tail_set (step 2c) | `python -m research.wet_antenna.freeze_tail_set` | Last fixes, then the frozen tail set v1 that all modelling uses | release | 45 s | - |
 | 11 | calibrate_simulator (step 3a) | `python -m research.wet_antenna.calibrate_simulator` | A tail simulator with known drying laws and realistic noise, calibrated to the real tails | release | 2 min | - |
