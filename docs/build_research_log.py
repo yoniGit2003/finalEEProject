@@ -1,6 +1,7 @@
 """Build docs/research_log.pdf from docs/research_log.tex (the research report at the level of ideas).
 
-    python docs/build_research_log.py
+    python docs/build_research_log.py                      # the research log
+    python docs/build_research_log.py project_structure    # another document of docs/, here project_structure.tex
 
 Runs pdflatex three times (the second run fills the table of contents and the references; the contents pages
 shift every later page, so the third run corrects the page numbers in them). The auxiliary files (.aux, .log,
@@ -18,10 +19,14 @@ import tempfile
 from pathlib import Path
 
 DOCS = Path(__file__).resolve().parent
-NAME = "research_log"
+DOCUMENTS = ("research_log", "project_structure")            # the .tex files of docs/ that this script builds
 
 
 def main() -> int:
+    NAME = sys.argv[1] if len(sys.argv) > 1 else DOCUMENTS[0]
+    if NAME not in DOCUMENTS:
+        print(f"build_research_log: unknown document {NAME!r} (choose from: {', '.join(DOCUMENTS)})")
+        return 1
     if shutil.which("pdflatex") is None:
         print("build_research_log: pdflatex not found (install MiKTeX or TeX Live)")
         return 1

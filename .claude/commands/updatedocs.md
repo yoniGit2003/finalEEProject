@@ -1,5 +1,5 @@
 ---
-description: Bring docs/research_log.pdf (and the reproduce page) up to date with the research progress
+description: Bring docs/research_log.pdf, docs/project_structure.pdf and the reproduce page up to date with the project
 argument-hint: "[full] [commit]   (full = recheck every section; commit = commit the result)"
 ---
 
@@ -11,7 +11,9 @@ Bring the project's documents up to date with what the research has actually don
 
 1. `docs/research_log.tex` -> `docs/research_log.pdf`: the report of what the research has implemented, what it
    found, where it stands and what comes next, at the level of ideas (equations and plain language, no code).
-2. `docs/REPRODUCE.md`: the step table, generated from `research/steps.yaml`.
+2. `docs/project_structure.tex` -> `docs/project_structure.pdf`: which folders and files the repository has and what
+   each one is for (short, mostly tables).
+3. `docs/REPRODUCE.md`: the step table, generated from `research/steps.yaml`.
 
 Do not ask questions; work through the steps and report at the end. Never change code, settings or results here.
 
@@ -24,7 +26,8 @@ Do not ask questions; work through the steps and report at the end. Never change
 2. **What changed.** Read the first line of `docs/research_log.tex`: `% last updated: <date> commit=<hash>`.
    List what changed since then: `git log --oneline <hash>..HEAD -- research/ docs/ROADMAP.md`,
    `git diff --stat <hash> -- research/ docs/ROADMAP.md`, and `git status --porcelain -- research/ docs/`
-   (uncommitted work counts). If nothing changed and the argument `full` was not given, say so and stop.
+   (uncommitted work counts). If nothing changed and the argument `full` was not given, say so and skip steps 3
+   to 6 (step 7, the project structure, has its own check and is always done).
 
 3. **Read the sources.** Every number and every statement in the log must come from these:
    - `docs/ROADMAP.md`: part A (checklist) and part B (the WAA plan: status, decisions, next steps);
@@ -61,10 +64,28 @@ Do not ask questions; work through the steps and report at the end. Never change
 6. **Stamp.** Rewrite the first line of the `.tex`: `% last updated: <today> commit=<git rev-parse --short HEAD>`,
    and rebuild if that changed the file after the last build.
 
-7. **Report in the chat**: which sections changed and why, which numbers were added (with their source file), what
-   could not be confirmed from the sources, and whether the build passed. Leave the changed files uncommitted for
+7. **The project structure.** `docs/project_structure.tex` has the same first line as the research log
+   (`% last updated: <date> commit=<hash>`). List the files that were added, deleted or renamed since then:
+   `git diff --name-status --diff-filter=ADR <hash> HEAD -- . ":(exclude)research/*/outputs"` and
+   `git status --porcelain` (uncommitted files count); also look at the local folders that are not in git
+   (`data/`, `research/.cache/`, `research/explorations/`) one level deep. If nothing was added, deleted, renamed
+   or given a new job, and `full` was not given, leave the document as it is. Otherwise:
+   - edit only the rows that changed: a new file gets a row in the table of its folder, a deleted file loses its
+     row, a new folder or module gets a table (or a subsection) in the same style; with `full`, check every row
+     against `git ls-files` and against the first lines (the docstring) of each script;
+   - what a file does comes from its docstring, its module's `README.md` or `research/steps.yaml`; never guess;
+   - keep it short: one line per file, simple words, tables where there are several files, no numbers that go out
+     of date (file counts, run times) and no research results (those belong in the research log);
+   - file and folder names are written with `\code{...}` (it removes spaces: a command with spaces is `\texttt{...}`);
+   - update the date on the title page, build with
+     `C:\Users\yoni\miniconda3\python.exe docs/build_research_log.py project_structure` (same failure rules as in
+     step 5), Read the PDF, then rewrite the first line of the `.tex` as in step 6 and rebuild.
+
+8. **Report in the chat**: which sections changed and why, which numbers were added (with their source file), what
+   could not be confirmed from the sources, and whether the builds passed. Leave the changed files uncommitted for
    review, unless the argument `commit` was given: then commit `docs/research_log.tex`, `docs/research_log.pdf`,
-   `docs/REPRODUCE.md` and `research/steps.yaml` with a message that says what was updated.
+   `docs/project_structure.tex`, `docs/project_structure.pdf`, `docs/REPRODUCE.md` and `research/steps.yaml` with a
+   message that says what was updated.
 
 **Reminder to give in the report:** if every other item of "Stage 1: WAA" in part A of `docs/ROADMAP.md` is ticked
 and the item "publish the fit caches" is not, tell the user that it is time to publish them (the item says how).

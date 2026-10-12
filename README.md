@@ -5,6 +5,7 @@ Team: Yonatan Haber and Yehonatan Tsitseluk.
 
 **To rerun everything we did, in order: [`docs/REPRODUCE.md`](docs/REPRODUCE.md).**
 What the research has found so far: [`docs/research_log.pdf`](docs/research_log.pdf).
+What every folder and file is: [`docs/project_structure.pdf`](docs/project_structure.pdf).
 
 ## The question
 

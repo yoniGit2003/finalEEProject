@@ -17,9 +17,11 @@ English technical terms. The proposal and the dataset summary are imported here:
 ```
 README.md, CLAUDE.md, LICENSE (MIT), .gitignore (the only one, written by hand), .gitattributes,
 environment.yml (+ environment.lock.yml = exact versions), .github/workflows/check.yml (fast tests on every push)
-.claude/commands/updatedocs.md   the /updatedocs command (research log + reproduce page)
+.claude/commands/updatedocs.md   the /updatedocs command (research log + project structure + reproduce page)
 docs/        REPRODUCE.md (how to rerun everything), ROADMAP.md (the ONLY roadmap: checklist + WAA plan),
-             proposal, research_log.tex / .pdf (build: python docs/build_research_log.py), pipeline_log.pdf, papers/
+             proposal, research_log.tex / .pdf (build: python docs/build_research_log.py), project_structure.tex / .pdf
+             (what every folder and file is; build: python docs/build_research_log.py project_structure),
+             pipeline_log.pdf, papers/
 pipeline/    the data layer: src/cmlpipe (io, qc, geometry, aggregate, events, inventory, release, api, viz, cli),
              apps/explorer (Streamlit GUI), configs/openmrg.yaml, tests/, tools/check_boundaries.py, docs/,
              examples/, pyproject.toml (single dependency list), get_data.py, get_caches.py, LICENSE-DATA.md

@@ -96,7 +96,8 @@ The step numbers in brackets are the ones the research log and the `METHOD.md` f
 
 `python docs/build_research_log.py` builds `docs/research_log.pdf` from `docs/research_log.tex`. It needs a LaTeX
 installation with `pdflatex` (MiKTeX or TeX Live). The committed PDF is already up to date, so this step is only
-needed after you change the `.tex`.
+needed after you change the `.tex`. The same script builds `docs/project_structure.pdf` (what every folder and file
+is): `python docs/build_research_log.py project_structure`.
 
 ### 6. Check your results
 
