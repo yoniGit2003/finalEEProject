@@ -1,12 +1,12 @@
 # R1: validation of the baseline method
 
 > Files: the tables named below are in [`../tables/`](../tables/), the figures in [`../figures/`](../figures/) (moved
-> there from `validation/out/` in the reorganization of 2026-10-07; file meanings: [`../../CATALOG.md`](../../CATALOG.md)).
+> there from `validation/out/` in the reorganization of 2026-10-07; what each check decided: [`../../METHOD.md`](../../METHOD.md)).
 
 Release `openmrg_v1`; train links and significant train events only; main numbers = 513 good train sub-links
 (none of them TSL "toggling"). Degraded (53) and toggling (16, all also degraded) are reported separately.
 5 min `tl_mean`, seed 42, skip S = 1 h unless stated. Settings: `research/config.yaml` (`baseline_validation`).
-Code: `research/baseline_estm/validation/` (`run_all.py`). Runtime of the full run: 148 s (table at the end).
+Code: `research/baseline/validation/` (`run_all.py`). Runtime of the full run: 148 s (table at the end).
 Errors are pooled over all 5 min slots of all fake events unless stated ("per sub-link" = per sub-link first).
 
 ## Summary

@@ -1,7 +1,7 @@
 # R1b: baseline v2, event-level validation and dew flag
 
 > Files: the tables named below are in [`../tables/`](../tables/), the figures in [`../figures/`](../figures/) (moved
-> there from `validation/out/` in the reorganization of 2026-10-07; file meanings: [`../../CATALOG.md`](../../CATALOG.md)).
+> there from `validation/out/` in the reorganization of 2026-10-07; what each check decided: [`../../METHOD.md`](../../METHOD.md)).
 
 Train links and significant train events only; main numbers = 513 good train sub-links. Method: `../../METHOD.md`.
 Code: `validation/r1b_event_level.py` (in `run_all.py`), `make_dew_products.py`; settings: `research/config.yaml`
@@ -24,7 +24,7 @@ C1 fake event (certified dry weather, truth 0), on the same 61 560 fake events a
 ## 1. Method
 
 `METHOD.md`: the v2 rules, flags, the "Changes v1 -> v2" table and the two dew products. v1 stays runnable:
-`baseline.version` in the config, or `python research/baseline_estm/run_sample.py v1` (v2: `... v2`, writes
+`baseline.version` in the config, or `python -m research.baseline.run_sample v1` (v2: `... v2`, writes
 `sample_pre_event_baselines.csv` for the 24-sub-link sample: missing 5.6 %, excursion 1.2 %, dew_risk_in_window 1.9 %,
 daily_cycle_large 4.2 %).
 

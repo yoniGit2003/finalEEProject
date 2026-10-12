@@ -84,8 +84,8 @@ def compare(rel_tol):
             return pd.read_parquet(source)
         return pd.read_csv(source, low_memory=False, compression="gzip" if name.endswith(".gz") else None)
 
-    tracked = subprocess.run(["git", "ls-files", "research/*/outputs"], cwd=REPO, capture_output=True, text=True).stdout.split()
-    tables = [f for f in tracked if f.endswith((".csv", ".csv.gz", ".parquet"))]
+    tracked = subprocess.run(["git", "ls-files", "research"], cwd=REPO, capture_output=True, text=True).stdout.splitlines()
+    tables = [f for f in tracked if "/outputs/" in f and f.endswith((".csv", ".csv.gz", ".parquet"))]
     same = differ = 0
     for f in tables:
         path = REPO / f

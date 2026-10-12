@@ -1,3 +1,2 @@
-# Shell hooks must keep LF line endings, or sh fails on Windows checkouts.
-pipeline/tools/githooks/* text eol=lf
+# Shell scripts must keep LF line endings, or sh fails on Windows checkouts.
 *.sh text eol=lf

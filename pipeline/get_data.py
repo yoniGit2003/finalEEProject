@@ -23,6 +23,7 @@ import hashlib
 import shutil
 import subprocess
 import sys
+import time
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -38,8 +39,9 @@ NEEDED = ["cml/cml.nc", "cml/cml_metadata.csv", "gauges/city/CityGauges-2015JJA.
           "gauges/smhi/GbgA-71420-metadata.csv", "radar/radar.nc"]
 
 
-def missing_raw(folder=RAW):
-    """The needed raw files that are not in `folder`."""
+def missing_raw(folder=None):
+    """The needed raw files that are not in `folder` (default: data/raw/openmrg)."""
+    folder = folder or RAW
     return [f for f in NEEDED if not (folder / f).exists()]
 
 
@@ -51,8 +53,9 @@ def md5_of(path):
     return h.hexdigest()
 
 
-def download(target=ZIP):
+def download(target=None):
     """Download OpenMRG.zip to `target` (through a .part file, so an interrupted download is never used)."""
+    target = target or ZIP
     target.parent.mkdir(parents=True, exist_ok=True)
     part = target.with_suffix(".part")
     print(f"downloading {URL}\n   -> {target}")
@@ -72,9 +75,10 @@ def download(target=ZIP):
     part.replace(target)
 
 
-def unpack(zip_path=ZIP, folder=RAW):
+def unpack(zip_path=None, folder=None):
     """Unpack the archive into `folder`. The archive keeps everything under one top folder; that folder is dropped,
     so that cml/cml.nc ends up directly in `folder`."""
+    zip_path, folder = zip_path or ZIP, folder or RAW
     with zipfile.ZipFile(zip_path) as z:
         names = [n for n in z.namelist() if not n.endswith("/")]
         anchor = next((n for n in names if n.endswith("cml/cml.nc")), None)
@@ -100,11 +104,19 @@ def get_raw():
         raise SystemExit(f"{RAW} exists but these files are missing: {missing_raw()}\n"
                          "The raw folder is never changed by this script: fix or remove it by hand, then run again.")
     if not ZIP.exists():
-        try:
-            download()
-        except Exception as e:                              # noqa: BLE001  (network errors of any kind)
-            raise SystemExit(f"download failed: {type(e).__name__}: {e}\nDownload OpenMRG.zip in a browser from "
-                             f"https://doi.org/10.5281/zenodo.7107689, put it at {ZIP} and run this script again.")
+        error = None
+        for attempt in (1, 2, 3):                           # Zenodo sometimes answers with a time-out: try again
+            try:
+                download()
+                error = None
+                break
+            except Exception as e:                          # noqa: BLE001  (network errors of any kind)
+                print(f"   attempt {attempt} failed: {type(e).__name__}: {e}")
+                error = e
+                time.sleep(20)
+        if error is not None:
+            raise SystemExit(f"download failed: {type(error).__name__}: {error}\nDownload OpenMRG.zip in a browser "
+                             f"from https://doi.org/10.5281/zenodo.7107689, put it at {ZIP} and run this script again.")
     found = md5_of(ZIP)
     if found != MD5:
         raise SystemExit(f"{ZIP}: md5 is {found}, expected {MD5} (incomplete download?). Delete the file and retry.")
