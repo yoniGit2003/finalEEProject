@@ -2,7 +2,7 @@
 
 Written by `research/WAA_estm/step2c_freeze.py` (settings `waa.freeze`; the rules of steps 2 and 2b stay). No fitting.
 TRAIN events for every number and figure; VAL gets the same rules and files and is only counted. Run time
-34 s.
+31 s.
 
 ## 1-2. Radar NaN as unknown, rise cut v2
 

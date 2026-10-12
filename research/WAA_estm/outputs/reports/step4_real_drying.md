@@ -20,7 +20,7 @@ Frozen tail set v1, TRAIN tails only; the 123 VAL tails were not read.
   (free curve); one F1 fit 1.3 s. Projection 1.19 h on 3 processes
   (budget 3.0 h). **Cut: nothing.**
 - **Run time**: 36 min wall (1.8 process-hours; cached in `.cache/fits4/`). This run:
-  22 s.
+  24 s.
 - **Software**: numpy / scipy / numba (own code); PySR used for 4 curves.
 - **Added after the first run, from the cached fits (no fit was rerun, no setting changed)**: the like-for-like menu
   reading (row `F1+`, section 3), the model-free rate table and the share of tails that do not decay (section 4), the

@@ -21,7 +21,7 @@ Written by `research/WAA_estm/step3b2_sindy_fake.py` (libraries `waa_sindy.py`, 
 - **Cut for time**: nothing. The timed replicate (m3 with spread) took
   175 s for the pooled fits and 13 s for its SINDy runs; projected
   total 8 min on 3 processes (budget 2.0 h).
-- **Run time**: 18 min wall time (cached in `.cache/sindy3b2/`). This run: 8 s.
+- **Run time**: 18 min wall time (cached in `.cache/sindy3b2/`). This run: 9 s.
 
 ## 2. Library, settings and the offset
 

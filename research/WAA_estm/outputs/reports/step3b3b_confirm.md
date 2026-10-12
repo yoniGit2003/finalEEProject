@@ -24,7 +24,7 @@ tail set v1 is not changed.
   3 processes; projected total 0.64 h (budget 1.5 h).
   Cut: nothing.
 - **Run time**: 32 min wall (1.5 process-hours; cached in
-  `.cache/fits3b3b/`). This run: 8 s.
+  `.cache/fits3b3b/`). This run: 9 s.
 
 | kind | fits | s_median | start_spread_median | minutes_median |
 |---|---|---|---|---|

@@ -16,7 +16,7 @@ to 0.3 dB (the data of 3b-3b / 3b-3c), to 0.1 dB. The simulator draws the same r
 in all three settings.
 Timing: replicate 0 took 4.8 min wall on 3 processes, projected total
 18 min (budget 30 min); run time 17 min
-(cached in `.cache/fits3b4/`; this run: 6 s). Software: numpy / scipy / numba only.
+(cached in `.cache/fits3b4/`; this run: 7 s). Software: numpy / scipy / numba only.
 
 ## 1. Setting x replicate (`research/WAA_estm/outputs/tables/step3b4_step.csv`)
 

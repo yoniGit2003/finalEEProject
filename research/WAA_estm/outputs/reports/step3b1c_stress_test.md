@@ -28,7 +28,7 @@ PASS = every cell meets the rule; PARTIAL = one or two of the three tests have a
   candidates x all starts) took 154 s; projected total 0.42 h on
   3 processes (budget 3.0 h).
 - **Total run time**: 38 min wall time for 750 fits (1.9
-  process-hours of fitting; cached in `.cache/fits3b1c/`). This run: 16 s.
+  process-hours of fitting; cached in `.cache/fits3b1c/`). This run: 21 s.
 
 ## 2. T1 noise check (`research/WAA_estm/outputs/tables/step3b1c_noise_check.csv`)
 
