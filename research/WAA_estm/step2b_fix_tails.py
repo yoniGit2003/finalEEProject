@@ -35,7 +35,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
-from research.common.outputs import save_output
+from research.common.save import save
 
 CFG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
 S2, B = CFG["waa"]["selection"], CFG["waa"]["selection_2b"]
@@ -200,8 +200,7 @@ sel["in_control_2b"] = ok & (A0 < S2["control_max_a_start_db"]) & (sel.usable_st
 helper = sel[["tail_id", "_k_tr", "_cut", "_cut_s"]].copy()
 out = sel.drop(columns=["_k_tr", "_cut", "_cut_s"])
 num = out.select_dtypes("number").columns
-save_output(out.assign(**out[num].round(4)), P.TAILS_SELECTED, "product",
-            "tail index + selection columns of steps 2 and 2b (read by step 2c)", index=False)
+save(out.assign(**out[num].round(4)), P.TAILS_SELECTED, index=False)
 
 # ------------------------------------------------------------------------------------------------- TRAIN from here on
 tr_ = sel[sel.split_event == "train"].copy()
@@ -215,7 +214,7 @@ pre = tr_[(tr_.exclusion_reason.fillna("") == "") & (A0.loc[tr_.index] >= S2["ma
 pre_subs = pre.groupby("sublink_id").agg(tails=("tail_id", "size"), offset_std=("offset_std_unc", "first"))
 noisy = pre_subs[pre_subs.offset_std > B["max_offset_std_db"]].sort_values("offset_std", ascending=False)
 noisy = noisy.join(sel.drop_duplicates("sublink_id").set_index("sublink_id")[["L_km", "frequency_ghz", "antennas_m"]])
-save_output(noisy.round(3), P.STEP2B_NOISY, "diag", "step 2b sub-links removed by the offset_std rule")
+save(noisy.round(3), P.STEP2B_NOISY)
 fig, ax = plt.subplots(figsize=(8, 4))
 ax.hist(pre_subs.offset_std.dropna(), bins=np.arange(0, pre_subs.offset_std.max() + 0.02, 0.02), color="#9a9a9a",
         edgecolor=INK, hatch="//", linewidth=0.5)
@@ -226,7 +225,7 @@ ax.set(xlabel="offset_std of the sub-link (dB, dry-weather baseline spread)", yl
        title=f"offset_std over the {len(pre_subs)} sub-links of the lenient main set (before the noise rule)")
 tidy(ax)
 fig.tight_layout()
-save_output(fig, P.STEP2B_FIG_NOISE, "diag", "step 2b offset_std of the main-set sub-links", dpi=110)
+save(fig, P.STEP2B_FIG_NOISE, dpi=110)
 plt.close(fig)
 
 # --- tail time kept / lost (kept TRAIN tails of step 2, minutes)
@@ -242,7 +241,7 @@ time_tab = pd.DataFrame([
     ("  lost strict vs lenient (rain trace after t0_trace)", (k2.usable_lenient_min - k2.usable_strict_min).sum()),
 ], columns=["quantity", "minutes"])
 time_tab["share_of_step1_time"] = (time_tab.minutes / k2.length_min.sum()).round(3)
-save_output(time_tab, P.STEP2B_TIME, "diag", "step 2b tail time kept / lost by each change", index=False)
+save(time_tab, P.STEP2B_TIME, index=False)
 trunc_l = k2.truncated_by_lenient.value_counts()
 trunc_s = k2.truncated_by_strict.value_counts()
 
@@ -263,7 +262,7 @@ counts_sets = pd.DataFrame({
 grp = pd.concat([g.groupby(["band", "length_class", "antennas_m"]).agg(
     tails=("tail_id", "size"), sublinks=("sublink_id", "nunique"), links=("cml_id", "nunique")).add_prefix(f"{k}_")
     for k, g in (("strict", ms), ("lenient", ml))], axis=1).fillna(0).astype(int).reset_index()
-save_output(grp, P.STEP2B_COUNTS, "diag", "step 2b strict / lenient main-set counts", index=False)
+save(grp, P.STEP2B_COUNTS, index=False)
 
 
 # --- 5. level flags: shares, undershoot vs temperature change and time of day
@@ -325,7 +324,7 @@ for a_ in ax:
     tidy(a_)
 fig.suptitle("Undershoot (TRAIN lenient main set)", fontsize=10)
 fig.tight_layout()
-save_output(fig, P.STEP2B_FIG_UNDERSHOOT, "diag", "step 2b undershoot vs temperature change and hour", dpi=110)
+save(fig, P.STEP2B_FIG_UNDERSHOOT, dpi=110)
 plt.close(fig)
 
 # --- 6. median curves aligned at t0_trace (A and A / A_start_trace)
@@ -343,7 +342,7 @@ groups = {"strict": use[use.in_main_strict & (use.minutes_since_t0 < use._cut_s)
 curves = pd.concat([g.groupby("rel").agg(median_A=("A_db", "median"), median_A_norm=("A_norm", "median"),
                                          count=("A_db", "count")).reset_index().assign(group=k)
                     for k, g in groups.items()])
-save_output(curves, P.STEP2B_MEDIAN_CURVES, "diag", "step 2b median A aligned at t0_trace", index=False)
+save(curves, P.STEP2B_MEDIAN_CURVES, index=False)
 med_fd = (ms.t_first_dry - ms.t0_trace).dt.total_seconds().median() / 60     # median t_first_dry after t0_trace
 
 fig, ax = plt.subplots(4, 2, figsize=(13, 15))
@@ -377,7 +376,7 @@ ax[0, 0].legend(frameon=False, fontsize=8)
 fig.suptitle("Median tail curves aligned at t0_trace (TRAIN). Line styles: strict solid, lenient dashed, strict "
              "without level flags dotted, control dash-dot. Drawn where >= 20 tails; log y from 0.01.", fontsize=10)
 fig.tight_layout()
-save_output(fig, P.STEP2B_FIG_MEDIAN, "diag", "step 2b median curves at t0_trace", dpi=100)
+save(fig, P.STEP2B_FIG_MEDIAN, dpi=100)
 plt.close(fig)
 
 
@@ -457,7 +456,7 @@ def panel_figure(df, n, seed, hours, ncol, path, title):
         panel(fig, outer[k // ncol, k % ncol], r, hours, data)
     fig.subplots_adjust(top=1 - 1.6 / (3.9 * nrow + 0.8))           # room for the 3-line title above the panels
     fig.text(0.5, 1 - 0.2 / (3.9 * nrow + 0.8), title + "\n" + LEGEND, ha="center", va="top", fontsize=9)
-    save_output(fig, path, "diag", "step 2b " + title.split("\n")[0], dpi=90, bbox_inches="tight")
+    save(fig, path, dpi=90, bbox_inches="tight")
     plt.close(fig)
     return pick
 
@@ -626,6 +625,6 @@ same normalised by A_start_trace (control left out there: its A_start is ~0):
 9. **A_start_trace** is measured right after the last trace; in the strict set the next trace can come soon after,
    so a short strict tail may still be dominated by the rain before.
 """
-save_output(report, P.STEP2B_REPORT, "diag", "step 2b report: fixes after the step 2 gallery")
+save(report, P.STEP2B_REPORT)
 print("\n" + "=" * 100 + "\n" + report)
 print(f"done in {time.time() - clock:.0f} s")

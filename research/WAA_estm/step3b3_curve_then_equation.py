@@ -42,7 +42,7 @@ import matplotlib.pyplot as plt
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
-from research.common.outputs import save_output
+from research.common.save import save
 import waa_sim as ws
 import waa_pooled as wp
 import waa_curve as wc
@@ -439,10 +439,8 @@ def main():
     fits = pd.DataFrame(fit_rows)
     cur = pd.DataFrame(cur_rows)
     bands = pd.DataFrame(band_rows)
-    save_output(fits, P.STEP3B3_FITS, "diag", "step 3b-3 every free-curve pooled fit: knots, penalty, k at the knots, s, "
-                "BIC, starts, slope with interval", index=False)
-    save_output(cur.round(6), P.STEP3B3_CURVES, "product", "step 3b-3 learned k(W) per replicate on the supported grid "
-                "(with its sd of log k) and the true k(W)", index=False)
+    save(fits, P.STEP3B3_FITS, index=False)
+    save(cur.round(6), P.STEP3B3_CURVES, index=False)
 
     # ------------------------------------------------------------------------------------------- jump 1 rule
     need = DEC["min_reps"] / 5 * R
@@ -463,8 +461,7 @@ def main():
         row["shape_ok"] = np.nan if got is None else bool(got >= need)
         j1.append(row)
     j1 = pd.DataFrame(j1)
-    save_output(j1, P.STEP3B3_J1, "product", "step 3b-3 jump 1: band coverage of the true k(W) and shape test per truth, "
-                "data kind and window", index=False)
+    save(j1, P.STEP3B3_J1, index=False)
 
     # ------------------------------------------------------------------------------------------- jump 2
     sel_rows, coef_rows, j2 = [], [], []
@@ -506,9 +503,8 @@ def main():
             row["equation_ok"] = bool(row["true_ok"] and row["spurious_ok"] and row["coef_ok"])
         j2.append(row)
     sel, coefs, j2 = pd.DataFrame(sel_rows), pd.DataFrame(coef_rows), pd.DataFrame(j2)
-    save_output(sel, P.STEP3B3_J2_SEL, "product", "step 3b-3 jump 2: replicates in which each library term is selected, "
-                "per truth, data kind and window", index=False)
-    save_output(coefs, P.STEP3B3_J2_COEF, "product", "step 3b-3 jump 2: fitted / true coefficients of the true terms",
+    save(sel, P.STEP3B3_J2_SEL, index=False)
+    save(coefs, P.STEP3B3_J2_COEF,
                 index=False)
 
     # post hoc diagnostic, added after the first complete run (it changes no verdict): the same fits judged only above
@@ -540,8 +536,7 @@ def main():
                 for c in rule["coefs"])
         post.append(row)
     post = pd.DataFrame(post)
-    save_output(post, P.STEP3B3_POSTHOC, "product", "step 3b-3 post hoc diagnostic: the learned curves judged only above "
-                "the second knot (coverage, slope over the replicates, equation)", index=False)
+    save(post, P.STEP3B3_POSTHOC, index=False)
 
     # ------------------------------------------------------------------------------------------- menu fit, m4 warning
     W_ = DEC["m4_warning"]
@@ -586,8 +581,7 @@ def main():
             row["warning"] = bool(row.get("warn_windows", False) or row["warn_f4"])
             menu.append(row)
     menu = pd.DataFrame(menu)
-    save_output(menu, P.STEP3B3_MENU, "product", "step 3b-3 per main dataset: menu-fit winner (60 min), free curve vs menu "
-                "BIC, agreement of the 60 min and 6 h curves, m4 warning signs", index=False)
+    save(menu, P.STEP3B3_MENU, index=False)
 
     # ------------------------------------------------------------------------------------------- verdicts
     dec = []
@@ -610,14 +604,13 @@ def main():
                     "basis": "; ".join(f"{w_}: curve {o[0]}, shape {o[1]}, equation {o[2]}" for _, w_, o in cand)})
     dec = pd.DataFrame(dec)
     overall = "PASS" if (dec.verdict == "PASS").all() else ("FAIL" if (dec.verdict == "FAIL").all() else "PARTIAL")
-    save_output(pd.concat([dec, pd.DataFrame([{"truth": "overall", "verdict": overall}])], ignore_index=True),
-                P.STEP3B3_DECISION, "product", "step 3b-3 verdict per truth (better window) and overall", index=False)
+    save(pd.concat([dec, pd.DataFrame([{"truth": "overall", "verdict": overall}])], ignore_index=True),
+                P.STEP3B3_DECISION, index=False)
 
     # ------------------------------------------------------------------------------------------- figures
     for truth in S["truths"]:
         fig = k_figure(truth, cur, bands, par, R)
-        save_output(fig, Path(str(P.STEP3B3_FIG_K).format(truth=truth)), "diag",
-                    f"step 3b-3 true vs learned k(W) with the replicate band, truth {truth}", dpi=110)
+        save(fig, Path(str(P.STEP3B3_FIG_K).format(truth=truth)), dpi=110)
         plt.close(fig)
 
     # ------------------------------------------------------------------------------------------- report
@@ -774,8 +767,7 @@ a warning sign in >= {DEC['min_reps']} of 5 replicates.
 
 {UNCLEAR}
 """
-    save_output(report, P.STEP3B3_REPORT, "product", "step 3b-3 report: free drying curve from the pooled fit, then its "
-                "equation, on fake tails")
+    save(report, P.STEP3B3_REPORT)
     print("\n" + "=" * 100 + "\n" + report)
     print(f"done in {time.time() - clock:.0f} s")
 

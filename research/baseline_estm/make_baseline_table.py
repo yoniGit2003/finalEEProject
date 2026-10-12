@@ -25,7 +25,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import baseline as bl                                                          # noqa: E402
 import baseline_estm_paths as P                                                # noqa: E402  (all file locations)
-from research.common.outputs import save_output                              # noqa: E402  (writes + MANIFEST)
+from research.common.save import save
 
 REPO = P.REPO
 CONFIG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
@@ -133,11 +133,9 @@ def main():
     col = "off_v2_hx" if B["v2"]["humidity_exclusion"] else "off_v2_nohx"
     chk = ev.merge(r1b[["sublink_id", "D_h", "i0", col]], on=["sublink_id", "D_h", "i0"])
     print(f"check vs R1b: {len(chk)} fake events, max |difference| {np.nanmax(np.abs(chk.offset - chk[col])):.2e} dB")
-    save_output(unc.round(4), P.BASELINE_UNCERTAINTY, "product",
-                "v2 baseline error spread per sub-link (weights)", index=False)
+    save(unc.round(4), P.BASELINE_UNCERTAINTY, index=False)
     t = table(d, s, tl, state, dew, amp, unc)
-    save_output(t.round(4), P.BASELINES, "product",
-                "frozen v2 baseline per (event, sub-link): input of WAA_estm", index=False)
+    save(t.round(4), P.BASELINES, index=False)
     print(f"baselines (v2): {len(t)} rows; by split:", t.split_event.value_counts().to_dict())
 
 

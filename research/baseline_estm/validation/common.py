@@ -18,7 +18,7 @@ from cmlpipe.api import CMLData
 HERE = Path(__file__).resolve().parent                     # research/baseline_estm/validation
 sys.path.insert(0, str(HERE.parent))
 import baseline_estm_paths as P                            # noqa: E402  (all file locations)
-from research.common.outputs import save_output            # noqa: E402  (writes + MANIFEST)
+from research.common.save import save
 REPO = P.REPO
 CONFIG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
 V = CONFIG["baseline_validation"]                          # this step's settings
@@ -53,7 +53,7 @@ class Timer:
         old = pd.read_csv(f) if f.exists() else pd.DataFrame(columns=["step", "seconds"])
         old = old[old.step != self.name]
         new = pd.concat([old, pd.DataFrame([{"step": self.name, "seconds": round(dt, 1)}])])
-        save_output(new, f, "diag", "runtime of each validation check", index=False,
+        save(new, f, index=False,
                     script="research/baseline_estm/validation/run_all.py")
 
 

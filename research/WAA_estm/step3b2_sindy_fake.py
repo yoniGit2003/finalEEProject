@@ -47,7 +47,7 @@ import matplotlib.pyplot as plt
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
-from research.common.outputs import save_output
+from research.common.save import save
 import waa_sim as ws
 import waa_pooled as wp
 import waa_sindy as sd
@@ -410,8 +410,7 @@ def main():
     fits["family"] = fits.apply(lambda r: family([t for t in TERMS if r[f"sel_{t}"]]), axis=1)
     cfg = ["spread", "window", "offset", "rescale"]
     fits = fits.sort_values(["truth"] + cfg + ["rep"]).reset_index(drop=True)
-    save_output(fits.round(6), P.STEP3B2_FITS, "diag", "step 3b-2 every SINDy run: dataset, window, offset, rescale, "
-                "threshold, selection frequency and coefficient of every term", index=False)
+    save(fits.round(6), P.STEP3B2_FITS, index=False)
 
     sel = []
     for keys, g in fits.groupby(["truth"] + cfg):
@@ -420,8 +419,7 @@ def main():
                         "n_selected": int(g[f"sel_{t}"].sum()), "replicates": len(g),
                         "mean_frequency": round(float(g[f"freq_{t}"].mean()), 3)})
     sel = pd.DataFrame(sel)
-    save_output(sel, P.STEP3B2_SELECTION, "product", "step 3b-2 selection of each library term per truth and "
-                "configuration (replicates selected, mean stability frequency)", index=False)
+    save(sel, P.STEP3B2_SELECTION, index=False)
 
     coefs, rule = [], []
     for keys, g in fits[fits.truth.isin(RULE)].groupby(["truth"] + cfg):
@@ -435,8 +433,7 @@ def main():
                           "counted": c in RULE[truth]["coefs"]})
         rule.append({**dict(zip(["truth"] + cfg, keys)), **eval_rule(g, truth, true_coef[truth])})
     coefs, rule = pd.DataFrame(coefs), pd.DataFrame(rule)
-    save_output(coefs, P.STEP3B2_COEFS, "product", "step 3b-2 coefficient recovery: fitted / true of the true terms per "
-                "truth and configuration (0 where the term is not selected)", index=False)
+    save(coefs, P.STEP3B2_COEFS, index=False)
 
     M = S["main"]
     is_main = (fits.window == M["window"]) & (fits.offset == M["offset"]) & (fits.rescale == M["rescale"])
@@ -477,8 +474,7 @@ def main():
     cmp_ = agree[agree.truth.isin(RULE)]                             # m4 has no single-variable family: not counted
     share4 = float(cmp_.agree.mean())
     v4 = "PASS" if share4 >= D["q4"]["pass"] else ("PARTIAL" if share4 >= D["q4"]["partial"] else "FAIL")
-    save_output(agree, P.STEP3B2_AGREEMENT, "product", "step 3b-2 agreement per dataset: pooled-fit winner vs the "
-                "family of the SINDy terms (plain and time-rescaled)", index=False)
+    save(agree, P.STEP3B2_AGREEMENT, index=False)
 
     verdicts = pd.DataFrame([
         {"question": "Q1", "verdict": v1, "basis": f"{int(q1.met.sum())} of {len(q1)} truths meet the rule: "
@@ -490,8 +486,7 @@ def main():
         {"question": "Q4", "verdict": v4, "basis": f"same family in {int(cmp_.agree.sum())} of {len(cmp_)} datasets "
          f"(m1, m3, m5, m6); with time rescaling {int(cmp_.agree_rescaled.sum())} of {len(cmp_)}"}])
     dec = pd.concat([rule.assign(kind="rule"), verdicts.assign(kind="verdict")], ignore_index=True)
-    save_output(dec, P.STEP3B2_DECISION, "product", "step 3b-2 pre-set rule per truth and configuration (main = the "
-                "configuration that counts) and the verdicts Q1 to Q4", index=False)
+    save(dec, P.STEP3B2_DECISION, index=False)
 
     # post hoc diagnostic (not part of the rule): the same runs with the threshold at the lowest held-out error
     alt = fits.copy()
@@ -511,8 +506,7 @@ def main():
     fig = selection_figure(sel, {"with spread (the rule's configuration)": f"{w60} and rescale == 'none' and spread",
                                  "no spread (s = 0)": f"{w60} and rescale == 'none' and not spread",
                                  "with spread, time rescaled by the pooled-fit speed": f"{w60} and rescale == 'fit'"}, R)
-    save_output(fig, P.STEP3B2_FIG_SELECTION, "diag", "step 3b-2 selection frequency of each library term per truth "
-                "(first 60 min, handled offset)", dpi=110)
+    save(fig, P.STEP3B2_FIG_SELECTION, dpi=110)
     plt.close(fig)
 
     # ------------------------------------------------------------------------------------------- report
@@ -712,7 +706,7 @@ Rule per truth (first 60 min, handled offset, with spread, not rescaled):
 
 {UNCLEAR}
 """
-    save_output(report, P.STEP3B2_REPORT, "product", "step 3b-2 report: weak-form SINDy on fake tails")
+    save(report, P.STEP3B2_REPORT)
     print("\n" + "=" * 100 + "\n" + report)
     print(f"done in {time.time() - clock:.0f} s")
 

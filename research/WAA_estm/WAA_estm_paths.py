@@ -20,9 +20,8 @@ TABLES = OUTPUTS / "tables"
 FIGURES = OUTPUTS / "figures"
 REPORTS = OUTPUTS / "reports"
 CACHE = MODULE / ".cache"
-MANIFEST = OUTPUTS / "MANIFEST.csv"                        # level + purpose of every output file
 
-# every output is written through research/common/outputs.py (save_output); this makes `research.` importable
+# make the `research` package importable (research.common.save)
 if str(REPO) not in sys.path:
     sys.path.append(str(REPO))
 

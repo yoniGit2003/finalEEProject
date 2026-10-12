@@ -37,7 +37,7 @@ import matplotlib.pyplot as plt
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
-from research.common.outputs import save_output
+from research.common.save import save
 import waa_sim as ws
 import waa_pooled as wp
 import waa_curve as wc
@@ -465,10 +465,8 @@ def main():
     a_draws, a_cells, software, a_methods = part_a(par)
     a_sec = time.time() - t0
     print(f"part A done in {a_sec:.0f} s; {software}", flush=True)
-    save_output(a_draws.round(4), P.STEP3B3C_A_DRAWS, "product", "step 3b-3c part A: what each jump-2 method returned on "
-                "every noise draw of the true h(W)", index=False)
-    save_output(a_cells, P.STEP3B3C_A, "product", "step 3b-3c part A: jump 2 alone, draws with exactly the true terms and "
-                "coefficient ratios per truth, noise level and method", index=False)
+    save(a_draws.round(4), P.STEP3B3C_A_DRAWS, index=False)
+    save(a_cells, P.STEP3B3C_A, index=False)
 
     # ------------------------------------------------------------------------------------------- jobs, timing, plan
     def jobs_for(reps, plan):
@@ -567,8 +565,7 @@ def main():
         b_sum.append(row)
         dec.append({"part": "B", "truth": t, "verdict": "PASS" if ok else "FAIL", "basis": basis})
     b_tab, b_sum = pd.DataFrame(b_rows), pd.DataFrame(b_sum)
-    save_output(b_tab, P.STEP3B3C_B, "product", "step 3b-3c part B: per dataset, BIC of the free curve with and without "
-                "the step, fitted W_c and height, step kept or not", index=False)
+    save(b_tab, P.STEP3B3C_B, index=False)
 
     # ------------------------------------------------------------------------------------------- C
     c_rows, win_rows = [], []
@@ -601,9 +598,8 @@ def main():
                              "free_curve_minus_winner": round(fc_held - best, 2), "step_kept": res["step_kept"],
                              "j2_bic_pick": " + ".join(res["j2"]["bic_pick"])})
     c_tab, win = pd.DataFrame(c_rows), pd.DataFrame(win_rows)
-    save_output(c_tab, P.STEP3B3C_C, "product", "step 3b-3c part C (jump 3): every candidate of every dataset, held-out "
-                "log-likelihood (2-fold over event draws) and BIC", index=False)
-    save_output(win, P.STEP3B3C_C_WIN, "product", "step 3b-3c part C (jump 3): winner per dataset, its family, margin",
+    save(c_tab, P.STEP3B3C_C, index=False)
+    save(win, P.STEP3B3C_C_WIN,
                 index=False)
     # post hoc, added after the first complete run (no refit, no verdict uses it): the same held-out scores with the
     # MENU LAWS ONLY, because the step law won for every truth (part B) and the jump-2 formulas were then read from
@@ -665,9 +661,8 @@ def main():
                     "basis": "true k inside the bootstrap band on >= 80 % in " + f"{n_ok} of {len(D_['datasets'])} datasets (" +
                              ", ".join(f"{x['coverage_band']:.0%}" for x in d_rows if x["truth"] == t) + ")"})
     d_tab, d_cur = pd.DataFrame(d_rows), pd.DataFrame(d_cur)
-    save_output(d_tab, P.STEP3B3C_D, "product", "step 3b-3c part D: coverage of the true k by the event-bootstrap band of "
-                "one dataset, band width, slope interval", index=False)
-    save_output(d_cur.round(6), P.STEP3B3C_D_CURVES, "product", "step 3b-3c part D: the bootstrap bands on the judged grid",
+    save(d_tab, P.STEP3B3C_D, index=False)
+    save(d_cur.round(6), P.STEP3B3C_D_CURVES,
                 index=False)
 
     # ------------------------------------------------------------------------------------------- E
@@ -682,27 +677,24 @@ def main():
                        "curve_minus_f4_now": round(q["bic"] - bic(f4["ll"]), 1)})
     e_tab = pd.DataFrame(e_rows)
     e_tab["warning_now"] = e_tab.curve_minus_f4_now > S3B["decision"]["m4_dbic_vs_f4"]
-    save_output(e_tab, P.STEP3B3C_E, "product", "step 3b-3c part E: m4, BIC(free curve) - BIC(F4) with the F1-solution "
-                "start added (information; the 3b-3b verdict stays)", index=False)
+    save(e_tab, P.STEP3B3C_E, index=False)
 
     # ------------------------------------------------------------------------------------------- verdicts
     dec = pd.DataFrame(dec)
     parts = dec.groupby("part", sort=False).verdict.agg(lambda v: verdict([x == "PASS" for x in v])).reset_index()
     overall = verdict([x == "PASS" for x in dec.verdict])
-    save_output(pd.concat([dec, parts.assign(truth="all parts of " + parts.part, basis=""),
+    save(pd.concat([dec, parts.assign(truth="all parts of " + parts.part, basis=""),
                            pd.DataFrame([{"part": "overall", "truth": "", "verdict": overall, "basis": ""}])], ignore_index=True),
-                P.STEP3B3C_DECISION, "product", "step 3b-3c verdict per part and truth (rules fixed before the run)", index=False)
+                P.STEP3B3C_DECISION, index=False)
 
     # ------------------------------------------------------------------------------------------- figures
     for t in plan["b_truths"]:
         fig = fig_b(t, [(bc[(t, r)], r3[(t, r)]) for r in range(R)], par)
-        save_output(fig, Path(str(P.STEP3B3C_FIG_B).format(truth=t)), "diag",
-                    f"step 3b-3c part B: free curve with and without the step, truth {t}", dpi=100)
+        save(fig, Path(str(P.STEP3B3C_FIG_B).format(truth=t)), dpi=100)
         plt.close(fig)
     for t in D_["truths"]:
         fig = fig_d(t, d_cur[d_cur.truth == t])
-        save_output(fig, Path(str(P.STEP3B3C_FIG_D).format(truth=t)), "diag",
-                    f"step 3b-3c part D: event-bootstrap band of one dataset vs the true k, truth {t}", dpi=100)
+        save(fig, Path(str(P.STEP3B3C_FIG_D).format(truth=t)), dpi=100)
         plt.close(fig)
 
     # ------------------------------------------------------------------------------------------- report
@@ -836,8 +828,7 @@ With the extra start: > {S3B['decision']['m4_dbic_vs_f4']:g} in {int(e_tab.warni
 
 {UNCLEAR}
 """
-    save_output(report, P.STEP3B3C_REPORT, "product", "step 3b-3c report: jump 2 alone, jump 1 with a step, jump 3, the "
-                "bootstrap band and the F4 check on fake tails; the Step 4 recipe")
+    save(report, P.STEP3B3C_REPORT)
     print("\n" + "=" * 100 + "\n" + report)
     print(f"done in {time.time() - clock:.0f} s")
 

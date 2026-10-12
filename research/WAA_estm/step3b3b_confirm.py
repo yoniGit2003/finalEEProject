@@ -37,7 +37,7 @@ import matplotlib.pyplot as plt
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
-from research.common.outputs import save_output
+from research.common.save import save
 import waa_sim as ws
 import waa_pooled as wp
 import waa_curve as wc
@@ -358,15 +358,12 @@ def main():
         j2_rows.append(jr)
     fits, cur, cs = pd.DataFrame(fit_rows), pd.DataFrame(cur_rows), pd.DataFrame(cs_rows)
     sel, coefs, j2 = pd.DataFrame(sel_rows), pd.DataFrame(coef_rows), pd.DataFrame(j2_rows)
-    save_output(fits, P.STEP3B3B_FITS, "diag", "step 3b-3b every free-curve pooled fit: judged range, knots, penalty, k at "
-                "the knots, s, BIC, starts, slope over the judged range", index=False)
-    save_output(cur.round(6), P.STEP3B3B_CURVES, "product", "step 3b-3b learned k(W) per replicate on the judged grid "
-                "(0.35 dB to W_hi) and the true k(W)", index=False)
-    save_output(cs, P.STEP3B3B_CURVE_SHAPE, "product", "step 3b-3b curve and shape per truth and data kind: band coverage, "
-                "level, slope of log k vs log W per replicate", index=False)
-    save_output(sel, P.STEP3B3B_J2_SEL, "product", "step 3b-3b jump 2: replicates in which each library term is selected",
+    save(fits, P.STEP3B3B_FITS, index=False)
+    save(cur.round(6), P.STEP3B3B_CURVES, index=False)
+    save(cs, P.STEP3B3B_CURVE_SHAPE, index=False)
+    save(sel, P.STEP3B3B_J2_SEL,
                 index=False)
-    save_output(coefs, P.STEP3B3B_J2_COEF, "product", "step 3b-3b jump 2: fitted / true coefficients of the true terms",
+    save(coefs, P.STEP3B3B_J2_COEF,
                 index=False)
 
     # ------------------------------------------------------------------------------------------- m4: free curve vs F4
@@ -376,7 +373,7 @@ def main():
                         "curve_minus_f4_bic": round(by[("main", "m4", r)]["bic"] - by[("main", "m4", r)]["menu_F4"]["bic"], 1)}
                        for r in range(R)])
     m4["warning"] = m4.curve_minus_f4_bic > DEC["m4_dbic_vs_f4"]
-    save_output(m4, P.STEP3B3B_M4, "product", "step 3b-3b m4 per replicate: BIC(free curve) - BIC(F4), the warning sign",
+    save(m4, P.STEP3B3B_M4,
                 index=False)
 
     # ------------------------------------------------------------------------------------------- verdicts
@@ -396,8 +393,8 @@ def main():
     dec = pd.DataFrame(dec)
     judged = dec[dec.verdict != "not judged"].verdict
     overall = "PASS" if (judged == "PASS").all() else ("FAIL" if (judged == "FAIL").all() else "PARTIAL")
-    save_output(pd.concat([dec, pd.DataFrame([{"truth": "overall", "verdict": overall}])], ignore_index=True),
-                P.STEP3B3B_DECISION, "product", "step 3b-3b verdict per truth and overall (rule fixed before the run)",
+    save(pd.concat([dec, pd.DataFrame([{"truth": "overall", "verdict": overall}])], ignore_index=True),
+                P.STEP3B3B_DECISION,
                 index=False)
 
     # ------------------------------------------------------------------------------------------- figures
@@ -405,8 +402,7 @@ def main():
         reps, w, K = store[("main", truth)]
         cover = cs[(cs.kind == "main") & (cs.truth == truth)].band_coverage.iloc[0]
         fig = k_figure(truth, reps, w, K, par, cover)
-        save_output(fig, Path(str(P.STEP3B3B_FIG_K).format(truth=truth)), "diag",
-                    f"step 3b-3b true vs learned k(W), replicate band and judged range, truth {truth}", dpi=110)
+        save(fig, Path(str(P.STEP3B3B_FIG_K).format(truth=truth)), dpi=110)
         plt.close(fig)
 
     # ------------------------------------------------------------------------------------------- report
@@ -543,8 +539,7 @@ Fitted spread s (true {S['s_true']}), median: {', '.join(f"{k} {t}: {v:.2f}" for
 
 {UNCLEAR}
 """
-    save_output(report, P.STEP3B3B_REPORT, "product", "step 3b-3b report: confirmation run of the free drying curve and "
-                "its equation above 0.35 dB on fresh fake tails, rule fixed before the run")
+    save(report, P.STEP3B3B_REPORT)
     print("\n" + "=" * 100 + "\n" + report)
     print(f"done in {time.time() - clock:.0f} s")
 

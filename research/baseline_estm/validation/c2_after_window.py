@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 from common import (V, OUT, FIG, SPH, Timer, open_data, sublink_table, groups, load_panel, usable, window, stat,
                     m3_baseline, wquantile)
-from research.common.outputs import save_output
+from research.common.save import save
 
 C = V["c2"]
 
@@ -125,7 +125,7 @@ def plot(cv, m3k):
     ax.legend(fontsize=8)
     fig.suptitle("C2: does the after window carry a drying signal?")
     fig.tight_layout()
-    save_output(fig, FIG / "c2_delta_vs_k.png", "diag", "C2 Delta_k after real rain vs dry control", dpi=110)
+    save(fig, FIG / "c2_delta_vs_k.png", dpi=110)
     plt.close(fig)
 
 
@@ -136,7 +136,7 @@ def main():
         tl, state, cert, met = load_panel(d, sl)
         ids = groups(sl)["main"]
         real = real_cases(d, sl, ids, tl, state)
-        save_output(real, OUT / "c2_real_cases.csv", "diag", "C2 real (event, sub-link) cases", index=False)
+        save(real, OUT / "c2_real_cases.csv", index=False)
         ok = real[real.case_status == "ok"]
         ctrl = control_cases(sl, ids, tl, state)
         cv = curve(ok, ctrl, "all main")
@@ -144,17 +144,16 @@ def main():
         for k, g in ok.groupby(["length_class", "frequency_band"]):
             cc = ctrl[(ctrl.length_class == k[0]) & (ctrl.frequency_band == k[1])]
             cls.append(curve(g, cc, f"{k[0]} / {k[1]}"))
-        save_output(pd.concat([cv] + cls), OUT / "c2_delta_vs_k.csv", "diag", "C2 Delta_k real vs control", index=False)
+        save(pd.concat([cv] + cls), OUT / "c2_delta_vs_k.csv", index=False)
         status = real.case_status.value_counts().rename_axis("case_status").reset_index(name="cases")
-        save_output(status, OUT / "c2_case_status.csv", "diag", "C2 case counts", index=False)
+        save(status, OUT / "c2_case_status.csv", index=False)
         # M3 behaviour on real events
         m3 = ok.m3_method.value_counts(normalize=True).rename_axis("m3_method").reset_index(name="share")
-        save_output(m3, OUT / "c2_m3_method_share.csv", "diag", "C2 share of M3 methods A / B", index=False)
+        save(m3, OUT / "c2_m3_method_share.csv", index=False)
         bb = ok[ok.m3_method == "B"]
         m3k = pd.DataFrame([{"k_h": k, "n": bb[f"d{k}"].notna().sum(), "median": bb[f"d{k}"].median(),
                              "p10": bb[f"d{k}"].quantile(0.1), "p90": bb[f"d{k}"].quantile(0.9)} for k in C["k_h"]])
-        save_output(m3k, OUT / "c2_m3_line_cases_delta_vs_k.csv", "diag",
-                    "C2 Delta_k of the line (B) cases", index=False)
+        save(m3k, OUT / "c2_m3_line_cases_delta_vs_k.csv", index=False)
         plot(cv, m3k)
         print(status.to_string(), "\n", cv.round(3).to_string(), "\n", m3.round(3).to_string(), "\n",
               m3k.round(3).to_string())

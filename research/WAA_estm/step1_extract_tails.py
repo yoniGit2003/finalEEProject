@@ -40,7 +40,7 @@ sys.stdout.reconfigure(encoding="utf-8")                            # the report
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P                                          # every location of this module
-from research.common.outputs import save_output, register_output                     # writes + outputs/MANIFEST.csv
+from research.common.save import save
 sys.path.insert(0, str(P.BASELINE_MODULE))
 import baseline as bl                                               # only for the a_of_t check (step 2 of the task)
 import baseline_estm_paths as BP                                    # where the frozen baseline products are
@@ -252,13 +252,12 @@ for a in range(0, len(store_subs), 32):                             # one chunk 
                                                 preserve_index=False))
     print(f"   sub-links {a + 1}-{a + 32} done ({time.time() - clock:.0f} s)")
 writer.close()
-register_output(P.TAILS_1MIN, "product", "every minute of every drying tail (git-ignored, > 10 MB)")
 
 idx = pd.DataFrame(index_rows).sort_values("tail_id").reset_index(drop=True)
-save_output(idx.round(4), P.TAILS_INDEX, "product", "one row per drying tail (read by step 2)",
+save(idx.round(4), P.TAILS_INDEX,
             index=False)                                          # 4 decimals: keeps the file < 10 MB
 rises = pd.DataFrame(rise_rows)
-save_output(rises, P.STEP1_RISES, "diag", "step 1 dry-weather rises later in the tail", index=False)
+save(rises, P.STEP1_RISES, index=False)
 
 # =================================================================================================== 2. A(t) check
 rows = []
@@ -271,7 +270,7 @@ for tid in sorted(check_A):
                  "max_abs_diff_db": float(np.nanmax(np.abs(ref.to_numpy() - mine.to_numpy()))),
                  "exactly_equal": bool(np.array_equal(ref.to_numpy(), mine.to_numpy(), equal_nan=True))})
 acheck = pd.DataFrame(rows)
-save_output(acheck, P.STEP1_A_CHECK, "diag", "step 1 A(t) check vs baseline.a_of_t", index=False)
+save(acheck, P.STEP1_A_CHECK, index=False)
 print("3. A(t) check vs baseline.a_of_t:\n" + acheck.to_string(index=False))
 
 # =================================================================================================== 5. report numbers
@@ -291,14 +290,14 @@ for k in RC["return_minutes"]:
         ret.append({"A_start_bin": name, "minute": k, "n_tails": len(g),
                     "share_below": round(float((g.A_db < g.thr_db).mean()), 3) if len(g) else np.nan})
 ret = pd.DataFrame(ret)
-save_output(ret, P.STEP1_RETURN, "diag", "step 1 share of tails back at the dry level", index=False)
+save(ret, P.STEP1_RETURN, index=False)
 ret_wide = ret.pivot(index="A_start_bin", columns="minute", values="share_below").reindex(["all"] + labels)
 ret_n = ret.pivot(index="A_start_bin", columns="minute", values="n_tails").reindex(["all"] + labels)
 
 # median curves per A_start bin
 curves = (long.dropna(subset=["A_db"]).groupby(["A_start_bin", "minutes_since_t0"], observed=True).A_db
           .agg(["median", "count"]).reset_index())
-save_output(curves, P.STEP1_MEDIAN_CURVES, "diag", "step 1 median A per minute and A_start bin", index=False)
+save(curves, P.STEP1_MEDIAN_CURVES, index=False)
 
 # =================================================================================================== figures
 # distributions of A_start and of the max A in the wet phase (one series per panel)
@@ -314,7 +313,7 @@ for a_ in ax:
     for sp in ("top", "right"):
         a_.spines[sp].set_visible(False)
 fig.tight_layout()
-save_output(fig, P.STEP1_FIG_DISTRIBUTIONS, "diag", "step 1 distributions of A_start, wet_A_max, length", dpi=110)
+save(fig, P.STEP1_FIG_DISTRIBUTIONS, dpi=110)
 plt.close(fig)
 
 # median curves, linear and log y
@@ -339,7 +338,7 @@ for a_ in ax:
 ax[0].legend(frameon=False, fontsize=8)
 fig.suptitle("Median tail curve per A_start bin (minutes with >= 20 tails)", fontsize=10)
 fig.tight_layout()
-save_output(fig, P.STEP1_FIG_MEDIAN_CURVES, "diag", "step 1 median tail curve per A_start bin", dpi=110)
+save(fig, P.STEP1_FIG_MEDIAN_CURVES, dpi=110)
 plt.close(fig)
 
 # resolution check: 10 s, 1 min, 5 min A for the first hours of random tails with a clear start
@@ -392,8 +391,7 @@ fig.suptitle(f"First {RC['resolution_hours']:g} h of {len(pick)} random tails wi
              "R_max on the path.\nShading: link_state wet (blue) / unknown (grey); dotted: t_end. x: hours since t0.",
              fontsize=10, y=0.98)
 fig.subplots_adjust(top=0.95)
-save_output(fig, P.STEP1_FIG_RESOLUTION, "diag",
-            "step 1 resolution check (10 s / 1 min / 5 min)", dpi=100, bbox_inches="tight")
+save(fig, P.STEP1_FIG_RESOLUTION, dpi=100, bbox_inches="tight")
 plt.close(fig)
 
 # =================================================================================================== 5. the report
@@ -555,6 +553,6 @@ and 5 min over the first {RC['resolution_hours']:g} h, link_state shading, radar
 10. **The 1 min product is large** ({size_mb:.0f} MB): git-ignored, rebuilt by this script.
 11. **Rises at 0.3 dB** may include quantization flips (see above).
 """
-save_output(report, P.STEP1_REPORT, "diag", "step 1 report: all drying tails, descriptive")
+save(report, P.STEP1_REPORT)
 print("\n" + "=" * 100 + "\n" + report)
 print(f"done in {time.time() - clock:.0f} s")

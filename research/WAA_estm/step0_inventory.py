@@ -30,7 +30,7 @@ from cmlpipe.api import CMLData
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P                                          # every location of this module
-from research.common.outputs import save_output                     # writes + outputs/MANIFEST.csv
+from research.common.save import save
 sys.path.insert(0, str(P.BASELINE_MODULE))
 import baseline as bl                                               # frozen baseline v2: a_of_t, dew_mask_5min
 import baseline_estm_paths as BP                                    # where the frozen baseline products are
@@ -214,7 +214,7 @@ w = pd.DataFrame({
     f"gauge_{ex.gauge_id}_mmh": gau.reindex(idx, method="ffill" if g_res == "15min" else None).round(2),
 }, index=idx)
 w.index.name = "time_utc"
-save_output(w, P.STEP0_EXAMPLE_CSV, "diag", "step 0 example event, 1 min A")
+save(w, P.STEP0_EXAMPLE_CSV)
 pair_flags = {k: getattr(ex, k) for k in ("baseline_db", "window_h", "n_usable_slots", "missing", "excursion",
                                           "dew_risk_in_window", "dew_risk_during_event", "daily_cycle_large",
                                           "degraded", "toggling", "use_in_waa_main", "offset_std",
@@ -261,7 +261,7 @@ for ax in (a1, a2):
         ax.spines[s].set_visible(False)
 a2.set_xlabel("time (UTC)")
 fig.tight_layout()
-save_output(fig, P.STEP0_EXAMPLE_PNG, "diag", "step 0 example event", dpi=120)
+save(fig, P.STEP0_EXAMPLE_PNG, dpi=120)
 plt.close(fig)
 
 print("3. writing the report ...")
@@ -494,7 +494,7 @@ sub-link; `network_event` = network event id. Full table also in `{REL(P.STEP0_E
     gauge, dew-risk hours) is below the 1 dB `dry_jumps` threshold, so no time-resolved flag marks it; only the
     hourly `dew_risk` is set. A tail that ran into such a period would carry it. (Observation, not analysed.)
 """
-save_output(report, P.STEP0_REPORT, "diag", "step 0 report: inventory of the inputs")
+save(report, P.STEP0_REPORT)
 print("\n" + "=" * 100 + "\n")
 print(report)
 print(f"\nwrote {REL(P.STEP0_REPORT)}, {REL(P.STEP0_EXAMPLE_PNG)}, {REL(P.STEP0_EXAMPLE_CSV)}")

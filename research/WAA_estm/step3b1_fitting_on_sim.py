@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
-from research.common.outputs import save_output
+from research.common.save import save
 import waa_sim as ws
 import waa_fit as wf
 
@@ -112,7 +112,7 @@ def main():
         b = m6_scan.loc[m6_scan.rmse_band_observed.idxmin()]
         edge = b.s in (min(SIM["spread_grid"]), max(SIM["spread_grid"]))
         m6_ok = bool(b.status > 0 and not edge and b.A_c < 5)
-        save_output(m6_scan.round(5), P.STEP3B1_M6, "product", "calibration scan of truth m6 (state switch); read by step 3b-1b",
+        save(m6_scan.round(5), P.STEP3B1_M6,
                     index=False)
         if m6_ok:
             truths["m6"] = ({k: float(b[k]) for k in ws.PARAMS["m6"]}, float(b.s))
@@ -160,7 +160,7 @@ def main():
             print(f"   [{j + 1}/{len(jobs)}] {law} {variant} rep {rep} ({time.time() - clock:.0f} s)", flush=True)
     fits = pd.concat(all_fits, ignore_index=True)
     fits["dataset"] = fits.law + "_" + fits.variant + "_" + fits.rep.astype(str)
-    save_output(fits, P.STEP3B1_FITS, "diag", "step 3b-1 every per-tail fit on simulated tails", index=False)
+    save(fits, P.STEP3B1_FITS, index=False)
 
     # =============================================================================================== 2. confusion
     def confusion(fr, score):
@@ -192,7 +192,7 @@ def main():
                             "per_tail_share": round(r[c], 4), "per_tail_share_sd": round(sd.loc[(law, variant), c], 4),
                             "per_dataset_share": round(pdz.loc[(law, variant), c], 4) if (law, variant) in pdz.index else 0})
     conf_tab = pd.DataFrame(tab)
-    save_output(conf_tab, P.STEP3B1_CONFUSION, "diag", "step 3b-1 confusion: true law x chosen candidate", index=False)
+    save(conf_tab, P.STEP3B1_CONFUSION, index=False)
 
     full_t = conf["bic"][0].xs("full", level="variant").reindex(laws)
     full_d = conf["bic"][2].xs("full", level="variant").reindex(laws)
@@ -217,7 +217,7 @@ def main():
     fig.suptitle(f"Fitting method on simulated TRAIN v1 tails ({F['replicates']} replicates per truth, full observation "
                  "model). Dashed box, bold = the truth's own candidate.", fontsize=10)
     fig.tight_layout()
-    save_output(fig, P.STEP3B1_FIG_CONFUSION, "diag", "step 3b-1 confusion matrix: which candidate wins per true law",
+    save(fig, P.STEP3B1_FIG_CONFUSION,
                 dpi=110)
     plt.close(fig)
 
@@ -259,7 +259,7 @@ def main():
     rec = pd.DataFrame(rec)
     for c in ("median", "p10", "p90", "at_bound_share"):
         rec[c] = rec[c].astype(float).round(3)
-    save_output(rec, P.STEP3B1_RECOVERY, "diag", "step 3b-1 parameter recovery of the true law's own candidate",
+    save(rec, P.STEP3B1_RECOVERY,
                 index=False)
 
     # =============================================================================================== 4. population
@@ -284,7 +284,7 @@ def main():
     rng_tab = pt.groupby(["law", "bin"]).median_t_half_min.agg(["min", "median", "max"]).reset_index()
     rng_tab = rng_tab.merge(real_th_tab.reset_index(), on="bin")
     rng_tab["real_inside"] = (rng_tab.real_median >= rng_tab["min"]) & (rng_tab.real_median <= rng_tab["max"])
-    save_output(rng_tab.round(2), P.STEP3B1_THALF, "diag", "step 3b-1 t_half per A_start bin: replicate range vs real",
+    save(rng_tab.round(2), P.STEP3B1_THALF,
                 index=False)
 
     real_dc = wf.dadt_curve(real, F["dadt_smooth_min"], F["dadt_bins_db"], F["dadt_min_count"])
@@ -294,7 +294,7 @@ def main():
                           .rename(columns={"median_dadt": "real_median_dadt", "count": "real_count"}), on="A_bin")
     inside = ((dd_rng.real_median_dadt >= dd_rng["min"]) & (dd_rng.real_median_dadt <= dd_rng["max"])).astype(float)
     dd_rng["real_inside"] = inside.where(dd_rng.real_median_dadt.notna() & dd_rng["min"].notna())   # 1 / 0 / NaN
-    save_output(dd_rng.round(5), P.STEP3B1_DADT, "diag", "step 3b-1 dA/dt vs A: replicate range vs real", index=False)
+    save(dd_rng.round(5), P.STEP3B1_DADT, index=False)
 
     def separation(tab_, key, lo="min", hi="max"):
         """Pairs of laws whose replicate ranges do NOT overlap, counted over bins."""
@@ -330,7 +330,7 @@ def main():
     fig.suptitle(f"t_half per A_start bin: {F['replicates']} simulated replicates per truth (hatched = min-max) vs real",
                  fontsize=10)
     fig.tight_layout()
-    save_output(fig, P.STEP3B1_FIG_THALF, "diag", "step 3b-1 t_half population test", dpi=110)
+    save(fig, P.STEP3B1_FIG_THALF, dpi=110)
     plt.close(fig)
 
     fig, ax = plt.subplots(2, len(laws), figsize=(3.6 * len(laws), 7.2), sharey="row")
@@ -364,12 +364,12 @@ def main():
     fig.suptitle(f"Drying rate vs A, all tails pooled ({F['dadt_smooth_min']} min centred mean, central difference): "
                  f"{F['replicates']} replicates per truth (hatched = min-max) vs real (dots)", fontsize=10)
     fig.tight_layout()
-    save_output(fig, P.STEP3B1_FIG_DADT, "diag", "step 3b-1 dA/dt vs A population test", dpi=100)
+    save(fig, P.STEP3B1_FIG_DADT, dpi=100)
     plt.close(fig)
 
     # =============================================================================================== 5. ablation
     abl = conf_tab[(conf_tab.score == "bic") & conf_tab.law.isin(F["ablation"]["laws"])]
-    save_output(abl, P.STEP3B1_ABLATION, "diag", "step 3b-1 ablation: confusion of m1 / m4 with effects off",
+    save(abl, P.STEP3B1_ABLATION,
                 index=False)
     variants = ["full"] + list(F["ablation"]["variants"])
     fig, ax = plt.subplots(1, len(F["ablation"]["laws"]) * 2, figsize=(6 * len(F["ablation"]["laws"]), 4.2))
@@ -388,7 +388,7 @@ def main():
             a_.set_title(f"truth {law}, {title} (own = {OWN[law]}, bold)", fontsize=9)
     fig.suptitle("Ablation: share choosing each candidate (BIC) with one effect switched off", fontsize=10)
     fig.tight_layout()
-    save_output(fig, P.STEP3B1_FIG_ABLATION, "diag", "step 3b-1 ablation confusion", dpi=110)
+    save(fig, P.STEP3B1_FIG_ABLATION, dpi=110)
     plt.close(fig)
 
     # =============================================================================================== report
@@ -501,7 +501,7 @@ Per dataset, share of replicates won:
 8. **Replicates share the skeleton** (same tails, lengths, A_start); the replicate range is the spread from noise and
    spread draws, not from a different set of events.
 """
-    save_output(report, P.STEP3B1_REPORT, "diag", "step 3b-1 report: the fitting method on simulated tails")
+    save(report, P.STEP3B1_REPORT)
     print("\n" + "=" * 100 + "\n" + report)
     print(f"done in {time.time() - clock:.0f} s")
 

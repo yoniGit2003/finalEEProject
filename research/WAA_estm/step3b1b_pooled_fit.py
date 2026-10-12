@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
-from research.common.outputs import save_output
+from research.common.save import save
 import waa_sim as ws
 import waa_fit as wf
 import waa_pooled as wp
@@ -155,8 +155,7 @@ def main():
     for i, nm in enumerate(["p1", "p2", "p3"]):
         fits[nm] = fits.theta.apply(lambda th: th[i] if len(th) > i else np.nan)
     fits["param_names"] = fits.candidate.map(lambda c: ",".join(wp.NAMES[c]))
-    save_output(fits.drop(columns=["theta"]).round(6), P.STEP3B1B_FITS, "diag",
-                "step 3b-1b every pooled fit on event-bootstrap simulated datasets", index=False)
+    save(fits.drop(columns=["theta"]).round(6), P.STEP3B1B_FITS, index=False)
 
     # =============================================================================================== a. confusion
     win = fits.loc[fits.groupby(["law", "rep", "window"]).bic.idxmin(), ["law", "rep", "window", "candidate"]]
@@ -183,8 +182,7 @@ def main():
     fig.suptitle(f"Pooled fit on simulated data: share of {B['replicates']} event-bootstrap replicates won by each "
                  "candidate. Dashed box, bold = the truth's own candidate.", fontsize=10)
     fig.tight_layout()
-    save_output(fig, P.STEP3B1B_FIG_CONFUSION, "key", "step 3b-1b confusion: truth x chosen candidate per window "
-                "(pooled fit)", dpi=110)
+    save(fig, P.STEP3B1B_FIG_CONFUSION, dpi=110)
     plt.close(fig)
 
     # =============================================================================================== b. recovery
@@ -207,7 +205,7 @@ def main():
     rec["within_tol"] = (rec.median_ratio - 1).abs() <= B["decision"]["param_tol"]
     for c in ("median_ratio", "p10_ratio", "p90_ratio"):
         rec[c] = rec[c].round(3)
-    save_output(rec, P.STEP3B1B_RECOVERY, "key", "step 3b-1b recovery of the own candidate's parameters (pooled fit)",
+    save(rec, P.STEP3B1B_RECOVERY,
                 index=False)
 
     # =============================================================================================== d. decision rule
@@ -224,7 +222,7 @@ def main():
                         "main_confusion": f"{others.idxmax()} {others.max():.0%}" if others.max() > 0 else "",
                         "met": (share >= B["decision"]["own_win_share"]) and params_ok})
     dec = pd.DataFrame(dec)
-    save_output(dec, P.STEP3B1B_DECISION, "diag", "step 3b-1b pre-set decision rule per truth and window", index=False)
+    save(dec, P.STEP3B1B_DECISION, index=False)
     rule = dec[dec.in_rule].groupby("window").met.all()
 
     # =============================================================================================== c. population
@@ -276,7 +274,7 @@ def main():
         row["separates"] = "; ".join(sep)
         pop.append(row)
     pop = pd.DataFrame(pop)
-    save_output(pop.round(4), P.STEP3B1B_POPULATION, "diag", "step 3b-1b population statistics: replicate ranges vs real",
+    save(pop.round(4), P.STEP3B1B_POPULATION,
                 index=False)
     fig, ax = plt.subplots(2, len(stat_names) // 2, figsize=(4 * len(stat_names) // 2, 7.5))
     for a_, st in zip(ax.ravel(), stat_names):
@@ -293,7 +291,7 @@ def main():
     fig.suptitle(f"Population statistics: range over {B['replicates']} event-bootstrap replicates per truth (bars) vs "
                  "the real TRAIN v1 value (line) and its 95 % CI from resampling events (hatched)", fontsize=10)
     fig.tight_layout()
-    save_output(fig, P.STEP3B1B_FIG_POPULATION, "diag", "step 3b-1b population statistics per truth vs real", dpi=100)
+    save(fig, P.STEP3B1B_FIG_POPULATION, dpi=100)
     plt.close(fig)
 
     # =============================================================================================== report
@@ -398,7 +396,7 @@ Useful if, per dataset, the truth's own candidate wins >= {B['decision']['own_wi
 9. **Replicate sizes vary** (event bootstrap: {fits.groupby(['law', 'rep']).n_tails.max().min()}-{fits.groupby(['law', 'rep']).n_tails.max().max()} tails), so the power varies between
    replicates; the confusion shares are over these varying sizes.
 """
-    save_output(report, P.STEP3B1B_REPORT, "diag", "step 3b-1b report: pooled fit on simulated tails")
+    save(report, P.STEP3B1B_REPORT)
     print("\n" + "=" * 100 + "\n" + report)
     print(f"done in {time.time() - clock:.0f} s")
 

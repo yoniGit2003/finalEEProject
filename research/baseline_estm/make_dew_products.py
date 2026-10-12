@@ -19,7 +19,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import baseline as bl                                                          # noqa: E402
 import baseline_estm_paths as P                                                # noqa: E402  (all file locations)
-from research.common.outputs import save_output                              # noqa: E402  (writes + MANIFEST)
+from research.common.save import save
 
 REPO = P.REPO
 CONFIG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
@@ -37,7 +37,7 @@ h["dew_risk"] = bl.dew_risk(h.humidity, h.dew_point_depression, DEW) & h.humidit
 h["sun_elevation_deg"] = bl.sun_elevation_deg(h.index + pd.Timedelta("30min"), DEW["site_lat"], DEW["site_lon"])
 h["night"] = h.sun_elevation_deg < DEW["night_sun_elev_deg"]
 h.insert(0, "time_local", h.index + LOCAL)
-save_output(h.round(3), P.DEW_RISK_HOURLY, "product", "hourly weather and dew risk at GbgA")
+save(h.round(3), P.DEW_RISK_HOURLY)
 
 j = pd.read_csv(P.C4_JUMPS, parse_dates=["start", "end"])
 j = j.rename(columns={"start": "start_utc", "end": "end_utc", "rh_mean": "mean_rh", "dpd_mean": "mean_dew_point_depression",
@@ -47,7 +47,7 @@ cols = ["cml_id", "sublink_id", "group", "is_degraded", "is_toggling", "sign", "
         "end_local", "duration_h", "median_excess_db", "peak_excess_db", "mean_rh", "rh_max",
         "mean_dew_point_depression", "mean_temperature", "mean_wind_speed", "hours_since_wet", "both_directions",
         "neighbours_jumping", "length_class", "frequency_band", "tsl_behaviour"]
-save_output(j[cols].round(3), P.DRY_JUMPS, "product", "dry-day baseline jumps of all train sub-links (C4)", index=False)
+save(j[cols].round(3), P.DRY_JUMPS, index=False)
 print(f"dew_risk_hourly: {len(h)} hours, dew risk {h.dew_risk.mean():.1%}, night {h.night.mean():.1%}, "
       f"dew risk at night {h[h.night].dew_risk.mean():.1%} vs day {h[~h.night].dew_risk.mean():.1%}")
 print(f"dry_jumps: {len(j)} jumps ({(j.sign == 'positive').sum()} positive) on {j.sublink_id.nunique()} sub-links")

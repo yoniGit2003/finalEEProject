@@ -23,7 +23,6 @@ TABLES = OUTPUTS / "tables"
 FIGURES = OUTPUTS / "figures"
 REPORTS = OUTPUTS / "reports"
 CACHE = MODULE / ".cache"
-MANIFEST = OUTPUTS / "MANIFEST.csv"                        # level + purpose of every output file
 DEV = CACHE / "dev"                                        # validation runs with BV_SAMPLE=DEV (throw-away)
 
 # ---- products (make_dew_products.py, make_baseline_table.py) ----------------------------------------------------
@@ -46,7 +45,7 @@ C3_DAILY_CYCLE = TABLES / "c3_daily_cycle_per_sublink.csv"
 C4_JUMPS = TABLES / "c4_jumps.csv"
 R1B_FAKE_EVENT_OFFSETS = TABLES / "r1b_fake_event_offsets.csv.gz"
 
-# every output is written through research/common/outputs.py (save_output); this makes `research.` importable
+# make the `research` package importable (research.common.save)
 if str(REPO) not in sys.path:
     sys.path.append(str(REPO))
 

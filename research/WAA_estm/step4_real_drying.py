@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
-from research.common.outputs import save_output
+from research.common.save import save
 import waa_pooled as wp
 import waa_curve as wc
 import waa_sindy as sd
@@ -700,9 +700,7 @@ def main():
                                      "f1_minus_winner": float(b["F1+"] - b.iloc[0]),
                                      "f3_at_bound": bool(json.loads(g[g.candidate == "F3"].theta.iloc[0])[1] < 1.001),
                                      "f5_b": float(json.loads(g[g.candidate == "F5"].theta.iloc[0])[1])}
-    save_output(menu, P.STEP4_MENU, "product", "step 4 menu fits on the real TRAIN tails: per dataset, window and candidate "
-                "the best of 4 starts (BIC, parameters, speed spread s, spread of the BIC over the starts); F1+ = F1 with a start "
-                "W0 >= 0, for the like-for-like comparison with F3, F5, F6", index=False)
+    save(menu, P.STEP4_MENU, index=False)
     best_of = lambda name, window, cand: menu[(menu.dataset == name) & (menu.window_min == window) & (menu.candidate == cand)].iloc[0]   # noqa: E731
     as_fit = lambda r: {"candidate": r.candidate, "theta": json.loads(r.theta), "s": float(r.s)}   # noqa: E731
 
@@ -728,8 +726,7 @@ def main():
     lo, hi = np.percentile(KB, D3C["band"], axis=0)
     for col, v in (("k_lo", lo), ("k_hi", hi), ("k_min", KB.min(axis=0)), ("k_max", KB.max(axis=0))):
         cur.loc[cur.dataset == "main", col] = v
-    save_output(cur.round(6), P.STEP4_CURVES, "product", "step 4 free curve k(W) of the real TRAIN tails on the read grid "
-                "(0.35 dB to W_hi) per dataset; main set with the 5-95 % and min-max band of the event-bootstrap refits",
+    save(cur.round(6), P.STEP4_CURVES,
                 index=False)
     band_half = float(np.median(np.sqrt(hi / lo) - 1))
     slope, slope_c = slopes["main"]
@@ -766,8 +763,7 @@ def main():
                             "family": "", "relative_rms_misfit": round(pysr_misfit(have[name]["best"], wj[name], hj[name]), 4),
                             "note": f"Pareto front of {len(front)} formulas"})
     jt = pd.DataFrame(j2_rows)
-    save_output(jt, P.STEP4_JUMP2, "product", "step 4 jump 2 on the real free curve above 0.35 dB: the formulas of E-SINDy, "
-                "best-subset + BIC and PySR per dataset", index=False)
+    save(jt, P.STEP4_JUMP2, index=False)
 
     # ------------------------------------------------------------------------------------------- summary per dataset
     sum_rows = []
@@ -796,8 +792,7 @@ def main():
                          "jump2_esindy": formula_text(j2[name]["esindy"]), "jump2_family": jf,
                          "agree": len(set(classes)) == 1})
     summ = pd.DataFrame(sum_rows)
-    save_output(summ, P.STEP4_SUMMARY, "product", "step 4 per dataset (main, sensitivity sets, leave-one-big-event-out): "
-                "tails, W_hi, menu winner and BIC margins, curve slope and reading, jump-2 formula, agreement", index=False)
+    save(summ, P.STEP4_SUMMARY, index=False)
     R0, S0 = reads[("main", WIN)], summ.iloc[0]
     winner = best_of("main", WIN, R0["winner"])
     f1 = best_of("main", WIN, "F1")
@@ -826,11 +821,10 @@ def main():
                    "tails": int(used.n_control_tails.sum()), "within_tail_std_db": round(float(used.within_std_db.median()), 4),
                    **{f"acf_{k}": round(float(used[f"acf_{k}"].median()), 3) for k in S["acf_lags_min"]}})
     quality = pd.DataFrame(q_rows)
-    save_output(quality, P.STEP4_QUALITY, "product", "step 4 check 4: residuals of the menu winner and of F1 on the main set "
-                "(within-tail std, autocorrelation at 1 / 10 / 60 min, whitened variance ratio) vs the dry-weather noise", index=False)
+    save(quality, P.STEP4_QUALITY, index=False)
     picks = sorted(np.random.default_rng(S["gallery_seed"]).choice(D["tail_id"], S["gallery_n"], replace=False).tolist())
     fig = gallery_figure(picks, {r["tail_id"]: r for r in fit_w}, {r["tail_id"]: r for r in fit_1}, winner.candidate)
-    save_output(fig, P.STEP4_FIG_GALLERY, "diag", "step 4 check 4: 12 random real tails with the fitted menu winner and F1", dpi=110)
+    save(fig, P.STEP4_FIG_GALLERY, dpi=110)
     plt.close(fig)
 
     # ------------------------------------------------------------------------------------------- check 5: vs the fake truths
@@ -882,17 +876,14 @@ def main():
                        **{f"real_inside_{k}min": bool(getattr(r, f"new_sim_min_{k}min") <= real_shape[k] <= getattr(r, f"new_sim_max_{k}min"))
                           for k in mins}})
     fake = pd.DataFrame(f_rows)
-    save_output(fake, P.STEP4_FAKE, "product", "step 4 check 5: real curve slope and real median A / A_start at 10 / 30 / 60 min "
-                "against the ranges of the fake truths (3b-3b datasets, 3b-1c T3 recalibration)", index=False)
+    save(fake, P.STEP4_FAKE, index=False)
 
     # ------------------------------------------------------------------------------------------- figures
     fig = k_figure(curve["main"], cur[cur.dataset == "main"], len(boots), as_fit(f1), as_fit(winner), slope)
-    save_output(fig, P.STEP4_FIG_K, "diag", "step 4 KEY CANDIDATE (saved as diag: the module has 6 key outputs): real k(W) above "
-                "0.35 dB with the event-bootstrap band, the F1 line and the menu winner", dpi=120)
+    save(fig, P.STEP4_FIG_K, dpi=120)
     plt.close(fig)
     fig = sets_figure(cur, {n: f"{n} ({slopes[n][0]:+.2f})" for n in names})
-    save_output(fig, P.STEP4_FIG_SETS, "diag", "step 4 checks 1 and 2: free curve k(W) of every sensitivity and "
-                "leave-one-event-out set, slope in the label", dpi=110)
+    save(fig, P.STEP4_FIG_SETS, dpi=110)
     plt.close(fig)
 
     # ------------------------------------------------------------------------------------------- report
@@ -1104,8 +1095,7 @@ Slope over the read range, and median A / A_start at 10 / 30 / 60 min (mean of A
 
 {UNCLEAR}
 """
-    save_output(report, P.STEP4_REPORT, "product", "step 4 report: the drying law on the real TRAIN tails (menu fits, free "
-                "curve above 0.35 dB with band, jump 2, checks 1-5)")
+    save(report, P.STEP4_REPORT)
     print("\n" + "=" * 100 + "\n" + report)
     print(f"done in {time.time() - clock:.0f} s")
 

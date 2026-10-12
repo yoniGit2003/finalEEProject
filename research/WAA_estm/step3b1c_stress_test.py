@@ -44,7 +44,7 @@ import matplotlib.pyplot as plt
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
-from research.common.outputs import save_output
+from research.common.save import save
 import waa_sim as ws
 import waa_pooled as wp
 
@@ -283,7 +283,7 @@ def main():
           f"sigma per sub-link = its 3a-fix sigma_slow (median {slow_total:.3f} dB); share of the fast part "
           f"{w_fast:g} (sigma {np.sqrt(w_fast) * slow_total:.3f} / {np.sqrt(1 - w_fast) * slow_total:.3f} dB at the "
           f"median). Dry check on {block} min blocks:\n{noise_chk.to_string(index=False)}")
-    save_output(noise_chk, P.STEP3B1C_NOISE, "diag", "step 3b-1c T1: dry-noise statistics, real vs 3a-fix vs T1 noise",
+    save(noise_chk, P.STEP3B1C_NOISE,
                 index=False)
 
     # ------------------------------------------------------------------------------------------- T3: faster truths
@@ -354,8 +354,7 @@ def main():
                           **{f"old_noise_free_{k}min": round(float(v), 3) for k, v in zip(MIN, old_free)},
                           **{f"new_noise_free_{k}min": round(float(v), 3) for k, v in zip(MIN, new_free)}})
     recal = pd.DataFrame(recal)
-    save_output(recal, P.STEP3B1C_RECAL, "product", "step 3b-1c T3: old and recalibrated truth parameters, real vs "
-                "simulated A/A_start at 10 / 30 / 60 min", index=False)
+    save(recal, P.STEP3B1C_RECAL, index=False)
     print(recal[["test", "truth"] + [c for c in recal.columns if c.startswith(("real_", "old_sim", "new_sim_1",
           "new_sim_3", "new_sim_6"))]].to_string(index=False))
 
@@ -450,8 +449,7 @@ def main():
         fits[nm] = fits.theta.apply(lambda th: th[i] if len(th) > i else np.nan)
     fits["param_names"] = fits.candidate.map(lambda c: ",".join(wp.NAMES[c]))
     fits = fits.sort_values(["test", "truth", "rep", "candidate", "start"]).reset_index(drop=True)
-    save_output(fits.drop(columns=["theta", "theta0"]).round(6), P.STEP3B1C_FITS, "diag",
-                "step 3b-1c every pooled fit of the stress test (test, truth, replicate, candidate, start)", index=False)
+    save(fits.drop(columns=["theta", "theta0"]).round(6), P.STEP3B1C_FITS, index=False)
 
     key = ["test", "truth", "rep"]
     # the fit that counts: T1 / T3 the calibration start; T2 the best of the generic starts (calib is the reference)
@@ -507,11 +505,10 @@ def main():
     dec["met"] = dec.win_ok & dec.params_ok
     failed = sorted({"T3" if t == "T3s" else t for t in dec[~dec.met].test})
     verdict = "PASS" if not failed else ("FAIL" if len(failed) == 3 else "PARTIAL")
-    save_output(win, P.STEP3B1C_WIN, "product", "step 3b-1c win shares: test x truth x candidate (lowest pooled BIC)",
+    save(win, P.STEP3B1C_WIN,
                 index=False)
-    save_output(rec, P.STEP3B1C_RECOVERY, "product", "step 3b-1c recovery of the own candidate's parameters per test "
-                "(fitted / true)", index=False)
-    save_output(dec, P.STEP3B1C_DECISION, "product", "step 3b-1c pre-set decision rule per test and truth", index=False)
+    save(rec, P.STEP3B1C_RECOVERY, index=False)
+    save(dec, P.STEP3B1C_DECISION, index=False)
 
     # ------------------------------------------------------------------------------------------- T2 start sensitivity
     t2 = fits[fits.test == "T2"]
@@ -532,8 +529,7 @@ def main():
         "fits_stopped_at_maxfev": int(g.stopped.sum()), "fits": int(g.n_starts.sum()),
         "best_start_counts": ", ".join(f"{k} {v}" for k, v in g.best_start.value_counts().items())}),
         include_groups=False).reset_index()
-    save_output(sens, P.STEP3B1C_STARTS, "product", "step 3b-1c T2 start sensitivity: BIC spread over the generic "
-                "starts per truth and candidate", index=False)
+    save(sens, P.STEP3B1C_STARTS, index=False)
     ref = t2[t2.start == "calib"]
     win_ref = ref.loc[ref.groupby(["truth", "rep"]).bic.idxmin(), ["truth", "rep", "candidate"]].rename(
         columns={"candidate": "winner_calib"})
@@ -546,7 +542,7 @@ def main():
 
     # ------------------------------------------------------------------------------------------- figure
     fig = win_figure(dec, R)
-    save_output(fig, P.STEP3B1C_FIG_WIN, "diag", "step 3b-1c own-candidate win share per test and truth (stress test)",
+    save(fig, P.STEP3B1C_FIG_WIN,
                 dpi=110)
     plt.close(fig)
 
@@ -695,7 +691,7 @@ datasets{"." if same.same.all() else ": different in " + "; ".join(f"{r.truth} r
 
 {UNCLEAR}
 """
-    save_output(report, P.STEP3B1C_REPORT, "product", "step 3b-1c report: stress test of the pooled fit on fake data")
+    save(report, P.STEP3B1C_REPORT)
     print("\n" + "=" * 100 + "\n" + report)
     print(f"done in {time.time() - clock:.0f} s")
 

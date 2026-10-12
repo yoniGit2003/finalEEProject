@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
-from research.common.outputs import save_output
+from research.common.save import save
 import waa_sim as ws
 import waa_pooled as wp
 import waa_curve as wc
@@ -260,13 +260,10 @@ def main():
     summ = summ.drop(columns="n_kept")
     print(f"\nVERDICT: {verdict} ({basis})")
 
-    save_output(tab, P.STEP3B4_TABLE, "product", "step 3b-4: per RSL quantization setting and replicate (truth m1): step "
-                "kept, W_c, BIC gain, and the curve without the step against the truth", index=False)
-    save_output(dec, P.STEP3B4_DECISION, "product", "step 3b-4: steps kept and W_c per quantization setting, and the "
-                "verdict of the pre-set rule", index=False)
+    save(tab, P.STEP3B4_TABLE, index=False)
+    save(dec, P.STEP3B4_DECISION, index=False)
     fig = figure(fits, par, summ)
-    save_output(fig, P.STEP3B4_FIG, "diag", "step 3b-4: m1 fits with the optional step for no / 0.3 dB / 0.1 dB RSL "
-                "quantization, true k dashed", dpi=110)
+    save(fig, P.STEP3B4_FIG, dpi=110)
     plt.close(fig)
 
     # ------------------------------------------------------------------------------------------- report
@@ -328,8 +325,7 @@ step is kept in <= {DEC['cause_max_kept']} of {R}; "not the cause" if without qu
 
 {UNCLEAR}
 """
-    save_output(report, P.STEP3B4_REPORT, "product", "step 3b-4 report: is the 0.3 dB RSL quantization the cause of the "
-                "false step of 3b-3c? (m1, three quantization settings, rule fixed before the run)")
+    save(report, P.STEP3B4_REPORT)
     print(f"report: {rel(P.STEP3B4_REPORT)} ({time.time() - clock:.0f} s)")
 
 

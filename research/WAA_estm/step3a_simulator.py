@@ -13,7 +13,7 @@ Calibration (the only uses of real data):
     over 0-6 h (noise-free truth); s is then chosen so that the OBSERVED simulated 10-90 % band matches the real band.
 
 Skeleton: the TRAIN rows of tails_model_index.csv (same tails, sub-links, links, events, usable lengths, A_start).
-Writes (save_output): simulated sets + index + noise parameters -> product; calibration table and the real-vs-sim
+Writes: simulated sets + index + noise parameters -> product; calibration table and the real-vs-sim
 figure -> key; everything else -> diag. Report: outputs/reports/step3a_fix.md.
 Run from the repository root (about 5 minutes):
     C:\\Users\\yoni\\miniconda3\\python.exe research/WAA_estm/step3a_simulator.py
@@ -37,7 +37,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 MODULE = Path(__file__).resolve().parent
 sys.path.insert(0, str(MODULE))
 import WAA_estm_paths as P
-from research.common.outputs import save_output
+from research.common.save import save
 import waa_sim as ws
 
 CFG = yaml.safe_load(open(P.CONFIG_FILE, encoding="utf-8"))
@@ -180,7 +180,7 @@ for c in ["sigma_white_db", "sigma_slow_db", "tau_noise_min"]:
 for c in TARGETS:
     nz[f"sim_{c}"] = picked[c].reindex(nz.index)
 nz["source"] = np.where(fit_ok, "fit", "median_fallback")
-save_output(nz.round(4), P.SIM_NOISE, "product", "noise parameters per sub-link (white 10 s, slow AR(1) 1 min)",
+save(nz.round(4), P.SIM_NOISE,
             index=False)
 noise_by_sub = {r.sublink_id: (r.sigma_white_db, r.sigma_slow_db, r.tau_noise_min) for r in nz.itertuples()}
 print(f"   noise fitted: {int(fit_ok.sum())}, fallback {int((~fit_ok).sum())} ({time.time() - clock:.0f} s)")
@@ -259,14 +259,12 @@ for law in LAWS:
                      "rmse_band_observed": round(band_rmse(rows), 4)})
     tbl = pa.Table.from_pandas(rows.drop(columns=["A_start_trace_db", "A_norm"]).assign(split_event="train"),
                                preserve_index=False)
-    save_output(tbl, SIM_FILES[law], "product",
-                f"simulated tail set, law {law} ({ws.LAWS[law]}) with spread, skeleton = TRAIN v1", compression="zstd")
+    save(tbl, SIM_FILES[law], compression="zstd")
 cal = pd.DataFrame(cal_rows)
-save_output(cal, P.STEP3A_CALIBRATION, "key",
-            "tail simulator: calibrated law parameters, spread and misfit (3a-fix)", index=False)
+save(cal, P.STEP3A_CALIBRATION, index=False)
 info_all = pd.concat(infos).merge(skel[["tail_id", "sublink_id", "cml_id", "event_id", "usable_min",
                                         "A_start_trace_db"]], on="tail_id")
-save_output(info_all.round(5), P.SIM_INDEX, "product", "simulated tails: per law and tail f, offset, noise, phase",
+save(info_all.round(5), P.SIM_INDEX,
             index=False)
 print(f"simulated ({time.time() - clock:.0f} s)")
 
@@ -309,7 +307,7 @@ fig.suptitle(f"Real TRAIN v1 ({len(skel)} tails) vs simulated tails per law (wit
              "\nReal: solid median, hatched 10-90 % band; simulated: dashed median, dotted 10 / 90 %. Columns: 0-90 min "
              "linear, log; 0-6 h linear, log.", fontsize=10)
 fig.tight_layout(rect=(0.02, 0, 1, 0.965))
-save_output(fig, P.STEP3A_FIG_MEDIAN, "key", "real vs simulated median tail curve and band, per law (3a-fix)", dpi=100)
+save(fig, P.STEP3A_FIG_MEDIAN, dpi=100)
 plt.close(fig)
 
 skel_a0 = skel.set_index("tail_id").A_start_trace_db.to_dict()
@@ -352,7 +350,7 @@ for col in ["t_half_min", "t_e_min"] + [f"ratio_{k}min" for k in SIM["shape_minu
         chk_rows.append({"quantity": col, "source": src, **summ(df[col]),
                          "not_reached": int(df[col].isna().sum()) if col.startswith("t_") else np.nan})
 checks = pd.DataFrame(chk_rows)
-save_output(checks, P.STEP3A_CHECKS, "diag", "step 3a-fix shape checks: real vs each simulated law", index=False)
+save(checks, P.STEP3A_CHECKS, index=False)
 chk_wide = checks.pivot_table(index="quantity", columns="source", values="median", sort=False)[["real"] + LAWS]
 chk_p90 = checks[checks.quantity == "last_hour_std_db"].set_index("source").p90
 
@@ -373,7 +371,7 @@ for a_ in ax[1]:
     a_.set_xlabel("minutes (clipped at 240)")
 fig.suptitle("Time to A_start / 2 and A_start / e: real (hatched bars) vs simulated (dashed outline)", fontsize=10)
 fig.tight_layout()
-save_output(fig, P.STEP3A_FIG_CROSSING, "diag", "step 3a-fix t_half / t_e histograms, real vs simulated", dpi=100)
+save(fig, P.STEP3A_FIG_CROSSING, dpi=100)
 plt.close(fig)
 
 # noise fit: 1:1 per target (each target its own marker)
@@ -391,7 +389,7 @@ for a_, c, mk in zip(ax, TARGETS, marks):
 fig.suptitle(f"Noise model per sub-link ({len(fz)} fitted): real control tails vs simulated dry series "
              "(white 10 s + AR(1) 1 min + 0.3 dB quantization)", fontsize=10)
 fig.tight_layout()
-save_output(fig, P.STEP3A_FIG_NOISE, "diag", "step 3a-fix noise calibration per sub-link (5 targets)", dpi=100)
+save(fig, P.STEP3A_FIG_NOISE, dpi=100)
 plt.close(fig)
 
 # gallery: 12 real tails with their m1 and m4 twins
@@ -416,7 +414,7 @@ for a_ in ax[:, 0]:
 fig.suptitle(f"{SIM['gallery_n']} random TRAIN v1 tails (seed {SIM['gallery_seed']}): real (solid) vs simulated m1 "
              "(dashed) and m4 (dotted): same tail_id, A_start, length, sub-link noise and NaN minutes", fontsize=10)
 fig.tight_layout()
-save_output(fig, P.STEP3A_FIG_GALLERY, "diag", "step 3a-fix gallery: real vs simulated m1 / m4 tails", dpi=90)
+save(fig, P.STEP3A_FIG_GALLERY, dpi=90)
 plt.close(fig)
 
 # =================================================================================================== 4. t_half by A_start
@@ -442,7 +440,7 @@ for src, df in cr.items():
             row["ci_low"], row["ci_high"] = np.nanpercentile(reps, [2.5, 97.5])
         th_rows.append(row)
 thalf = pd.DataFrame(th_rows)
-save_output(thalf.round(2), P.STEP3A_THALF, "diag", "median t_half per A_start bin, real vs each law", index=False)
+save(thalf.round(2), P.STEP3A_THALF, index=False)
 th_wide = thalf.pivot(index="A_start_bin_db", columns="source", values="median_t_half_min").reindex(blabels)[
     ["real"] + LAWS]
 th_n = thalf[thalf.source == "real"].set_index("A_start_bin_db").reindex(blabels)
@@ -464,7 +462,7 @@ tidy(ax)
 fig.text(0.01, 0.01, "Vertical bars: 95 % CI of the real median (1000 resamples of events). Tails that never reach "
          "A_start / 2 are left out.", fontsize=7)
 fig.tight_layout(rect=(0, 0.03, 1, 1))
-save_output(fig, P.STEP3A_FIG_THALF, "diag", "median t_half per A_start bin, real vs each law", dpi=110)
+save(fig, P.STEP3A_FIG_THALF, dpi=110)
 plt.close(fig)
 
 # =================================================================================================== report
@@ -567,6 +565,6 @@ Real: {', '.join(f"{b}: n = {int(r.tails)}, CI [{r.ci_low:.0f}, {r.ci_high:.0f}]
    stripes in the acf_60 panel: grid tau values); real dry noise likely has more than one time scale (minutes and the
    daily cycle).
 """
-save_output(report, P.STEP3A_REPORT, "diag", "step 3a-fix report: slow noise, spread per law, checks")
+save(report, P.STEP3A_REPORT)
 print("\n" + "=" * 100 + "\n" + report)
 print(f"done in {time.time() - clock:.0f} s")

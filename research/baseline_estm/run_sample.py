@@ -24,7 +24,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import baseline as bl                                                          # noqa: E402  (this folder)
 import baseline_estm_paths as P                                                # noqa: E402  (all file locations)
-from research.common.outputs import save_output                              # noqa: E402  (writes + MANIFEST)
+from research.common.save import save
 
 REPO = P.REPO
 CONFIG = yaml.safe_load(open(P.CONFIG_FILE))     # all settings: research/config.yaml
@@ -85,7 +85,7 @@ def run_v2():
                          **bl.flags_v2(value, a, i0, state, ok_plain, dew, summer, amp.get(s, np.nan),
                                        status[s] == "degraded", st[s] == "toggling", B)})
     r = pd.DataFrame(rows)
-    save_output(r, P.SAMPLE_PRE_EVENT_BASELINES, "diag", "method v2 on the 24-sub-link sample", index=False)
+    save(r, P.SAMPLE_PRE_EVENT_BASELINES, index=False)
     print(f"v2 sample: {len(r)} pairs, missing {r.missing.mean():.1%}, 48 h fallback {(r.window_h == 48).mean():.1%}, "
           f"excursion {r.excursion.mean():.1%}, dew_risk_in_window {r.dew_risk_in_window.mean():.1%}, "
           f"daily_cycle_large {r.daily_cycle_large.mean():.1%}")
@@ -114,9 +114,9 @@ def run(x_hours):
 
 runs = {x: run(x) for x in X_VALUES}
 main = runs[CFG["X_H"]]
-save_output(main, P.SAMPLE_TWO_WINDOW_BASELINES, "product", "method v1 on the sample (read by C5)", index=False)
+save(main, P.SAMPLE_TWO_WINDOW_BASELINES, index=False)
 sens = pd.concat(runs.values(), ignore_index=True)
-save_output(sens, P.SAMPLE_TWO_WINDOW_SENSITIVITY, "diag", "method v1 sample for X = 0.5-3 h", index=False)
+save(sens, P.SAMPLE_TWO_WINDOW_SENSITIVITY, index=False)
 
 
 def md(df):
@@ -158,7 +158,7 @@ lines += ["", "## 6. By link class (median |closure| and median in-event dry A, 
           md(has.groupby(["length_class", "frequency_band"]).agg(
               pairs=("method", "size"), abs_closure=("closure_db", lambda s: s.abs().median()),
               in_event_dry_A=("in_event_dry_A_mean_db", "median")).round(2))]
-save_output("\n".join(lines) + "\n", P.SAMPLE_TWO_WINDOW_SUMMARY, "diag", "method v1 sample quality numbers")
+save("\n".join(lines) + "\n", P.SAMPLE_TWO_WINDOW_SUMMARY)
 print("\n".join(lines))
 
 # ---- overview figure ------------------------------------------------------------------------------------------
@@ -191,7 +191,7 @@ ax[1, 2].set_title(f"5. sensitivity: |before(X) - before({CFG['X_H']:g} h)|")
 ax[1, 2].set_ylabel("dB")
 fig.suptitle(f"Baseline estimation, sample: {len(sublinks)} sub-links x {len(events)} train events (X = {CFG['X_H']:g} h)")
 fig.tight_layout()
-save_output(fig, P.SAMPLE_TWO_WINDOW_OVERVIEW, "diag", "method v1 sample: the five quality checks", dpi=110)
+save(fig, P.SAMPLE_TWO_WINDOW_OVERVIEW, dpi=110)
 plt.close(fig)
 
 
@@ -228,8 +228,7 @@ def plot_example(r):
     a2.set_ylabel("A = TL - baseline [dB]")
     a2.set_xlabel("time (UTC)")
     fig.tight_layout()
-    save_output(fig, P.SAMPLE_TWO_WINDOW_EXAMPLES / f"{r.sublink_id}_{r.event_id}.png", "diag",
-                "method v1 example: TL, windows, baseline, A(t)", dpi=100)
+    save(fig, P.SAMPLE_TWO_WINDOW_EXAMPLES / f"{r.sublink_id}_{r.event_id}.png", dpi=100)
     plt.close(fig)
 
 

@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 from common import (V, B, OUT, FIG, HERE, SPH, Timer, open_data, sublink_table, groups, load_panel, usable, window,
                     stat, m3_baseline)
-from research.common.outputs import save_output
+from research.common.save import save
 from c2_after_window import deltas, curve
 
 sys.path.insert(0, str(HERE.parent))
@@ -177,7 +177,7 @@ def plots(tab, o, cv):
     axes[0].legend(fontsize=8)
     fig.suptitle("R1b: event-level baseline error (offset = mean e over the fake event), main sub-links")
     fig.tight_layout()
-    save_output(fig, FIG / "r1b_offset_by_D.png", "key", "v2 vs v1 / M0 / M1 event offsets by duration", dpi=110)
+    save(fig, FIG / "r1b_offset_by_D.png", dpi=110)
     plt.close(fig)
 
     fig, ax = plt.subplots(figsize=(7, 4.5))
@@ -194,7 +194,7 @@ def plots(tab, o, cv):
     ax.legend(fontsize=8)
     ax.set_title("R1b: after-window level vs v2 baseline (median, band p10-p90)")
     fig.tight_layout()
-    save_output(fig, FIG / "r1b_c2_delta.png", "key", "Delta_k after real rain with v2 vs control", dpi=110)
+    save(fig, FIG / "r1b_c2_delta.png", dpi=110)
     plt.close(fig)
 
 
@@ -208,30 +208,26 @@ def main():
         main_sl = sl[sl.group == "main"].assign(
             daily_cycle_large=lambda x: x.sublink_id.map(amp) > B["daily_cycle_large_db"])
         o, slots = offsets(main_sl, tl, state, met, dew)
-        save_output(o, OUT / "r1b_fake_event_offsets.csv.gz", "product",
-                    "R1b event offsets of every method (read by make_baseline_table)", index=False)
+        save(o, OUT / "r1b_fake_event_offsets.csv.gz", index=False)
         tab = pd.concat([table(o, slots, v) for v in VARS])
-        save_output(tab, OUT / "r1b_offset_by_variant_D.csv", "diag", "R1b offsets per variant and D", index=False)
+        save(tab, OUT / "r1b_offset_by_variant_D.csv", index=False)
         o["cls"] = o.length_class + " / " + o.frequency_band
         splits = pd.concat([table(o, slots, v, by).assign(split=by) for v in ("v2_hx", "v2_nohx")
                             for by in ("humid_start", "daily_cycle_large", "cls")])
-        save_output(splits, OUT / "r1b_splits.csv", "diag",
-                    "R1b offsets split by humidity / split / class", index=False)
+        save(splits, OUT / "r1b_splits.csv", index=False)
         dec = adoption(o)
-        save_output(dec, OUT / "r1b_humidity_exclusion_decision.csv", "diag",
-                    "R1b humidity exclusion decision", index=False)
+        save(dec, OUT / "r1b_humidity_exclusion_decision.csv", index=False)
         adopted = "v2_hx" if dec.adopt.iloc[0] else "v2_nohx"
         if B["v2"]["humidity_exclusion"] != dec.adopt.iloc[0]:
             print(f"NOTE: research/config.yaml baseline.v2.humidity_exclusion = {B['v2']['humidity_exclusion']}, "
                   f"the rule says {dec.adopt.iloc[0]} -> update the config")
         pf = pass_fail(o, adopted)
-        save_output(pf, OUT / "r1b_pass_fail_per_sublink.csv", "diag", "R1b PASS / FAIL per sub-link", index=False)
+        save(pf, OUT / "r1b_pass_fail_per_sublink.csv", index=False)
         pfs = pf_summary(pf)
-        save_output(pfs, OUT / "r1b_pass_fail_summary.csv", "diag", "R1b PASS / FAIL counts", index=False)
+        save(pfs, OUT / "r1b_pass_fail_summary.csv", index=False)
         # real events: all train sub-links (good + degraded), numbers reported for good (main)
         re_ = real_events(d, sl, tl, state, dew, amp, adopted == "v2_hx")      # flags come from bl.flags_v2
-        save_output(re_, OUT / "r1b_real_events.csv.gz", "diag",
-                    "R1b real (event, sub-link) pairs with v2", index=False)
+        save(re_, OUT / "r1b_real_events.csv.gz", index=False)
         cov = []
         for gname, g in (("good (main)", re_[re_.group == "main"]), ("degraded", re_[re_.is_degraded]),
                          ("toggling", re_[re_.is_toggling])):
@@ -239,8 +235,7 @@ def main():
                         "missing": g.missing.mean(), "fallback_48h": (g.window_h == 48).mean(),
                         **{f"flag_{f}": g[f].mean() for f in ("excursion", "dew_risk_in_window", "daily_cycle_large",
                                                                "degraded", "toggling")}})
-        save_output(pd.DataFrame(cov), OUT / "r1b_real_event_coverage.csv", "diag",
-                    "R1b real-event coverage", index=False)
+        save(pd.DataFrame(cov), OUT / "r1b_real_event_coverage.csv", index=False)
         # Delta_k with the v2 before: real (main) vs duration-matched fake control
         rm = re_[(re_.group == "main") & re_.duration_h.notna()]
         ctrl = []
@@ -253,7 +248,7 @@ def main():
                 if not np.isnan(b0):
                     ctrl.append({"D_h": e.D_h, **deltas(x, okp, b0, e.i0 + int(e.D_h * SPH))})
         cv = curve(rm, pd.DataFrame(ctrl), "all main, v2")
-        save_output(cv, OUT / "r1b_c2_delta.csv", "diag", "R1b Delta_k with the v2 baseline", index=False)
+        save(cv, OUT / "r1b_c2_delta.csv", index=False)
         plots(tab, o, cv)
         print(dec.round(3).T.to_string(), "\n", tab.round(3).to_string(), "\n", pfs.round(3).to_string(), "\n",
               pd.DataFrame(cov).round(3).to_string(), "\n", cv.round(3).to_string())
