@@ -5,10 +5,10 @@
 release: openmrg_v1
 
 # ---------------------------------------------------------------------------------------------------------------
-# Current baseline method (research/baseline_estm/baseline.py, run_sample.py). Unit: hours and dB.
+# Current baseline method (research/baseline/baseline.py, run_sample.py). Unit: hours and dB.
 # ---------------------------------------------------------------------------------------------------------------
 baseline:
-  version: v2          # v1 (first method, kept for comparison) or v2 (current); see baseline_estm/METHOD.md
+  version: v2          # v1 (first method, kept for comparison) or v2 (current); see baseline/METHOD.md
   skip_h: 1.0          # usable dry slot: at least this long after the end of the last wet slot of the link
   min_dry_h: 1.0       # a window needs at least this much usable dry time, else fallback / "missing"
   excursion_db: 1.0    # window value further than this from the sub-link's summer dry median -> flag
@@ -33,7 +33,7 @@ baseline:
     seed: 0
 
 # ---------------------------------------------------------------------------------------------------------------
-# R1: validation of the baseline (research/baseline_estm/validation/). Measures only; does not change the method.
+# R1: validation of the baseline (research/baseline/validation/). Measures only; does not change the method.
 # ---------------------------------------------------------------------------------------------------------------
 baseline_validation:
   seed: 42
@@ -95,14 +95,14 @@ baseline_validation:
     extra_p90_24h_db: 0.2
 
 # ---------------------------------------------------------------------------------------------------------------
-# WAA stage (research/WAA_estm/). Step 1 = extract ALL drying tails (no selection, no fitting). Unit: minutes and dB.
+# WAA stage (research/wet_antenna/). Step 1 = extract ALL drying tails (no selection, no fitting). Unit: minutes and dB.
 # ---------------------------------------------------------------------------------------------------------------
-waa:
-  tails:                     # tail definition (README.md of WAA_estm): t0 = last_wet_end of baselines.csv
+wet_antenna:
+  tails:                     # tail definition (README.md of wet_antenna): t0 = last_wet_end of baselines.csv
     cap_h: 12.0              # t_end at the latest t0 + cap_h
     gap_min: 15              # ... or at the start of a NaN run of 1 min A this long or longer
     gauge_max_dist_m: 1000   # gauge columns only if the link's nearest gauge is this close (as link_state)
-  report:                    # descriptive only (step1_tails.md); nothing here selects tails
+  report:                    # descriptive only (extract_tails.md); nothing here selects tails
     a_start_bins_db: [0.5, 1.0, 2.0]          # A_start bins: < 0.5, 0.5-1, 1-2, > 2 dB
     return_minutes: [2, 5, 10, 30, 60, 180]   # "back to the dry level" checked at these minutes since t0
     return_floor_db: 0.3                      # threshold = max(return_floor_db, return_std_factor * offset_std)
@@ -113,7 +113,7 @@ waa:
     resolution_min_a_start_db: 1.0
     resolution_hours: 2.0
     seed: 0
-  selection:                 # step 2 (step2_select_tails.py): rules fixed BEFORE looking at the results; TRAIN only
+  selection:                 # step 2 (select_tails.py): rules fixed BEFORE looking at the results; TRAIN only
     max_nan_share: 0.10      # exclude a tail if more than this share of its minutes has no A
     rise_db: 0.6             # truncate at a sustained dry-weather rise: smoothed A >= this above its running minimum
     rise_smooth_min: 15      #   (trailing rolling median, minutes; running minimum since t_first_dry, dry minutes)
@@ -136,7 +136,7 @@ waa:
     gallery_n: 24
     gallery_seed: 1
     gallery_hours: 6
-  selection_2b:              # step 2b (step2b_fix_tails.py): fixes after the step 2 gallery; TRAIN only, no fitting
+  refine_selection:              # step 2b (refine_selection.py): fixes after the step 2 gallery; TRAIN only, no fitting
     gauge_max_dist_m: 1000   # rain trace: radar R_max > 0 on the path OR any gauge within this distance > 0 (5 min bin)
     rise_quiet_db: 0.15      # dry-rise cut moved back to the last minute before the rise run with excess < this
     max_offset_std_db: 0.3   # noise exclusion: sub-link offset_std (dry-weather baseline spread) above this (1 RSL step)
@@ -153,7 +153,7 @@ waa:
     gallery_n: 24
     gallery_seed: 2
     gallery_hours: 6
-  freeze:                    # step 2c (step2c_freeze.py): last fixes, then the frozen tail set for modelling
+  freeze:                    # step 2c (freeze_tail_set.py): last fixes, then the frozen tail set for modelling
     tail_set: v1             # id written into every frozen file (file names carry no version: ORGANIZATION.md)
     radar_nan_is_unknown: true   # a radar NaN bin on the path counts like a rain trace (start and strict end)
     rise_smooth_min: 10      # rise cut v2: trailing median of A over this many minutes ...
@@ -166,7 +166,7 @@ waa:
     look_tails_per_event: 6
     look_seed: 4
     look_hours: 6
-  sim:                       # step 3a + 3a-fix (waa_sim.py, step3a_simulator.py): a tail simulator that mimics tail set v1
+  simulator:                       # step 3a + 3a-fix (simulator.py, calibrate_simulator.py): a tail simulator that mimics tail set v1
     seed: 0
     horizon_min: 360         # calibration window: median curve of A / A_start over 0 .. 6 h after t0_trace
     min_tails_per_minute: 20 # a minute of the real median curve / band counts only with at least this many tails
@@ -196,10 +196,10 @@ waa:
     thalf_bins_db: [1.0, 1.5, 2.0, 3.0]   # t_half per A_start bin: 1-1.5, 1.5-2, 2-3, > 3 dB
     gallery_n: 12
     gallery_seed: 5
-  fit3b1:                    # step 3b-1 (waa_fit.py, step3b1_fitting_on_sim.py): the fitting method on simulated tails
+  check_per_tail_fit:                    # step 3b-1 (per_tail_fit.py, check_per_tail_fit.py): the fitting method on simulated tails
     replicates: 10           # simulated datasets per law (seeds seed_base + 0 .. replicates - 1)
     seed_base: 1000
-    laws: [m1, m3, m4, m5]   # truths from step 3a-fix (step3a_calibration.csv); m6 added if its calibration converges
+    laws: [m1, m3, m4, m5]   # truths from step 3a-fix (calibrate_simulator_calibration.csv); m6 added if its calibration converges
     m6:                      # optional truth m6 (state switch), calibrated like the others (median + band, spread rule)
       try: true
       start: {k_run: 0.08, k_evap: 0.006, A_c: 0.4}   # 1/min, 1/min, dB
@@ -222,7 +222,7 @@ waa:
     dadt_bins_db: [-0.2, 0.0, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 1.0, 1.25, 1.5, 2.0, 2.5, 3.0, 4.0]
     dadt_min_count: 50       # a bin of the dA/dt curve needs at least this many minutes
     ci_reps: 1000            # bootstrap over events for the real CIs
-  pooled3b1b:                # step 3b-1b (waa_pooled.py, step3b1b_pooled_fit.py): pooled fit, re-tested on simulated tails
+  check_pooled_fit:                # step 3b-1b (pooled_fit.py, check_pooled_fit.py): pooled fit, re-tested on simulated tails
     replicates: 10           # per truth; each replicate = an EVENT bootstrap of the TRAIN v1 skeleton (same events for all truths)
     seed_base: 2000
     truths: [m1, m3, m4, m5, m6]
@@ -238,7 +238,7 @@ waa:
     shape_minutes: [10, 30, 60, 180]
     thalf_bins_db: [1.0, 1.5, 2.0, 3.0]
     ci_reps: 1000
-  stress3b1c:                # step 3b-1c (step3b1c_stress_test.py): stress test of the pooled fit; fake data only
+  stress_pooled_fit:                # step 3b-1c (stress_pooled_fit.py): stress test of the pooled fit; fake data only
     replicates: 5            # per truth and test; each replicate = a new EVENT bootstrap (same draws for every test)
     seed_base: 3000
     truths: [m1, m4, m5, m6] # m3 is not a truth here (F3 stays a candidate)
@@ -273,8 +273,8 @@ waa:
     decision:                # FIXED BEFORE THE RUN
       own_win_share: 0.8     # the own candidate wins >= 4 of 5 replicates ...
       param_tol: 0.3         # ... and every key parameter has |median(fitted / true) - 1| <= this
-  sindy3b2:                  # step 3b-2 (waa_sindy.py, step3b2_sindy_fake.py): weak-form SINDy on fake tails
-    replicates: 5            # event-bootstrap replicates per truth (same seeds and draws as stress3b1c)
+  check_sindy:                  # step 3b-2 (sindy.py, check_sindy.py): weak-form SINDy on fake tails
+    replicates: 5            # event-bootstrap replicates per truth (same seeds and draws as stress_pooled_fit)
     seed_base: 3000
     truths: [m1, m3, m4, m5, m6]          # with spread s_true (3a-fix noise, as the T2 data of step 3b-1c)
     nospread_truths: [m1, m3, m5, m6]     # the same without spread (s = 0)
@@ -290,7 +290,7 @@ waa:
     stability: {resamples: 50, select_freq: 0.6, seed: 77}   # a term is "selected" in a replicate if its frequency >= select_freq
     offsets: [naive, handled, oracle]     # naive = ignore c; handled = a free constant per tail in dA/dt; oracle = true c removed
     main: {window: first_60min, offset: handled, rescale: none}   # the configuration of the decision rule
-    pooled_min_points: 10    # pooled fit (speeds for the rescaling check, Q4): as stress3b1c, first 60 min
+    pooled_min_points: 10    # pooled fit (speeds for the rescaling check, Q4): as stress_pooled_fit, first 60 min
     time_budget_h: 2.0       # if longer: replicates 5 -> 3, then no whole-tail window, then no no-spread m5
     decision:                # FIXED BEFORE THE RUN
       min_true: 0.8          # Q1: every true term selected in >= 4 of 5 replicates ...
@@ -304,8 +304,8 @@ waa:
       q2_q3: {clean_share: 0.8}   # Q2 (m4): FAIL = a clean single-variable law in >= 4 of 5; Q3 (m1 with spread):
                              #   FAIL = a nonlinear or switch term in >= 4 of 5, PASS = in at most 1 of 5
       q4: {pass: 0.8, partial: 0.5}   # share of the m1, m3, m5, m6 datasets where SINDy and the pooled fit name the same family
-  curve3b3:                  # step 3b-3 (waa_curve.py, step3b3_curve_then_equation.py): free drying curve, then its equation
-    replicates: 5            # event-bootstrap replicates per truth (same seeds and draws as stress3b1c / sindy3b2)
+  check_free_curve:                  # step 3b-3 (free_curve.py, check_free_curve.py): free drying curve, then its equation
+    replicates: 5            # event-bootstrap replicates per truth (same seeds and draws as stress_pooled_fit / check_sindy)
     seed_base: 3000
     truths: [m1, m3, m4, m5, m6]          # main test: spread s_true, 3a-fix noise
     nospread_truths: [m1]    # extra: no spread (sanity check)
@@ -331,7 +331,7 @@ waa:
     grid_points: 40          # W grid (log-spaced) inside the supported range for bands, tests and jump 2
     j2_switch_grid_db: [0.05, 0.1, 0.15, 0.2, 0.3, 0.5]
     j2_lambda_grid: [0.01, 0.02, 0.03, 0.05, 0.08, 0.12, 0.2, 0.3, 0.45]
-    menu_6h_starts: [g1, g2, g3]   # F4 menu fit in the 6 h window (m4 only; starts of stress3b1c.t2_starts)
+    menu_6h_starts: [g1, g2, g3]   # F4 menu fit in the 6 h window (m4 only; starts of stress_pooled_fit.t2_starts)
     time_budget_h: 3.0       # if longer: [6 h window of the extras], then T1, then m1 no-spread, then replicates 5 -> 3
     decision:                # FIXED BEFORE THE RUN (verdict per truth: the better of the two windows)
       band_coverage: 0.8     # J1 curve: true k inside the min-max band of the replicates over >= this share of the grid
@@ -349,9 +349,9 @@ waa:
       m4_warning:            # PASS if a warning in >= min_reps replicates:
         disagree_share: 0.2  #   the 60 min and 6 h bands (per replicate, interval_z) do not overlap on > this share of the grid
         dbic_vs_f4: 10.0     #   or BIC(free curve) - BIC(F4) > this, in either window
-  curve3b3b:                 # step 3b-3b (step3b3b_confirm.py): confirmation run of the free curve + its equation on
+  confirm_free_curve:                 # step 3b-3b (confirm_free_curve.py): confirmation run of the free curve + its equation on
                              #   FRESH fake data. FIXED BEFORE THE RUN. The fit itself (starts, penalties, budgets,
-                             #   prior, cross-validation, jump 2 threshold grid) is read from curve3b3, unchanged.
+                             #   prior, cross-validation, jump 2 threshold grid) is read from check_free_curve, unchanged.
     replicates: 5
     seed_base: 4000          # new event bootstraps and noise (3b-3 used 3000)
     truths: [m1, m3, m4, m5, m6]          # main data: spread s_true, 3a-fix noise
@@ -360,10 +360,10 @@ waa:
     window_min: 60           # first 60 min only
     w_lo_db: 0.35            # judged range starts here; below it the curve is fitted (straight line in log-log) but
                              #   nothing is judged or passed to jump 2
-    knots: 5                 # at w_lo, w_hi (the level with curve3b3.support_min_minutes tail-minutes above it) and
+    knots: 5                 # at w_lo, w_hi (the level with check_free_curve.support_min_minutes tail-minutes above it) and
                              #   3 equal quantiles of log A in between
     j2_switch_grid_db: [0.5, 0.75]        # switch levels inside the judged range only
-    menu_f4_starts: [g1, g2, g3]          # F4 menu fit (m4 only; starts of stress3b1c.t2_starts, maxfev_generic)
+    menu_f4_starts: [g1, g2, g3]          # F4 menu fit (m4 only; starts of stress_pooled_fit.t2_starts, maxfev_generic)
     time_budget_h: 1.5       # if the projection from replicate 0 is longer: drop the T1 robustness
     decision:
       band_coverage: 0.8     # curve: true k inside the min-max band of the replicates on >= this share of [w_lo, w_hi]
@@ -379,7 +379,7 @@ waa:
         m3: {required: [W^2], allowed: [W^2], coefs: [W^2]}
         m5: {required: [W^2], allowed: [W, W^2], coefs: [W^2]}            # its W: reported, not counted
       m4_dbic_vs_f4: 10.0    # m4 PASS: BIC(free curve) - BIC(F4) > this in >= min_reps replicates
-  curve3b3c:                 # step 3b-3c (step3b3c_method.py): the discovery method finished on fake data, parts A-E.
+  check_discovery_method:                 # step 3b-3c (check_discovery_method.py): the discovery method finished on fake data, parts A-E.
                              #   FIXED BEFORE THE RUN. Data of B-E: the cached datasets of step 3b-3b (seeds 4000 + replicate).
     time_budget_h: 3.0       # if the projection from replicate 0 is longer: cut E (costs nothing extra: part C already
                              #   fits F4 with the F1-solution start), then the bootstraps of D 20 -> 12, then the truths m3 / m5 of B
@@ -424,7 +424,7 @@ waa:
                              #   of part A on [0.1 dB, W_hi]); all sizes go to jump 3, which chooses
       maxfev_formula: {full: 300, half: 200}
       maxfev_half: 250       # menu laws and the step law on a half, from their full-data solution
-      menu: [F1, F3, F4, F5, F6]          # 3 generic starts of stress3b1c.t2_starts (F1: 4) + the F1-solution start
+      menu: [F1, F3, F4, F5, F6]          # 3 generic starts of stress_pooled_fit.t2_starts (F1: 4) + the F1-solution start
       families:              # winner must be in the true family in >= 4 of 5
         m1: [exponential]    # F1, or the formula "W"
         m3: [quadratic]      # F3, F5, or the formulas "W^2", "W + W^2"
@@ -441,32 +441,32 @@ waa:
       band: [5, 95]          # percentiles; rule: true k inside on >= coverage of [0.35 dB, W_hi] in >= min_datasets of 3
       coverage: 0.8
       min_datasets: 2
-  quant3b4:                  # step 3b-4 (step3b4_quantization.py): is the 0.3 dB RSL quantization the cause of the false
+  check_quantization:                  # step 3b-4 (check_quantization.py): is the 0.3 dB RSL quantization the cause of the false
                              #   step of 3b-3c? Diagnosis only, FIXED BEFORE THE RUN. Truth m1, skeleton / seeds / spread /
-                             #   window / knot rule of curve3b3b, plain fit as in 3b-3b, step fit as in curve3b3c.b.
+                             #   window / knot rule of confirm_free_curve, plain fit as in 3b-3b, step fit as in check_discovery_method.b.
     truth: m1
     settings: {"none": 0.0, "0.3 dB": 0.3, "0.1 dB": 0.1}   # RSL quantization step of the simulator (0 = not quantized);
                              #   the 0.3 dB setting IS the 3b-3b / 3b-3c data, so its cached fits are reused
     reference: "0.3 dB"
     fine: "0.1 dB"
     time_budget_h: 0.5
-    decision:                # "kept" = BIC(no step) - BIC(step) > curve3b3c.b.bic_gain
+    decision:                # "kept" = BIC(no step) - BIC(step) > check_discovery_method.b.bic_gain
       cause_max_kept: 1      # "quantization is the cause": without quantization kept in <= 1 of 5, AND
       fine_wc_ratio: 0.6     #   at 0.1 dB: kept in <= 1 of 5, or median W_c of the kept steps < 0.6 x that at 0.3 dB
       not_cause_min_kept: 4  # "not the cause": without quantization still kept in >= 4 of 5; otherwise "partly / unclear"
     low_range_db: [0.1, 0.35]             # information only: fitted / true k of the curve WITHOUT the step below W_lo
-  real4:                     # step 4 (step4_real_drying.py): the drying law on the REAL tails (frozen set v1, TRAIN only).
+  fit_real_drying:                     # step 4 (fit_real_drying.py): the drying law on the REAL tails (frozen set v1, TRAIN only).
                              #   FIXED BEFORE THE RUN. Only tools that passed on fake data; their settings are READ from
-                             #   the fake-data steps, unchanged: the likelihood and the menu starts from stress3b1c
-                             #   (t2_starts, maxfev_generic), the free curve from curve3b3 (starts, penalties, budgets,
-                             #   prior, grid) and curve3b3b (w_lo_db, knots, jump-2 switch levels), jump 2 from
-                             #   curve3b3c.a (esindy, pysr, max_terms), the bootstrap band from curve3b3c.d (maxfev, band).
+                             #   the fake-data steps, unchanged: the likelihood and the menu starts from stress_pooled_fit
+                             #   (t2_starts, maxfev_generic), the free curve from check_free_curve (starts, penalties, budgets,
+                             #   prior, grid) and confirm_free_curve (w_lo_db, knots, jump-2 switch levels), jump 2 from
+                             #   check_discovery_method.a (esindy, pysr, max_terms), the bootstrap band from check_discovery_method.d (maxfev, band).
     window_min: 60           # main window: first 60 min of each tail
     window_long_min: 360     # check 3 (information only): menu fits on the first 6 h
     candidates: [F1, F3, F4, F5, F6]   # F1 first: its solution gives the `f1sol` start of the others
     big_events: 3            # check 2: leave out each of the 3 events with the most tails, in turn
     bootstraps: 20           # band: event-bootstrap refits of the free curve (same knots and penalty) ...
-    bootstrap_starts: [fit, flat]      # ... each from 2 starts: the fit of the dataset and the flat start of curve3b3
+    bootstrap_starts: [fit, flat]      # ... each from 2 starts: the fit of the dataset and the flat start of check_free_curve
     bootstrap_seed: 6000
     cv_seed: 4400            # the two halves of the events for the penalty cross-validation
     quote: {level_pct: 20, slope: 0.1}   # what is QUOTED as uncertainty (3b-3c part D: the band is about 3 times too narrow)
@@ -484,7 +484,7 @@ waa:
     acf_lags_min: [1, 10, 60]
     gallery_n: 12            # check 4: random real tails with the fitted winner and the fitted F1
     gallery_seed: 11
-    shape_minutes: [10, 30, 60]   # check 5: A / A_start at these minutes (as stress3b1c.t3)
+    shape_minutes: [10, 30, 60]   # check 5: A / A_start at these minutes (as stress_pooled_fit.t3)
     ci_reps: 1000            # check 5: event bootstrap of the real A / A_start medians
     raw_rate:                # model-free look at the drying rate per level (information; added after the first run)
       smooth_min: 7          # centred rolling mean of A per tail before the central difference

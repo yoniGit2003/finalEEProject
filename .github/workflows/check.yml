@@ -1,0 +1,21 @@
+# Runs on every push: the fast tests (no data needed, about a minute). They also fail when
+# research/steps.yaml and docs/REPRODUCE.md no longer match the scripts in research/.
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install cmlpipe with the test tools
+        run: pip install -e "pipeline[dev]"
+      - name: Fast tests
+        working-directory: pipeline
+        run: python -m pytest -q

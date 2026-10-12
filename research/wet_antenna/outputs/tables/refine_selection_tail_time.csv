@@ -1,0 +1,9 @@
+quantity,minutes,share_of_step1_time
+tail time t0 .. t_end (step 1),7171907.0,1.0
+usable in step 2 (t0 .. t_use_end),6767380.0,0.944
+lenient end with the earlier rise cut (t0 .. end),6630187.0,0.924
+  removed by moving the rise cut earlier,137193.0,0.019
+  removed by moving the start to t0_trace,109221.0,0.015
+usable lenient (t0_trace .. lenient end),6520966.0,0.909
+usable strict (t0_trace .. strict end),5838836.0,0.814
+  lost strict vs lenient (rain trace after t0_trace),682130.0,0.095

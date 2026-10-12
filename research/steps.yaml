@@ -1,0 +1,173 @@
+# Every research step, in the order to run them. The ONE list that `python -m research` runs and that
+# docs/REPRODUCE.md shows. When you add a script, add an entry here (then `python -m research docs`).
+#
+#   name      short name used on the command line:  python -m research run <name>
+#   module    what is run:  python -m <module> [args]      (always from the repository root)
+#   id        the step number used in the research log and in METHOD.md (wet antenna only)
+#   what      one line: what the step does
+#   needs     release = the data release (pipeline/get_data.py); caches = the fit caches (pipeline/get_caches.py);
+#             pysr = the optional PySR package (Julia); earlier steps are always needed
+#   time      run time on our computer (with the caches, where a step has them)
+#   no_cache  run time without the fit caches (first run), only for steps that have them
+#   report    the report the step writes (its tables and figures are named after the script, in the same outputs/)
+
+steps:
+  # ------------------------------------------------------------------ baseline: A(t) = TSL - RSL - baseline
+  - name: baseline_sample_v1
+    module: research.baseline.run_sample
+    args: [v1]
+    what: "Baseline method v1 (two windows) on a sample of event x sub-link pairs; kept for comparison"
+    needs: [release]
+    time: "20 s"
+    report: research/baseline/outputs/reports/sample_two_window_summary.md
+  - name: baseline_validation
+    module: research.baseline.validation.run_all
+    what: "Validation of the baseline: fake events in dry weather, drying after rain, daily cycle, jumps (checks C1-C6, R1b)"
+    needs: [release]
+    time: "4 min"
+    report: research/baseline/outputs/reports/R1b_validation.md
+  - name: baseline_sample_v2
+    module: research.baseline.run_sample
+    what: "Baseline method v2 (pre-event window), the current method, on the same sample"
+    needs: [release]
+    time: "5 s"
+  - name: baseline_dew
+    module: research.baseline.make_dew_products
+    what: "Hourly dew risk and the list of dry-weather jumps (products the next steps read)"
+    needs: [release]
+    time: "3 s"
+  - name: baseline_table
+    module: research.baseline.make_baseline_table
+    what: "The frozen baseline v2: one baseline per event and sub-link, with its uncertainty"
+    needs: [release]
+    time: "40 s"
+
+  # ------------------------------------------------------------------ wet antenna, part 1: the drying tails (real data)
+  - name: inventory
+    module: research.wet_antenna.inventory
+    id: "0"
+    what: "What data there is for WAA: links, events, references; one example event"
+    needs: [release]
+    time: "10 s"
+    report: research/wet_antenna/outputs/reports/inventory.md
+  - name: extract_tails
+    module: research.wet_antenna.extract_tails
+    id: "1"
+    what: "Every drying tail after every rain event, with no selection"
+    needs: [release]
+    time: "2.5 min"
+    report: research/wet_antenna/outputs/reports/extract_tails.md
+  - name: select_tails
+    module: research.wet_antenna.select_tails
+    id: "2"
+    what: "Selection of usable tails by rules fixed in advance; test of the 'fast drop'"
+    needs: [release]
+    time: "1.5 min"
+    report: research/wet_antenna/outputs/reports/select_tails.md
+  - name: refine_selection
+    module: research.wet_antenna.refine_selection
+    id: "2b"
+    what: "Fixes after looking at the selected tails (start at the last rain trace, noisy baselines, flags)"
+    needs: [release]
+    time: "1 min"
+    report: research/wet_antenna/outputs/reports/refine_selection.md
+  - name: freeze_tail_set
+    module: research.wet_antenna.freeze_tail_set
+    id: "2c"
+    what: "Last fixes, then the frozen tail set v1 that all modelling uses"
+    needs: [release]
+    time: "45 s"
+    report: research/wet_antenna/outputs/reports/freeze_tail_set.md
+
+  # ------------------------------------------------------------------ wet antenna, part 2: testing the method on simulated tails
+  - name: calibrate_simulator
+    module: research.wet_antenna.calibrate_simulator
+    id: "3a"
+    what: "A tail simulator with known drying laws and realistic noise, calibrated to the real tails"
+    needs: [release]
+    time: "2 min"
+    report: research/wet_antenna/outputs/reports/calibrate_simulator.md
+  - name: check_per_tail_fit
+    module: research.wet_antenna.check_per_tail_fit
+    id: "3b-1"
+    what: "Fit one tail at a time on simulated tails: can it find the true law? (no)"
+    needs: [caches]
+    time: "2.5 min"
+    no_cache: "1 h"
+    report: research/wet_antenna/outputs/reports/check_per_tail_fit.md
+  - name: check_pooled_fit
+    module: research.wet_antenna.check_pooled_fit
+    id: "3b-1b"
+    what: "Fit all tails together (pooled likelihood) on simulated tails"
+    needs: [caches]
+    time: "40 s"
+    no_cache: "3 h"
+    report: research/wet_antenna/outputs/reports/check_pooled_fit.md
+  - name: stress_pooled_fit
+    module: research.wet_antenna.stress_pooled_fit
+    id: "3b-1c"
+    what: "Stress test of the pooled fit: wrong noise model, honest starting points, faster laws"
+    needs: [caches]
+    time: "30 s"
+    no_cache: "45 min"
+    report: research/wet_antenna/outputs/reports/stress_pooled_fit.md
+  - name: check_sindy
+    module: research.wet_antenna.check_sindy
+    id: "3b-2"
+    what: "Weak-form SINDy directly on simulated tails (failed)"
+    needs: [caches]
+    time: "15 s"
+    no_cache: "15 min"
+    report: research/wet_antenna/outputs/reports/check_sindy.md
+  - name: check_free_curve
+    module: research.wet_antenna.check_free_curve
+    id: "3b-3"
+    what: "Two jumps: learn a free drying curve k(W) from all tails, then name its equation"
+    needs: [caches]
+    time: "20 s"
+    no_cache: "2 h"
+    report: research/wet_antenna/outputs/reports/check_free_curve.md
+  - name: confirm_free_curve
+    module: research.wet_antenna.confirm_free_curve
+    id: "3b-3b"
+    what: "Confirmation of the free curve on fresh simulated tails, with the rule written first"
+    needs: [caches]
+    time: "15 s"
+    no_cache: "35 min"
+    report: research/wet_antenna/outputs/reports/confirm_free_curve.md
+  - name: check_discovery_method
+    module: research.wet_antenna.check_discovery_method
+    id: "3b-3c"
+    what: "The rest of the discovery method on simulated tails: naming the curve, a step, model choice, bootstrap band"
+    needs: [caches]
+    time: "1.5 min"
+    no_cache: "1.6 h"
+    report: research/wet_antenna/outputs/reports/check_discovery_method.md
+  - name: check_quantization
+    module: research.wet_antenna.check_quantization
+    id: "3b-4"
+    what: "Is the 0.3 dB quantization of RSL the cause of the false step? (no)"
+    needs: [caches]
+    time: "15 s"
+    no_cache: "17 min"
+    report: research/wet_antenna/outputs/reports/check_quantization.md
+
+  # ------------------------------------------------------------------ wet antenna, part 3: the real tails
+  - name: fit_real_drying
+    module: research.wet_antenna.fit_real_drying
+    id: "4"
+    what: "The drying law on the REAL tails (train events only): candidate laws, free curve, its equation, checks"
+    needs: [caches]
+    time: "30 s"
+    no_cache: "40 min"
+    report: research/wet_antenna/outputs/reports/fit_real_drying.md
+
+# Scripts that are run by another step (not on their own): listed so that the test knows they are not forgotten.
+run_by_other_steps:
+  research.baseline.validation.c1_fake_events: baseline_validation
+  research.baseline.validation.c2_after_window: baseline_validation
+  research.baseline.validation.c3_daily_cycle: baseline_validation
+  research.baseline.validation.c4_jumps: baseline_validation
+  research.baseline.validation.c5_flagged: baseline_validation
+  research.baseline.validation.c6_sensitivity: baseline_validation
+  research.baseline.validation.r1b_event_level: baseline_validation

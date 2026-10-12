@@ -1,0 +1,17 @@
+law,candidate,parameter,measure,true_value,n,median,p10,p90,at_bound_share
+m1,F1,tau,fitted / true,27.8586,4290,1.011,0.628,2.111,
+m1,F1,c,fitted - true offset (dB),,4290,-0.007,-0.273,0.155,
+m1,F1,W0,fitted - A_start (dB),,4290,-0.04,-0.316,0.331,
+m3,F3,k,fitted / true,0.05656,4290,0.822,0.172,1.821,
+m3,F3,n,fitted - true,2.0,4290,-0.473,-1.0,1.0,0.401
+m3,F3,c,fitted - true offset (dB),,4290,-0.005,-0.465,0.237,
+m3,F3,W0,fitted - A_start (dB),,4290,-0.124,-0.475,0.417,
+m4,F4,tau_f,fitted / true,17.53524,4290,0.848,0.373,1.594,
+m4,F4,tau_s,fitted / true,180.71362,4290,4.515,0.179,266.145,
+m4,F4,phi,fitted - true,0.1714,4290,0.176,-0.171,0.686,0.294
+m4,F4,c,fitted - true offset (dB),,4290,-0.056,-5.047,0.189,
+m4,F4,W0,fitted - A_start (dB),,4290,0.071,-0.296,5.088,
+m5,F5,a,fitted / true,0.00319,4290,3.033,0.0,21.609,
+m5,F5,b,fitted / true,0.04805,4290,0.408,0.0,1.263,
+m5,F5,c,fitted - true offset (dB),,4290,0.009,-0.293,0.241,
+m5,F5,W0,fitted - A_start (dB),,4290,-0.158,-0.482,0.218,

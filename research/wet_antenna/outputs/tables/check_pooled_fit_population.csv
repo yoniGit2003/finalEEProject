@@ -1,0 +1,9 @@
+statistic,real,real_ci_low,real_ci_high,m1_min,m1_max,m1_real_inside,m3_min,m3_max,m3_real_inside,m4_min,m4_max,m4_real_inside,m5_min,m5_max,m5_real_inside,m6_min,m6_max,m6_real_inside,separates
+t_half 1-1.5 dB,16.0,11.0,31.0125,17.0,26.0,False,14.0,22.0,True,14.0,23.0,True,14.0,23.0,True,14.0,23.0,True,
+t_half 1.5-2 dB,17.0,9.0,39.0,15.5,30.0,True,10.0,18.0,True,13.0,27.0,True,10.0,22.0,True,13.0,27.0,True,
+t_half 2-3 dB,14.0,8.0,87.0,17.0,30.5,False,8.5,18.0,True,14.0,25.5,True,9.0,17.5,True,13.0,30.0,True,
+t_half > 3 dB,8.0,0.0,22.0,7.0,35.0,True,2.5,10.5,True,6.0,30.0,True,3.0,11.5,True,6.0,27.0,True,
+A/A_start at 10 min,0.5676,0.3445,0.8198,0.6064,0.6846,False,0.4761,0.567,False,0.5395,0.6381,True,0.5008,0.5975,True,0.5398,0.6396,True,m1 vs m3; m1 vs m5
+A/A_start at 30 min,0.2285,0.156,0.5639,0.2929,0.4296,False,0.2756,0.3532,False,0.2855,0.3844,False,0.2815,0.371,False,0.2815,0.3741,False,
+A/A_start at 60 min,0.1416,0.0864,0.2875,0.1502,0.2255,False,0.1816,0.2285,False,0.1739,0.231,False,0.1805,0.2349,False,0.1594,0.2294,False,
+A/A_start at 180 min,0.0483,0.0134,0.137,0.0255,0.0681,True,0.0715,0.1148,False,0.0696,0.1086,False,0.0622,0.1099,False,0.0619,0.1077,False,m1 vs m3; m1 vs m4

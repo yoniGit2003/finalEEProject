@@ -1,8 +1,8 @@
 % last updated: 2026-10-11 commit=dd4c907
-% (the line above is read and rewritten by /tidy: the date and the git commit the content of this report describes)
+% (the line above is read and rewritten by /updatedocs: the date and the git commit the content of this report describes)
 % Research log: what has been implemented in research/, at the level of ideas (no code).
-% Build:  python pipeline/tools/build_research_log.py   (pdflatex twice; writes docs/research_log.pdf only)
-% Figure paths are relative to docs/. Only `key` outputs of the research modules are included (they are committed,
+% Build:  python docs/build_research_log.py   (pdflatex three times; writes docs/research_log.pdf only)
+% Figure paths are relative to docs/. Figures come from research/<module>/outputs/figures/ (they are committed,
 % so the report builds from a clean clone); the diagrams are drawn here (TikZ).
 \documentclass[11pt,a4paper]{article}
 
@@ -148,7 +148,7 @@ Figure~\ref{fig:roadmap} shows the whole project and Table~\ref{tab:status} the 
 \draw[arr] (s1) -- (s2); \draw[arr] (s2) -- (s3); \draw[arr] (s3) -- (s4); \draw[arr] (s4) -- (s5);
 \node[draw, densely dashed, rounded corners=3pt, inner sep=4pt, fit=(s1)(s5)] (grp) {};
 \node[lab, anchor=south west] at ($(grp.north west)+(0,0.5mm)$) {Inside Stage 1:};
-\draw[densely dashed] (waa.south) -- (waa.south |- grp.north);
+\draw[densely dashed] (wet_antenna.south) -- (wet_antenna.south |- grp.north);
 \end{tikzpicture}
 \caption{The project, and the inside of Stage~1. Thick solid border with grey fill: done. Thick dashed border: in
 progress. Dotted border: planned.}
@@ -409,7 +409,7 @@ because most (event, sub-link) pairs have little rain; the strong cases are sele
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.62\linewidth]{../research/baseline_estm/outputs/figures/r1b_c2_delta.png}
+\includegraphics[width=0.62\linewidth]{../research/baseline/outputs/figures/r1b_c2_delta.png}
 \caption{Level after the rain minus the baseline, against the time since the link's last wet moment. Circles, solid
 line: real events. Squares, dashed line: control (fake events in dry weather). Bands: 10th to 90th percentile.}
 \label{fig:delta}
@@ -605,7 +605,7 @@ question of the next section is what kind of law produces it.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{../research/WAA_estm/outputs/figures/step2c_median_curves.png}
+\includegraphics[width=\linewidth]{../research/wet_antenna/outputs/figures/freeze_tail_set_median_curves.png}
 \caption{Median of the drying tails, each aligned at its own start. Solid: frozen set v1. Dashed: the set before the
 last two rules. Dash-dot: control tails. Top: linear scale; bottom: logarithmic scale, on which a single exponential
 would be a straight line.}
@@ -802,7 +802,7 @@ m5 linear + quadratic & $a = 0.0030$, $b = 0.045$ & 0.038 & 0.069 \\
 
 \begin{figure}[p]
 \centering
-\includegraphics[width=\linewidth]{../research/WAA_estm/outputs/figures/step3a_real_vs_sim_median.png}
+\includegraphics[width=\linewidth]{../research/wet_antenna/outputs/figures/calibrate_simulator_real_vs_sim_median.png}
 \caption{Real tails against simulated tails, one row per law (m1, m3, m4, m5). Solid line and hatched band: real
 median and 10--90\,\% band. Dashed and dotted lines: the same for the simulated tails. Columns: first 90 minutes
 (linear, logarithmic), first 6 hours (linear, logarithmic). All four laws reproduce the real median and band about
@@ -898,7 +898,7 @@ its data sets. The two are close relatives, and F5 contains a quadratic term.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\linewidth]{../research/WAA_estm/outputs/figures/step3b1b_confusion.png}
+\includegraphics[width=\linewidth]{../research/wet_antenna/outputs/figures/check_pooled_fit_confusion.png}
 \caption{Pooled fit on simulated data. Rows: the law that generated the data. Columns: the candidate chosen. Each cell
 is the share of the ten data sets; a perfect method would have 1.0 on the diagonal (dashed boxes). Panels: first 60
 minutes, first 6 hours, whole tail.}

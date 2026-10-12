@@ -1,0 +1,4 @@
+tail_id,event_id,sublink_id,n_minutes,n_nan,max_abs_diff_db,exactly_equal
+10404,E20150709_1725,10193_2,2275,0,0.0,True
+12964,E20150718_1745,10236_2,1895,0,0.0,True
+17312,E20150825_0145,10312_1,2730,0,0.0,True

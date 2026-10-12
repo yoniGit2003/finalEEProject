@@ -1,0 +1,16 @@
+law,window,in_rule,own_win_share,win_ok,params_ok,params_off,main_confusion,met
+m1,first_60min,True,0.8,True,True,,F3 10%,True
+m1,first_6h,True,0.8,True,True,,F3 10%,True
+m1,whole,True,0.9,True,True,,F3 10%,True
+m3,first_60min,False,0.8,True,True,,F5 20%,True
+m3,first_6h,False,0.6,False,True,,F5 40%,False
+m3,whole,False,0.6,False,True,,F5 40%,False
+m4,first_60min,True,1.0,True,True,,,True
+m4,first_6h,True,1.0,True,True,,,True
+m4,whole,True,1.0,True,True,,,True
+m5,first_60min,True,0.9,True,True,,F3 10%,True
+m5,first_6h,True,0.9,True,True,,F3 10%,True
+m5,whole,True,1.0,True,True,,,True
+m6,first_60min,True,1.0,True,True,,,True
+m6,first_6h,True,1.0,True,True,,,True
+m6,whole,True,1.0,True,True,,,True

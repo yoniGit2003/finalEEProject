@@ -1,0 +1,10 @@
+what,tails,minutes
+kept step 2 TRAIN tails,11347,
+t0_trace moved by the radar-NaN rule,149,7785.0
+strict end moved earlier by the radar-NaN rule (before the rise cut),1329,452000.0
+rise v2 detected,2338,
+end set by rise v2 (cut_by_rise_v2),1864,333809.0
+  of them in the pre-rise main set,130,30971.0
+pre-rise main set (after rule 1),474,213718.0
+main set v1 (after rules 1-2),429,182163.0
+step 2b strict main set (reference),479,220428.0

@@ -17,6 +17,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "nbformat", "nbclient", "ipykernel"]
 explorer = ["streamlit>=1.50"]   # the GUI in apps/explorer (python -m cmlpipe explore)
+# what the research scripts (research/, run from the repository root) need on top of cmlpipe; tested versions:
+# scipy 1.17.1, numba 0.68.0, pysindy 2.1.0, pysr 2.7.0 (pysr installs Julia on first use, about 1.2 GB)
+research = ["scipy>=1.13", "numba>=0.60", "pysindy>=2.0", "pysr>=1.5"]
 
 [project.scripts]
 cmlpipe = "cmlpipe.cli:main"

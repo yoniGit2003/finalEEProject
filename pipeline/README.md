@@ -10,28 +10,34 @@ Start with the plain-language data guide: [`docs/DATA_GUIDE.md`](docs/DATA_GUIDE
 
 ## Setup
 
-From the repository root (Windows, conda; no dask):
+From the repository root (no dask):
 
-```powershell
-conda env create -f pipeline/environment.yml; conda activate cmlpipe   # installs cmlpipe too (editable)
-pip install -e "pipeline[dev,explorer]"                                # same, in an existing environment
-git config core.hooksPath pipeline/tools/githooks                      # once per clone: README hook
+```
+conda env create -f environment.yml          # then: conda activate cmlpipe   (installs cmlpipe too, editable)
+pip install -e "pipeline[dev,explorer]"      # the same, in an existing environment (add ,research for research/)
 ```
 
 [`pyproject.toml`](pyproject.toml) is the single list of dependencies.
 
 ## Get the data
 
-The release must end up in `data/release/openmrg_v1/` at the repository root (`data/` is not in git).
+`data/` is not in git. From the repository root:
 
-- **Option A, rebuild** from the public raw data (OpenMRG v1.1, https://doi.org/10.5281/zenodo.7107689). Unpack it
-  so that `data/raw/openmrg/cml/cml.nc`, `cml/cml_metadata.csv`, `gauges/city/CityGauges-2015JJA.csv`,
-  `gauges/smhi/GbgA-71420-2015JJA.csv` (each with its `-metadata.csv`) and `radar/radar.nc` exist, then run
-  `python -m cmlpipe run all --workers 4`. `data/raw/` is never modified.
-- **Option B, download** `openmrg_v1_release.zip` (1.6 GB, CC BY-SA 4.0) from
-  https://github.com/yoniGit2003/finalEEProject/releases/tag/data-openmrg-v1 (private repository: a GitHub login
-  with access is needed). Check it with `(Get-FileHash openmrg_v1_release.zip -Algorithm SHA256).Hash`, which must be
-  `17E9A9048AD0DAE51166C59BA0D3FA760C2E090B4757D70A0B2CDD033AC009F2`, then unzip it into `data/release/`.
+```
+python pipeline/get_data.py
+```
+
+It downloads the public raw data (OpenMRG v1.1, https://doi.org/10.5281/zenodo.7107689, 318 MB) into
+`data/raw/openmrg/`, checks it, and runs `python -m cmlpipe run all --workers 4`, which builds the release in
+`data/release/openmrg_v1/`. If the raw files are already there, only the build runs. `data/raw/` is never modified.
+
+By hand instead: unpack the Zenodo zip so that `data/raw/openmrg/cml/cml.nc`, `cml/cml_metadata.csv`,
+`gauges/city/CityGauges-2015JJA.csv`, `gauges/smhi/GbgA-71420-2015JJA.csv` (each with its `-metadata.csv`) and
+`radar/radar.nc` exist, then run `python -m cmlpipe run all --workers 4`.
+
+A built copy of the release (`openmrg_v1_release.zip`, 1.6 GB, CC BY-SA 4.0) is also attached to the GitHub release
+`data-openmrg-v1` of this repository; its SHA256 is
+`17E9A9048AD0DAE51166C59BA0D3FA760C2E090B4757D70A0B2CDD033AC009F2`. Unzip it into `data/release/` to skip the build.
 
 ## How it is built
 
@@ -59,18 +65,7 @@ column and variable in [`docs/data_dictionary.md`](docs/data_dictionary.md).
 http://localhost:8501 on this computer only. `python pipeline/apps/explorer/smoke.py` checks it without a browser.
 
 **Tests.** From `pipeline/`: `python -m pytest` (synthetic data, under a minute); `python -m pytest -m data` runs the
-real-data tests.
-
-**Data on this computer** *(auto)*:
-
-<!-- AUTO:data -->
-L1 CML layout (from `src/cmlpipe/io/schema.py`): dims `('time', 'sublink_id', 'cml_id')`; data variables `tsl` [dBm], `rsl` [dBm], `tl` [dB].
-
-- L1 CML files: **92 days** (2015-06-01 to 2015-08-31), 0.49 GB, in `data/work/openmrg/L1_standard/cml/`
-- Last pipeline run: 2026-10-04T15:08:19Z, steps ingest_cml, ingest_gauges, ingest_met, ingest_radar, qc_stats, qc_flags, qc_status, geometry, aggregate_gauges, aggregate_radar, aggregate_cml, events, split, event_links, significance, inventory, event_links_extra, link_state, inventory_figures, quicklooks, link_cards, run_report, release, 276 days, status **ok**
-
-*(Processed data is not in git. These lines describe the computer that made the last commit.)*
-<!-- /AUTO:data -->
+real-data tests. The fast tests also run on GitHub on every push (`.github/workflows/check.yml`).
 
 ## Map of pipeline/
 
@@ -78,22 +73,18 @@ L1 CML layout (from `src/cmlpipe/io/schema.py`): dims `('time', 'sublink_id', 'c
 src/cmlpipe/    io, qc, geometry, aggregate, events, inventory, release, api (CMLData), viz, cli
 apps/explorer/  the explorer GUI (app.py, data.py, smoke.py)
 configs/        openmrg.yaml (all settings)
-docs/           DATA_GUIDE, methods, data_dictionary, howto_access, roadmap, OpenMRG notes and paper
-tests/          pytest suite        tools/   update_readme.py, check_boundaries.py, check_organization.py, githooks/
+docs/           DATA_GUIDE.md and data_dictionary.md (both written by the release stage: do not edit by hand),
+                methods.md, howto_access.md, openmrg_summary.md (the source dataset), reference/
+tests/          pytest suite
+tools/          check_boundaries.py (research uses only cmlpipe.api / cmlpipe.viz; the pipeline never imports research)
 examples/       quickstart notebook
+get_data.py     download the raw data and build the release
+get_caches.py   download the saved fits of the research scripts (or pack new ones)
 ```
 
-## Status and next steps *(auto, from [`docs/roadmap.md`](docs/roadmap.md))*
+## Status
 
-<!-- AUTO:progress -->
-Status: **done (release openmrg_v1 built and published; the open items are extensions)**; 21 / 26 roadmap items done (tick items in [`docs/roadmap.md`](docs/roadmap.md)).
-
-Next steps:
-- [ ] Wet/dry classification from the CML signal itself
-- [ ] Noise and outlier handling beyond QC flags (level shifts, pair mismatch)
-- [ ] Link selection for Stage 1 and Stage 2
-- [ ] OpenRainER adapter (sub-links named `channel1` / `channel2`)
-- [ ] Check whether OpenMesh has a rain reference before using it
-<!-- /AUTO:progress -->
+Done: release `openmrg_v1` is built. The open items are extensions (wet/dry classification from the CML signal,
+OpenRainER adapter, ...): see [`../docs/ROADMAP.md`](../docs/ROADMAP.md), part A.
 
 Licences: data CC BY-SA 4.0 ([`LICENSE-DATA.md`](LICENSE-DATA.md)); code MIT ([`../LICENSE`](../LICENSE)).

@@ -1,0 +1,14 @@
+"""Run the whole baseline validation (R1, R1b) in order; runtimes go to outputs/tables/validation_runtimes.csv.
+
+python -m research.baseline.validation.run_all          (sample from research/config.yaml, normally FULL)
+BV_SAMPLE=DEV python -m research.baseline.validation.run_all   (quick run on the 24 DEV sub-links -> .cache/dev/)
+"""
+from research.baseline.validation import (c1_fake_events, c2_after_window, c3_daily_cycle, c4_jumps, c5_flagged,
+                                          c6_sensitivity, r1b_event_level)
+from research.baseline.validation.common import Timer
+
+if __name__ == "__main__":
+    with Timer("total"):
+        for m in (c1_fake_events, c2_after_window, c3_daily_cycle, c4_jumps, c5_flagged, c6_sensitivity,
+                  r1b_event_level):
+            m.main()
