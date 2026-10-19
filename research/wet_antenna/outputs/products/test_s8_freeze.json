@@ -1,0 +1,30 @@
+{
+ "step": "S8",
+ "written": "2026-10-19 18:14",
+ "candidate": {
+  "file": "research/wet_antenna/outputs/products/tighten_s6_candidate.json",
+  "sha256": "36135658c4362397754247faf4a744dc2e6e61b6737e9bcc112c83937519d82b"
+ },
+ "comparison_fits": {
+  "B0": {
+   "file": "research/.cache/wet_antenna/test_s8/fit_B0.pkl",
+   "sha256": "2676c6d3e0ecc13b1b076baedd671d5ee11efd3698584c2f8a928f0aca1edddf"
+  },
+  "B1": {
+   "file": "research/.cache/wet_antenna/test_s8/fit_B1.pkl",
+   "sha256": "64fc7f096c649ae55c27597394c04cca8a19373f4bc7c569d2c6582830f2c904"
+  },
+  "B2": {
+   "file": "research/.cache/wet_antenna/test_s8/fit_B2.pkl",
+   "sha256": "508f1e7a7acc5ca95f6f720304937a204ab816d560e6f78007a6bbbe27b37f9e"
+  }
+ },
+ "m1_box_b_fit": {
+  "file": "research/.cache/wet_antenna/return_s6b/fit_M1.pkl",
+  "sha256": "97c1401ec3283c34cadf242f9b65f1b03596fe500bdaa06e25327be109ca45bf"
+ },
+ "config_block_test_s8": "2ac54ac50ee0e697c8ddd6a0f51ac068c8b10ce7f57af46421ea75e8e6ce6a83",
+ "code_commit": "761c6f18ade6440eb329300b51871072f7db22cf",
+ "code_dirty_files_at_freeze": [],
+ "rule": "TEST is read only after this file is committed and every hash still matches"
+}
