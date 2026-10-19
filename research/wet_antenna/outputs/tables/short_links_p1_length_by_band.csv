@@ -1,0 +1,21 @@
+tail_set,length,<25 GHz,28 GHz,32 GHz,38 GHz
+v1 main set (1 dB),< 0.6 km,0,16,0,14
+v1 main set (1 dB),0.6-1 km,0,27,0,8
+v1 main set (1 dB),1-2 km,0,59,8,47
+v1 main set (1 dB),2-4 km,0,81,12,47
+v1 main set (1 dB),>= 4 km,33,67,9,1
+0.6 dB set (S0),< 0.6 km,0,24,0,42
+0.6 dB set (S0),0.6-1 km,0,64,0,34
+0.6 dB set (S0),1-2 km,0,132,25,126
+0.6 dB set (S0),2-4 km,0,256,23,127
+0.6 dB set (S0),>= 4 km,109,158,28,7
+"0.4 dB, >= 60 min (part 2)",< 0.6 km,0,39,0,74
+"0.4 dB, >= 60 min (part 2)",0.6-1 km,0,107,0,56
+"0.4 dB, >= 60 min (part 2)",1-2 km,0,215,43,193
+"0.4 dB, >= 60 min (part 2)",2-4 km,0,430,51,208
+"0.4 dB, >= 60 min (part 2)",>= 4 km,189,237,49,8
+all pairs that pass the v1 exclusions,< 0.6 km,0,256,0,429
+all pairs that pass the v1 exclusions,0.6-1 km,0,521,0,457
+all pairs that pass the v1 exclusions,1-2 km,0,1203,357,993
+all pairs that pass the v1 exclusions,2-4 km,0,2429,354,1146
+all pairs that pass the v1 exclusions,>= 4 km,829,1057,211,28

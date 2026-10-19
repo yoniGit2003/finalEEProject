@@ -68,6 +68,8 @@ REFINE_FIG_GALLERY = FIGURES / "refine_selection_gallery.png"
 REFINE_REPORT = REPORTS / "refine_selection.md"
 BASELINE_UNCERTAINTY = BASELINE_MODULE / "outputs" / "products" / "baseline_uncertainty.csv"
 DEW_RISK_HOURLY = BASELINE_MODULE / "outputs" / "products" / "dew_risk_hourly.csv"
+DRY_JUMPS = BASELINE_MODULE / "outputs" / "products" / "dry_jumps.csv"                     # dry-weather jumps (R1 C4)
+DAILY_CYCLE = BASELINE_MODULE / "outputs" / "tables" / "c3_daily_cycle_per_sublink.csv"    # daily-cycle amplitude (R1 C3)
 
 # ---- step 2c: last fixes and the frozen tail set (freeze_tail_set.py); the set id (v1) is in config wet_antenna.freeze -------
 TAILS_MODEL = PRODUCTS / "tails_model.parquet"             # frozen main set, 1 min rows from t0_trace (train + val)
@@ -189,3 +191,311 @@ REAL_FIG_K = FIGURES / "fit_real_drying_k_real.png"                 # real k(W) 
 REAL_FIG_SETS = FIGURES / "fit_real_drying_k_sets.png"              # k(W) of the sensitivity and leave-one-event-out sets
 REAL_FIG_GALLERY = FIGURES / "fit_real_drying_gallery.png"          # 12 real tails with the fitted winner and the fitted F1
 REAL_REPORT = REPORTS / "fit_real_drying.md"
+
+# ---- step 4b: why do some real tails stall or rise? (diagnose_stalled_tails.py; TRAIN tails of the frozen set v1 only) ----
+TAIL_CLASSES = PRODUCTS / "tails_model_classes.csv"                  # one row per TRAIN tail: class of the first 60 min + the outside evidence (later steps read it)
+STALL_COUNTS = TABLES / "diagnose_stalled_tails_class_counts.csv"    # tails per class: overall, per event, per event flag
+STALL_PART_A = TABLES / "diagnose_stalled_tails_a_outside_evidence.csv"   # part A: each indicator, non-decaying vs decaying, odds ratio
+STALL_PART_B = TABLES / "diagnose_stalled_tails_b_antenna_tests.csv"      # part B: B1 to B5, value, rule, met or not
+STALL_MASTER = TABLES / "diagnose_stalled_tails_b4_master_curve.csv"      # B4: the master curve and how well each group follows it
+STALL_RATE = TABLES / "diagnose_stalled_tails_b5_rate_per_level.csv"      # B5: model-free k(A) per subset
+STALL_FAKE = TABLES / "diagnose_stalled_tails_c_fake_check.csv"           # part C: menu fits of 6 fake datasets before / after the two fixes
+STALL_MENU = TABLES / "diagnose_stalled_tails_c_menu_fits.csv"            # part C: menu fits of the real sets with the two fixes
+STALL_SUMMARY = TABLES / "diagnose_stalled_tails_c_summary.csv"           # part C: per set: winner, margins, slope, noise multiplier
+STALL_FIG_GALLERY = FIGURES / "diagnose_stalled_tails_gallery.png"        # 4 tails per class with radar and gauge under A
+STALL_FIG_MASTER = FIGURES / "diagnose_stalled_tails_b4_collapse.png"     # B4: the tails shifted onto one curve
+STALL_FIG_RATE = FIGURES / "diagnose_stalled_tails_b5_rate_per_level.png" # B5: k(A) per subset
+STALL_REPORT = REPORTS / "diagnose_stalled_tails.md"
+
+# ---- step 4c: what is in a drying tail? (characterise_tails.py; TRAIN tails of the frozen set v1 only, no law fit) ----
+TAIL_STARTS = PRODUCTS / "tails_starts.csv"                          # one row per TRAIN pair: the starts S0, S1, S2 with A_start, end and kept flag per rule (later steps read it)
+CHAR_A1_TAILS = TABLES / "characterise_tails_a1_per_tail.csv"        # A1: per tail its rise, its control days, the control percentile
+CHAR_A1 = TABLES / "characterise_tails_a1_summary.csv"               # A1: share of tails above their control, per class, night / day, dew risk
+CHAR_A2 = TABLES / "characterise_tails_a2_per_minute.csv"            # A2: beta, gamma, alpha per minute with intervals, expected path-rain beta
+CHAR_A3 = TABLES / "characterise_tails_a3_start_rules.csv"           # A3: one row per start rule: counts, classes, shape, t_half, k(A) slope, delay
+CHAR_A3_RATE = TABLES / "characterise_tails_a3_rate_per_level.csv"   # A3: the model-free k(A) per level and start rule
+CHAR_A3_CURVES = TABLES / "characterise_tails_a3_median_curves.csv"  # A3: median A / A_start per minute and start rule
+CHAR_FIG_A1 = FIGURES / "characterise_tails_a1_rise_vs_control.png"
+CHAR_FIG_A2 = FIGURES / "characterise_tails_a2_length_per_minute.png"
+CHAR_FIG_A3 = FIGURES / "characterise_tails_a3_median_curves.png"
+CHAR_FIG_GALLERY = FIGURES / "characterise_tails_a3_gallery.png"
+CHAR_REPORT = REPORTS / "characterise_tails.md"
+
+# ---- step 4c2: how fast does A fall once the rain nearby has ended? (check_drying_after_rain.py; TRAIN pairs, no law fit) ----
+AFTER_RAIN_SETS = TABLES / "check_drying_after_rain_a1_a2_sets.csv"        # A1 + A2: one row per threshold and start (S1, placebo, S0, the same pairs from S0)
+AFTER_RAIN_DIFF = TABLES / "check_drying_after_rain_a2_difference.csv"     # A2: S1 - placebo with the event-bootstrap interval, per threshold
+AFTER_RAIN_PLACEBO_SPLIT = TABLES / "check_drying_after_rain_a2_placebo_split.csv"   # A2, information: placebo tails by where their start falls (before / after the own S1)
+AFTER_RAIN_CURVES = TABLES / "check_drying_after_rain_median_curves.csv"   # median A / A_start per minute, threshold and start
+AFTER_RAIN_RATE = TABLES / "check_drying_after_rain_rate_per_level.csv"    # k(A) per level, threshold and start
+AFTER_RAIN_SPLIT = TABLES / "check_drying_after_rain_a3_before_after.csv"  # A3: k per level before and after S1, and for the placebo split
+AFTER_RAIN_PAIRS = TABLES / "check_drying_after_rain_pairs.csv"            # per pair: the three starts, ends, usable lengths, A_start, time to half
+AFTER_RAIN_FIG_CURVES = FIGURES / "check_drying_after_rain_median_curves.png"
+AFTER_RAIN_FIG_SPLIT = FIGURES / "check_drying_after_rain_a3_before_after.png"
+AFTER_RAIN_FIG_GALLERY = FIGURES / "check_drying_after_rain_gallery.png"
+AFTER_RAIN_REPORT = REPORTS / "check_drying_after_rain.md"
+
+# ---- step 7a: very short links: enough data, and the fast first phase? (short_links.py; TRAIN only, no law fit) ----
+SHORT_INVENTORY = TABLES / "short_links_p1_inventory.csv"              # part 1: one row per length class: links, rain, pairs, tails
+SHORT_BY_BAND = TABLES / "short_links_p1_length_by_band.csv"           # part 1: tails per length class x frequency band, per tail set
+SHORT_ENOUGH = TABLES / "short_links_p1_enough.csv"                    # part 1: the "enough for Step 7" rule per length cut
+SHORT_TAILS = TABLES / "short_links_p2_per_tail.csv"                   # part 2: per tail: drops, ratios, class, expected path rain
+SHORT_BY_LENGTH = TABLES / "short_links_p2_by_length.csv"              # part 2: one row per length class: shape, drops, ratios, classes
+SHORT_CURVES = TABLES / "short_links_p2_median_curves.csv"             # part 2: median A / A_start per minute and length class, to 3 h
+SHORT_MATCHED = TABLES / "short_links_p2_matched.csv"                  # part 2: SHORT against LONG, every matching, band and quantity
+SHORT_VERDICT = TABLES / "short_links_p2_verdict.csv"                  # part 2: the rule, its numbers and the verdict
+SHORT_EVENTS = TABLES / "short_links_p3_per_event.csv"                 # part 3: per (event, sub-link) pair of a short link: peaks, times
+SHORT_PEAKS = TABLES / "short_links_p3_peak_vs_rain.csv"               # part 3: peak A per bin of the peak radar rain
+SHORT_P3_BANDS = TABLES / "short_links_p3_by_band.csv"                 # part 3: timing and drying per frequency band
+SHORT_RISE = TABLES / "short_links_p3_rise_before_rain.csv"            # part 3: A rising before the radar shows rain, with its placebo
+SHORT_FIG_CURVES = FIGURES / "short_links_median_curves.png"
+SHORT_FIG_DROP = FIGURES / "short_links_fast_drop_by_length.png"
+SHORT_FIG_GALLERY = FIGURES / "short_links_gallery.png"
+SHORT_REPORT = REPORTS / "short_links.md"
+
+# ---- step S1: system identification on short links, the model ladder M0-M4 (system_id_ladder.py, library system_id.py) ----
+SID_LINK_EVENTS = PRODUCTS / "system_id_link_events.csv"               # one row per link-event: ids, L, band, window, offset, observed and held-out predicted summaries (S3 / S4 read it)
+SID_COUNTS = TABLES / "system_id_ladder_counts.csv"                    # the data: links, sub-links, link-events, events, points, per band
+SID_FAKE = TABLES / "system_id_ladder_fake_check.csv"                  # fake check: per truth and replicate the chosen rung and the recovered parameters
+SID_LADDER = TABLES / "system_id_ladder_ladder.csv"                    # the ladder: every metric per model with intervals, the paired difference to the best
+SID_PARAMS = TABLES / "system_id_ladder_parameters.csv"                # the chosen model and M1: every parameter with its event-bootstrap interval
+SID_SENS = TABLES / "system_id_ladder_sensitivity.csv"                 # the sensitivity runs (a)-(e)
+SID_CHECKS = TABLES / "system_id_ladder_checks.csv"                    # per-shower peaks and the fast drop by length, observed against predicted
+SID_AFTER = TABLES / "system_id_ladder_after_last_shower.csv"          # median (A - c) / peak after the last shower, observed against predicted
+SID_FIG_LADDER = FIGURES / "system_id_ladder_rmse.png"
+SID_FIG_GALLERY = FIGURES / "system_id_ladder_gallery.png"
+SID_FIG_CURVES = FIGURES / "system_id_ladder_F_and_P.png"
+SID_FIG_AFTER = FIGURES / "system_id_ladder_after_last_shower.png"
+SID_REPORT = REPORTS / "system_id_ladder.md"
+
+# ---- step S2: the WAA law on links up to 3 km, the slow part, the discovery rung M5 (system_id_s2.py, library system_id.py) ----
+SID2_LINK_EVENTS = PRODUCTS / "system_id_s2_link_events.csv"           # one row per link-event of S<3: ids, L, band, sets, gauge, held-out summaries of the chosen model and of M3 (S3 / S4 read it)
+SID2_COUNTS = TABLES / "system_id_s2_counts.csv"                       # links, link-events, events, points per length set, band and input
+SID2_FAKE = TABLES / "system_id_s2_fake_checks.csv"                    # the four fake checks: per truth and replicate what was recovered, and PASS / FAIL
+SID2_LADDER = TABLES / "system_id_s2_ladder.csv"                       # the ladder per set and input: every metric per model with intervals (judged from R alone)
+SID2_LADDER_DRIFT = TABLES / "system_id_s2_ladder_drift_allowed.csv"   # the same after one linear drift per held-out link-event is allowed (the slow part)
+SID2_SLOW = TABLES / "system_id_s2_slow_part.csv"                      # slow water or drift: the numbers of the rule, real data and fake data
+SID2_LENGTH = TABLES / "system_id_s2_length_rule.csv"                  # the key WAA numbers on S<1, S<2, S<3 with intervals, and whether S<3 lies inside S<1
+SID2_RESID = TABLES / "system_id_s2_residuals_by_length.csv"           # held-out residual of the chosen model during rain per length bin
+SID2_GAUGE = TABLES / "system_id_s2_gauge_rule.csv"                    # gauge input against radar input on the same link-events
+SID2_PARAMS = TABLES / "system_id_s2_parameters.csv"                   # M3 and the chosen model on every set and input: every parameter with its interval
+SID2_FITS = TABLES / "system_id_s2_fits.csv"                           # every fit: lag, loss, spread over the starts, s_b, seconds
+SID2_AFTER = TABLES / "system_id_s2_after_last_shower.csv"             # median (A - c) / peak after the last shower, observed against M3, M3D, M4, M5
+SID2_NAMING = TABLES / "system_id_s2_m5_naming.csv"                    # the M5 surfaces g and h on their grid, the visits per knot and (if M5 qualifies) M5n
+SID2_NAMING_TERMS = TABLES / "system_id_s2_m5_naming_terms.csv"        # E-SINDy: every term per lambda, its bag frequency and coefficient
+SID2_FIG_LADDER = FIGURES / "system_id_s2_ladder.png"
+SID2_FIG_LENGTH = FIGURES / "system_id_s2_length_rule.png"
+SID2_FIG_CURVES = FIGURES / "system_id_s2_F_and_P.png"
+SID2_FIG_GALLERY = FIGURES / "system_id_s2_gallery_gauge.png"
+SID2_FIG_AFTER = FIGURES / "system_id_s2_after_last_shower.png"
+SID2_FIG_M5 = FIGURES / "system_id_s2_m5_surfaces.png"
+SID2_REPORT = REPORTS / "system_id_s2.md"
+
+# step S2b (system_id_s2b.py): repair of the S2 model (P / F increments, bounded slow store M4b, longer fits)
+SID2B_LINK_EVENTS = PRODUCTS / "system_id_s2b_link_events.csv"         # one row per link-event of S<3: held-out predictions of the chosen model, M3 and M4b (for S3)
+SID2B_COUNTS = TABLES / "system_id_s2b_counts.csv"                      # link-events, links, events, points per set and band
+SID2B_FAKE = TABLES / "system_id_s2b_fake_checks.csv"                   # fake checks Tc (again) and Te (M4b), per replicate, PASS / FAIL
+SID2B_TC = TABLES / "system_id_s2b_fake_tc_knots.csv"                   # Tc: F and P at the knots against the truth (median over replicates)
+SID2B_LADDER = TABLES / "system_id_s2b_ladder.csv"                      # the ladder per set and input (held-out RMSE, differences, after-rain metrics, peaks)
+SID2B_LENGTH = TABLES / "system_id_s2b_length_rule.csv"                 # key numbers on S<1 / S<2 / S<3 with intervals
+SID2B_PARAMS = TABLES / "system_id_s2b_parameters.csv"                  # parameters with 90 % event-bootstrap intervals
+SID2B_CONVERGENCE = TABLES / "system_id_s2b_convergence.csv"            # every fit: converged or not, iterations, starts past the S2 caps, folds at the cap
+SID2B_COMPARE = TABLES / "system_id_s2b_compare_s2.csv"                 # S2 against S2b: chosen models and key numbers
+SID2B_AFTER = TABLES / "system_id_s2b_after_last_shower.csv"            # median (A - c) / peak after the last shower, observed and predicted
+SID2B_FIG_LADDER = FIGURES / "system_id_s2b_ladder.png"
+SID2B_FIG_CURVES = FIGURES / "system_id_s2b_F_and_P.png"
+SID2B_FIG_AFTER = FIGURES / "system_id_s2b_after_last_shower.png"
+SID2B_FIG_LENGTH = FIGURES / "system_id_s2b_length_rule.png"
+SID2B_REPORT = REPORTS / "system_id_s2b.md"
+
+# step S3 (system_id_s3.py): verification of WAA v2 (frozen S2b fits; VAL read for the first time)
+SID3_CACHE = CACHE / "system_id_s3"                                    # the S3 datasets and the S3.4 gauge refits
+SID2B_CACHE = CACHE / "system_id_s2b"                                  # the frozen S2b fits (read only)
+SID3_STEADY = PRODUCTS / "system_id_s3_steady_link_events.csv"          # S3.1: per link-event and rain class, median (A - c) and R (all variants)
+SID3_PAIRS = PRODUCTS / "system_id_s3_direction_pairs.csv"              # S3.3: one row per link-event pair (both sub-links of a link)
+SID3_COUNTS = TABLES / "system_id_s3_counts.csv"                       # link-events, links, events per dataset and band
+SID3_BIN_COUNTS = TABLES / "system_id_s3_bin_counts.csv"               # S3.1: bins, link-events, links per variant, band, rain class
+SID3_LENGTH = TABLES / "system_id_s3_length_fits.csv"                  # S3.1: I, s, q, L0 = I / s with 90 % intervals per variant, band, class
+SID3_LENGTH_CMP = TABLES / "system_id_s3_length_vs_models.csv"         # S3.1: a F and P of every frozen fit against I and s, per cell
+SID3_VERDICT = TABLES / "system_id_s3_length_verdict.csv"              # S3.1: the verdict per model and fit set (TRAIN, robustness, VAL)
+SID3_VAL = TABLES / "system_id_s3_val_errors.csv"                      # S3.2: errors of the frozen fits on VAL, with the TRAIN leave-one-event-out numbers
+SID3_VAL_AFTER = TABLES / "system_id_s3_val_after_last_shower.csv"     # S3.2: median (A - c) / peak after the last shower on VAL
+SID3_DIRECTIONS = TABLES / "system_id_s3_directions.csv"               # S3.3: Spearman and median ratio between the directions
+SID3_GAUGE = TABLES / "system_id_s3_gauge_val.csv"                     # S3.4: the VAL gauge refits next to the TRAIN gauge numbers
+SID3_FIG_LENGTH = {b: FIGURES / f"system_id_s3_length_{b.replace(' ', '')}.png" for b in ("28 GHz", "32 GHz", "38 GHz")}   # S3.1 per band
+SID3_FIG_SUMMARY = FIGURES / "system_id_s3_I_s_L0.png"                  # S3.1: I(R), s(R), L0(R) with the model curves
+SID3_FIG_VAL = FIGURES / "system_id_s3_val_errors.png"                  # S3.2: VAL against TRAIN leave-one-event-out
+SID3_FIG_AFTER = FIGURES / "system_id_s3_val_after_last_shower.png"     # S3.2
+SID3_FIG_DIRECTIONS = FIGURES / "system_id_s3_directions.png"           # S3.3
+SID3_REPORT = REPORTS / "system_id_s3.md"
+
+# step S3b (system_id_s3b.py): the S2 frame fitted on ALL link lengths (P pinned by L); judged on VAL
+SID3B_CACHE = CACHE / "system_id_s3b"                                  # the S3b fits (every start and bootstrap draw saved)
+SID3B_PARAMS = TABLES / "system_id_s3b_parameters.csv"                 # parameters of every fit with 90 % event-bootstrap intervals
+SID3B_CONVERGENCE = TABLES / "system_id_s3b_convergence.csv"           # every fit: converged, iterations, spread over the starts, lag profile
+SID3B_LENGTH = TABLES / "system_id_s3b_length_through.csv"             # check 1: I and s of every fit's prediction, per set (TRAIN / VAL), band, class
+SID3B_LENGTH_CMP = TABLES / "system_id_s3b_length_vs_observed.csv"     # check 1: model I, s against the observed intervals, and the equilibrium comparison
+SID3B_VERDICT = TABLES / "system_id_s3b_length_verdict.csv"            # check 1: the verdict per fit and set
+SID3B_VAL = TABLES / "system_id_s3b_val_by_length.csv"                 # check 2: VAL errors per length class, S3b and S2b fits
+SID3B_VAL_AFTER = TABLES / "system_id_s3b_val_after_last_shower.csv"   # check 2: median (A - c) / peak after the last shower on VAL
+SID3B_RESIDUAL = TABLES / "system_id_s3b_residual_vs_L.csv"            # check 3: median (A - A_pred) during rain per band and L bin on VAL
+SID3B_FIG_LENGTH = FIGURES / "system_id_s3b_I_s.png"                    # check 1: I(R), s(R) observed against the four fits, TRAIN and VAL
+SID3B_FIG_VAL = FIGURES / "system_id_s3b_val_by_length.png"             # check 2
+SID3B_FIG_RESIDUAL = FIGURES / "system_id_s3b_residual_vs_L.png"        # check 3
+SID3B_FIG_AFTER = FIGURES / "system_id_s3b_val_after_last_shower.png"   # check 2
+SID3B_REPORT = REPORTS / "system_id_s3b.md"
+
+# ---- step S4.1 + S4.2: why do events differ, and the conditions (conditions_s4.py) -------------------------
+COND4_CACHE = CACHE / "conditions_s4"                                   # the per-event results of a run (re-reading only)
+COND4_EVENTS = TABLES / "conditions_s4_events.csv"                     # S4.1 a: per event dates, split, rain facts, links; S4.2 conditions
+COND4_SPLIT_HALF = TABLES / "conditions_s4_split_half.csv"             # S4.1 b: the 200 random 18-event halves of TRAIN and VAL
+COND4_FAKE = TABLES / "conditions_s4_fake.csv"                         # S4.1 c: fake check, true and estimated k_e, alpha_e per event
+COND4_FACTORS = TABLES / "conditions_s4_factors.csv"                   # S4.1 c: per event and fit k_e, alpha_e with link-bootstrap intervals
+COND4_FACTOR_SUMMARY = TABLES / "conditions_s4_factor_summary.csv"     # S4.1 c: TRAIN vs VAL, separability
+COND4_CLOSE_GAP = TABLES / "conditions_s4_close_gap.csv"               # S4.1 d: the length test through the model with the event factors
+COND4_RADAR_GAUGE = TABLES / "conditions_s4_radar_gauge.csv"           # S4.1 e: radar / gauge per event and its Spearman with k_e
+COND4_CONDITIONS = TABLES / "conditions_s4_condition_tests.csv"        # S4.2: Spearman of k_e, alpha_e with each condition (BH)
+COND4_RESIDUAL = TABLES / "conditions_s4_residual_check.csv"           # S4.2: frozen M4b-B residual during rain per band, night / day, temperature
+COND4_FIG_TIMELINE = FIGURES / "conditions_s4_timeline.png"
+COND4_FIG_SPLIT_HALF = FIGURES / "conditions_s4_split_half.png"
+COND4_FIG_FAKE = FIGURES / "conditions_s4_fake.png"
+COND4_FIG_FACTORS = FIGURES / "conditions_s4_factors.png"
+COND4_FIG_CLOSE_GAP = FIGURES / "conditions_s4_close_gap.png"
+COND4_FIG_RADAR_GAUGE = FIGURES / "conditions_s4_radar_gauge.png"
+COND4_FIG_CONDITIONS = FIGURES / "conditions_s4_conditions.png"
+COND4_FIG_RESIDUAL = FIGURES / "conditions_s4_residual_check.png"
+COND4_REPORT = REPORTS / "conditions_s4.md"
+
+# ---- step S4.3: is the VAL gap the radar? gauge-rescaled length test, heavy-event factors (conditions_s4c.py) ----
+COND4C_CACHE = CACHE / "conditions_s4c"                                 # the results of a run (re-reading only)
+COND4C_G = TABLES / "conditions_s4c_g_e.csv"                           # g_e per event (both versions), which events got one
+COND4C_CELLS = TABLES / "conditions_s4c_length_cells.csv"              # per set, variant, fit and cell: observed and model I, s, inside
+COND4C_VERDICT = TABLES / "conditions_s4c_length_verdict.csv"          # per set, variant, fit: median ratios, both-inside share, rules
+COND4C_MODEL_FREE = TABLES / "conditions_s4c_model_free.csv"           # observed I, s of TRAIN and VAL per variant and cell, VAL / TRAIN
+COND4C_FAKE = TABLES / "conditions_s4c_heavy_fake.csv"                 # heavy-event fake check, per event and replicate
+COND4C_HEAVY = TABLES / "conditions_s4c_heavy_factors.csv"             # heavy events: k_e, alpha_e (S4.1 fits), conditions, g_e (if PASS)
+COND4C_HEAVY_TESTS = TABLES / "conditions_s4c_heavy_tests.csv"         # heavy events: Spearman tests (if PASS)
+COND4C_FIG_RATIOS = FIGURES / "conditions_s4c_ratios.png"
+COND4C_FIG_CURVES = FIGURES / "conditions_s4c_observed_curves.png"
+COND4C_FIG_FAKE = FIGURES / "conditions_s4c_heavy_fake.png"
+COND4C_FIG_HEAVY = FIGURES / "conditions_s4c_heavy_conditions.png"
+COND4C_REPORT = REPORTS / "conditions_s4c.md"
+
+# ---- step S5a: WAA v3 refitted on gauge-corrected rain, the slow leftover (M4c), closed forms of F and P (final_s5a.py) ----
+S5A_CACHE = CACHE / "final_s5a"                                         # the fits (every start and every bootstrap draw)
+S5A_PARAMS = TABLES / "final_s5a_parameters.csv"                        # per fit and parameter: value, cold-bootstrap interval, S3b value
+S5A_CONVERGENCE = TABLES / "final_s5a_convergence.csv"                  # per fit: loss, lag, starts, convergence, minutes
+S5A_VAL = TABLES / "final_s5a_val.csv"                                  # VAL errors per input (V0 / V1), fit and length class
+S5A_LENGTH = TABLES / "final_s5a_length_test.csv"                       # the length test through the model per input, set, fit and cell
+S5A_LENGTH_VERDICT = TABLES / "final_s5a_length_verdict.csv"            # per input, set and fit: cells, both inside, the S3b verdict
+S5A_FAKE = TABLES / "final_s5a_m4c_fake.csv"                            # the M4c fake check per replicate
+S5A_M4C_RULE = TABLES / "final_s5a_m4c_rule.csv"                        # the three M4c criteria on VAL V1
+S5A_KNOTS = TABLES / "final_s5a_knots.csv"                              # F and P of the kept model at the knots, with the bootstrap SE
+S5A_FORMS = TABLES / "final_s5a_closed_forms.csv"                       # every closed-form candidate per band and pooled: parameters, AICc
+S5A_PYSR = TABLES / "final_s5a_pysr.csv"                                # the PySR Pareto fronts (if PySR ran)
+S5A_PLUG = TABLES / "final_s5a_plug_back.csv"                           # the plug-back check on VAL V1
+S5A_FIG_CURVES = FIGURES / "final_s5a_F_and_P.png"                      # F and P: S3b, S5a refit (with intervals), closed forms
+S5A_FIG_VAL = FIGURES / "final_s5a_val.png"                             # VAL errors by length class, V0 and V1
+S5A_FIG_AFTER = FIGURES / "final_s5a_after_rain.png"                    # after the last shower on VAL V1: M4b-B against M4c
+S5A_FIG_FAKE = FIGURES / "final_s5a_m4c_fake.png"
+S5A_REPORT = REPORTS / "final_s5a.md"
+
+# step S6 (tighten_s6.py, library final_model.py): tighten the equation of M4b-B on gauge-corrected rain
+S6_CACHE = CACHE / "tighten_s6"                                         # every fit, bootstrap draw, fake replicate, profile, plug-back
+S6_CANDIDATE = PRODUCTS / "tighten_s6_candidate.json"                   # the WAA candidate (S6): form, every number, not identified, assumptions
+S6_FUNNEL = TABLES / "tighten_s6_funnel.csv"                            # Part 1: every stage of the data funnel with its count and share
+S6_BANDS = TABLES / "tighten_s6_bands.csv"                              # Part 1: sub-links per nominal frequency band, kept or not
+S6_LENGTHS = TABLES / "tighten_s6_lengths.csv"                          # Part 1: link-events (TRAIN, VAL) and TEST links per length class
+S6_MINUTES = TABLES / "tighten_s6_minutes.csv"                          # Part 1: minutes, V1 rain mm and minutes per rain class (TRAIN, VAL)
+S6_KNOTS = TABLES / "tighten_s6_knots.csv"                              # Part 2: F, P at the knots, both intervals, W_30, TRAIN minutes per knot
+S6_SHARED = TABLES / "tighten_s6_shared_shape.csv"                      # Part 2: the shared-shape tests (VAL rule, AICc / BIC)
+S6_VAL = TABLES / "tighten_s6_val.csv"                                  # Part 2: VAL V1 errors and length test of the fits (used, optimistic)
+S6_BOOT = TABLES / "tighten_s6_bootstrap.csv"                           # Part 3: estimate and cold-bootstrap interval of every quantity
+S6_BOOT_DRAWS = TABLES / "tighten_s6_bootstrap_draws.csv"               # Part 3: every draw
+S6_PROFILE = TABLES / "tighten_s6_profile.csv"                          # Part 3: profile against bootstrap intervals of the headline numbers
+S6_PROFILE_POINTS = TABLES / "tighten_s6_profile_points.csv"            # Part 3: every profile step
+S6_TIMING = TABLES / "tighten_s6_timing.csv"                            # Part 3: timing sensitivity
+S6_FAKE = TABLES / "tighten_s6_fake.csv"                                # Part 4: truth and estimate per quantity and replicate
+S6_IDENT = TABLES / "tighten_s6_identified.csv"                         # Part 4: identified or not, per quantity
+S6_FORMS = TABLES / "tighten_s6_closed_forms.csv"                       # Part 5: every candidate (physics and PySR), AICc, chosen
+S6_PYSR = TABLES / "tighten_s6_pysr.csv"                                # Part 5: the PySR Pareto fronts
+S6_PLUG = TABLES / "tighten_s6_plug_back.csv"                           # Part 5: the plug-back tries and the rule
+S6_FIG_FUNNEL = FIGURES / "tighten_s6_funnel.png"
+S6_FIG_F = FIGURES / "tighten_s6_F.png"                                 # F per band: knots, both intervals, closed form, W_30
+S6_FIG_P = FIGURES / "tighten_s6_P.png"                                 # P per band likewise
+S6_FIG_SHARED = FIGURES / "tighten_s6_shared_shape.png"                 # the band shapes against one shared shape
+S6_FIG_FAKE = FIGURES / "tighten_s6_fake.png"                           # fake recovery, truth against estimate
+S6_FIG_INTERVALS = FIGURES / "tighten_s6_intervals.png"                 # bootstrap against profile intervals
+S6_REPORT = REPORTS / "tighten_s6.md"
+
+# step S7 (validate_s7.py, library final_model.py): validate the frozen S6 candidate without TEST
+S7_CACHE = CACHE / "validate_s7"                                        # the PySR runs (real and shuffled) and the dry-path windows
+S7_SUMMARY = TABLES / "validate_s7_summary.csv"                         # every check: its rule and its result (pass / fail / not testable)
+S7_ALINK = TABLES / "validate_s7_alink_tests.csv"                       # 7.1: a_link against L and the metadata (Spearman, BH)
+S7_LINKS = TABLES / "validate_s7_links.csv"                             # 7.1 / 7.5: one row per link (a_link, metadata, W height)
+S7_WHEIGHT = TABLES / "validate_s7_w_height.csv"                        # 7.1: W height a_link F at 2 and 5 mm/h per length class (and band)
+S7_RMSE = TABLES / "validate_s7_rmse.csv"                               # 7.2: RMSE per length class, band and rain class, VAL and TRAIN
+S7_LENGTH = TABLES / "validate_s7_length_test.csv"                      # 7.2: the VAL length test through the model (cells)
+S7_SHAPE = TABLES / "validate_s7_shape_short.csv"                       # 7.2: shared against band shapes on short VAL links
+S7_AFTER = TABLES / "validate_s7_after_rain.csv"                        # 7.2: median residual against minutes after the rain
+S7_DRY_WINDOWS = TABLES / "validate_s7_dry_windows.csv"                 # 7.3a: every dry-path window (counts, W at 5 / 10 / 20 / 40 min)
+S7_DRY = TABLES / "validate_s7_dry_path.csv"                            # 7.3a: measured against model W per length class and band
+S7_DECAY = TABLES / "validate_s7_decay.csv"                             # 7.3a: decay time and share left at 40-60 min per length class
+S7_PAIRS = TABLES / "validate_s7_pairs.csv"                             # 7.3b: the link pairs and the estimator noise
+S7_INTERCEPT = TABLES / "validate_s7_intercept.csv"                     # 7.3c: I(R) from short-only and long-only links
+S7_PSIZE = TABLES / "validate_s7_p_size.csv"                            # 7.3e: c_band R against ITU-R P.838 (size reference only)
+S7_DEW = TABLES / "validate_s7_dew.csv"                                 # 7.4: the dew-suspect jumps used
+S7_DEW_EVENTS = TABLES / "validate_s7_dew_before_rain.csv"              # 7.4: link-events with and without dew before the rain
+S7_LEFTOVER = TABLES / "validate_s7_leftovers.csv"                      # 7.5: screening, PySR candidates, leave-one-out skill, null
+S7_DRYING = TABLES / "validate_s7_event_drying.csv"                     # 7.5: per-event decay time and weather
+S7_RAIN_REF = TABLES / "validate_s7_rain_reference.csv"                 # 7.6: radar / gauge per rate class, two binnings
+S7_FIG_ALINK = FIGURES / "validate_s7_alink_vs_L.png"
+S7_FIG_WHEIGHT = FIGURES / "validate_s7_w_height.png"
+S7_FIG_RMSE = FIGURES / "validate_s7_val_rmse.png"
+S7_FIG_DRY = FIGURES / "validate_s7_dry_path.png"
+S7_FIG_DECAY = FIGURES / "validate_s7_decay.png"
+S7_FIG_PAIRS = FIGURES / "validate_s7_pairs.png"
+S7_FIG_INTERCEPT = FIGURES / "validate_s7_intercept.png"
+S7_FIG_DEW = FIGURES / "validate_s7_dew.png"
+S7_FIG_RAIN_REF = FIGURES / "validate_s7_rain_reference.png"
+S7_REPORT = REPORTS / "validate_s7.md"
+
+# step S6b (return_s6b.py, libraries wind_drying.py, validation.py): the one return to S6 (drying and wind; the after-rain misfit)
+S6B_CACHE = CACHE / "return_s6b"                                        # every fit, fake replicate, fold and bootstrap draw
+S6B_CANDIDATE = PRODUCTS / "return_s6b_candidate.json"                  # the candidate for S8 (with the three boxes)
+S6B_DIAG = TABLES / "return_s6b_diagnosis.csv"                          # Part 1: every cause with its numbers and verdict
+S6B_DIAG_WINDOWS = TABLES / "return_s6b_windows.csv"                    # Part 1: per dry-path window (errors, lag, weather, preceding peak rain)
+S6B_FITS = TABLES / "return_s6b_fits.csv"                               # Part 2: M0r, M1, M2 (, M3): loss, extra numbers, VAL numbers
+S6B_FAKE = TABLES / "return_s6b_fake.csv"                               # Part 2: fake recovery of the extra numbers
+S6B_RULE = TABLES / "return_s6b_box_a_rule.csv"                         # Part 3: every rule per refinement
+S6B_FOLDS = TABLES / "return_s6b_folds.csv"                             # Part 3: leave-one-event-out and the 3 windiest dropped
+S6B_BOOT = TABLES / "return_s6b_bootstrap.csv"                          # Part 3: the new candidate's cold bootstrap (if one passes)
+S6B_BOXES = TABLES / "return_s6b_boxes.csv"                             # Part 4: every effect seen in S2-S7 with its box
+S6B_BUDGET = TABLES / "return_s6b_error_budget.csv"                     # Part 4: the VAL error budget
+S6B_FIG_DIAG = FIGURES / "return_s6b_after_rain_causes.png"
+S6B_FIG_FAKE = FIGURES / "return_s6b_fake.png"
+S6B_FIG_DRY = FIGURES / "return_s6b_dry_path.png"
+S6B_FIG_BOXES = FIGURES / "return_s6b_boxes.png"
+S6B_FIG_BUDGET = FIGURES / "return_s6b_error_budget.png"
+S6B_REPORT = REPORTS / "return_s6b.md"
+
+# step S8 (test_s8.py): freeze, then read TEST once
+S8_CACHE = CACHE / "test_s8"                                            # the comparison fits (TRAIN) and the TEST datasets (built once)
+S8_FREEZE = PRODUCTS / "test_s8_freeze.json"                            # the hashes, committed before TEST is read
+S8_BASELINES = PRODUCTS / "test_s8_baselines.csv"                       # the baseline v2 of every (TEST event, sub-link), TRAIN and TEST links
+S8_COMPARE = TABLES / "test_s8_comparison_train_val.csv"                # Part 1: the candidate and B0-B2 on TRAIN and VAL
+S8_FUNNEL = TABLES / "test_s8_funnel.csv"                               # Part 3: the TEST funnel (S6 format)
+S8_LENGTHS = TABLES / "test_s8_lengths.csv"                             # Part 3: TEST link-events per length class (TRAIN and TEST links)
+S8_G_E = TABLES / "test_s8_g_e.csv"                                     # Part 3: g_e of the TEST events
+S8_RULES = TABLES / "test_s8_rules.csv"                                 # P1-P5: rule, numbers, verdict
+S8_RMSE = TABLES / "test_s8_rmse.csv"                                   # P2 / P4 / P5: RMSE of every model and set with intervals
+S8_CELLS = TABLES / "test_s8_length_cells.csv"                          # P1: the TEST length test cells
+S8_DRY = TABLES / "test_s8_dry_path.csv"                                # P3: the TEST dry-path windows and errors
+S8_INFO = TABLES / "test_s8_information.csv"                            # the information items
+S8_BUDGET = TABLES / "test_s8_error_budget.csv"                         # the TEST error budget
+S8_FIG_RMSE = FIGURES / "test_s8_rmse.png"
+S8_FIG_CELLS = FIGURES / "test_s8_length_cells.png"
+S8_FIG_DRY = FIGURES / "test_s8_dry_path.png"
+S8_FIG_RATIO = FIGURES / "test_s8_test_over_val.png"
+S8_FIG_NEW = FIGURES / "test_s8_new_links.png"
+S8_FIG_BUDGET = FIGURES / "test_s8_error_budget.png"
+S8_REPORT = REPORTS / "test_s8.md"

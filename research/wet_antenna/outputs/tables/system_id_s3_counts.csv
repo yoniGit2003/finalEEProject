@@ -1,0 +1,7 @@
+dataset,link_events,links,sublinks,events,points_5min,L_max_km,links_28 GHz,links_32 GHz,links_38 GHz
+"TRAIN events, all lengths (S3.1)",9780,206,371,51,1892910,8.67,113,19,74
+"VAL events, all lengths (S3.2 repeat of S3.1)",3250,206,371,18,430487,8.67,113,19,74
+"VAL, L < 3 km",2185,144,257,18,302337,3.0,62,12,70
+"VAL, L < 1 km",531,41,67,14,78881,0.97,17,0,24
+"VAL, L < 3 km, no 32 GHz",1994,132,234,18,274788,3.0,62,0,70
+"VAL gauge links, GAUGE input (S3.4)",625,42,72,14,88866,2.93,14,5,23

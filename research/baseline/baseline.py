@@ -254,3 +254,61 @@ def a_of_t(cml_id, event_id, res="5min", pad="0h", d=None):
     out.attrs.update({"cml_id": int(cml_id), "event_id": event_id, "res": res, "unit": "dB",
                       "definition": "A(t) = tl_mean(t) - baseline v2 (outputs/products/baselines.csv)"})
     return out
+
+
+# =================================================================================================== the baseline table (moved from make_baseline_table.py)
+def table_inputs(d, link_splits=("train",)):
+    """Sub-links of the link splits (good or degraded), their 5 min tl_mean, the per-link state, dew-risk mask, daily-cycle amp.
+    (Moved from make_baseline_table.load; step S8 also asks for the TEST links.)"""
+    s = d.sublinks()
+    s = s[s.split_link.isin(list(link_splits))].copy()
+    s["status"] = s.sublink_id.map(d.status().set_index("sublink_id").status)
+    s = s[s.status.isin(["good", "degraded"])].reset_index(drop=True)
+    p = d.catalog["period"]
+    tl = d.cml(s.sublink_id.tolist(), p["start"], p["end_exclusive"], res="5min",
+               variables=["tl_mean"]).tl_mean.to_pandas()
+    state = d.store("link_reference_state_5min").state.load().to_pandas().reindex(tl.index)
+    dew = dew_mask_5min(tl.index)
+    amp = pd.read_csv(P.C3_DAILY_CYCLE).set_index("sublink_id").amplitude_db
+    return s, tl, state, dew, amp
+
+
+def table_masks(state_col, dew, B):
+    ok_plain = usable_mask(state_col.to_numpy(), B["skip_h"])
+    ok = usable_mask(state_col.to_numpy(), B["skip_h"], dew) if B["v2"]["humidity_exclusion"] else ok_plain
+    return ok_plain, ok
+
+
+def event_table(d, s, tl, state, dew, amp, unc, B, splits=("train", "val")):
+    """One row per (event, sub-link) of the event splits: the v2 baseline and its flags (moved from make_baseline_table.table;
+    step S8 also asks for the TEST events)."""
+    ev = d.events()
+    ev = ev[ev.split_event.isin(list(splits))]
+    T = tl.index
+    u = unc.set_index("sublink_id")
+    rows = []
+    for r in s.itertuples():
+        c = r.cml_id
+        x, st = tl[r.sublink_id].to_numpy(), state[c].to_numpy()
+        ok_plain, ok = table_masks(state[c], dew, B)
+        summer = float(np.median(x[ok_plain & ~np.isnan(x)]))
+        wet = st == 1
+        for e in ev.itertuples():
+            i0, i1 = T.searchsorted(pd.Timestamp(e.start)), T.searchsorted(pd.Timestamp(e.end))
+            value, w, a = baseline_v2(x, ok, i0, B)
+            n_use = int((ok[a:i0] & ~np.isnan(x[a:i0])).sum())
+            wp = np.nonzero(wet[i0:i1])[0]
+            end_pos = i0 + wp[-1] + 1 if len(wp) else i1          # no wet slot of the link: the event end
+            fl = flags_v2(value, a, i0, st, ok_plain, dew, summer, amp.get(r.sublink_id, np.nan),
+                             r.status == "degraded", r.tsl_behaviour == "toggling", B, event_end_pos=end_pos)
+            rows.append({"event_id": e.event_id, "split_event": e.split_event, "significant": e.significant,
+                         "run_count": e.n_runs, "event_start": e.start, "event_end": e.end,
+                         "link_has_wet_slot": bool(len(wp)), "last_wet_end": T[min(end_pos, len(T) - 1)],
+                         "sublink_id": r.sublink_id, "cml_id": c, "status": r.status,
+                         "baseline_db": value, "window_h": w, "n_usable_slots": n_use,
+                         "missing": bool(np.isnan(value)), "summer_dry_median_db": summer, **fl,
+                         "offset_std": u.offset_std.get(r.sublink_id, np.nan),
+                         "offset_p90_abs": u.offset_p90_abs.get(r.sublink_id, np.nan)})
+    t = pd.DataFrame(rows)
+    t["use_in_waa_main"] = ~(t.missing | t.excursion | t.daily_cycle_large | t.degraded | t.toggling)
+    return t

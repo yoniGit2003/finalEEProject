@@ -1,0 +1,5 @@
+test,what,value,rule,met
+B1,IQR of the transition level of the plateau-then-decays tails (dB),0.35,< 0.3,False
+B2,the same link in different events: permutation p,0.35,< 0.05,False
+B3,Spearman of the plateau duration with A_start / with the rain amount,0.162,"> 0.3, interval excluding 0",False
+B5,"slope of log k vs log A, decaying tails of the events not rise-heavy",0.284,< -0.3,False

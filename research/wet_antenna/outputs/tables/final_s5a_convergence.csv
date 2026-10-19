@@ -1,0 +1,4 @@
+fit,model,loss,d,converged_on_all_events,starts,starts_converged,best_start,spread_over_starts,boot_draws,boot_converged,fit_minutes,boot_minutes
+M4b-B,M4b,158513.06,1,True,8,2,g4+Phalf,0.187,30,30,81.9,156.8
+M3-B,M3,163310.092,2,True,8,6,g4+Phalf,0.153,0,0,74.0,0.0
+M4c,M4c,157789.923,1,True,4,0,nested,0.235,20,16,47.5,149.1

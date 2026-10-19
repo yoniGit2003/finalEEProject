@@ -1,4 +1,4 @@
-% last updated: 2026-10-12 commit=128cde6
+% last updated: 2026-10-19 commit=872716c
 % (the line above is read and rewritten by /updatedocs: the date and the git commit the content of this report describes)
 % Research log: what has been implemented in research/, at the level of ideas (no code).
 % Build:  python docs/build_research_log.py   (pdflatex three times; writes docs/research_log.pdf only)
@@ -76,31 +76,35 @@
 CellEnMon lab, final-year electrical engineering project\par
 Data-driven discovery of rain-induced and wet-antenna attenuation laws in commercial microwave links\par
 \vspace{0.6em}
-12 October 2026
+19 October 2026
 \end{center}
 
 \vspace{1em}
 \begin{center}{\sffamily\bfseries Abstract}\end{center}
 
 This report describes the research part of the project at the level of ideas: what each step does, why it is done
-that way, and what it found. It contains no code. Two things are finished and frozen. First, a \emph{baseline} for
-every link and rain event, which turns the raw signal levels into the attenuation $A(t)$; it is unbiased, accurate to
-about $\pm 0.2\dB$ per event, and it does not absorb the drying of the antenna after rain. Second, a fixed set of
-\emph{drying tails}: 429 stretches of $A(t)$ after the rain has stopped on a link, in which the remaining attenuation
-is mostly wet-antenna attenuation (WAA). A third piece is finished for the drying law: the
-tools were tested on simulated tails whose true law is known. A fit of one tail at a time cannot tell the candidate
-laws apart; a fit of all tails together can. SINDy applied directly to the tails failed: it returned a linear law for
-almost every truth. It was replaced by two jumps. The pooled fit first draws a free drying curve from all tails, and
-sparse regression then names the equation of that clean curve. On simulated data this recovers an exponential and a
-quadratic law for $W$ above $0.35\dB$ in the first hour, and the result was confirmed on fresh data with the rule fixed
-in advance. Three additions failed their tests and will not be used: a curve that may contain a step, a choice between
-laws by held-out likelihood, and an uncertainty band from resampling one data set. The tools that passed were then
-applied to the real tails for the first time. They did \emph{not} identify a drying law: the drying rate per dB of
-water falls as $W$ grows, a shape that none of the candidate laws has, because about one tail in five stays flat or
-rises after the rain has stopped. Without the events in which this is common, the tails are close to an exponential
-with a time constant of about 15 minutes. Which tails count as drying has to be decided before the next step. Still
-to come are the drying law itself, the wetting law from very short links, the verification on unseen events, and then
-the two later stages of the project: the path law $f(L,\Rbar,Z)$ and the rain estimate.
+that way, and what it found. It contains no code. The \emph{baseline}, which turns the raw signal levels into the
+attenuation $A(t)$, is finished and frozen: it is unbiased, accurate to about $\pm 0.2\dB$ per event, and it does not
+absorb the drying of the antenna after rain. Stage~1, the wet-antenna attenuation (WAA), went through two phases. The
+first studied \emph{drying tails}, the stretches of $A(t)$ after the rain has stopped. The tools were tested on
+simulated tails first, but on the real tails no drying law could be identified: many tails wait or rise before they
+dry, most of a tail passes while it still rains nearby, and the fast first drop does not grow with the path length.
+That phase was closed on 13 October 2026. The second phase treats each whole event as a system with the radar rain as
+input and $A(t)$ as output, $A = W + L\,P(R) + c$, where the antenna part $W$ and the path part $L\,P$ are told apart
+only by the path length $L$, never by subtracting a power law. A ladder of models, each checked first on fake data,
+shows that WAA has memory: with a gauge as input it builds up in 2 to 3 minutes and dries in 9 to 13 minutes, on
+training and on validation events. A model-free test across all link lengths finds an antenna part that saturates at
+2 to 3$\dB$ and a path part that grows with the rain, so a constant WAA, the $f = L + L_{0}$ trap of the proposal, does
+not describe the data. The models fitted on all lengths pass this test on the training events but failed it on the
+validation events; dividing the radar rain by the event's radar-to-gauge ratio explains that gap. With that corrected
+rain the model was refitted and then tightened. The final model is a fast and a slow store with gauge timing; a more
+flexible slow store was dropped because its time constants could not be identified. The equation now has honest
+intervals from resampling whole events, and every number was checked on fake data. The path part is a straight line
+in the rain, $P = c\,R$, chosen from the data among physics forms and forms proposed by symbolic regression. The
+antenna level rises with the rain about like $\sqrt{R}$, but that closed form failed its check by a hair and the
+free curve is kept. The data fix the product of the antenna level and the link amplitude, not the level alone. Still
+to come are the validation of this WAA candidate without the test set, one reading of the test set, and then the path
+law $f(L,\Rbar,Z)$ and the rain estimate.
 
 \enlargethispage{2\baselineskip}
 \tableofcontents
@@ -111,13 +115,20 @@ the two later stages of the project: the path law $f(L,\Rbar,Z)$ and the rain es
 
 \subsection{What this report covers}
 
-The report covers the research folder of the repository as it stood on 12 October 2026: the baseline module and the
+The report covers the research folder of the repository as it stood on 19 October 2026: the baseline module and the
 WAA module. The data layer below it (the pipeline that turns the raw OpenMRG files into a verified data set) has its
 own technical report and is summarised here in one page (Section~\ref{sec:data}). Every number in this report is
 taken from the documents the two modules keep: their method descriptions, their decision logs and their step reports
 (Appendix~\ref{app:where}). Unless stated otherwise, the numbers are for the \emph{training} events and
-\emph{training} links only; the validation set is built by the same rules but has not been looked at, and the test set
-has not been touched.
+\emph{training} links only. The validation events were first read in the verification step of
+Section~\ref{sec:sysid}, with models that had been frozen before; the test events and test links have not been
+touched.
+
+The WAA steps carry two series of numbers. T0 to T18 are the drying-tail exploration (Sections~\ref{sec:tails} to
+\ref{sec:tailend}; they were renamed on 13 October, and the old numbers such as 3b-1 or 4c are given in
+Table~\ref{tab:status}). S1 to S9 are the system identification that replaced it (Sections~\ref{sec:sysid}
+and~\ref{sec:final}). Since the validation events have been used to make decisions, their numbers from S6 on are
+optimistic and are labelled so.
 
 References in square brackets are those of the project proposal and are listed at the end.
 
@@ -143,13 +154,13 @@ Figure~\ref{fig:roadmap} shows the whole project and Table~\ref{tab:status} the 
 \node[lab, above=1mm of path] {PLANNED};
 \node[lab, above=1mm of eval] {PLANNED};
 % inside stage 1
-\node[doing, text width=23mm, below=17mm of waa] (s3) {Drying law\\{\scriptsize $h(W)$, real tails}};
-\node[done, text width=23mm, left=of s3] (s2) {Test the tools\\{\scriptsize on simulated tails}};
-\node[done, text width=23mm, left=of s2] (s1) {Drying tails\\{\scriptsize frozen set of 429}};
-\node[todo, text width=23mm, right=of s3] (s4) {Wetting law\\{\scriptsize $g(R,W)$, short links}};
-\node[todo, text width=23mm, right=of s4] (s5) {Verification\\{\scriptsize unseen events}};
+\node[done, text width=23mm, below=17mm of waa] (s3) {Why events differ\\{\scriptsize S4.1--S4.3: radar vs gauges}};
+\node[done, text width=23mm, left=of s3] (s2) {Model ladder\\{\scriptsize S1--S3b: ladder, length test}};
+\node[done, text width=23mm, left=of s2] (s1) {Drying tails\\{\scriptsize T0--T18: closed, no law}};
+\node[done, text width=23mm, right=of s3] (s4) {Final model\\{\scriptsize S5a, S6: refit, tightened}};
+\node[todo, text width=23mm, right=of s4] (s5) {Validate, test\\{\scriptsize S7--S9: no TEST, TEST once}};
 \draw[arr] (s1) -- (s2); \draw[arr] (s2) -- (s3); \draw[arr] (s3) -- (s4); \draw[arr] (s4) -- (s5);
-\node[draw, densely dashed, rounded corners=3pt, inner sep=4pt, fit=(s1)(s5)] (grp) {};
+\node[draw, densely dashed, rounded corners=3pt, inner sep=4pt, fit=(s1)(s2)(s3)(s4)(s5)] (grp) {};
 \node[lab, anchor=south west] at ($(grp.north west)+(0,0.5mm)$) {Inside Stage 1:};
 \draw[densely dashed] (waa.south) -- (waa.south |- grp.north);
 \end{tikzpicture}
@@ -160,7 +171,8 @@ progress. Dotted border: planned.}
 
 \begin{table}[H]
 \centering
-\caption{Steps of the research part and their state on 12 October 2026.}
+\caption{Steps of the research part and their state on 19 October 2026. The old step numbers of the drying-tail
+exploration are given in brackets.}
 \label{tab:status}
 \small
 \begin{tabularx}{\linewidth}{@{}l Y l l@{}}
@@ -168,19 +180,27 @@ progress. Dotted border: planned.}
 \textbf{Step} & \textbf{What it is} & \textbf{State} & \textbf{Section} \\
 \midrule
 Baseline & Dry-weather level per (event, sub-link); $A(t)$ & done, frozen 7 Oct & \ref{sec:baseline} \\
-WAA 0--1 & Inventory; extract every drying tail (20\,355) & done & \ref{sec:tails} \\
-WAA 2, 2b, 2c & Selection by fixed rules; frozen tail set v1 (429 train, 123 validation) & done, frozen 8 Oct & \ref{sec:tails} \\
-WAA 3a & Simulator of tails, calibrated to the real set & done & \ref{sec:sim} \\
-WAA 3b-1 & Fit one tail at a time, on simulated tails & done: not enough & \ref{sec:pertail} \\
-WAA 3b-1b & Fit all tails together, on simulated tails & done: works & \ref{sec:pooled} \\
-WAA 3b-1c & Stress test of that fit & done: partly passed & \ref{sec:stress} \\
-WAA 3b-2 & SINDy directly on simulated tails & done: failed & \ref{sec:sindy} \\
-WAA 3b-3, 3b-3b & Two jumps: draw the drying curve, then name its equation & done: partly passed & \ref{sec:twojumps} \\
-WAA 3b-3c, 3b-4 & The rest of the discovery method; the cause of a false step & done: partly passed & \ref{sec:method} \\
-WAA 4 & Drying law $h(W)$ on the real tails, first fit & done: no law identified & \ref{sec:real} \\
-WAA 6 & What the drying depends on & not started & \ref{sec:next} \\
-WAA 3c, 7 & Simulator of whole events; wetting law $g(R,W)$ from very short links & not started & \ref{sec:next} \\
-WAA 8--9 & Verification; final WAA equation & not started & \ref{sec:next} \\
+T0--T1 (0--1) & Inventory; extract every drying tail (20\,355) & done & \ref{sec:tails} \\
+T2--T4 (2--2c) & Selection by fixed rules; frozen tail set v1 (429 train, 123 validation) & done, frozen 8 Oct & \ref{sec:tails} \\
+T5 (3a) & Simulator of tails, calibrated to the real set & done & \ref{sec:sim} \\
+T6 (3b-1) & Fit one tail at a time, on simulated tails & done: not enough & \ref{sec:pertail} \\
+T7 (3b-1b) & Fit all tails together, on simulated tails & done: works & \ref{sec:pooled} \\
+T8 (3b-1c) & Stress test of that fit & done: partly passed & \ref{sec:stress} \\
+T9 (3b-2) & SINDy directly on simulated tails & done: failed & \ref{sec:sindy} \\
+T10--T11 (3b-3) & Two jumps: draw the drying curve, then name it & done: partly passed & \ref{sec:twojumps} \\
+T12--T13 (3b-3c, 3b-4) & The rest of the discovery method; a false step & done: partly passed & \ref{sec:method} \\
+T14 (4) & Drying law $h(W)$ on the real tails, first fit & done: no law & \ref{sec:real} \\
+T15--T18 (4b--7a) & What is in a drying tail; very short links & done; tails closed & \ref{sec:tailend} \\
+S1 & Fake check, then the model ladder on links below 1 km & done & \ref{sec:s1} \\
+S2, S2b & Links up to 3 km, a free rung, repairs; WAA v2 & done & \ref{sec:s2} \\
+S3, S3b & Verification: model-free length test, validation events & done: VAL fails & \ref{sec:s3} \\
+S4.1--S4.3 & Why events differ: radar against gauges & done & \ref{sec:s4} \\
+S5a & Refit on corrected rain; a flexible slow store; closed forms & done & \ref{sec:s5a} \\
+S5b & Test set read once with the S5a model & not run (moved to S8) & \ref{sec:final} \\
+S6 & Tighten the equation: shared shapes, intervals, identifiability, closed forms & done & \ref{sec:s6} \\
+S7 & Validate the WAA candidate without the test set & not started & \ref{sec:next} \\
+S8, S9 & Hashed freeze, test set once; write-up & not started & \ref{sec:next} \\
+Old 5--9 & Planned tail steps (drying conditions, wetting law, verification) & cancelled 13 Oct & \ref{sec:reboot} \\
 Stage 2 & Path law $f(L,\Rbar,Z)$ with symbolic regression & not started & \ref{sec:next} \\
 Evaluation & Rain estimate, comparison with the literature & not started & \ref{sec:next} \\
 \bottomrule
@@ -249,7 +269,7 @@ return $f = L + L_{0}$ and report a length dependence that is not there. This fi
 \node[box, right=of ar] (f) {learn\\$f(L,\Rbar,Z)$};
 \draw[arr] (tl)--(b); \draw[arr] (b)--(a); \draw[arr] (a)--(w); \draw[arr] (w)--(ar); \draw[arr] (ar)--(f);
 \node[lab, below=2mm of b] {Section~\ref{sec:baseline}\\done};
-\node[lab, below=2mm of w] {Sections~\ref{sec:tails}--\ref{sec:tools}\\in progress};
+\node[lab, below=2mm of w] {Sections~\ref{sec:tails}--\ref{sec:sysid}\\in progress};
 \node[lab, below=2mm of f] {Stage 2\\planned};
 \end{tikzpicture}
 \caption{The order of the work. An error in an early block is passed on to every later block, which is why each block
@@ -1227,52 +1247,551 @@ comparison of the named laws is not decisive, and a fault in that comparison was
 $W$ is not supported.}
 
 % =====================================================================================================================
+\section{Stage 1, part 3: what is in a drying tail, and why the tails were left (done, closed)}
+\label{sec:tailend}
+
+The first fit of the real tails left three decisions open (which tails define drying, a repair of the tools, the
+noise level). Before taking them, four steps asked what a tail actually contains. None of them fits a drying law;
+each rule was written down before its run, on training events only.
+
+\subsection{Why some tails wait or rise (T15)}
+
+The 429 tails were sorted into four classes by their shape in the first hour: 240 decay at once, 64 stay on a
+plateau and then decay, 36 rise and 89 stay flat or fall slowly. The share that does not decay at once varies from
+0 to 100\,\% between events. Two explanations were tested against each other: something still wets the antenna after
+the last trace of rain, or a law of the antenna itself whose rate per dB falls as $W$ grows. Neither passed its rule.
+What the data do show: waiting is shared by the other links of the same event at the same time (1.85 times more than
+by chance), the two directions of a link agree in 81\,\% of the tails (64\,\% by chance), it does not depend on the
+path length, and half of the rising tails are at night (8\,\% of the decaying ones). After its plateau, a waiting
+tail follows the same curve as the decaying tails. So the falling drying curve of Section~\ref{sec:real} comes from
+mixing tails that wait with tails that dry; waiting is a property of the \emph{event} (the weather at that time), not
+of the level, the link or the length. What causes it stayed open.
+
+\subsection{What is in a tail (T16)}
+
+Three questions were asked without any law.
+\begin{itemize}
+\item \textbf{Is a rise water at all?} Each rising tail was compared with the same sub-link at the same clock time on
+certified dry days. 24 of the 36 rising tails rise more than 95\,\% of their own dry days: most rises are water, not a
+drift of the baseline with the daily cycle, so no new baseline was needed. Whether the water is dew or drizzle could
+not be decided, because the humidity record is missing for the two events with most rising tails.
+\item \textbf{When does drying start?} The rain references within 5 km of the link fall silent about 25 minutes after
+the tail starts (median), and by then 349 of the 429 tails are already below $1\dB$. Most of what was called a drying
+tail happens while it still rains nearby.
+\item \textbf{Antenna or path?} The attenuation per minute was regressed on the path length around the start of the
+tail. This test had no power: the rain at the end of an event is so light that the radar expects only 0.03 to
+$0.06\dB$ per km, inside the uncertainty.
+\end{itemize}
+
+\subsection{Does drying start when the nearby rain ends (T17)?}
+
+From the moment no reference within 5 km shows rain, the attenuation halves in about 40 minutes. A placebo start that
+is just as late but ignores the rain gives 37 minutes (difference $+3$ minutes, interval $-2$ to $+7$). By the rule
+this is the \emph{same} speed: the end of the nearby rain is not a visible event in the signal. A tail has two phases
+in time, a fast one in the first 15 to 20 minutes and a slower remainder that halves in about 40 minutes.
+
+\subsection{Very short links (T18)}
+
+Rain on the path grows with $L$; water on the antennas does not. The fast first drop of a tail was therefore compared
+between short links (below 1 km) and long ones (2 km and more), matched on event and starting level
+(Figure~\ref{fig:fastdrop}). The relative drop is 0.41 on short and 0.44 on long links, a ratio of 0.94 (interval 0.84
+to 1.15). Path rain alone would give a ratio of about 0.2. By its pre-set rule the result is \emph{undecided},
+because the radar expects almost no path rain before a tail, so the test cannot reach the precision the rule asked
+for. Read beyond the rule, the fast drop does not scale with the length over a factor of ten, which speaks for the
+antenna (or for anything else that does not scale with $L$). The step also showed that there are enough short links
+for the next phase: 41 training links below 1 km with 1663 (event, sub-link) pairs, all at 28 and 38 GHz, and that the
+peak attenuation on them follows the peak radar rain closely (rank correlation 0.85).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\linewidth]{../research/wet_antenna/outputs/figures/short_links_fast_drop_by_length.png}
+\caption{The fast first drop of a tail, relative to its starting level, by path length (circles, solid bars: measured,
+with 90\,\% intervals). Squares, dashed line: what rain on the path alone would give. The drop does not grow with $L$.}
+\label{fig:fastdrop}
+\end{figure}
+
+\subsection{The decision to stop studying tails}
+\label{sec:reboot}
+
+On 13 October 2026 the tail approach was closed, and the planned steps that built on it (what drying depends on, a
+wetting law, the verification of a drying law) were cancelled. The reasons, taken from the steps above:
+\begin{itemize}
+\item a tail starts after the \emph{last} shower of an event that lasts about 9 hours and has several showers; by
+then $A$ is already at about a fifth of its peak;
+\item there is only one tail per event, and its start is uncertain;
+\item wetting and drying were split artificially: most of the fall of $A$ happens while the rain fades;
+\item there was no criterion of success, so the checks did not converge.
+\end{itemize}
+What was kept: on short links $A$ is mostly WAA in light and moderate rain, WAA follows the rain within minutes, there
+are two phases after rain, rises are water, and there are enough short links to work on whole events.
+
+\inshort{Tails wait or rise because of the event, not the link; most of a tail passes while it still rains nearby;
+the fast first drop does not grow with the path length. The drying tail was the wrong object, and the tail approach
+was closed on 13 October 2026.}
+
+% =====================================================================================================================
+\section{Stage 1, part 4: system identification on whole events (S1--S4.3)}
+\label{sec:sysid}
+
+\subsection{The idea}
+
+Instead of cutting tails, each whole event on a link is treated as a system: the radar rain along the path, $R(t)$,
+is the input and the attenuation $A(t)$ is the output (Figure~\ref{fig:system}). The model is
+\begin{equation}
+A_{\mathrm{pred}}(t) \;=\; W(t) \;+\; L\,P_{\mathrm{band}}\bigl(R(t-d)\bigr) \;+\; c ,
+\label{eq:sysid}
+\end{equation}
+where $W(t)$ is the WAA, the state whose law is sought; $L\,P(R)$ is the path part, with $P$ a free curve per
+frequency band that starts at $P(0) = 0$ and never falls; $d$ is a small time lag of the radar; and $c$ is an offset
+per event and sub-link, taken from the dry minutes before the rain and never fitted. The antenna part is driven by
+$a_{\mathrm{link}}\,F_{\mathrm{band}}(R)$: a free level curve $F$ per band times one amplitude per link.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=8mm]
+\node[box] (r) {radar rain\\$R(t)$};
+\node[box, right=14mm of r, yshift=8mm] (w) {antenna store\\$W(t)$, with memory};
+\node[box, right=14mm of r, yshift=-8mm] (p) {path part\\$L\,P(R)$, no memory};
+\node[box, circle, inner sep=1pt, minimum height=7mm, right=14mm of w, yshift=-8mm] (sum) {$+$};
+\node[box, right=of sum] (a) {$A(t)$};
+\node[lab, anchor=north] at ($(sum.east)!0.5!(a.west)+(0,-1.5mm)$) {plus $c$};
+\draw[arr] (r.east) -- ++(4mm,0) |- (w.west);
+\draw[arr] (r.east) -- ++(4mm,0) |- (p.west);
+\draw[arr] (w.east) -| (sum.north);
+\draw[arr] (p.east) -| (sum.south);
+\draw[arr] (sum) -- (a);
+\node[lab, below=1mm of p] {grows with $L$};
+\node[lab, above=1mm of w] {does not grow with $L$};
+\end{tikzpicture}
+\caption{The system view. The two parts are told apart only by how they depend on the path length $L$.}
+\label{fig:system}
+\end{figure}
+
+\textbf{The standing rule.} WAA is never estimated by subtracting a power-law rain term. If it were, every error of
+the assumed power law would end up in the WAA. The path part is separated from the antenna part only through its
+dependence on $L$ at matched rain: the antenna part is the same on a 0.3 km and on a 5 km link, the path part is not.
+The standard power-law coefficients are used only to build fake data and as a size reference on figures.
+
+\textbf{The model ladder.} Each rung adds one thing to the one before:
+\begin{itemize}
+\item M0: no WAA, $W = 0$.
+\item M1: static, $W = a_{\mathrm{link}}F(R)$.
+\item M2: one memory, $\dfrac{dW}{dt} = \dfrac{a_{\mathrm{link}}F(R) - W}{\tau}$.
+\item M3: separate speeds, $\tau = \tau_{\mathrm{wet}}$ while $W$ rises and $\tau_{\mathrm{dry}}$ while it falls (a
+dynamic wetting and drying model in the spirit of Schleiss et al.\ [1]).
+\item M4: two stores, $W = W_f + W_s$. The fast store goes towards $\varphi\,a_{\mathrm{link}}F(R)$ with its own
+wetting and drying times; the slow store goes towards $(1-\varphi)\,a_{\mathrm{link}}F(R)$ with one time constant
+$\tau_s$. M4b is the same with $\tau_s$ bounded to 30--240 minutes.
+\item M5: a free law $dW/dt = g(R,W) - h(W)$, to be named afterwards by sparse regression (SINDy [6]) and symbolic
+regression (PySR [7]).
+\end{itemize}
+
+\textbf{The judge and the stop rule.} Each model is judged by its prediction error of $A$ on events it was not fitted
+to (leave one event out), with intervals from resampling whole events. The answer is the \emph{simplest} model whose
+difference to the best has an interval that contains zero. Before any rung is read on real data, a \emph{fake check}
+must pass: data made from a known truth, driven by the real rain, lengths and noise, must give that truth back.
+
+\subsection{S1: the ladder on links below 1 km}
+\label{sec:s1}
+
+On 41 links below 1 km (1718 events on a sub-link) the fake check passed: the true rung was chosen every time and the
+time constants came back within 10\,\%. On the real data every rung with memory beats the static one, and the two-store
+model M4 is the best, but the whole ladder removes only 6\,\% of the error of ``no WAA'' (prediction error 0.417$\dB$
+for M0, 0.390$\dB$ for M4). The stable number is the fast drying time, about 8 minutes in every run. The wetting time
+is \emph{not} determined: 17 minutes with the radar as input, 2.4 minutes with a gauge near the link. The slow store
+was not identified (its time constant ran to the bound), and the split between path and antenna was not firm from
+links this short.
+
+\subsection{S2 and S2b: links up to 3 km, the free rung, and two repairs; WAA v2}
+\label{sec:s2}
+
+S2 extended the data to links up to 3 km (6653 events on a sub-link) and added the free rung M5. Four fake checks
+came first, and two of them failed:
+\begin{itemize}
+\item \textbf{Input smoothing (passed).} With the exact 1-minute rain the fit recovers a wetting time of 3 minutes;
+with a 5-minute, noisy rain input like the radar it reports 6.3 minutes, 2.1 times slower. The slow wetting seen with
+the radar is the input, not the antenna.
+\item \textbf{Drift or slow store (passed).} A slow level drift and a slow water store can be told apart.
+\item \textbf{Path and antenna curves (failed).} The path curve came out near zero at light rain even with the true
+rain as input. The cause was found: an optimiser trap in the way the curves were parametrised.
+\item \textbf{The free rung (failed).} M5 predicted as well as M3 but returned levels about half the truth: its
+surfaces are not identified, and no formula could be named from the real data (the named law let $W$ run away).
+\end{itemize}
+S2b repaired the trap (the curve check then passed: all knots within 15\,\% of the truth), bounded the slow store
+(its check passed too) and gave the fits more iterations. On the real data the trap had hardly mattered. By the stop
+rule the one-store model M3 was chosen on the short links: \textbf{WAA v2}. With a gauge as input its wetting time is
+2.9 minutes (interval 2.5 to 3.6) and its drying time 12.8 minutes (11.3 to 15.5). A slow remainder after the rain,
+2 to 4\,\% of the peak over 1 to 2 hours, is described by no rung.
+
+\subsection{S3 and S3b: verification, and a model-free length test}
+\label{sec:s3}
+
+\textbf{The model-free length test.} In steady rain the WAA has reached its level, so for every frequency band and
+rain class the attenuation of all links can be fitted against their length,
+\begin{equation}
+A - c \;=\; I \;+\; s\,L ,
+\label{eq:Is}
+\end{equation}
+over links of every length (training events, 5-minute bins with steady rain, resampled by events). The intercept $I$
+is the part that does not grow with $L$, the antenna part; the slope $s$ is the path part per km. This needs no model
+at all. Table~\ref{tab:Is} and Figure~\ref{fig:Is} give the result.
+
+\begin{table}[H]
+\centering
+\caption{The model-free intercept $I$ and slope $s$ of Eq.~\eqref{eq:Is}, training events, with 90\,\% intervals, and
+$L_0 = I/s$, the extra length that a constant WAA would look like (Eq.~\eqref{eq:L0}).}
+\label{tab:Is}
+\small
+\begin{tabular}{@{}llccc@{}}
+\toprule
+Band & Rain (mm/h) & $I$ (dB) & $s$ (dB/km) & $L_0$ (km) \\
+\midrule
+28 GHz & 0.5--1 & 1.02 [0.84, 1.26] & 0.08 [0.05, 0.12] & 12.0 \\
+28 GHz & 1--2 & 1.33 [1.07, 1.58] & 0.18 [0.14, 0.22] & 7.5 \\
+28 GHz & 2--5 & 1.86 [1.52, 2.12] & 0.34 [0.28, 0.42] & 5.5 \\
+28 GHz & 5--10 & 2.45 [2.08, 2.78] & 0.82 [0.72, 0.93] & 3.0 \\
+28 GHz & 10--20 & 2.82 [1.64, 5.38] & 1.44 [0.68, 2.13] & 2.0 \\
+38 GHz & 0.5--1 & 1.10 [0.91, 1.36] & 0.16 [0.11, 0.20] & 7.0 \\
+38 GHz & 1--2 & 1.47 [1.13, 1.84] & 0.36 [0.29, 0.42] & 4.1 \\
+38 GHz & 2--5 & 2.08 [1.74, 2.39] & 0.64 [0.47, 0.78] & 3.3 \\
+38 GHz & 5--10 & 2.35 [2.00, 2.81] & 1.56 [1.20, 1.70] & 1.5 \\
+38 GHz & 10--20 & 2.44 [2.02, 3.99] & 2.66 [2.24, 3.09] & 0.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../research/wet_antenna/outputs/figures/system_id_s3_I_s_L0.png}
+\caption{The model-free intercept $I$ (top), slope $s$ (middle) and $L_0 = I/s$ (bottom) against the rain rate, per
+band. Filled circles: training events; hollow squares: validation events; bars: 90\,\% intervals. The lines are
+the models of S2b (dashed M3, dotted M4b, labelled at their ends) and the standard power law as a size reference only.}
+\label{fig:Is}
+\end{figure}
+
+What it says: the antenna part rises with the rain and then saturates at about 2 to 3$\dB$, while the path part keeps
+growing. $L_0$ therefore falls from about 12 km at light rain to about 1 to 2 km in heavy rain: the WAA is \emph{not} a
+constant extra length, and $f = L + L_0$ with one $L_0$ does not describe the data. This is the first direct test of
+the trap of Eq.~\eqref{eq:L0}. Neither WAA v2 (M3) nor M4b passed this test (in 0 and 2 of 10 cells): M3 hides
+antenna wetting in its path curve, and M4b's path curve is too small at light rain.
+
+\textbf{Unseen events.} On the 18 validation events, read here for the first time with frozen models, the overall
+prediction error is no worse than on training (M4b 0.360$\dB$ on links below 1 km). The two directions of a link agree
+on their peaks (rank correlation 0.96). With a gauge as input, refitted on the validation gauge links, the wetting
+time is 1.8 minutes and the drying time 10.8 minutes: the timing of WAA v2 is replicated.
+
+\textbf{Fitting on all lengths (S3b).} Because the path curve cannot be pinned by links below 1 km, the same models
+were fitted on the training events of \emph{all} link lengths (up to 8.7 km), once free and once with the wetting and
+drying times fixed at the gauge values. With all lengths the path curve is pinned, and the fixed-timing models
+reproduce the model-free $I$ and $s$ on training in 10 of 10 cells. On the validation events, however, every model
+failed (0 to 1 of 8 cells): there the observed $I$ and $s$ are only 0.72 and 0.61 times what the models predict. The
+deficit is common to the antenna and the path part, which points to a difference between the two sets of events, not
+to the split between antenna and path. The residual during rain is flat with $L$ on validation (the scaling with
+length is right) but about $-0.1$ to $-0.2\dB$ at every length.
+
+\subsection{S4.1 to S4.3: why the validation events differ}
+\label{sec:s4}
+
+\textbf{Is it ordinary spread between events?} The split of events into training and validation is random within
+each intensity class. Of 200 random halves of the training events, only 0 to 0.5\,\% fall as low as the validation
+set. The gap is more than ordinary spread.
+
+\textbf{Per-event factors (failed check).} One rain scale $k_e$ and one antenna factor $\alpha_e$ per event were
+fitted on the frozen model. Their fake check failed: only 63\,\% of the events recovered both (rule 80\,\%). Heavy
+events passed (16 of 16); with little rain, $k_e$ and $\alpha_e$ trade against each other. The factors were therefore
+not interpreted, and none of 28 tests against the weather (temperature, wind, humidity, dryness before the event)
+was a discovery.
+
+\textbf{Radar against gauges.} Without any factor, the radar was compared with the City gauges on the events with
+enough gauge rain: the radar reads 1.71 times the gauges on the validation events (5 events) and 0.89 times on the
+training events (14 events). Their ratio, about 0.5, is the size of the gap.
+
+\textbf{S4.3: the test of that lead.} Per event, the radar rain was divided by its own radar-to-gauge ratio $g_e$,
+taken from the gauges only and never from the links, and the length test of S3b was repeated with the frozen model and
+no refit. The rule was written before the run: the gap is ``explained'' if the median observed-to-model ratios of $I$
+and $s$ lie within 0.85--1.15 and both lie inside their intervals in at least two thirds of the cells, and the
+training set must still pass the same rule. Table~\ref{tab:s43} and Figure~\ref{fig:s43} give the result.
+
+\begin{table}[H]
+\centering
+\caption{The length test through the frozen model (fast and slow store, gauge timing) before and after dividing the
+radar rain by the event's radar-to-gauge ratio. Ratio = observed / model, median over the eligible cells.}
+\label{tab:s43}
+\small
+\begin{tabular}{@{}llccc@{}}
+\toprule
+Events & Rain input & Ratio of $I$ & Ratio of $s$ & Both inside \\
+\midrule
+Validation & radar as it is & 0.72 & 0.61 & 1 of 8 \\
+Validation & radar / $g_e$ (path mean) & 0.99 & 0.95 & 5 of 6 \\
+Validation & radar / $g_e$ (gauge pixel) & 1.00 & 0.97 & 5 of 6 \\
+Validation & radar / one ratio per set & 0.94 & 0.99 & 6 of 6 \\
+Training & radar as it is & 1.07 & 0.99 & 10 of 10 \\
+Training & radar / $g_e$ (path mean) & 1.11 & 0.92 & 7 of 10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../research/wet_antenna/outputs/figures/conditions_s4c_ratios.png}
+\caption{Observed / model ratio of $I$ (left) and $s$ (right) per cell, training (top) and validation (bottom). Line
+style and marker give the rain input: solid with crosses as it is; dashed with circles divided by the event's ratio
+(path mean); dotted with squares the same from the gauge pixels; dash-dotted with triangles one ratio per set. The
+dotted horizontal lines mark 0.85 and 1.15.}
+\label{fig:s43}
+\end{figure}
+
+By the rule the validation gap is \textbf{explained by the rain reference}, and the training set is not broken. The
+model-free curves say the same without any model: the median validation-to-training ratio of $I$ goes from 0.63 to
+0.84 and that of $s$ from 0.67 to 0.91. On the heavy events alone the per-event factors are now identifiable (fake
+check 98\,\%), and the rain scale that the links ask for follows the radar-to-gauge ratio (rank correlation 0.64 over
+18 events). No weather condition is linked to the antenna factor (0 of 6 tests); with 22 events this is descriptive.
+
+The limits are stated plainly. The radar product is already adjusted with gauges, so this is not an independent test;
+$g_e$ compares point gauges with path means; only 5 validation events carry a ratio; after the division the
+5--10 mm/h validation cells drop out of the test, and they were among the worst; and the 2--5 mm/h validation cell at
+28 GHz stays low.
+
+\subsection{The current WAA model (v3, provisional)}
+
+The model kept for the final step is the two-store model fitted on all link lengths, with the timing of the gauges:
+\begin{equation}
+\begin{aligned}
+A(t) &= W_f(t) + W_s(t) + L\,P_{\mathrm{band}}\bigl(R(t-d)\bigr) + c, \\
+\frac{dW_f}{dt} &= \frac{\varphi\,a_{\mathrm{link}}F_{\mathrm{band}}(R) - W_f}{\tau_f}, \qquad
+\tau_f = 2.6 \text{ min while wetting},\; 10.3 \text{ min while drying}, \\
+\frac{dW_s}{dt} &= \frac{(1-\varphi)\,a_{\mathrm{link}}F_{\mathrm{band}}(R) - W_s}{\tau_s}, \qquad
+\tau_s = 240 \text{ min},\quad \varphi = 0.72 ,
+\end{aligned}
+\label{eq:v3}
+\end{equation}
+with a lag $d$ of 1 minute and the level $F$ at 28 GHz of 0.98, 1.63, 2.62 and $3.38\dB$ at 0.5, 2, 5 and 10 mm/h. Its
+known limits: the slow store sits at its bound and the attenuation after the rain is too high (1.2 to 1.4 times the
+observed integral), and its intervals come from short refits and are too narrow. This model was refitted on the
+corrected rain and tightened in S5a and S6 (Section~\ref{sec:final}); the WAA candidate of
+Section~\ref{sec:candidate} replaces it.
+
+\inshort{Treated as a system with rain as input, WAA has memory: it builds up in 2 to 3 minutes and dries in 9 to 13
+minutes (gauge input, training and validation). A model-free test across link lengths shows an antenna part that
+saturates at 2 to 3$\dB$, so a constant WAA ($f = L + L_0$) does not describe the data. The models fitted on all
+lengths pass that test on training; the failure on validation is explained by the radar reading those events too
+high. The free rung M5 and the naming of an equation failed their checks.}
+
+% =====================================================================================================================
+\section{Stage 1, part 5: the final model and a tighter equation (S5a, S6)}
+\label{sec:final}
+
+From here on the rain input is the radar divided by the event's radar-to-gauge ratio, $R = R_{\mathrm{radar}}/g_e$,
+with $g_e$ from the City gauges only (Section~\ref{sec:s4}); $g_e = 1$ where the gauges caught too little rain. It is
+called the \emph{corrected rain}. The raw radar is still reported next to it.
+
+\subsection{S5a: refit on the corrected rain, and one more slow store}
+\label{sec:s5a}
+
+The model of Eq.~\eqref{eq:v3} was refitted on the corrected rain, on the training events of all link lengths (9780
+events on a sub-link, 51 events), with intervals from 30 resampled sets of events, each fitted from a cold start. Four
+results:
+\begin{itemize}
+\item \textbf{The input closes the validation gap, not the refit.} On the corrected rain every model passes the length
+test on the validation events (5 of 6 cells), and on the raw radar every model fails it (at most 1 of 8), including
+the old fit that never saw the corrected rain. The refit moves the parameters little ($F$ at 28 GHz and 5 mm/h:
+2.71 against 2.62$\dB$).
+\item \textbf{Most of the slow leftover was the radar.} After the rain, the model's integral of $A$ is now 0.79 times
+the observed one on links below 1 km and 1.21 times on links of 1 to 3 km, inside the accepted 0.7 to 1.4 range. In
+S2b to S3b it was 1.2 to 1.4. The median curve after the last shower is still too high from about 40 minutes on.
+\item \textbf{The shower peaks get worse.} Dividing the whole event by $g_e$ also lowers the peaks, where the radar was
+not too high: the peak deficit grows from $-0.53$ to $-1.05\dB$. One ratio per event is the wrong correction at the
+peaks; a radar error that depends on the rain rate would explain it (an open question).
+\item \textbf{A more flexible slow store (M4c) is not identified.} M4c gives the slow store its own wetting and drying
+times. Its fake check passed, and by the rule written before the run it replaced M4b. On the real data, however, its
+wetting time ran to the 600-minute bound and its share $\varphi$ is anywhere between 0.19 and 0.84; it gains only
+0.0005$\dB$ on the validation events. The rule had not asked for identified parameters; it should have.
+\end{itemize}
+First closed forms were also fitted: the path part came out as a straight line in $R$ (a power just below 1 at
+38 GHz), the antenna level as a saturating curve whose height is poorly determined.
+
+\textbf{A decision, stated openly.} On 18 October 2026, before any test data were read, the final model was set to
+M4b with the gauge timing fixed (Eq.~\eqref{eq:v3} on the corrected rain), and M4c was dropped. This deviates from the
+S5a rule. It was decided after seeing the validation events; the reason is that M4c's slow store is not identified,
+not its validation score. The planned step S5b (read the test set once) was not run; its parts moved to S6, S8 and S9.
+
+\textbf{Integrity rules from S6 on.} Eight rules were written down at the same time: every rule and threshold is fixed
+before the run; a fake check runs before real numbers are trusted; a quantity is reported as a result only if it is
+identified (recovered within $\pm 20\,\%$ on fake data, and its interval does not touch a bound); every deviation from
+a written rule is dated with its reason; failed checks are reported, never dropped (S7 may send the work back to S6 at
+most once); validation numbers are labelled optimistic; the test set is read once, after a frozen and hashed model,
+and nothing changes after it; and the standard power law of the ITU never corrects data.
+
+\subsection{S6: tightening the equation}
+\label{sec:s6}
+
+S6 takes the final model on the corrected rain and asks how well each of its numbers is determined. Every rule was
+written before the run; no test data were read.
+
+\textbf{What the data are.} Of the 728 sub-links, 660 are in the three frequency bands used (28, 32 and 38 GHz; the
+7 to 23 GHz sub-links are dropped by the band rule, not by quality), 518 of them on training links. Of the 29\,998
+pairs of a training event and a training sub-link, 9780 remain (33\,\%). The largest loss is that the link saw no
+rain in the event (13\,480 pairs); the quality rules remove about a fifth of the rest. The data are mostly dry: of
+9.5 million link-event minutes, 12\,\% have at least 0.5 mm/h and only about 0.4\,\% have 10 mm/h or more. Everything
+said about $F$ and $P$ above 10 mm/h rests on those few minutes.
+
+\textbf{One shape for all bands.} The free curves $F$ and $P$ have one value per band at each of seven rain rates
+(0.5 to 40 mm/h). S6 tested a tighter form: one shape shared by the bands and one amplitude per band,
+\begin{equation}
+F_{\mathrm{band}}(R) = A_{\mathrm{band}}\,G(R), \qquad P_{\mathrm{band}}(R) = B_{\mathrm{band}}\,H(R), \qquad
+G(5) = H(5) = 1 .
+\label{eq:shared}
+\end{equation}
+The rule: keep it if the validation error rises by at most 0.003$\dB$ and the length test still passes. Both shared
+shapes passed (0.3875 against 0.3878$\dB$, 5 of 6 cells) and were kept. On the training events an information
+criterion still prefers band-specific shapes, for $F$ also after allowing for the correlation in time of the
+residuals, so the bands do differ in shape on training; the difference does not carry over to the validation events.
+
+\textbf{Honest intervals.} The main interval comes from 60 resampled sets of whole events, each fitted from a cold
+start; all 60 converged. The amplitudes of the antenna level at 5 mm/h are $A = 2.74$ [2.20, 3.37], 2.56 [1.88, 3.39]
+and 2.96 [2.49, 3.53]$\dB$ at 28, 32 and 38 GHz. A second interval, from the profile likelihood, is up to 13 times
+narrower for the shapes and the path amplitudes: it counts every 5-minute point as independent once the correlation
+in time is allowed for, but all links of one event share the same rain error, so the independent pieces are closer to
+the 51 events. It is a lower bound only. For the antenna amplitudes the profile is \emph{wider}, and that reveals a
+limit of the model: raising $A_{\mathrm{band}}$ and lowering every $a_{\mathrm{link}}$ of the band by the same factor
+changes nothing in the prediction. \textbf{The data determine the product $a_{\mathrm{link}}F$, not $F$ alone}; the
+level of $F$ is that of a link with $a_{\mathrm{link}} = 1$, set by the weak prior that keeps the median link
+amplitude near 1.
+
+\textbf{Timing.} The wetting time (2.4 or 3.1 instead of 2.6 minutes) moves every number by less than 2\,\%. The drying
+time (9.2 or 11.8 instead of 10.3 minutes) moves $F$ by up to 11\,\% and $P$ by up to 19\,\% (most at 1 mm/h), in
+opposite directions: a longer drying keeps $W$ up longer, so less is left for the antenna level and more for the path.
+Every change is inside the interval of its number.
+
+\textbf{Identifiability.} Fake data were made from the fitted model on the real geometry, rain and noise, three times.
+All 62 quantities came back within $\pm 20\,\%$ in all three (largest error 10\,\%). Eight are nevertheless
+\emph{not identified}, because their real interval reaches zero: the path part below 1 mm/h. The fake data cannot test
+the trade-off between $a_{\mathrm{link}}$ and $F$ (the truth obeys the same prior), and the slow store is fixed, so it
+is not tested either.
+
+\textbf{Closed forms: physics against symbolic regression.} Formulas were fitted to the learned curves, with the
+uncertainty of each point from the resampling. Physics candidates (for $F$: a saturating hyperbola, a saturating
+exponential, a capped power; for $P$: a line, a power, a line with a square term) and the formulas proposed by
+symbolic regression (PySR [7]) competed under the same rule: the corrected Akaike criterion (AICc), and a candidate
+within 2 of the best with fewer parameters wins. The chosen form was then put back into the dynamic model and refitted
+(the \emph{plug-back}); it must cost at most 0.005$\dB$ on the validation events and keep the length test.
+\begin{itemize}
+\item \textbf{The path part is a straight line}, $P_{\mathrm{band}} = c_{\mathrm{band}}\,R$, with $c = 0.107$, 0.142
+and 0.197$\dB$/km per mm/h at 28, 32 and 38 GHz. A power law gives an exponent of 0.97, and the square term is zero.
+The plug-back holds. This line was found among the candidates; the standard power law was not used.
+\item \textbf{The antenna level rises like $\sqrt{R}$}: the form chosen is PySR's $(R/5)^{0.47}$, within 0.2 of the
+capped power with one parameter fewer. The saturating hyperbola of S5a is 11 AICc worse with the corrected rain and
+the shared shape. Its plug-back, however, lowers the validation error a little but brings the length test down to 4 of
+6 cells. That is exactly two thirds; the threshold written since S3b is 0.6667, so it \emph{fails} by a hair, and the
+free shared curve of $F$ is kept. Whether ``at least two thirds'' was meant is a decision left to the learners, to be
+dated (integrity rule 4).
+\end{itemize}
+Three frequencies are too few for a law in the frequency: the amplitudes describe these three bands only.
+
+\subsection{The WAA candidate}
+\label{sec:candidate}
+
+\begin{equation}
+\begin{aligned}
+A(t) &= W_f(t) + W_s(t) + L\,c_{\mathrm{band}}\,R(t-d) + c, \qquad R = R_{\mathrm{radar}}/g_e,\quad d = 1 \text{ min}, \\
+\frac{dW_f}{dt} &= \frac{\varphi\,a_{\mathrm{link}}A_{\mathrm{band}}G(R) - W_f}{\tau_f}, \qquad
+\tau_f = 2.6 \text{ min while wetting},\; 10.3 \text{ min while drying}, \\
+\frac{dW_s}{dt} &= \frac{(1-\varphi)\,a_{\mathrm{link}}A_{\mathrm{band}}G(R) - W_s}{\tau_s}, \qquad
+\tau_s = 240 \text{ min},\quad \varphi = 0.72 \ \text{(fixed, not identified)}.
+\end{aligned}
+\label{eq:candidate}
+\end{equation}
+Table~\ref{tab:candidate} gives its numbers and Figure~\ref{fig:s6F} the antenna level.
+
+\begin{table}[H]
+\centering
+\caption{The WAA candidate of S6. Brackets: 90\,\% intervals from 60 resampled sets of training events. $G$ is the
+shared shape of the antenna level, linear between the points, zero at $R = 0$.}
+\label{tab:candidate}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+ & 28 GHz & 32 GHz & 38 GHz \\
+\midrule
+$A_{\mathrm{band}}$ (dB) & 2.74 [2.20, 3.37] & 2.56 [1.88, 3.39] & 2.96 [2.49, 3.53] \\
+$c_{\mathrm{band}}$ (dB/km per mm/h) & 0.107 & 0.142 & 0.197 \\
+\midrule
+\multicolumn{4}{@{}l}{$G$ at 0.5, 1, 2, 5 mm/h: 0.35, 0.35, 0.63 [0.38, 0.80], 1 (by definition)} \\
+\multicolumn{4}{@{}l}{$G$ at 10, 20, 40 mm/h: 1.21 [1.01, 1.49], 1.73 [1.18, 2.30], 1.97 [1.63, 2.81]} \\
+\multicolumn{4}{@{}l}{$a_{\mathrm{link}}$, 10 to 90\,\% of the links: 0.76 to 1.23} \\
+\multicolumn{4}{@{}l}{Not identified: the path part below 1 mm/h; $\varphi$ and $\tau_s$ (fixed)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../research/wet_antenna/outputs/figures/tighten_s6_F.png}
+\caption{The antenna level $F$ per band against the corrected rain (log scale), for a link with
+$a_{\mathrm{link}} = 1$. Circles with bars: the learned curve with 90\,\% intervals. Dashed line with triangles: the
+level $W$ reached after 30 minutes of steady rain. Dotted line: the closed form $\propto R^{0.47}$, whose plug-back
+failed and which is not used.}
+\label{fig:s6F}
+\end{figure}
+
+The candidate rests on assumptions that S7 must check: that $W$ does not depend on $L$ (the level of $F$ is tied to
+$a_{\mathrm{link}}$, so a length effect could hide there), that the corrected rain is right at the scale of the path,
+that the gauge timing holds with the radar input, that one amplitude per link holds over the summer, and that dew and
+other wetting without rain are not part of it.
+
+\inshort{On the corrected rain the final model is the two-store model with gauge timing; a more flexible slow store
+was dropped because it is not identified (a dated decision, made after seeing the validation events). S6 gives it one
+shape for all bands, intervals from 60 cold refits, and a fake check for every number. The path part is a straight
+line, $P = c\,R$. The antenna level rises about like $\sqrt{R}$, but that formula failed its check at exactly two
+thirds of the cells, so the learned curve is kept. The data fix $a_{\mathrm{link}}F$, not $F$; the path part below
+1 mm/h and the slow store are not identified.}
+
+% =====================================================================================================================
 \section{Where we stand}
 \label{sec:stand}
 
 \begin{table}[H]
 \centering
-\caption{What is established, and what is not, on 12 October 2026.}
+\caption{What is established, and what is not, on 19 October 2026.}
 \label{tab:stand}
 \small
 \begin{tabularx}{\linewidth}{@{}Y Y@{}}
 \toprule
 \textbf{Established} & \textbf{Not established yet} \\
 \midrule
-$A(t)$ exists for every training and validation event on the training links, with a baseline that is unbiased and accurate to about one quantization step. &
+$A(t)$ exists for every training and validation event on the training links, with a baseline that is unbiased and accurate to about one quantization step, and that does not absorb the drying. &
 Baselines for the test events and test links (needed for the final held-out check). \\
-The baseline does not absorb the drying after rain. &
-Whether the attenuation at the start of a tail is the antenna or residual light rain on the path. \\
-A memory after rain exists: strong tails take hours to return to the dry level. &
-The form of the drying law. The first fit of the real tails did not identify one (Section~\ref{sec:real}). \\
-A frozen, non-circular set of 429 drying tails (and 123 validation tails not yet looked at). &
-What the unexplained night-time rises are (drizzle or condensation). \\
-The median tail halves in about 15 minutes and has a slow remainder. &
-Whether the slow remainder is a second process or only the spread of drying speeds between antennas. \\
-The median curve and single-tail fits cannot identify the law; a pooled fit can, on simulated data, also under a wrong noise model and from generic starting points (exponential, two layers, switch). &
-Whether a trustworthy uncertainty band can be made from one data set (resampling events gave a band about three times too narrow). \\
-SINDy on the raw tails does not recover a known law on simulated data. In two jumps (a free drying curve, then sparse regression) an exponential and a quadratic law are recovered for $W$ above $0.35\dB$ in the first hour, also on fresh data. &
-Anything below $0.35\dB$, a switch level included, and why the fit prefers a false step there (it is not the $0.3\dB$ quantization). \\
-On simulated data the power law and the linear + quadratic law cannot be told apart. &
-Which law the real tails follow. The real residuals have 4.1 times the variance of the noise model, so the real noise is \emph{not} close enough to it. \\
-Dry-weather noise is correlated over tens of minutes; dew produces WAA-like jumps at night. &
-The wetting law, the path law $f$, and the rain estimate: not started. \\
-On the real tails, a drying rate that rises with $W$ is not supported in the first hour; about one tail in five stays flat or rises after the rain. &
-Which tails count as drying, and what keeps the others flat or rising (rain below the references, condensation, or a tail that starts too early). \\
+A drying law cannot be read from drying tails: tails wait or rise because of the event, and most of a tail passes while it still rains nearby (Section~\ref{sec:tailend}). &
+What makes whole events wait or rise after the rain (dew, drizzle under the radar, or no drying at night). \\
+WAA has memory. With a gauge as input it builds up in 2 to 3 minutes and dries in 9 to 13 minutes, on training and on validation events. &
+One drying time for both inputs (with the radar the fitted drying is slower). \\
+The slow wetting seen with the radar is the smoothing of the radar input, not the antenna (fake check). &
+The slow remainder after the rain: with the corrected rain most of it is gone, but after about 40 minutes the median is still above the model, and no identified store describes it. \\
+The model-free antenna part saturates at 2 to 3$\dB$ while the path part grows with the rain; a constant $L_0$ does not describe the data. &
+Whether everything in the intercept is the antenna (it holds anything that does not grow with $L$). \\
+Fitted on all link lengths, the model reproduces the model-free test on training; the validation gap is explained by the radar-to-gauge ratio. &
+An independent check of that explanation (the radar is gauge-adjusted; 5 validation events). \\
+The free rung M5 and SINDy-style naming do not give an identified equation on these data. &
+A readable equation beyond the store models; what the antenna factor of an event depends on. \\
+A WAA candidate on the corrected rain (Eq.~\eqref{eq:candidate}): one shape for all bands, intervals from 60 cold refits, every number checked on fake data; the path part is a straight line $P = c\,R$. &
+A closed form for the antenna level (the $\sqrt{R}$ form failed its check at exactly two thirds); the level of $F$ apart from $a_{\mathrm{link}}$; the path part below 1 mm/h; the slow store. \\
+The slow leftover after the rain was mostly the radar reading too high. &
+The shower peaks, which the corrected rain makes worse ($-1.05\dB$): a radar error that depends on the rain rate? \\
+ & Validation of the candidate without the test set (S7), and the test set itself (S8). \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Two methodological habits have carried the work so far and will continue. The first is to \emph{build a case with a
-known truth} before trusting a method: fake events for the baseline, simulated tails for the fitting. The second is to
-\emph{fix the decision rule before the run}: the rejected humidity rule, the tail selection, and the success rules of
-the fitting tests were all written down before their results were seen. Twice this prevented a wrong conclusion that
-looked attractive: that the fast drop is antenna drying (Section~\ref{sec:fastdrop}) and that the data ask for two
-layers (Section~\ref{sec:sim}). The stress
-test adds a third case of the same kind: a win of the linear + quadratic law over the power law, or the reverse, will
-not be read as a finding. The latest steps added two more habits. A finding made after seeing the results is tested
-again on fresh data before it is used (the range above $0.35\dB$). And our own explanation of a failure is tested
-before it is acted on: the quantization was the suspected cause of the false step, and the test said no.
+Two methodological habits have carried the work and will continue. The first is to \emph{build a case with a known
+truth} before trusting a method: fake events for the baseline, simulated tails, and fake data driven by the real rain
+for every rung of the ladder and for every number of the final equation. In the system identification three fake checks failed (the path curve before its
+repair, the free rung, the per-event factors on light events), and each failure stopped a result from being read. The second is to \emph{fix the decision rule
+before the run}. It also cuts the other way: twice a result looked convincing but did not pass the rule (the short
+links test, the per-event factors), and it was reported as undecided or failed; in S6 the closed form of the
+antenna level failed by exactly one cell and was not used. Where a written rule was overridden (M4c dropped in favour
+of M4b; a planned cut of the resampling from 60 to 40 sets undone), the decision was dated and its reason written
+down.
 
 % =====================================================================================================================
 \section{What comes next}
@@ -1280,54 +1799,49 @@ before it is acted on: the quantization was the suspected cause of the false ste
 
 \subsection{The target of Stage 1}
 
-The goal is one dynamic equation for the WAA with rain as its input,
+The general form of the goal is one dynamic equation for the WAA with rain as its input,
 \begin{equation}
 \frac{dW}{dt} \;=\; \underbrace{g(R, W)}_{\text{wetting}} \;-\; \underbrace{h(W)}_{\text{drying}} ,
 \label{eq:target}
 \end{equation}
-where $h$ is learned from the drying tails ($R = 0$, so $dW/dt = -h(W)$) and $g$ from whole events on very short
-links, where the path term is small. Figure~\ref{fig:plan} shows the route.
+of which the store models of Section~\ref{sec:sysid} are simple cases (a linear relaxation towards a level that
+depends on the rain, with different speeds for wetting and drying). The free version of this equation (M5) was not
+identified, so Stage~1 ends with the store model of Eq.~\eqref{eq:candidate}, the WAA candidate of S6.
+Figure~\ref{fig:plan} shows the route.
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[node distance=5mm and 5mm]
-\node[done, text width=40mm] (a) {Tool tests for drying\\{\scriptsize simulated tails: pooled fit, two jumps}};
-\node[doing, text width=40mm, right=of a] (b) {Drying law $h(W)$\\{\scriptsize first fit of the real tails done: no law yet}};
-\node[todo, text width=40mm, right=of b] (c) {What drying depends on\\{\scriptsize frequency, antenna, wind, temperature, humidity}};
-\node[todo, text width=40mm, below=10mm of a] (d) {Wetting law $g(R,W)$\\{\scriptsize simulator of whole events first; very short links, $h$ kept fixed}};
-\node[todo, text width=40mm, right=of d] (e) {Verification\\{\scriptsize unseen events; longer links; dew events}};
-\node[todo, text width=40mm, right=of e] (f) {Final WAA equation\\{\scriptsize handed to Stage 2}};
+\node[done, text width=40mm] (a) {System identification\\{\scriptsize S1--S4.3: ladder, length test, radar}};
+\node[done, text width=40mm, right=of a] (b) {WAA candidate\\{\scriptsize S5a, S6: final model, tightened}};
+\node[todo, text width=40mm, right=of b] (c) {Validate, freeze, test once\\{\scriptsize S7--S9: no TEST, then TEST}};
+\node[todo, text width=40mm, below=10mm of a] (d) {Path law $f(L,\Rbar,Z)$\\{\scriptsize Stage 2, PySR, WAA removed}};
+\node[todo, text width=40mm, right=of d] (e) {Rain estimate\\{\scriptsize invert the combined model}};
+\node[todo, text width=40mm, right=of e] (f) {Evaluation\\{\scriptsize unseen events, literature}};
 \draw[arr] (a)--(b); \draw[arr] (b)--(c);
 \draw[arr] (c.south) -- ++(0,-4mm) -| (d.north);
 \draw[arr] (d)--(e); \draw[arr] (e)--(f);
 \end{tikzpicture}
-\caption{The remaining route of Stage 1. Grey fill: done. Dashed border: in progress. Dotted border: planned.}
+\caption{The remaining route. Grey fill: done. Dotted border: planned.}
 \label{fig:plan}
 \end{figure}
 
 \subsection{The steps}
 
 \begin{enumerate}
-\item \textbf{The drying law on real tails (first fit done, no law yet).} The first fit
-(Section~\ref{sec:real}) did not identify a law. Before it is repeated, three things are decided and repaired: which
-tails define drying; the fault in the starting level of a tail, followed by a repeat of the tests on simulated data
-with some rising tails among them; and the noise level used for drying tails. The drying time constants of the
-literature [1], [9] are read from the papers, so that the comparison can be made with numbers.
-\item \textbf{What drying depends on.} Relate the drying speed to frequency, antenna size, time of day, temperature,
-wind and humidity.
-\item \textbf{The wetting law, from very short links.} On links shorter than about $0.6$ km the path term is small, so
-$A(t)$ during the rain is mostly WAA. That the path term is small must be shown without assuming the power law:
-among short links, the attenuation during rain must not grow with $L$, and the two directions of a link must agree.
-First the simulator is extended from tails to whole events (real radar rain, a wetting law, a small path term that
-grows with $L$), and the tool for this step is chosen by testing on that simulated data, as was done for drying. With
-$h(W)$ kept fixed from the tails, $g(R,W)$ is then learned with the radar rain along the path as input, and compared
-with the model of Schleiss et al.\ [1]. This step is also the real test of whether what we call WAA
-belongs to the antenna (Section~\ref{sec:fastdrop}).
-\item \textbf{Verification.} On data not used so far: drying on the validation events; the full law on unseen events;
-agreement between the drying time read from the free curve and the one fitted directly; agreement between the two directions of
-a link; and whether dew events, which wet the antenna without rain, dry by the same $h(W)$. The decisive check is the
-transfer to longer links: after the predicted WAA is subtracted, the remaining attenuation should grow with $L$ with
-no constant offset. That is the test of Eq.~\eqref{eq:L0}, and it is the handover to Stage~2.
+\item \textbf{S7, validate without the test set (not started).} Five checks of the candidate: that $W$ does not depend
+on $L$ (the link amplitudes and the $W$ levels against the length); the short links of the validation events; the
+long links, at moments when the path is dry so that $A - c = W$, and pairs of links of different length on the same
+path, where $W = (L_2A_1 - L_1A_2)/(L_2 - L_1)$; dew (the same water layer?); and what is left over against the link
+metadata and the weather, with PySR, where a term enters only if it passes a fake and a held-out check. S7 may send
+the work back to S6 at most once.
+\item \textbf{S8, freeze and test once (not started).} The model is frozen with a hash, and the test events and links
+are read once; nothing changes after that.
+\item \textbf{S9, the write-up (not started).} The story, the assumptions with their checks, the data funnel and the
+core figures. The comparison with the WAA models of the literature [1], [9] belongs to the final write-up, with their
+values read from the papers.
+\item \textbf{Publishing the fit caches.} When Stage~1 is finished, the saved fits are published so that others can
+rebuild the reports without hours of fitting.
 \end{enumerate}
 
 \subsection{After Stage 1}
@@ -1335,7 +1849,7 @@ no constant offset. That is the test of Eq.~\eqref{eq:L0}, and it is the handove
 \begin{itemize}
 \item \textbf{Stage 2, the path law.} With the WAA removed, learn $f(L,\Rbar,Z)$ of Eq.~\eqref{eq:f} by symbolic
 regression (PySR [7]), with the radar rain along the path as the reference, and see how the dependence on the length
-differs from $f = L$.
+differs from $f = L$. The model-free slope $s(R)$ of Table~\ref{tab:Is} is a first look at the path part.
 \item \textbf{Rain estimate and evaluation.} Invert the combined model (path law and WAA) to get rain from
 attenuation, on events that were not used for training. Measures: normalised bias and normalised RMSE against gauges
 and radar, by link length; the amount of false rain after the end of events; comparison with the plain power law, the
@@ -1346,24 +1860,28 @@ under resampling.
 \subsection{Open questions}
 
 \begin{itemize}
-\item Why does the fit prefer a false step at low $W$ on simulated data? It is not the quantization. What is left to
-test: whether the fit without a step had simply not searched long enough, the bound on the baseline offset, and the
-very narrow shape of the step.
-\item Which tails define drying: all of the frozen set, the set without the events with many rising tails, or
-tails restarted where the decay begins?
-\item What keeps the attenuation flat or rising after the last trace of rain in about one tail in five: rain or
-drizzle below what the references see, re-wetting, condensation, or attenuation along the path? The answer decides
-whether those minutes belong to the drying term or to the wetting term.
-\item The residuals of the real tails have 4.1 times the variance of the dry-weather noise model. Should the noise
-level of drying tails be larger, or fitted?
-\item Which is wrong in the resampling band: the resampling itself, or the short search each refit was given?
-\item Are the night-time rises after rain drizzle that the radar misses, or condensation? The humidity record has
-gaps exactly there.
-\item Should light rain after the first dry moment end a tail (as now), or be given to the model as input?
-\item The spread of drying speeds was calibrated after the noise was fixed, so any noise the model still misses ends
-up in the spread. How much of $s = 1.25$ is real variation between antennas?
-\item The literature form for exponential drying is named in the working plan after Minda and Nakamura; that
-reference is not in the proposal's list and has to be checked and added before it is cited.
+\item What drives the slow remainder after the rain? With the corrected rain most of it is gone, but the median curve
+is still too high after about 40 minutes, and a slow store with its own times (M4c) is not identified.
+\item Why the radar and the gauge give different drying times on the same points.
+\item Is the validation gap really the radar? The radar product is gauge-adjusted, and only 5 validation events carry
+a radar-to-gauge ratio.
+\item The length-test threshold: 0.6667 as written, or ``at least two thirds''? With two thirds, the $\sqrt{R}$ form of
+the antenna level would pass its plug-back. To be decided and dated.
+\item The level of $F$ is set by the prior on the link amplitudes; only $a_{\mathrm{link}}F$ is determined by the
+data.
+\item The shower peaks: one ratio per event lowers them too much; the radar error may depend on the rain rate (the
+28 GHz, 2--5 mm/h validation cell also stays low).
+\item Does the antenna level saturate or keep rising slowly? S5a chose a saturating curve, S6 a $\sqrt{R}$ rise.
+\item The bands differ in shape on training but not on validation: a real band effect hidden by the shared shape?
+\item Warm events are over-predicted more (residual $-0.15\dB$ against $-0.02\dB$ in the cool ones): antenna, rain type
+or radar?
+\item Dew and night-time rises of the level, without rain.
+\item Uneven rain on long links may lower the slope $s$ (the radar path mean on a 2 km grid); 32 GHz has no link
+below 1 km, so its intercepts are extrapolations.
+\item A free WAA law (M5) can only be named with conditions that keep $W$ bounded (drying that rises with $W$,
+wetting that does not grow faster).
+\item The judge depends on the iteration cap of the fits (a few thousandths of a dB, the size of the differences
+between rungs).
 \end{itemize}
 
 % =====================================================================================================================
@@ -1375,6 +1893,9 @@ The numbers are those of the project proposal; only the references used in this 
 \begin{description}[leftmargin=1.1cm, labelwidth=0.9cm, labelsep=0.2cm, font=\normalfont]
 \item[{[1]}] Schleiss, M., Rieckermann, J., \& Berne, A. (2013). Quantification and modeling of wet-antenna
 attenuation for commercial microwave links. \emph{IEEE Geoscience and Remote Sensing Letters}, 10(5), 1195--1199.
+\item[{[6]}] Brunton, S. L., Proctor, J. L., \& Kutz, J. N. (2016). Discovering governing equations from data by
+sparse identification of nonlinear dynamical systems. \emph{Proceedings of the National Academy of Sciences},
+113(15), 3932--3937.
 \item[{[7]}] Cranmer, M. (2023). Interpretable machine learning for science with PySR and SymbolicRegression.jl.
 arXiv:2305.01582.
 \item[{[8]}] Ostrometzky, J., \& Messer, H. (2018). Dynamic determination of the baseline level in microwave links
@@ -1426,6 +1947,31 @@ Mixing trap & Exponential tails of different speeds, analysed together, look lik
 \bottomrule
 \end{tabularx}
 
+\begin{tabularx}{\linewidth}{@{}l Y@{}}
+\toprule
+\textbf{Term} & \textbf{Meaning} \\
+\midrule
+T0--T18, S1--S9 & The steps of the drying-tail exploration (closed); the steps of the system identification. \\
+Event on a sub-link & One rain event on one direction of a link: the unit of the system identification. \\
+$P$, $F$, $a_{\mathrm{link}}$ & Path curve per km; antenna level curve; amplitude of one link, Eq.~\eqref{eq:sysid}. \\
+M0 \ldots M5, M4b & The rungs of the model ladder (Section~\ref{sec:sysid}). \\
+Stop rule & The simplest model whose difference to the best has an interval that holds zero. \\
+Fake check & Data made from a known truth, which a method must give back before it is used on real data. \\
+$I$, $s$, $L_0$ & Model-free intercept (antenna part) and slope (path part per km) of Eq.~\eqref{eq:Is}; $L_0 = I/s$. \\
+$g_e$ & Radar rain divided by City-gauge rain for one event. \\
+WAA v2, v3 & The one-store model of S2b; the two-store model with gauge timing fitted on all lengths, Eq.~\eqref{eq:v3}. \\
+Corrected rain & The radar rain divided by the event's $g_e$ (from the City gauges only). \\
+M4c & M4b with separate wetting and drying times for the slow store; not identified, dropped. \\
+Shared shape & $F = A_{\mathrm{band}}G(R)$, $P = B_{\mathrm{band}}H(R)$: one shape for all bands, Eq.~\eqref{eq:shared}. \\
+Cold refit & A fit of a resampled set of events from the same generic start, not from the answer. \\
+Profile likelihood & An interval from how fast the fit gets worse when one number is held away from its best value. \\
+AICc & Corrected Akaike criterion: fit quality with a charge per parameter, for small samples; lower is better. \\
+Plug-back & Putting a closed form back into the dynamic model, refitting, and checking it on the validation events. \\
+WAA candidate & The equation of S6, Eq.~\eqref{eq:candidate}, before validation and the test set. \\
+\bottomrule
+\end{tabularx}
+
+\clearpage
 \section{Where the details are}
 \label{app:where}
 
@@ -1447,6 +1993,15 @@ SINDy on simulated tails & \code{check\_sindy.md}, same folder \\
 The two jumps and their confirmation & \code{check\_free\_curve.md} and \code{confirm\_free\_curve.md}, same folder \\
 The rest of the method; the false step & \code{check\_discovery\_method.md} and \code{check\_quantization.md}, same folder \\
 The first fit of the real tails & \code{fit\_real\_drying.md}, same folder \\
+Stalled tails; what is in a tail; drying after nearby rain & \code{diagnose\_stalled\_tails.md}, \code{characterise\_tails.md}, \code{check\_drying\_after\_rain.md}, same folder \\
+Very short links & \code{short\_links.md}, same folder \\
+The model ladder (S1) & \code{system\_id\_ladder.md}, same folder \\
+Links up to 3 km and the repairs (S2, S2b) & \code{system\_id\_s2.md} and \code{system\_id\_s2b.md}, same folder \\
+Verification and the all-length fits (S3, S3b) & \code{system\_id\_s3.md} and \code{system\_id\_s3b.md}, same folder \\
+Why events differ (S4.1--S4.3) & \code{conditions\_s4.md} and \code{conditions\_s4c.md}, same folder \\
+Refit on corrected rain, M4c, first closed forms (S5a) & \code{final\_s5a.md}, same folder \\
+Tightening the equation; the WAA candidate (S6) & \code{tighten\_s6.md}, same folder; the candidate as numbers in \code{tighten\_s6\_candidate.json}, in the products folder \\
+Integrity rules and the decision on the final model & \code{docs/ROADMAP.md}, part B \\
 The plan, and how to rerun every step & \code{docs/ROADMAP.md} and \code{docs/REPRODUCE.md} \\
 The data layer & \code{docs/pipeline\_log.pdf} (next to this report) \\
 \bottomrule

@@ -1,0 +1,9 @@
+variable,test,rho,lo,hi,p,n,bh_discovery
+L_km,Spearman,0.0473,-0.0717,0.1672,0.4992,206,False
+frequency_ghz,Spearman,-0.0002,-0.1216,0.1223,0.9983,206,False
+antenna_d,Spearman,0.1645,0.0324,0.2992,0.0181,206,False
+abs_sin_bearing,Spearman,-0.1113,-0.2164,-0.0022,0.1112,206,False
+abs_cos_bearing,Spearman,0.1113,0.0053,0.2255,0.1112,206,False
+n_radar_cells,Spearman,0.0281,-0.1017,0.1484,0.6883,206,False
+"site (hub, 25 sites with >= 3 links)",Kruskal-Wallis,,,,0.1922,109,False
+"polarization (v 204, h 2 links)",information only,,,,,206,False

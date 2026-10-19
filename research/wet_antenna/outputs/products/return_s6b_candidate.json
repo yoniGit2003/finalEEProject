@@ -1,0 +1,128 @@
+{
+ "step": "S6b",
+ "based_on": "the S6 candidate (sha256 36135658c4362397754247faf4a744dc2e6e61b6737e9bcc112c83937519d82b) with the refinement M1",
+ "refinement": "M1",
+ "refinement_text": "tau_f_dry free (one number, no weather)",
+ "numbers": {
+  "A[28 GHz]": {
+   "value": 3.7581991822012943,
+   "boot_lo": 3.281541246242111,
+   "boot_hi": 4.641115187759227
+  },
+  "c[28 GHz]": {
+   "value": 0.054185856143739275,
+   "boot_lo": 0.0,
+   "boot_hi": 0.09235123212884415
+  },
+  "A[32 GHz]": {
+   "value": 3.4065437291264224,
+   "boot_lo": 3.0104878503503825,
+   "boot_hi": 4.707457365396273
+  },
+  "c[32 GHz]": {
+   "value": 0.07193315862955076,
+   "boot_lo": 0.0,
+   "boot_hi": 0.12053589760669006
+  },
+  "A[38 GHz]": {
+   "value": 3.9134895841994846,
+   "boot_lo": 3.598774897829643,
+   "boot_hi": 5.002828984527862
+  },
+  "c[38 GHz]": {
+   "value": 0.11241978483147316,
+   "boot_lo": 0.0,
+   "boot_hi": 0.17201007567184756
+  },
+  "G(0.5)": {
+   "value": 0.3079768166857983,
+   "boot_lo": 0.21874561002387347,
+   "boot_hi": 0.37197939056631263
+  },
+  "G(1)": {
+   "value": 0.30798564542634277,
+   "boot_lo": 0.283184249923402,
+   "boot_hi": 0.3719816760866793
+  },
+  "G(2)": {
+   "value": 0.6067578844335373,
+   "boot_lo": 0.37338911697074467,
+   "boot_hi": 0.7590890304457547
+  },
+  "G(10)": {
+   "value": 1.220845227048437,
+   "boot_lo": 1.0401105589633735,
+   "boot_hi": 1.6350940983512479
+  },
+  "G(20)": {
+   "value": 2.00150332847697,
+   "boot_lo": 1.2895963092498075,
+   "boot_hi": 2.5419603150657104
+  },
+  "G(40)": {
+   "value": 2.7037057969583747,
+   "boot_lo": 1.7509642102971408,
+   "boot_hi": 5.060855597274578
+  },
+  "a_p10": {
+   "value": 0.8078480649584738,
+   "boot_lo": 0.7090026004938963,
+   "boot_hi": 0.7841590517897757
+  },
+  "a_p90": {
+   "value": 1.29980249236788,
+   "boot_lo": 1.2498490049630175,
+   "boot_hi": 1.3676976781733554
+  },
+  "tau_0": {
+   "value": 3.733253589412613,
+   "boot_lo": 1.7166514847677583,
+   "boot_hi": 6.5831454816760795
+  }
+ },
+ "wind_standardisation_m_s": [
+  2.9003104821816175,
+  1.534783145307904
+ ],
+ "dynamics_fixed": {
+  "tau_f_wet": 2.6,
+  "tau_f_dry": 10.3,
+  "phi": 0.72,
+  "tau_s": 240
+ },
+ "lag_min": 1,
+ "boxes": {
+  "A": [
+   "rain rate -> antenna level F(R)",
+   "one shape of F and P for all bands",
+   "wetting / drying memory (fast store)",
+   "slow store",
+   "path term P = c_band R",
+   "band amplitudes A_band, c_band",
+   "link multiplier a_link",
+   "W independent of L"
+  ],
+  "B": [
+   "drying faster with wind",
+   "after-rain misfit (model high)",
+   "dew"
+  ],
+  "C": [
+   "late water on long links",
+   "F shape above 10 mm/h",
+   "P below 1 mm/h",
+   "rain-reference error between events"
+  ]
+ },
+ "not_identified": [
+  "c[28 GHz]",
+  "c[32 GHz]",
+  "c[38 GHz]",
+  "P below 1 mm/h (S6)",
+  "phi",
+  "tau_s"
+ ],
+ "closed_not_found": [
+  "rate-dependent radar error"
+ ]
+}

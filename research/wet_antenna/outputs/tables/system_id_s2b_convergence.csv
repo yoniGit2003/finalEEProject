@@ -1,0 +1,26 @@
+fit,model,converged_on_all_events,loss,d,starts,starts_converged,starts_past_S2_cap,starts_median_iterations,spread_over_starts,best_start,folds,folds_at_cap,folds_past_S2_cap,seconds
+"S<1, radar",M1,True,28880.492,3,8,8,8,480.0,0.027,g4+Phalf,42,14,20,516
+"S<1, radar",M3,True,27285.087,2,8,8,8,702.0,0.004,g1+Pitu,42,34,42,1192
+"S<1, radar",M3D,False,23173.392,-1,8,0,8,1000.0,8.311,g2+Phalf,42,42,42,1282
+"S<1, radar",M4b,True,26583.161,-1,8,8,8,724.5,0.011,g4+Phalf,42,15,20,1047
+"S<1, radar",M4,True,26515.416,-1,8,7,8,827.5,0.092,g2+Phalf,42,16,21,862
+"S<3, radar",M1,True,118008.849,3,8,5,8,972.5,0.171,g1+P0,51,18,26,3024
+"S<3, radar",M3,True,112488.262,2,8,0,8,1000.0,0.099,g2+Phalf,51,18,29,5177
+"S<3, radar",M3D,False,96947.079,2,8,0,8,1000.0,4.813,g2+Phalf,51,51,51,5417
+"S<3, radar",M4b,True,109267.824,1,8,0,8,1000.0,0.344,g4+Pdouble,51,18,27,4850
+"S<3, radar",M4,True,109114.639,1,8,0,8,1000.0,0.262,g2+Phalf,51,28,39,4174
+"gauge links, GAUGE input",M1,True,31486.796,0,8,8,8,511.5,0.008,g2+Phalf,43,14,17,501
+"gauge links, GAUGE input",M3,True,23878.012,-3,8,8,8,497.5,0.008,g4+Pdouble,43,13,27,902
+"gauge links, GAUGE input",M3D,True,20264.041,-3,8,0,8,1000.0,2.137,g3+Pitu,43,38,42,1227
+"gauge links, GAUGE input",M4b,True,23347.494,-3,8,8,8,564.5,0.009,g3+P0,43,19,40,995
+"gauge links, GAUGE input",M4,True,23301.271,-3,8,8,8,637.5,0.006,g3+P0,43,18,31,828
+"fake Tc 0, S3",M3,False,52188.814,2,8,2,8,1000.0,0.02,g4+Pdouble,0,0,0,3064
+"fake Tc 0, S1",M3,True,13740.115,2,8,8,8,564.0,0.01,g3+P0,0,0,0,610
+"fake Tc 1, S3",M3,False,51706.925,2,8,2,8,1000.0,0.059,g1+P0,0,0,0,2982
+"fake Tc 1, S1",M3,True,13484.432,2,8,7,8,549.0,0.006,g1+P0,0,0,0,602
+fake Te 0,M3,True,14449.193,2,8,8,8,566.5,0.002,g2+Phalf,42,26,28,808
+fake Te 0,M3D,True,9613.589,2,8,0,8,1000.0,1.294,g1+Pitu,42,23,26,1116
+fake Te 0,M4b,True,13842.359,2,8,8,8,677.0,0.001,g1+Pitu,42,8,18,774
+fake Te 1,M3,True,14410.309,2,8,8,8,535.0,0.006,g2+Pdouble,42,11,18,753
+fake Te 1,M3D,False,9595.352,2,8,0,8,1000.0,1.622,g4+Phalf,42,39,41,1267
+fake Te 1,M4b,True,13846.746,2,8,8,8,627.0,0.004,g1+P0,42,9,17,749

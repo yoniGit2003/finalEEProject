@@ -1,0 +1,13 @@
+criterion,value,rule,ok,part,kind,band,form,parameter,refitted
+VAL V1 RMSE (all lengths): closed form - free curves (dB),0.00206,<= 0.005,True,rule,,,,,
+VAL V1 length test through the model (S3b rule),0.83333,>= 0.6667,True,rule,,,,,
+,,,,refitted closed-form parameters,F,28 GHz,hyperbolic,F_max,4.9815
+,,,,refitted closed-form parameters,F,28 GHz,hyperbolic,R0,1.62621
+,,,,refitted closed-form parameters,F,32 GHz,hyperbolic,F_max,6.14093
+,,,,refitted closed-form parameters,F,32 GHz,hyperbolic,R0,2.30851
+,,,,refitted closed-form parameters,F,38 GHz,hyperbolic,F_max,6.57378
+,,,,refitted closed-form parameters,F,38 GHz,hyperbolic,R0,2.48208
+,,,,refitted closed-form parameters,P,28 GHz,linear,c,0.12817
+,,,,refitted closed-form parameters,P,32 GHz,linear,c,0.15384
+,,,,refitted closed-form parameters,P,38 GHz,power,c,0.28908
+,,,,refitted closed-form parameters,P,38 GHz,power,b,0.88217

@@ -1,0 +1,4 @@
+try,loss,converged,"VAL V1 rmse (used, optimistic)",VAL V1 rmse kept free,rise_db,rise_ok,length_share,length_ok,holds,params
+F and P,158653.34945,True,0.38731,0.38751,-0.00019,True,0.66667,False,False,"{""F5"": {""28 GHz"": 2.56588, ""32 GHz"": 2.36026, ""38 GHz"": 2.76644}, ""F shape"": ""PySR: exp(log(R) * 0.51838696)"", ""F theta"": [0.542386], ""P5"": {""28 GHz"": 0.52428, ""32 GHz"": 0.70294, ""38 GHz"": 0.97198}, ""P shape"": ""P5 R / 5"", ""P theta"": []}"
+F only,158358.74139,True,0.38715,0.38751,-0.00036,True,0.66667,False,False,"{""F5"": {""28 GHz"": 2.52814, ""32 GHz"": 2.34672, ""38 GHz"": 2.70771}, ""F shape"": ""PySR: exp(log(R) * 0.51838696)"", ""F theta"": [0.531445]}"
+P only,158706.10756,True,0.38731,0.38751,-0.0002,True,0.83333,True,True,"{""P5"": {""28 GHz"": 0.53417, ""32 GHz"": 0.71208, ""38 GHz"": 0.98688}, ""P shape"": ""P5 R / 5"", ""P theta"": []}"

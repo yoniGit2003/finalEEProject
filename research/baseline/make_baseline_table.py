@@ -35,24 +35,11 @@ assert B["version"] == "v2", "the products are made with baseline v2 (set baseli
 
 
 def load(d):
-    """Train sub-links (good or degraded), their 5 min tl_mean, the per-link state, dew-risk mask, daily-cycle amp."""
-    s = d.sublinks()
-    s = s[s.split_link == "train"].copy()
-    s["status"] = s.sublink_id.map(d.status().set_index("sublink_id").status)
-    s = s[s.status.isin(["good", "degraded"])].reset_index(drop=True)
-    p = d.catalog["period"]
-    tl = d.cml(s.sublink_id.tolist(), p["start"], p["end_exclusive"], res="5min",
-               variables=["tl_mean"]).tl_mean.to_pandas()
-    state = d.store("link_reference_state_5min").state.load().to_pandas().reindex(tl.index)
-    dew = bl.dew_mask_5min(tl.index)
-    amp = pd.read_csv(P.C3_DAILY_CYCLE).set_index("sublink_id").amplitude_db
-    return s, tl, state, dew, amp
+    return bl.table_inputs(d, ("train",))
 
 
 def masks(state_col, dew):
-    ok_plain = bl.usable_mask(state_col.to_numpy(), B["skip_h"])
-    ok = bl.usable_mask(state_col.to_numpy(), B["skip_h"], dew) if B["v2"]["humidity_exclusion"] else ok_plain
-    return ok_plain, ok
+    return bl.table_masks(state_col, dew, B)
 
 
 def uncertainty(s, tl, state, dew):
@@ -90,36 +77,7 @@ def uncertainty(s, tl, state, dew):
 
 
 def table(d, s, tl, state, dew, amp, unc):
-    ev = d.events()
-    ev = ev[ev.split_event.isin(["train", "val"])]
-    T = tl.index
-    u = unc.set_index("sublink_id")
-    rows = []
-    for r in s.itertuples():
-        c = r.cml_id
-        x, st = tl[r.sublink_id].to_numpy(), state[c].to_numpy()
-        ok_plain, ok = masks(state[c], dew)
-        summer = float(np.median(x[ok_plain & ~np.isnan(x)]))
-        wet = st == 1
-        for e in ev.itertuples():
-            i0, i1 = T.searchsorted(pd.Timestamp(e.start)), T.searchsorted(pd.Timestamp(e.end))
-            value, w, a = bl.baseline_v2(x, ok, i0, B)
-            n_use = int((ok[a:i0] & ~np.isnan(x[a:i0])).sum())
-            wp = np.nonzero(wet[i0:i1])[0]
-            end_pos = i0 + wp[-1] + 1 if len(wp) else i1          # no wet slot of the link: the event end
-            fl = bl.flags_v2(value, a, i0, st, ok_plain, dew, summer, amp.get(r.sublink_id, np.nan),
-                             r.status == "degraded", r.tsl_behaviour == "toggling", B, event_end_pos=end_pos)
-            rows.append({"event_id": e.event_id, "split_event": e.split_event, "significant": e.significant,
-                         "run_count": e.n_runs, "event_start": e.start, "event_end": e.end,
-                         "link_has_wet_slot": bool(len(wp)), "last_wet_end": T[min(end_pos, len(T) - 1)],
-                         "sublink_id": r.sublink_id, "cml_id": c, "status": r.status,
-                         "baseline_db": value, "window_h": w, "n_usable_slots": n_use,
-                         "missing": bool(np.isnan(value)), "summer_dry_median_db": summer, **fl,
-                         "offset_std": u.offset_std.get(r.sublink_id, np.nan),
-                         "offset_p90_abs": u.offset_p90_abs.get(r.sublink_id, np.nan)})
-    t = pd.DataFrame(rows)
-    t["use_in_waa_main"] = ~(t.missing | t.excursion | t.daily_cycle_large | t.degraded | t.toggling)
-    return t
+    return bl.event_table(d, s, tl, state, dew, amp, unc, B, ("train", "val"))
 
 
 def main():

@@ -1,0 +1,45 @@
+model,R_mmh,by,band,length,links,W_median_db,lo,hi
+candidate,2.0,length,all,L < 1 km,41,1.7596,1.669,1.805
+candidate,2.0,length,all,1-3 km,103,1.723,1.6667,1.7999
+candidate,2.0,length,all,L > 3 km,62,1.7616,1.623,1.8462
+candidate,2.0,band x length,28 GHz,L < 1 km,17,1.6761,1.6495,1.8048
+candidate,2.0,band x length,28 GHz,1-3 km,45,1.617,1.5687,1.684
+candidate,2.0,band x length,28 GHz,L > 3 km,51,1.8023,1.6423,1.8489
+candidate,2.0,band x length,32 GHz,1-3 km,12,1.6392,1.431,1.6754
+candidate,2.0,band x length,32 GHz,L > 3 km,7,1.4804,1.2815,1.7619
+candidate,2.0,band x length,38 GHz,L < 1 km,24,1.7767,1.6734,1.9001
+candidate,2.0,band x length,38 GHz,1-3 km,46,1.8578,1.7999,1.9132
+candidate,2.0,band x length,38 GHz,L > 3 km,4,2.1533,1.3222,2.8532
+candidate,5.0,length,all,L < 1 km,41,2.8071,2.6625,2.8794
+candidate,5.0,length,all,1-3 km,103,2.7486,2.6408,2.8713
+candidate,5.0,length,all,L > 3 km,62,2.8103,2.6029,2.9493
+candidate,5.0,band x length,28 GHz,L < 1 km,17,2.6739,2.6313,2.8792
+candidate,5.0,band x length,28 GHz,1-3 km,45,2.5796,2.4559,2.7206
+candidate,5.0,band x length,28 GHz,L > 3 km,51,2.8751,2.6247,2.9495
+candidate,5.0,band x length,32 GHz,1-3 km,12,2.6149,2.2828,2.6726
+candidate,5.0,band x length,32 GHz,L > 3 km,7,2.3616,2.0443,2.8107
+candidate,5.0,band x length,38 GHz,L < 1 km,24,2.8342,2.6695,3.0312
+candidate,5.0,band x length,38 GHz,1-3 km,46,2.9637,2.8713,3.0488
+candidate,5.0,band x length,38 GHz,L > 3 km,4,3.4351,2.6112,4.5516
+closed F,2.0,length,all,L < 1 km,41,1.6051,1.5255,1.6524
+closed F,2.0,length,all,1-3 km,103,1.5908,1.5129,1.6529
+closed F,2.0,length,all,L > 3 km,62,1.606,1.5099,1.7123
+closed F,2.0,band x length,28 GHz,L < 1 km,17,1.535,1.4862,1.65
+closed F,2.0,band x length,28 GHz,1-3 km,45,1.4984,1.439,1.5541
+closed F,2.0,band x length,28 GHz,L > 3 km,51,1.6117,1.518,1.7224
+closed F,2.0,band x length,32 GHz,1-3 km,12,1.5015,1.3092,1.5322
+closed F,2.0,band x length,32 GHz,L > 3 km,7,1.3969,1.1962,1.6491
+closed F,2.0,band x length,38 GHz,L < 1 km,24,1.6209,1.5081,1.7301
+closed F,2.0,band x length,38 GHz,1-3 km,46,1.6986,1.65,1.754
+closed F,2.0,band x length,38 GHz,L > 3 km,4,1.9509,1.1906,2.4058
+closed F,5.0,length,all,L < 1 km,41,2.6384,2.4791,2.7163
+closed F,5.0,length,all,1-3 km,103,2.6149,2.4909,2.7299
+closed F,5.0,length,all,L > 3 km,62,2.6399,2.4922,2.8146
+closed F,5.0,band x length,28 GHz,L < 1 km,17,2.5232,2.4718,2.7123
+closed F,5.0,band x length,28 GHz,1-3 km,45,2.4631,2.3654,2.5861
+closed F,5.0,band x length,28 GHz,L > 3 km,51,2.6494,2.4953,2.8312
+closed F,5.0,band x length,32 GHz,1-3 km,12,2.4682,2.152,2.4812
+closed F,5.0,band x length,32 GHz,L > 3 km,7,2.2963,1.9663,2.7107
+closed F,5.0,band x length,38 GHz,L < 1 km,24,2.6645,2.4791,2.8338
+closed F,5.0,band x length,38 GHz,1-3 km,46,2.7922,2.7122,2.8861
+closed F,5.0,band x length,38 GHz,L > 3 km,4,3.2069,2.4241,4.3867

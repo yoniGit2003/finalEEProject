@@ -1,0 +1,23 @@
+set,fit,eligible_cells,I_inside,s_inside,both_inside,share,verdict,check,F_inside,P_inside
+TRAIN,M3-A,10,5.0,6.0,5,0.5,NOT consistent,through the model (THE RULE on VAL),,
+TRAIN,M3-B,10,10.0,10.0,10,1.0,consistent,through the model (THE RULE on VAL),,
+TRAIN,M4b-A,10,9.0,10.0,9,0.9,consistent,through the model (THE RULE on VAL),,
+TRAIN,M4b-B,10,10.0,10.0,10,1.0,consistent,through the model (THE RULE on VAL),,
+TRAIN,M1,10,10.0,9.0,9,0.9,consistent,through the model (THE RULE on VAL),,
+VAL,M3-A,8,4.0,2.0,0,0.0,NOT consistent,through the model (THE RULE on VAL),,
+VAL,M3-B,8,3.0,2.0,1,0.125,NOT consistent,through the model (THE RULE on VAL),,
+VAL,M4b-A,8,2.0,3.0,0,0.0,NOT consistent,through the model (THE RULE on VAL),,
+VAL,M4b-B,8,3.0,2.0,1,0.125,NOT consistent,through the model (THE RULE on VAL),,
+VAL,M1,8,3.0,2.0,1,0.125,NOT consistent,through the model (THE RULE on VAL),,
+VAL,"M3, S<1 (S2b)",8,7.0,0.0,0,0.0,NOT consistent,through the model (THE RULE on VAL),,
+VAL,"M4b, S<1 (S2b)",8,2.0,4.0,1,0.125,NOT consistent,through the model (THE RULE on VAL),,
+VAL,"M3, S<3 (S2b)",8,4.0,1.0,0,0.0,NOT consistent,through the model (THE RULE on VAL),,
+VAL,"M4b, S<3 (S2b)",8,2.0,4.0,1,0.125,NOT consistent,through the model (THE RULE on VAL),,
+TRAIN,M3-A,10,,,1,0.1,NOT consistent,"equilibrium a F, P (S3 rule)",9.0,1.0
+TRAIN,M3-B,10,,,3,0.3,NOT consistent,"equilibrium a F, P (S3 rule)",3.0,3.0
+TRAIN,M4b-A,10,,,2,0.2,NOT consistent,"equilibrium a F, P (S3 rule)",2.0,6.0
+TRAIN,M4b-B,10,,,7,0.7,consistent,"equilibrium a F, P (S3 rule)",9.0,8.0
+VAL,M3-A,8,,,0,0.0,NOT consistent,"equilibrium a F, P (S3 rule)",2.0,0.0
+VAL,M3-B,8,,,0,0.0,NOT consistent,"equilibrium a F, P (S3 rule)",8.0,0.0
+VAL,M4b-A,8,,,0,0.0,NOT consistent,"equilibrium a F, P (S3 rule)",0.0,5.0
+VAL,M4b-B,8,,,1,0.125,NOT consistent,"equilibrium a F, P (S3 rule)",1.0,4.0

@@ -3,7 +3,9 @@
 #
 #   name      short name used on the command line:  python -m research run <name>
 #   module    what is run:  python -m <module> [args]      (always from the repository root)
-#   id        the step number used in the research log and in METHOD.md (wet antenna only)
+#   id        the step label used in docs/ROADMAP.md and in METHOD.md (wet antenna only): T0-T18 = the closed
+#             drying-tail exploration, S1-S5 = the reboot of 2026-10-13
+#   old_id    the number the step had before 2026-10-13 (reports and script docstrings still use it)
 #   what      one line: what the step does
 #   needs     release = the data release (pipeline/get_data.py); caches = the fit caches (pipeline/get_caches.py);
 #             pysr = the optional PySR package (Julia); earlier steps are always needed
@@ -45,35 +47,40 @@ steps:
   # ------------------------------------------------------------------ wet antenna, part 1: the drying tails (real data)
   - name: inventory
     module: research.wet_antenna.inventory
-    id: "0"
+    id: "T0"
+    old_id: "0"
     what: "What data there is for WAA: links, events, references; one example event"
     needs: [release]
     time: "10 s"
     report: research/wet_antenna/outputs/reports/inventory.md
   - name: extract_tails
     module: research.wet_antenna.extract_tails
-    id: "1"
+    id: "T1"
+    old_id: "1"
     what: "Every drying tail after every rain event, with no selection"
     needs: [release]
     time: "2.5 min"
     report: research/wet_antenna/outputs/reports/extract_tails.md
   - name: select_tails
     module: research.wet_antenna.select_tails
-    id: "2"
+    id: "T2"
+    old_id: "2"
     what: "Selection of usable tails by rules fixed in advance; test of the 'fast drop'"
     needs: []
     time: "1.5 min"
     report: research/wet_antenna/outputs/reports/select_tails.md
   - name: refine_selection
     module: research.wet_antenna.refine_selection
-    id: "2b"
+    id: "T3"
+    old_id: "2b"
     what: "Fixes after looking at the selected tails (start at the last rain trace, noisy baselines, flags)"
     needs: [release]
     time: "1 min"
     report: research/wet_antenna/outputs/reports/refine_selection.md
   - name: freeze_tail_set
     module: research.wet_antenna.freeze_tail_set
-    id: "2c"
+    id: "T4"
+    old_id: "2c"
     what: "Last fixes, then the frozen tail set v1 that all modelling uses"
     needs: [release]
     time: "45 s"
@@ -82,14 +89,16 @@ steps:
   # ------------------------------------------------------------------ wet antenna, part 2: testing the method on simulated tails
   - name: calibrate_simulator
     module: research.wet_antenna.calibrate_simulator
-    id: "3a"
+    id: "T5"
+    old_id: "3a"
     what: "A tail simulator with known drying laws and realistic noise, calibrated to the real tails"
     needs: [release]
     time: "2 min"
     report: research/wet_antenna/outputs/reports/calibrate_simulator.md
   - name: check_per_tail_fit
     module: research.wet_antenna.check_per_tail_fit
-    id: "3b-1"
+    id: "T6"
+    old_id: "3b-1"
     what: "Fit one tail at a time on simulated tails: can it find the true law? (no)"
     needs: [caches]
     time: "2.5 min"
@@ -97,7 +106,8 @@ steps:
     report: research/wet_antenna/outputs/reports/check_per_tail_fit.md
   - name: check_pooled_fit
     module: research.wet_antenna.check_pooled_fit
-    id: "3b-1b"
+    id: "T7"
+    old_id: "3b-1b"
     what: "Fit all tails together (pooled likelihood) on simulated tails"
     needs: [caches]
     time: "40 s"
@@ -105,7 +115,8 @@ steps:
     report: research/wet_antenna/outputs/reports/check_pooled_fit.md
   - name: stress_pooled_fit
     module: research.wet_antenna.stress_pooled_fit
-    id: "3b-1c"
+    id: "T8"
+    old_id: "3b-1c"
     what: "Stress test of the pooled fit: wrong noise model, honest starting points, faster laws"
     needs: [caches]
     time: "30 s"
@@ -113,7 +124,8 @@ steps:
     report: research/wet_antenna/outputs/reports/stress_pooled_fit.md
   - name: check_sindy
     module: research.wet_antenna.check_sindy
-    id: "3b-2"
+    id: "T9"
+    old_id: "3b-2"
     what: "Weak-form SINDy directly on simulated tails (failed)"
     needs: [caches]
     time: "15 s"
@@ -121,7 +133,8 @@ steps:
     report: research/wet_antenna/outputs/reports/check_sindy.md
   - name: check_free_curve
     module: research.wet_antenna.check_free_curve
-    id: "3b-3"
+    id: "T10"
+    old_id: "3b-3"
     what: "Two jumps: learn a free drying curve k(W) from all tails, then name its equation"
     needs: [caches]
     time: "20 s"
@@ -129,7 +142,8 @@ steps:
     report: research/wet_antenna/outputs/reports/check_free_curve.md
   - name: confirm_free_curve
     module: research.wet_antenna.confirm_free_curve
-    id: "3b-3b"
+    id: "T11"
+    old_id: "3b-3b"
     what: "Confirmation of the free curve on fresh simulated tails, with the rule written first"
     needs: [caches]
     time: "15 s"
@@ -137,7 +151,8 @@ steps:
     report: research/wet_antenna/outputs/reports/confirm_free_curve.md
   - name: check_discovery_method
     module: research.wet_antenna.check_discovery_method
-    id: "3b-3c"
+    id: "T12"
+    old_id: "3b-3c"
     what: "The rest of the discovery method on simulated tails: naming the curve, a step, model choice, bootstrap band"
     needs: [caches]
     time: "1.5 min"
@@ -145,7 +160,8 @@ steps:
     report: research/wet_antenna/outputs/reports/check_discovery_method.md
   - name: check_quantization
     module: research.wet_antenna.check_quantization
-    id: "3b-4"
+    id: "T13"
+    old_id: "3b-4"
     what: "Is the 0.3 dB quantization of RSL the cause of the false step? (no)"
     needs: [caches]
     time: "15 s"
@@ -155,12 +171,150 @@ steps:
   # ------------------------------------------------------------------ wet antenna, part 3: the real tails
   - name: fit_real_drying
     module: research.wet_antenna.fit_real_drying
-    id: "4"
+    id: "T14"
+    old_id: "4"
     what: "The drying law on the REAL tails (train events only): candidate laws, free curve, its equation, checks"
     needs: [caches]
     time: "30 s"
     no_cache: "40 min"
     report: research/wet_antenna/outputs/reports/fit_real_drying.md
+  - name: diagnose_stalled_tails
+    module: research.wet_antenna.diagnose_stalled_tails
+    id: "T15"
+    old_id: "4b"
+    what: "Why do some real tails stall or rise? Classes of the tails, outside evidence of wetting, tests of an antenna law, two fixes of the pooled fit"
+    needs: [release, caches]
+    time: "9 min"
+    no_cache: "40 min"
+    report: research/wet_antenna/outputs/reports/diagnose_stalled_tails.md
+  - name: characterise_tails
+    module: research.wet_antenna.characterise_tails
+    id: "T16"
+    old_id: "4c"
+    what: "What is in a drying tail, with no law fit: rise vs the same clock time on dry days, A vs path length per minute, three start rules"
+    needs: [release]
+    time: "3 min"
+    report: research/wet_antenna/outputs/reports/characterise_tails.md
+  - name: check_drying_after_rain
+    module: research.wet_antenna.check_drying_after_rain
+    id: "T17"
+    old_id: "4c2"
+    what: "Once no reference within 5 km shows rain, how fast does A fall? Lower thresholds, a placebo start, the same level before and after (no law fit)"
+    needs: [release]
+    time: "40 s"
+    report: research/wet_antenna/outputs/reports/check_drying_after_rain.md
+  - name: short_links
+    module: research.wet_antenna.short_links
+    id: "T18"
+    old_id: "7a"
+    what: "Very short links: is there enough data for Step 7, and do they show the fast first phase? Inventory per length class, SHORT against LONG tails matched on A_start, a first look at whole events (no law fit)"
+    needs: [release]
+    time: "25 s"
+    report: research/wet_antenna/outputs/reports/short_links.md
+
+  # ------------------------------------------------------------------ wet antenna, part 2 (reboot): system identification on short links
+  - name: system_id_ladder
+    module: research.wet_antenna.system_id_ladder
+    id: "S1"
+    what: "Rain in, attenuation out on the links below 1 km, whole events: fake check, then the model ladder M0-M4 judged by leave-one-event-out prediction"
+    needs: [release, caches]
+    time: "1 min"
+    no_cache: "2.5 h"
+    report: research/wet_antenna/outputs/reports/system_id_ladder.md
+  - name: system_id_s2
+    module: research.wet_antenna.system_id_s2
+    id: "S2"
+    what: "The WAA law on the links up to 3 km: four fake checks, the ladder M1 / M3 / M3D (level drift) / M4 / M5 (free surfaces) per length set and rain input, the length rule, the gauge rule, slow water or drift, the naming of M5 (E-SINDy, PySR)"
+    needs: [release, caches, pysr]
+    time: "1.5 min"
+    no_cache: "4.5 h"
+    report: research/wet_antenna/outputs/reports/system_id_s2.md
+  - name: system_id_s2b
+    module: research.wet_antenna.system_id_s2b
+    id: "S2b"
+    what: "Repair of the S2 model: P and F with plain increments >= 0 (the optimiser trap) and the fake check Tc again, the length rule again; M4b = M4 with tau_s bounded to 30-240 min (fake check, ladder M1 / M3 / M3D / M4b, after the rain); longer fits (8 starts, convergence table); WAA v2"
+    needs: [release, caches]
+    time: "1 min"
+    no_cache: "4.5 h"
+    report: research/wet_antenna/outputs/reports/system_id_s2b.md
+  - name: system_id_s3
+    module: research.wet_antenna.system_id_s3
+    id: "S3"
+    what: "Verification of WAA v2 (frozen S2b fits of M3 and M4b): S3.1 the model-free length test (A - c = I + s L in steady rain, all links of all lengths), S3.2 the VAL events (first read), S3.3 both directions of a link, S3.4 the only refit: M3 / M4b with the gauge input on the VAL gauge links"
+    needs: [release, caches]
+    time: "10 min"
+    no_cache: "1 h"
+    report: research/wet_antenna/outputs/reports/system_id_s3.md
+  - name: system_id_s3b
+    module: research.wet_antenna.system_id_s3b
+    id: "S3b"
+    what: "Repair after S3: the S2 frame (M3, M4b; M1 for scale) fitted on the TRAIN events of ALL link lengths so that P is pinned by L, free (A) and with the gauge time constants fixed (B); judged on VAL: the length test through the model, errors per length class, residual vs L, the wetting time"
+    needs: [release, caches, system_id_s3]
+    time: "15 min"
+    no_cache: "3 h"
+    report: research/wet_antenna/outputs/reports/system_id_s3b.md
+  - name: conditions_s4
+    module: research.wet_antenna.conditions_s4
+    id: "S4.1-S4.2"
+    what: "Why do events differ (frozen M4b-B of S3b, M3-B as a check): event facts and the split, 200 random 18-event halves of TRAIN against VAL, per-event rain scale k_e and antenna factor alpha_e (fake check first), which factor closes the VAL gap, radar vs gauge per event; S4.2 the conditions per event against k_e, alpha_e and the residual per band, night / day, temperature"
+    needs: [release, caches, system_id_s3, system_id_s3b]
+    time: "1 min"
+    no_cache: "15 min"
+    report: research/wet_antenna/outputs/reports/conditions_s4.md
+
+  - name: conditions_s4c
+    module: research.wet_antenna.conditions_s4c
+    id: "S4.3"
+    what: "Is the VAL gap the radar? The S3b length test (frozen M4b-B, M3-B as a check, no refit) with the radar rain divided by the event's radar / City-gauge ratio g_e (path-mean and pixel versions, or one pooled ratio per set), on TRAIN and VAL; the model-free I, s of VAL vs TRAIN after rescaling; a heavy-event fake check of the per-event factors and, if it passes, the heavy-event k_e, alpha_e against conditions and g_e"
+    needs: [release, caches, system_id_s3, system_id_s3b, conditions_s4]
+    time: "1 min"
+    no_cache: "10 min"
+    report: research/wet_antenna/outputs/reports/conditions_s4c.md
+
+  - name: final_s5a
+    module: research.wet_antenna.final_s5a
+    id: "S5a"
+    what: "WAA v3 (M4b-B) refitted on gauge-corrected rain R / g_e (TRAIN, all lengths; M3-B as a check) with cold event-bootstrap intervals; VAL on the raw and the corrected radar; the slow-leftover candidate M4c (fake check first, rule on VAL); closed forms for F(R) and P(R) chosen by AICc (PySR as a cross-check) and the plug-back check -> WAA v4 or the free curves kept; the S5b rules"
+    needs: [release, caches, system_id_s3, system_id_s3b, conditions_s4c]
+    time: "10 min"
+    no_cache: "5 h"
+    report: research/wet_antenna/outputs/reports/final_s5a.md
+
+  - name: tighten_s6
+    module: research.wet_antenna.tighten_s6
+    id: "S6"
+    what: "Tighten the equation of the final model M4b-B (gauge timing fixed) on gauge-corrected rain: the data funnel; the shared shapes F = A_band G(R), P = B_band H(R) judged on VAL V1 (used, optimistic); cold event bootstrap (main interval), profile likelihood with an autocorrelation-scaled threshold and timing sensitivity; fake-data identifiability of the kept model; closed forms where physics candidates and PySR proposals compete by AICc, with the plug-back check; the WAA candidate (S6). No TEST data"
+    needs: [release, caches, system_id_s3, conditions_s4c, final_s5a]
+    time: "10 min"
+    no_cache: "4 h"
+    report: research/wet_antenna/outputs/reports/tighten_s6.md
+
+  - name: validate_s7
+    module: research.wet_antenna.validate_s7
+    id: "S7"
+    what: "Validate the frozen S6 candidate without TEST (nothing refitted): a_link and the W level against L and the link metadata; short links on VAL (RMSE by class, length test, shared against band shapes, residual after the rain); long links without a power law (dry-path moments where A - c = W, paired links, the intercept from short-only and long-only links, P against ITU-R P.838 as a size reference); dew; leftovers against metadata and weather (Spearman + PySR with leave-one-out and a permutation null); radar against the City gauges by rate class; the return decision"
+    needs: [release, caches, baseline_dew, system_id_s3, conditions_s4c, final_s5a, tighten_s6]
+    time: "15 min"
+    no_cache: "1.5 h"
+    report: research/wet_antenna/outputs/reports/validate_s7.md
+
+  - name: return_s6b
+    module: research.wet_antenna.return_s6b
+    id: "S6b"
+    what: "The one allowed return to S6 (S7 reason (d)): diagnose the after-rain misfit cause by cause (radar end of rain, faster drying, weather and preceding rain, F at heavy rain); refinements fitted on TRAIN (tau_f_dry free; tau_f_dry with the hourly wind), each with a fake check; the box-A rule on VAL (used, optimistic); every effect of S2-S7 in box A, B or C; the VAL error budget; the candidate for S8 with its sha256. No TEST data"
+    needs: [release, caches, baseline_dew, system_id_s3, conditions_s4c, final_s5a, tighten_s6, validate_s7]
+    time: "20 min"
+    no_cache: "3 h"
+    report: research/wet_antenna/outputs/reports/return_s6b.md
+
+  - name: test_s8
+    module: research.wet_antenna.test_s8
+    id: "S8"
+    what: "Freeze, then read TEST once: comparison models fitted on TRAIN (B0 no WAA, B1 constant WAA while it rains, B2 WAA without memory); the freeze file with the hashes, committed before TEST is read (the first run writes it and stops); then the TEST baselines (frozen baseline code), the TEST link-events (TRAIN and TEST links), g_e from the TEST events' City gauges, pass rules P1-P5 and the information items. Run twice: freeze, then TEST"
+    needs: [release, caches, baseline_table, baseline_dew, system_id_s3, conditions_s4c, final_s5a, tighten_s6, validate_s7, return_s6b]
+    time: "15 min"
+    no_cache: "45 min"
+    report: research/wet_antenna/outputs/reports/test_s8.md
 
 # Scripts that are run by another step (not on their own): listed so that the test knows they are not forgotten.
 run_by_other_steps:

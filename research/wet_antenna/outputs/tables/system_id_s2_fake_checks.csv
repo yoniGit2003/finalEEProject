@@ -1,0 +1,22 @@
+truth,replicate,what,tau_wet,tau_dry,d,verdict,tau_s,s_b,rmse_M5,rmse_M3,PASS
+Ta,0,M3 fitted with the exact input,2.9923,7.9658,0.0,,,,,,True
+Ta,0,M3 fitted with the smooth input,6.3565,6.9884,0.0,,,,,,True
+Ta,1,M3 fitted with the exact input,3.0238,7.9675,0.0,,,,,,True
+Ta,1,M3 fitted with the smooth input,6.3363,7.023,0.0,,,,,,True
+Ta,2,M3 fitted with the exact input,2.9959,8.0491,0.0,,,,,,True
+Ta,2,M3 fitted with the smooth input,6.3099,7.0164,0.0,,,,,,True
+Tb,0,slow-part rule,,,,DRIFT-LIKE,0.2121,0.047,,,True
+Tb,1,slow-part rule,,,,DRIFT-LIKE,9.2481,0.0484,,,True
+Tb,2,slow-part rule,,,,DRIFT-LIKE,28.9722,0.0472,,,True
+Tb2,0,slow-part rule,,,,WATER-LIKE,272.9945,0.0439,,,True
+Tb2,1,slow-part rule,,,,WATER-LIKE,279.1383,0.0452,,,True
+Tb2,2,slow-part rule,,,,WATER-LIKE,272.9188,0.0413,,,True
+Tc,0,M3 fitted on S<1,2.7615,7.6908,2.0,,,,,,False
+Tc,0,M3 fitted on S<3,2.6207,7.0435,2.0,,,,,,False
+Tc,1,M3 fitted on S<1,2.8318,7.4561,2.0,,,,,,False
+Tc,1,M3 fitted on S<3,2.7288,7.195,2.0,,,,,,False
+Tc,2,M3 fitted on S<1,2.78,7.6046,2.0,,,,,,False
+Tc,2,M3 fitted on S<3,2.7125,7.2152,2.0,,,,,,False
+Td,0,M5 fitted on M3 data,7.0502,8.0316,1.0,,,,0.2802,0.2787,False
+Td,1,M5 fitted on M3 data,4.5518,7.2562,2.0,,,,0.2826,0.2821,False
+Td,2,M5 fitted on M3 data,4.6844,7.3479,2.0,,,,0.2691,0.2689,False

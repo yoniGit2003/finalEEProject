@@ -1,0 +1,4 @@
+threshold_db,t_half_S1_minus_placebo_min,t_half_lo,t_half_hi,ratio30_S1_minus_placebo,ratio30_lo,ratio30_hi,pairs_in_both_sets
+0.25,2.0,-2.0,5.0,0.031,-0.006,0.052,1485
+0.4,3.0,-2.0,7.0,0.028,-0.014,0.064,597
+0.6,6.0,0.0,20.0,0.093,0.046,0.154,286

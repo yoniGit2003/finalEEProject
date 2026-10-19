@@ -1,0 +1,5 @@
+length,TRAIN link-events,TRAIN links,VAL link-events,VAL links,TEST links (split table)
+L < 1 km,1718,41,531,41,13
+1-3 km,4935,103,1654,103,32
+L > 3 km,3127,62,1065,62,19
+all,9780,206,3250,206,64

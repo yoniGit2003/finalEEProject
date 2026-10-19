@@ -1,0 +1,25 @@
+group,tails,with_control,exceed,share_exceed,median_rise_db,median_control_p95_db,median_control_days,median_control_end_change_db
+all tails,429,429,90,0.21,0.14,0.3,46.0,0.0
+class: decays,240,240,41,0.171,0.13,0.299,46.0,0.0
+class: plateau-then-decays,64,64,22,0.344,0.21,0.316,47.0,0.0
+class: rises,36,36,24,0.667,0.452,0.366,45.0,0.0
+class: flat / slow,89,89,3,0.034,0.09,0.324,46.0,0.0
+night,73,73,15,0.205,0.163,0.359,46.0,0.0
+day,356,356,75,0.211,0.137,0.3,46.0,0.0
+dew risk: yes,300,300,54,0.18,0.13,0.297,46.0,0.0
+dew risk: no,60,60,17,0.283,0.139,0.345,46.0,0.0
+dew risk: unknown,69,69,19,0.275,0.267,0.375,46.0,0.0
+"class: decays, night",18,18,4,0.222,0.125,0.309,47.0,0.0
+"class: decays, day",222,222,37,0.167,0.13,0.297,46.0,0.0
+"class: plateau-then-decays, night",12,12,1,0.083,0.07,0.282,47.0,0.0
+"class: plateau-then-decays, day",52,52,21,0.404,0.222,0.317,46.5,0.0
+"class: rises, night",18,18,10,0.556,0.472,0.428,44.5,0.0
+"class: rises, day",18,18,14,0.778,0.403,0.321,45.0,0.0
+"class: flat / slow, night",25,25,0,0.0,0.05,0.375,46.0,0.0
+"class: flat / slow, day",64,64,3,0.047,0.104,0.314,45.5,0.0
+"night, dew risk: yes",6,6,2,0.333,0.035,0.3,46.5,0.0
+"night, dew risk: no",18,18,2,0.111,0.079,0.373,47.0,0.0
+"night, dew risk: unknown",49,49,11,0.224,0.243,0.375,46.0,0.0
+"day, dew risk: yes",294,294,52,0.177,0.132,0.297,46.0,0.0
+"day, dew risk: no",42,42,15,0.357,0.185,0.339,45.0,0.0
+"day, dew risk: unknown",20,20,8,0.4,0.31,0.376,45.5,0.0

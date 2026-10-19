@@ -489,3 +489,1264 @@ wet_antenna:
     raw_rate:                # model-free look at the drying rate per level (information; added after the first run)
       smooth_min: 7          # centred rolling mean of A per tail before the central difference
       edges_db: [0.35, 0.5, 0.7, 1.0, 1.4, 2.0, 2.83, 6.0]
+
+  diagnose_stalled_tails:    # step 4b (diagnose_stalled_tails.py): why do some real tails stall or rise? TRAIN tails of v1 only.
+                             #   EVERY RULE BELOW WAS FIXED BEFORE LOOKING AT THE RESULT; nothing is re-run with changed rules.
+    window_min: 60           # the first 60 min of each tail are classified and tested
+    context_before_min: 30   # the outside data are also read this long before t0_trace (gallery; rain just before)
+    classes:                 # class of a tail, from A smoothed with a centred median of `smooth_min` minutes;
+      smooth_min: 5          #   A_start = mean of A over minutes 0 .. start_minutes - 1. The classes are tried IN THIS ORDER:
+      start_minutes: 5       #   1 "decays": A < half x A_start within half_within_min AND never more than rise_db above
+      half: 0.5              #     its running minimum; 2 "plateau-then-decays": A >= plateau_level x A_start for at
+      half_within_min: 30    #     least plateau_min minutes, then A < half x A_start before the window ends;
+      rise_db: 0.3           #   3 "rises": A > A_start + rise_db at any time; 4 "flat / slow": everything else.
+      plateau_level: 0.8     #   Plateau duration = minutes until A < plateau_level x A_start; transition level = A then.
+      plateau_min: 10
+    part_a:                  # outside evidence that something still wets the antenna (H1)
+      near_km: 5.0           # "radar nearby": radar R_max > 0 on the path of another link with its midpoint this close
+      overlap_min: 30        # coherence: the other tails of the event that start within this many minutes of the tail
+      short_km: 2.0          # rise amount vs path length: short = L below this
+      or_min: 2.0            # H1 rule: odds ratio of "any moisture evidence" (non-decaying vs decaying tails) above this
+                             #   with the event-bootstrap interval excluding 1 ...
+      coherence_ratio: 2.0   # ... OR the coherence share of the non-decaying tails above this many times that of the decaying
+      interval: [5, 95]      # event-bootstrap interval (90 %)
+      boot_reps: 1000
+      seed: 21
+    part_b:                  # tests of a law of the antenna itself (H2); H2 is supported if at least `need` of B1, B2, B3, B5 hold
+      need: 2
+      b1_iqr_db: 0.3         # B1: IQR of the transition level of the plateau-then-decays tails below this
+      min_events_per_link: 2 # B2: links with tails in at least this many events
+      shuffles: 1000         # B2: shuffles of the classes among the links INSIDE each event
+      b2_p: 0.05
+      b3_rho: 0.3            # B3: Spearman of the plateau duration with A_start or with the rain amount above this, interval excluding 0
+      b5_slope: -0.3         # B5: slope of log k vs log A below this in the decaying tails of the events not flagged rise-heavy
+      b5_min_minutes: 200    # B5: an A bin enters the slope if it holds this many tail-minutes and k > 0
+      b5_boot_reps: 200
+      a_start_split_db: 1.5  # B5: split of the not-rise-heavy events by A_start
+      time_split_min: {"minutes 0-14": [0, 15], "minutes 15-59": [15, 60]}   # B5, ADDED AFTER THE FIRST LOOK (information,
+                             #   no rule): k per level in the first minutes of a tail and in the rest
+      seed: 22
+      master:                # B4: every tail = one curve M shifted in time (and stretched): A_i(t) = M(f t + d)
+        ref_db: 0.8          # first alignment: the minute at which the smoothed A falls below this level is tau = 0
+        tau_range: [-90, 150]            # the master curve lives on this range of minutes
+        stretch_grid: [0.4, 2.5, 13]     # stretch f: from, to, number of values (log-spaced); one f per link when building
+        shift_step_min: 1
+        min_tails: 10        # the master is the median of at least this many tails at a minute, else undefined there
+        min_overlap_min: 15  # a tail is placed only if this many of its minutes fall where the master is defined ...
+        min_cover: 0.7       # ... and at least this share of its minutes
+        iterations: 3
+    part_c:                  # the two fixes of pooled_fit.py: start bound for F1 / F4 (C1), fitted noise multiplier (C2)
+      fake_truths: [m1, m3, m6]          # C2 check on cached datasets of confirm_free_curve (step 3b-3b) ...
+      fake_reps: [0, 1]                  # ... two per truth; "before" = the cached menu fits of check_discovery_method part C
+      own: {m1: F1, m3: F3, m6: F6}
+      tol: 0.3               # same winner, and the parameters of the truth's own candidate within +-30 % of before
+      mult_range: [0.8, 1.25]            # "the fitted multiplier near 1"
+      cv_seed: 4400          # as step 4: the two halves of the events for the penalty cross-validation
+      typical_nfev: {menu: 400, curve_factor: 1.3}   # time projection only
+    time_budget_h: 2.5       # cut order if the projection is longer: the two per-class sets of C3, then B4 with one shared
+                             #   stretch, then the wind columns of part A
+    gallery: {per_class: 4, seed: 31}
+
+  characterise_tails:        # step 4c (characterise_tails.py), Phase A: what is in a drying tail? TRAIN tails of v1 only, NO law fit.
+                             #   EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN (2026-10-12); nothing is re-run with changed rules.
+                             #   The classes and the rise of a tail use the settings of step 4b (diagnose_stalled_tails.classes);
+                             #   the model-free k(A) uses fit_real_drying.raw_rate (smoothing and bins).
+    window_min: 60           # the first 60 min after a start are looked at
+    before_min: 30           # A is also read this long BEFORE t0_trace (part A2, gallery)
+    a1:                      # A1 (Q1): is the rise of a tail more than the same sub-link does at the same clock time on dry days?
+      min_hours_since_wet: 12    # certified dry control window: link_state dry in the whole window, at least this long since
+                                 #   the last wet bin of the link, and not inside a run of dry_jumps.csv of the sub-link
+      min_valid_share: 0.9       # ... and at least this share of its 1 min tl_mean values present
+      min_control_days: 5        # a tail with fewer control days has "no control"
+      control_percentile: 95     # the rise of the tail is compared with this percentile of the rises of its control days
+      drift_max_share: 0.25      # RULE: "rises are mostly drift" if at most this share of the class-"rises" tails exceed
+      water_min_share: 0.60      #   their control percentile; "mostly water (not drift)" if at least this share; else "mixed"
+      dew_ratio: 2.0             # RULE: the exceeding tails are "dew-like" if their dew-risk share (where humidity is known)
+                                 #   is more than this many times that of the decaying tails
+      timing_tails: 20           # A1 is timed on this many tails first; the projection decides the cuts
+    a2:                      # A2 (Q2): per minute m, A(m) = alpha_event(m) + beta(m) L + gamma(m) [f >= band_split] + error
+      band_split_ghz: 25.0
+      boot_reps: 1000            # event bootstrap (whole events drawn with replacement)
+      interval: [5, 95]          # 90 % interval of beta(m)
+      power_minutes: [-30, -10]  # POWER CHECK: the interval of beta must lie above 0 at some minute in this range (during
+                                 #   rain); if not: "no power", and A2 is not interpreted
+      run_min: 10                # RULE: N = the first minute >= 0 from which the interval of beta contains 0 for at least
+                                 #   this many consecutive minutes
+      seed: 41
+    a3:                      # A3 (Q3): three start rules, none of them uses a law fit. S0 = t0_trace of v1.
+      s1_near_km: 5.0            # S1 strict dry: the v1 rain trace on the path OR radar R_max > 0 on the path of a link with
+                                 #   its midpoint this close (the release has no radar cells around a path) ...
+      s1_city_gauge_km: 5.0      #   ... OR a City gauge within this distance of the path > 0 ...
+      s1_smhi_gauge_km: 10.0     #   ... OR the SMHI gauge > 0 if it is within this distance;
+      s1_buffer_min: 10          #   the start is the end of the last such 5 min bin between t0 and the first dry bin, plus this
+      s2_search_min: 60          # S2 signal onset: the minute of the maximum of the 5 min median of A in [t0_trace, + this]
+                                 #   (never beyond the next rain trace on the path or the step 2b end)
+      s2_rise_flag_db: 0.3       #   flag "rise before onset" if that maximum is at least this far above A_start at t0_trace
+      shape_minutes: [10, 30, 60]    # median A / A_start at these minutes after the start
+      rate_min_minutes: 200      # k(A): an A bin enters the slope if it holds this many tail-minutes and k > 0 (as 4b, B5)
+      rate_boot_reps: 200        # event bootstrap of the slope
+      seed: 42
+    gallery: {tails: 8, seed: 43, after_min: 90}
+    time_budget_h: 1.5       # cut order if the projection is longer: A2 on the alternative set, then the night / day split
+                             #   of A1 by dew risk, then S2
+
+  drying_after_rain:         # step 4c2 (check_drying_after_rain.py): once NO reference within 5 km shows rain (from S1 on), how
+                             #   fast does A fall? TRAIN pairs only, no law fit. EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN
+                             #   (2026-10-12); nothing is re-run with changed rules. S0, S1 come from tails_starts.csv (step 4c);
+                             #   "rain within 5 km" is the S1 definition of characterise_tails.a3.
+    window_min: 60           # a tail is looked at for its first 60 min after a start
+    thresholds_db: [0.25, 0.4, 0.6]   # a tail is kept if A at the start (mean of the first 5 min) is at least this ...
+    main_threshold_db: 0.4            #   (the rule below is read at this threshold)
+    min_usable_min: 30                # ... and it is at least this long.
+                             # Three starts per pair, each with the v1 end rules counted from that start (next rain trace on the
+                             #   path, rise cut v2, the step 2b ends):
+                             #   S1       = no rain within 5 km, + 10 min; ALSO ends at the next rain within 5 km
+                             #   placebo  = S0 + a delay drawn from the S1 - S0 delays of OTHER pairs; no "rain nearby" condition
+                             #   S0       = t0_trace of v1; no "rain nearby" condition
+    placebo_seed: 51
+    shape_minutes: [10, 30, 60]       # median A / A_start at these minutes (A = mean over 5 min from there)
+    half: 0.5                # time to half: the first minute at which the centred 5 min median of A is below half x A_start.
+                             #   A tail that ends (or reaches 60 min) before that is CENSORED there; t_half of a set = the
+                             #   Kaplan-Meier median (60 if the curve does not reach one half within 60 min), so that the
+                             #   shorter S1 windows are not counted as "never halves"
+    rate:                    # model-free k(A), the B5 method of step 4b, from 0.25 dB up
+      smooth_min: 7
+      edges_db: [0.25, 0.35, 0.5, 0.7, 1.0, 1.4, 2.0, 2.83, 6.0]
+      min_minutes: 200       # an A bin is used if it holds this many tail-minutes (and k > 0 for the slope)
+      boot_reps: 200         # event bootstrap of the slope
+    boot_reps: 1000          # event bootstrap of the difference S1 - placebo (t_half, A / A_start at 30 min)
+    interval: [5, 95]        # 90 % interval
+    rule:                    # THE RULE, read at main_threshold_db:
+      slow_ratio: 2.0        #   "drying after the rain ends is SLOW" if t_half(S1) >= slow_ratio x t_half(S0 set of the same
+                             #     threshold: tails started at S0 with A >= threshold and >= min_usable_min) AND the interval
+                             #     of t_half(S1) - t_half(placebo) lies above 0;
+      same_tol: 0.3          #   "SAME speed" if t_half(S1) is within +-same_tol of t_half(placebo) AND that interval contains 0;
+                             #   otherwise "unclear".
+    a3_window_min: 120       # A3: minutes of the v1 alternative-set tails (from S0) up to this, split into "before S1" (rain
+                             #   within 5 km) and "from S1 until rain comes back within 5 km"; the same split at the placebo start
+    timing_pairs: 200        # the pair pass is timed on this many pairs first
+    time_budget_min: 45      # cut order if the projection is longer: threshold 0.25, then A3
+    seed: 52
+    gallery: {pairs: 8, seed: 53, before_min: 30, after_min: 120}
+
+  short_links:               # step 7a (short_links.py): very short links: is there enough data for Step 7, and do they show the
+                             #   fast first phase of a tail? TRAIN links and TRAIN events only, NO law fit. EVERY RULE BELOW WAS
+                             #   WRITTEN BEFORE THE RUN (2026-10-13); nothing is re-run with changed rules. Seen before writing:
+                             #   only COUNTS (links and pairs per length class and band, from the release and tails_starts.csv),
+                             #   no drop, ratio or curve. The classes of a tail use diagnose_stalled_tails.classes (step 4b).
+    length_edges_km: [0.6, 1.0, 2.0, 4.0]      # length classes: < 0.6, 0.6-1, 1-2, 2-4, >= 4 km
+    bands_ghz: {"<25 GHz": [0, 25], "28 GHz": [25, 30.5], "32 GHz": [30.5, 35], "38 GHz": [35, 45]}   # by the sub-link frequency
+    part1:                   # inventory. "Rain on the link" = a wet bin of link_state inside a TRAIN event
+      enough:                # RULE "enough for Step 7" for a length cut: all three must hold for the links below the cut
+        min_links: 10        #   links with at least one pair that passes the v1 exclusions
+        min_events: 20       #   TRAIN events with at least one such pair
+        min_pairs: 200       #   (event, sub-link) pairs that pass the v1 exclusions
+    part2:                   # the two phases of a tail, by path length. Tails = TRAIN pairs of tails_starts.csv, start S0,
+                             #   v1 end rules (the S0 columns of that file)
+      a_start_min_db: 0.4    # kept if A_start (mean of the first 5 min from S0) >= this ...
+      min_usable_min: 60     # ... and the usable length is at least this
+      follow_min: 180        # a tail is followed for at most this long (where it lasts)
+      value_window_min: 5    # "A at minute k" = mean of A over [k, k + this)
+      fast_window: [15, 20]  # fast-phase drop = A_start - mean A over these minutes; relative fast drop = that / A_start
+      slow_window: [50, 60]  # slow-phase ratio = mean A over these minutes / mean A over the fast window
+      late_window: [170, 180]    # late ratio = mean A over these minutes / mean A over the fast window (tails that last)
+      ratio_floor_db: 0.15   # the two ratios of a TAIL are computed only if its mean A over the fast window is at least this
+                             #   (half an RSL step; below it a ratio is noise). The pooled ratio of a class (sum over its
+                             #   tails / sum) uses all tails that reach the later window.
+      shape_minutes: [5, 10, 20, 30, 60, 120, 180]   # median A / A_start at these minutes
+      short_max_km: 1.0      # SHORT = L below this
+      very_short_max_km: 0.6 # also compared if this class has >= very_short_min_tails tails from >= very_short_min_events events
+      very_short_min_tails: 30
+      very_short_min_events: 8
+      long_min_km: 2.0       # LONG = L at least this
+      a_start_bins_db: [0.4, 0.6, 0.8, 1.0, 1.4, 2.0, 3.0]   # A_start bins of the matching (the last bin is open)
+                             # MATCHING. A stratum = a set of tails that are compared like for like. Inside a stratum every
+                             #   LONG tail gets the weight (number of SHORT tails) / (number of LONG tails), so that both
+                             #   groups have the same distribution over the strata; strata without both groups are left
+                             #   out. The value of a group = its weighted MEDIAN. Two matchings:
+                             #     "event and A_start bin" (the same event AND the same A_start bin)
+                             #     "A_start bin"           (the same A_start bin, any event)
+      main_matching_min_share: 0.5   # THE RULE IS READ on "event and A_start bin" if it keeps at least this share of the
+      main_matching_min_tails: 30    #   SHORT tails and at least this many of them; otherwise on "A_start bin"
+      band_min_tails: 20     # the comparison is repeated inside every band with at least this many SHORT and LONG tails
+      band_uneven_share: 0.15    # "bands unevenly spread": the share of some band differs by more than this between SHORT and LONG
+      path_before_min: 30    # expected path rain of a tail: L x mean over the 5 min bins of this long before S0 of
+                             #   a R_mean^b (ITU-R P.838-3 at the sub-link's frequency and polarization; R_mean = radar on the path)
+      boot_reps: 1000        # event bootstrap (whole events drawn with replacement)
+      interval: [5, 95]      # 90 % interval
+      seed: 71
+      rule:                  # THE RULE. r_S, r_L = matched relative fast drop of SHORT and of LONG; D = r_S - r_L with its
+                             #   interval; E = the difference path rain alone would give = matched (expected path rain /
+                             #   A_start) of SHORT minus that of LONG.
+        antenna_ratio: 0.7   #   "fast phase = antenna" if r_S >= this x r_L AND the width of the interval of D is below
+        power_fraction: 0.5  #     this x |E| (enough power);
+        path_ratio: 0.4      #   "fast phase = path rain" if r_S <= this x r_L;
+                             #   otherwise, or if the power condition fails, "undecided", with the reason.
+                             #   The slow phase gets the same comparison, for information only (no rule).
+      timing_pairs: 200      # Part 2 is timed on this many pairs first
+    part3:                   # whole events on the SHORT links (< part2.short_max_km): a first look, descriptive, no rule.
+                             #   One row per TRAIN pair that passes the v1 exclusions. "Rain" = the link's wet phase in the
+                             #   event: from wet_start to t0 (= last_wet_end) of tails_index.csv.
+      before_min: 60         # A(t) and the radar are looked at from this long before the rain ...
+      after_min: 180         # ... to this long after it
+      smooth_min: 5          # peaks and crossings are read on the centred median of A over this many minutes
+      min_peak_db: 0.6       # timing and drying numbers only for pairs whose peak of A is at least this (two RSL steps)
+      r_peak_bins_mmh: [0.1, 0.5, 1, 2, 5, 10]   # bins of the peak radar R_mean on the path during the rain (ends open)
+      after_minutes: [30, 60, 120, 180]          # A / A_peak at these minutes after the rain ends
+      half: 0.5              # time to half = first minute after the peak with the smoothed A below this x the peak
+      last_shower_gap_min: 30    # ADDED AFTER THE FIRST RUN (part 3 is descriptive, no rule): the rain on a link in one event is
+                             #   often several showers over many hours, so the peak of the whole rain lies hours before its end.
+                             #   The timing numbers are now taken on the LAST SHOWER = the wet bins of link_state at the end of
+                             #   the rain, bridging gaps of up to this many minutes. Parts 1 and 2 are unchanged.
+      rise:                  # does A rise before the radar shows rain? t_r = the first 5 min bin with radar R_max > 0 on
+        rise_db: 0.3         #   the path at or after (wet_start - before_min). "Early rise" = the smoothed A is at least
+        run_min: 5           #   rise_db above its earlier level for run_min minutes in a row, the run starting between
+        search: [30, 5]      #   search[0] and search[1] minutes BEFORE t_r; earlier level = median A over
+        level: [60, 30]      #   [t_r - level[0], t_r - level[1]). Only pairs with no radar trace on the path in the
+        placebo_shift_min: 60    # hour before t_r. PLACEBO (false-alarm rate): the same test this many minutes
+                             #   earlier, for pairs with no radar trace in the two hours before t_r.
+      gallery: {events: 12, seed: 72}
+    time_budget_min: 45      # cut order if the projection is longer: the Part 3 gallery to 6 events, then the < 0.6 km
+                             #   subclass, then the 3 h ratios
+    gallery_cut: 6
+
+  system_id:                 # step S1 (system_id_ladder.py, library system_id.py): rain R(t) in, attenuation A(t) out, on the links
+                             #   below 1 km, whole events. The model ladder M0-M4, judged by leave-one-event-out prediction.
+                             #   TRAIN events only. EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN (2026-10-13); nothing is re-run
+                             #   with changed rules. Seen before writing: only the counts of links and pairs (T18).
+                             #   RULE OF THE REBOOT: WAA is never estimated by subtracting a power-law rain term. ITU-R P.838 is
+                             #   used here ONLY to build the fake data and as a size reference in the report.
+    data:
+      max_length_km: 1.0     # links shorter than this (both sub-links)
+      max_offset_std_db: 0.3 # sub-link exclusion as in v1 (baseline_uncertainty.csv); also: baseline present, sub-link status
+                             #   good, use_in_waa_main, the link has a wet bin (link_state) in the TRAIN event
+      before_min: 120        # window of a link-event (= one event on one sub-link): from this long before the first wet bin of
+      after_min: 180         #   the link in the event to this long after its last wet bin; it never starts before the end of
+                             #   the link's previous wet bin and stops at the link's next wet bin (so no rain of another
+                             #   event is inside); minutes inside an event that is not TRAIN are not used; if the sub-link
+                             #   has a TSL step inside the window, the window is cut just before the first step (the
+                             #   link-event is dropped if no wet bin is left)
+      min_valid_share: 0.8   # dropped if less than this share of its 5 min bins has A (a bin needs 3 of its 5 minutes)
+      max_radar_nan_share: 0.1   # dropped if more than this share of its 5 min bins has no radar; a remaining bin without
+                             #   radar gets R = 0 as input and is left out of the loss
+      offset_window_min: [120, 30]   # offset c of a link-event, NOT fitted, the same for every model: median of the 1 min A
+      offset_min_minutes: 30         #   over the dry minutes (link_state dry) from 120 to 30 min before the first wet bin;
+                             #   with fewer than this many such minutes c = 0 and the link-event is flagged
+      bands_ghz: {"28 GHz": [25, 30.5], "38 GHz": [35, 45]}
+      gauge_max_dist_m: 1000 # "City gauge within 1 km" (distance to the path)
+    model:                   # A_pred(t) = W(t) + L * P_band(R(t - d)) + c, simulated at 1 min, compared on 5 min means
+      knots_mmh: [0, 0.5, 1, 2, 5, 10, 20, 40]   # P_band and F_band: piecewise linear, 0 at R = 0, non-negative
+                             #   increments, constant above the last knot
+      lag_grid_min: [-10, 10]    # d = one radar lag for all links, whole minutes in this range, chosen in training
+      a_prior_sd: 0.5        # ridge on log a_link: penalty 0.5 * (huber_delta / a_prior_sd)^2 * (log a_link)^2 per link
+                             #   (a Gaussian prior with sd 0.5 when the residuals have the size of huber_delta)
+      huber_delta_db: 0.3    # Huber loss on the 5 min residuals (one RSL step), summed over the points
+      bounds: {log_increment: [-12, 3], log_a: [-3, 3], tau_min: [0.2, 600], logit_phi: [-6, 6]}
+      w_initial: 0.0         # W at the window start
+      starts:                # optimiser starts, generic (the same for real and fake data). F and P start as straight
+                             #   lines up to f_top (dB) and p_top (dB/km) at the last knot; a_link = 1
+        g1: {f_top: 2.0, p_top: 4.0, tau: 10, tau_wet: 5, tau_dry: 20, phi: 0.5, tau_f_wet: 5, tau_f_dry: 10, tau_s: 60}
+        g2: {f_top: 5.0, p_top: 1.0, tau: 3, tau_wet: 2, tau_dry: 8, phi: 0.8, tau_f_wet: 2, tau_f_dry: 5, tau_s: 30}
+        g3: {f_top: 1.0, p_top: 10.0, tau: 30, tau_wet: 10, tau_dry: 60, phi: 0.3, tau_f_wet: 10, tau_f_dry: 30, tau_s: 120}
+        g4: {f_top: 3.0, p_top: 0.3, tau: 1, tau_wet: 1, tau_dry: 30, phi: 0.6, tau_f_wet: 1, tau_f_dry: 20, tau_s: 200}
+      maxiter: {start: 300, lag: 80, fold: 60, boot: 50}    # L-BFGS-B iterations: a start; one lag of the lag profile
+                             #   (warm start from the neighbouring lag); a leave-one-event-out fit; a bootstrap refit
+                             #   (fold, boot and lag_candidates were lowered from 100, 80 and 3 after TIMING one fit, before
+                             #   any model was judged: a start converges within 300 iterations, a warm-started refit creeps)
+      lag_candidates: 2      # HOW A FIT IS DONE. All TRAIN events: every start at d = 0; from the best one the lag profile
+                             #   (every d of the grid, each warm-started from its neighbour); every start again at the best
+                             #   d; the best loss wins. A leave-one-event-out fit (and a bootstrap refit): the training loss
+                             #   of the profile solutions is computed for every d on that training set, the lag_candidates
+                             #   best d are refitted on the training set (warm start), the lowest training loss wins. A
+                             #   held-out event never enters the choice of d or of any parameter.
+    judge:                   # leave-one-event-out: predict the link-events of the held-out event from R alone; a_link from
+                             #   training (a link that is not in the training events gets a_link = 1)
+      main_metric: "mean over the held-out events of the RMSE of A over all 5 min points of the event"
+      after_windows_min: [[0, 60], [60, 180]]   # RMSE in these windows after the last wet bin; the integral of A - c over
+                             #   0-180 min after the last wet bin (dB min); the peak error (largest A of the link-event)
+      boot_reps: 1000        # event bootstrap of the per-event errors, paired between models
+      interval: [5, 95]      # 90 %
+      seed: 81
+      order: [M0, M1, M2, M3, M4]   # STOP RULE: best = lowest main metric; CHOSEN = the first model in this order whose paired
+                             #   difference to the best (model - best) has a 90 % interval that contains 0
+      param_boot_reps: 100   # event-bootstrap refits of the chosen model and of M1 for the parameter intervals
+    fake:                    # the fake check, run first with the same code
+      truths:
+        M3: {tau_wet: 3, tau_dry: 15}
+        M4: {phi: 0.7, tau_f_wet: 3, tau_f_dry: 10, tau_s: 60}
+      f_top_db: 1.5          # F(R) = f_top * (1 - exp(-R / f_scale_mmh)), both bands
+      f_scale_mmh: 2.0
+      path: "ITU-R P.838-3 at the median frequency of the band's sub-links, vertical"   # P of the fake data only
+      a_sd: 0.3              # a_link log-normal
+      lag_min: 3
+      noise_variance_factor: 3.0   # white + AR(1) per sub-link from sim_noise_params.csv, variances times this
+      rsl_step_db: 0.3       # quantization of the 10 s values (6 per minute, random grid phase per link-event)
+      offset: "a true offset ~ N(0, offset_std of the sub-link) per link-event; c is then estimated by the data rule"
+      replicates: 3
+      seed_base: 9000
+      pass:                  # PASS per truth: the chosen model is the true one in >= min_chosen replicates AND the median
+        min_chosen: 2        #   (over the replicates) of every tau and of phi in the fit of the true rung on all events is
+        tol: 0.3             #   within +-tol of the truth, and d within +-lag_tol_min
+        lag_tol_min: 2
+    sensitivity:             # real data, the chosen model and M1 only; information, not part of the rule
+      a_max_length_km: 0.6   # (a) only links shorter than this
+      b_max_rain_mmh: 2.0    # (b) the loss counts only 5 min points whose radar bin has R <= this; no path term
+      c_min_links: 5         # (c) City gauge (1 min rate of the nearest gauge within 1 km) as input, if at least this many links
+      d_one_minute: true     # (d) the loss on 1 min A instead of 5 min means
+      e_tau_per_band: true   # (e) separate time constants (and phi) per band
+    checks:                  # descriptive, on the held-out predictions of the chosen model
+      shower_gap_min: 30     # a shower = wet bins of link_state with gaps up to this bridged (as T18)
+      min_peak_db: 0.6       # after the last shower: link-events whose observed peak of A - c in that shower is at least this
+      fast_window_min: [15, 20]   # fast drop = A at 0-5 min after the last wet bin minus A at these minutes
+      fast_min_start_db: 0.4      #   for link-events with A - c at 0-5 min after the last wet bin at least this
+      length_split_km: 0.6
+    gallery: {link_events: 8, seed: 82}
+    time_budget_h: 3.0       # cut order if the projection is longer: sensitivity (d), then (e), then fake replicates 3 -> 2
+
+  system_id_s2:              # step S2 (system_id_s2.py, library system_id.py): the WAA law on the links up to 3 km, the slow part,
+                             #   and the discovery rung M5. Radar rain or City-gauge rain in, A out, whole events. TRAIN events only.
+                             #   EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN (2026-10-13); nothing is re-run with changed rules.
+                             #   Seen before writing: the S1 report, and the COUNT of TRAIN links per band and length (28 GHz
+                             #   75, 32 GHz 16, 38 GHz 90 links below 3 km; 52 links with a City gauge within 1 km). No S2 fit.
+                             #   RULE OF THE REBOOT: WAA is never estimated by subtracting a power-law rain term. ITU-R P.838 is
+                             #   used ONLY to build the fake data and as a size reference in the report.
+    data:                    # the same rules as S1 (`system_id.data`): windows, exclusions, offset c. Only these differ:
+      max_length_km: 3.0     # the MAIN set S<3; the nested sets below are subsets of its link-events
+      length_sets_km: {"S<1": 1.0, "S<2": 2.0, "S<3": 3.0}
+      bands_ghz: {"28 GHz": [25, 30.5], "32 GHz": [30.5, 35], "38 GHz": [35, 45]}
+      min_band_links: 8      # a band with fewer links in S<3 is merged with the band whose centre frequency is nearest
+                             #   (the report says so). A band that has no link in a smaller set has no numbers there.
+      max_offset_std_db: 0.3
+      before_min: 120
+      after_min: 180
+      min_valid_share: 0.8
+      max_radar_nan_share: 0.1
+      offset_window_min: [120, 30]
+      offset_min_minutes: 30
+      gauge_max_dist_m: 1000 # GAUGE input: the 1 min rate of the nearest City gauge within this distance of the path. A 5 min
+                             #   point with a missing gauge minute is left out of the loss. The RADAR run "on the same
+                             #   link-events" uses the same link-events AND the same 5 min points.
+    model:                   # A_pred(t) = W(t) + L * P_band(R(t - d)) + c (+ drift), simulated at 1 min, judged on 5 min means
+      knots_mmh: [0, 0.5, 1, 2, 5, 10, 20, 40]   # P_band and F_band, as S1
+      lag_grid_min: [-4, 6]  # S1 found d between -1 and 3 for every rung; the grid is narrower than S1 (-10..10) to save time
+      a_prior_sd: 0.5        # as S1
+      huber_delta_db: 0.3    # as S1
+      bounds: {log_increment: [-12, 3], log_a: [-3, 3], tau_min: [0.2, 600], logit_phi: [-6, 6], drift_db_h: [-0.5, 0.5],
+               log_g_increment: [-14, -1.2], h_max_slope_per_min: 1.0, log_band_scale: [-2, 2]}
+      w_initial: 0.0
+      ladder: [M1, M3, M3D, M4, M5]   # M1 static; M3 one store (tau_wet / tau_dry); M3D = M3 + a level drift; M4 two stores
+                             #   (as S1); M5 the discovery rung. M0 and M2 of S1 are not repeated.
+      drift:                 # M3D: A_pred gets + b_e * (t - t_ref) for every link-event e, b_e in dB per hour, not driven by rain
+        t_ref_min_before_rain: 75    # t_ref = the middle of the offset window (c is measured there, so the drift is 0 there)
+        s_b_start_db_h: 0.03         # b_e ~ N(0, s_b^2): penalty 0.5 * (huber_delta / s_b)^2 * b_e^2 per link-event (the same
+        em_rounds: 2                 #   convention as the ridge on log a_link). s_b is FITTED on the training data by EM
+                             #   rounds after the first fit: s_b^2 = mean over link-events of (b_e^2 + posterior variance of
+                             #   b_e), the posterior variance from the quadratic approximation with residual sd = huber_delta;
+                             #   then a refit. s_b of the fit on all events is kept in the folds and bootstrap refits.
+                             # In the judge "from R alone" a held-out link-event has b_e = 0 (its drift cannot be known from
+                             #   the rain). See `judge.drift_allowed` for the second way of judging.
+      m5:                    # dW/dt = s_band * a_link * g(R, W) - h(W)   (dB per minute)
+        r_knots_mmh: [0, 0.5, 1, 2, 5, 10, 20]   # g: values on this grid, bilinear in between, constant above the last R knot
+        w_knots_db: [0, 0.5, 1, 2, 3, 5]         #   and above the last W knot; g(0, W) = 0; g never falls with R (increments
+                             #   in R are exp(parameter)). g may rise or fall with W.
+                             # h: piecewise linear on the W knots (a first-order spline), h(0) = 0, never falling, continued
+                             #   with its last slope above the last knot.
+                             # ONE g and ONE h for all bands (S1: 28 and 38 GHz alike); s_band = a free factor per band (1
+                             #   for the first band); a_link multiplies g, with the same ridge as F in S1.
+        substeps_per_min: 2  # explicit Euler steps per minute (the rain is constant within the minute); W is kept >= 0
+        smooth_grid: [1, 100, 10000]   # lambda: penalty lambda * (points / 1e5) * (sum of the squared second differences of g
+                             #   along R and along W and of h along W, on the knot index, in dB/min). Chosen by the lowest
+                             #   leave-one-event-out RMSE on S<3 with the radar input; the same lambda is then used for
+                             #   every other set and input. (The choice uses the held-out errors once: a small optimism.)
+        smooth_grid_cut: [10, 1000]    # the grid if the first time cut is applied
+        smooth_fake: 100     # lambda of the fake check T-d (the middle of the grid)
+      starts:                # generic optimiser starts, the same for real and fake data (S1 starts). M5 start: g(R, W) =
+                             #   (f_top * min(R, 20) / 20 / tau_wet) * (1 - 0.5 W / 5), h = W / tau_dry
+        g1: {f_top: 2.0, p_top: 4.0, tau: 10, tau_wet: 5, tau_dry: 20, phi: 0.5, tau_f_wet: 5, tau_f_dry: 10, tau_s: 60}
+        g2: {f_top: 5.0, p_top: 1.0, tau: 3, tau_wet: 2, tau_dry: 8, phi: 0.8, tau_f_wet: 2, tau_f_dry: 5, tau_s: 30}
+        g3: {f_top: 1.0, p_top: 10.0, tau: 30, tau_wet: 10, tau_dry: 60, phi: 0.3, tau_f_wet: 10, tau_f_dry: 30, tau_s: 120}
+        g4: {f_top: 3.0, p_top: 0.3, tau: 1, tau_wet: 1, tau_dry: 30, phi: 0.6, tau_f_wet: 1, tau_f_dry: 20, tau_s: 200}
+      maxiter: {start: 200, lag: 60, polish: 200, em: 100, fold: 40, boot: 30}
+                             # HOW A FIT IS DONE (cheaper than S1, because S<3 has 4-5 times the link-events). All events:
+                             #   every start at d = 0; from the best one the lag profile (each d warm-started from its
+                             #   neighbour); a polish at the best d; for M3D the EM rounds. A leave-one-event-out fit and a
+                             #   bootstrap refit: warm start from the fit on all events, with ITS lag d (S1: the folds chose
+                             #   the same d in 39-42 of 42 folds), capped at `fold` / `boot` iterations. Links that are not
+                             #   in the training events get a_link = 1.
+    judge:                   # leave-one-event-out, as S1; the errors are bootstrapped over events, paired between models
+      main_metric: "mean over the held-out events of the RMSE of A over all 5 min points of the event, predicted from R alone"
+      after_windows_min: [[0, 60], [60, 180]]
+      boot_reps: 1000
+      interval: [5, 95]
+      seed: 91
+      order: [M1, M3, M3D, M4, M5]   # STOP RULE (as S1): best = lowest main metric; CHOSEN = the first model in this order
+                             #   whose paired difference to the best has a 90 % interval that holds 0. The chosen model of S2
+                             #   = the one chosen on S<3 with the radar input. Also reported: the best model on the
+                             #   60-180 min window and on the shower peaks.
+      shower_gap_min: 30     # a shower = wet bins of link_state with gaps up to this bridged (as S1 / T18)
+      shower_min_peak_db: 0.6    # PEAK metric: over the showers whose observed peak of A - c is at least this: predicted peak
+                             #   - observed peak; the median over all showers, interval by resampling the events
+      param_boot_reps: 100   # event-bootstrap refits for the parameter intervals (M3 and the chosen model, every set and input)
+      drift_allowed:         # the SECOND way of judging, only for the question "slow water or drift" (section slow_part):
+                             #   for EVERY model, the held-out residuals of each link-event may keep one linear drift
+                             #   b_e (t - t_ref): b_e = the ridge estimate with the prior s_b of M3D (fit on all events of
+                             #   that set). All metrics are computed again after it is removed. It is NOT a prediction from R
+                             #   alone (it uses the held-out A), and it is the same allowance for every model.
+        use: true
+    slow_part:               # SLOW WATER OR DRIFT? Read on S<3 with the radar input, by this rule:
+                             #   WATER-LIKE: in the drift-allowed judge M4 is better than M3D (the 90 % interval of
+                             #     RMSE(M3D) - RMSE(M4) lies above 0): a slow store driven by the rain explains more than a
+                             #     free linear drift per link-event.
+                             #   DRIFT-LIKE: M4 is not better than M3D there, AND the mean of the fitted slopes b_e of M3D
+                             #     (fit on all events) has a 90 % event-bootstrap interval that holds 0: slow level
+                             #     changes of both signs, not tied to the rain.
+                             #   SLOW RISE, FORM UNDECIDED: M4 is not better than M3D there, but the mean slope is above 0:
+                             #     the level rises through the events on average; a ramp does as well as a store.
+                             #   Also reported: the Spearman correlation of b_e with the radar rain depth of the link-event.
+      m5_with_drift: true    # if the verdict is not WATER-LIKE, M5 is also fitted with the drift (M5D, S<3 radar) and both
+                             #   are shown in the drift-allowed judge. Optional: the first thing dropped if the run is late.
+    length_rule:             # ARE THE WAA NUMBERS THE SAME WITH LONGER LINKS? Radar input; M3 and the chosen model, fitted on
+      key_rain_mmh: [0.5, 2, 5]      #   S<1, S<2, S<3. Key numbers: the wetting and the drying time constant, and F per band
+                             #   at these rain rates (F(5) = the plateau). For M4 the time constants of the fast store; for
+                             #   M5 the matching numbers computed from g and h (t_wet = time to 63 % of the level reached
+                             #   under a constant 2 mm/h from W = 0; t_dry = time for W to fall from 1 dB to 0.37 dB without
+                             #   rain; the level reached after 2000 min of constant rain, per band).
+                             # AGREE if every key number of S<3 lies inside the 90 % event-bootstrap interval of S<1, for
+                             #   the chosen model (M3 is reported next to it; if the chosen model has none of these numbers,
+                             #   M3 decides). Bands without links in S<1 are not part of the rule. Then S<3 is the main
+                             #   result. DISAGREE otherwise: S<1 is the main result and the difference is a finding.
+      residual_bins_km: [0, 0.5, 1, 2, 3]   # mean held-out residual (predicted - observed) of the chosen model on S<3 during
+      residual_min_rain_mmh: 2.0            #   rain, per length bin, with event-bootstrap intervals; also for R >= this.
+                             #   TREND if the intervals of the shortest and of the longest bin do not overlap.
+    gauge_rule:              # M3 and the chosen model with the GAUGE input, and with the RADAR input on the same link-events
+                             #   and points. The wetting speed and the peaks are READ FROM THE GAUGE RUN. Drying from both:
+      dry_agree_tol: 0.3     #   "agree" if the drying time constants of the two runs differ by at most this share.
+    fake:                    # the fake checks, run first with the same code. Noise as S1: white + AR(1) per sub-link, variance
+                             #   x 3, 0.3 dB quantization of the 10 s values, a true offset per link-event, c by the data rule.
+      f_top_db: 3.3          # F(R) = f_top * (1 - exp(-R / f_scale)), all bands (S1: about 3.3 dB, reached by about 2 mm/h)
+      f_scale_mmh: 1.0
+      a_sd: 0.3              # a_link log-normal
+      path: "ITU-R P.838-3 at the median frequency of the band's sub-links, vertical"
+      noise_variance_factor: 3.0
+      rsl_step_db: 0.3
+      replicates: 3
+      seed_base: 9500
+      tol: 0.3               # "recovered" = within +-30 % of the truth
+      truths:
+        Ta:                  # THE INPUT EXPLANATION. Truth M3 driven by the 1 min GAUGE rain of the gauge link-events (a real
+                             #   rain series with structure below 5 min). Fitted with M3 twice: with the exact input, and with
+                             #   a SMOOTHED input = the 5 min block mean of the true rain times a log-normal factor per 5 min
+                             #   bin (sd smooth_noise). PASS = with the exact input tau_wet and tau_dry are recovered AND with
+                             #   the smoothed input tau_wet is at least slow_factor times the truth (median over replicates):
+                             #   then "the slow wetting of S1 is the radar" is validated. Else that reading is "not validated".
+          model: M3
+          set: gauge
+          tau_wet: 3
+          tau_dry: 8
+          lag_min: 0
+          smooth_noise: 0.3
+          slow_factor: 2.0
+        Tb:                  # DRIFT. Truth M3 + a linear drift per link-event, b_e ~ N(0, drift_sd^2). Radar input, the
+                             #   link-events of S<1 (cheap; the question does not depend on the length). Ladder M3D, M4.
+                             #   PASS = the slow_part rule says DRIFT-LIKE in >= 2 of 3 replicates here AND WATER-LIKE in
+          model: M3          #   >= 2 of 3 replicates of Tb2. Else the real verdict on the slow part is "not validated".
+          set: "S<1"
+          tau_wet: 3
+          tau_dry: 8
+          lag_min: 2
+          drift_sd_db_h: 0.02
+        Tb2:                 # the counterpart of Tb: a true slow STORE (M4), no drift
+          model: M4
+          set: "S<1"
+          phi: 0.7
+          tau_f_wet: 3
+          tau_f_dry: 8
+          tau_s: 300
+          lag_min: 2
+        Tc:                  # LENGTH. Truth M3 with P = the ITU size, all link-events of S<3 (radar input). M3 fitted on S<1
+                             #   and on S<3, each with boot_reps bootstrap refits. PASS = on S<3 the medians (over the
+                             #   replicates) of F at 0.5 / 2 / 5 mm/h and of P at 2 / 5 / 10 mm/h, every band, are within
+                             #   +-30 % of the truth AND the mean relative width of their intervals is smaller on S<3 than on
+                             #   S<1 (bands present in S<1). Else the length rule's result is "not validated".
+          model: M3
+          set: "S<3"
+          tau_wet: 3
+          tau_dry: 8
+          lag_min: 2
+          boot_reps: 40
+        Td:                  # DISCOVERY. Truth M3 on the link-events of S<1 (radar input); M5 and M3 fitted and judged.
+                             #   In the form of M5 the truth is h(W) = W / tau_dry and g(R, 0) = F(R) / tau_wet. PASS = (median
+                             #   over the replicates) the M5 numbers t_wet, t_dry and the level reached at 0.5 / 2 / 5 mm/h
+                             #   are within +-30 % of the truth, AND the held-out RMSE of M5 is not above that of M3 by more
+                             #   than rmse_margin in >= 2 of 3 replicates. Else M5 on the real data is "not validated".
+          model: M3
+          set: "S<1"
+          tau_wet: 3
+          tau_dry: 8
+          lag_min: 2
+          rmse_margin: 0.02  # relative
+    naming:                  # NAMING THE M5 SURFACES: only if M5 is the chosen model or its paired difference to the best
+                             #   holds 0 (S<3, radar). Samples: g and h of M5 on its grid (g at the knots with R > 0).
+      g_library: "R, R^2, R / (1 + R / R0) for R0 in {0.5, 1, 2, 5}, W, R W, exp(-R / R0), and each R-term times (1 - W / Wm) for Wm in {2, 3, 4, 5}"
+      h_library: "W, W^2, max(W - c, 0) for c in {0.2, 0.5, 1}"
+      r0_mmh: [0.5, 1, 2, 5]
+      wm_db: [2, 3, 4, 5]
+      h_switch_db: [0.2, 0.5, 1]
+      esindy: {bags: 200, lambda_grid: [0.02, 0.05, 0.1, 0.2], keep_share: 0.6, seed: 93}   # the elimination of sindy.py on
+                             #   bootstrap samples of the grid points (weights = how often the data visit the cell); lambda by
+                             #   the smallest formula whose error on the surface is within 10 % of the best; a term is kept
+                             #   if it is selected in at least keep_share of the bags
+      pysr: {operators: ["+", "-", "*", "/", "exp"], maxsize: 15, niterations: 40, seed: 94}   # cross-check only
+      refit: "the named formula as a model M5n (its coefficients free, a_link, P and d as M5), judged by the same judge; it counts only if its paired difference to M5 holds 0"
+    checks:
+      min_peak_db: 0.6       # after the last shower: link-events whose observed peak of A - c in that shower is at least this
+    gallery: {link_events: 8, seed: 92}    # held-out link-events with the GAUGE input, observed peak >= checks.min_peak_db
+    time_budget_h: 5.0       # one M3 fit on S<3 is timed first. Cut order if the projection is longer: the M5 smoothness grid
+                             #   to 2 values, then S<2, then fake Td, then fake replicates 3 -> 2. (M5D is optional, see above.)
+  system_id_s2b:             # step S2b (system_id_s2b.py, library system_id.py): repair and finish the S2 model. Three items:
+                             #   (1) the P / F trap, (2) a bounded slow store M4b, (3) longer fits. TRAIN events only.
+                             #   EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN (2026-10-14); nothing is re-run with changed rules.
+                             #   Seen before writing: the S2 report (all of it) and one diagnostic of the trap (S2 report,
+                             #   section 11). No S2b fit.
+                             #   RULE OF THE REBOOT: WAA is never estimated by subtracting a power-law rain term. P is free
+                             #   (never falling, P(0) = 0) and told apart from W only by L. ITU-R P.838 is used to build the
+                             #   fake data and as one of several optimiser STARTING values of P, never as a correction.
+    data: "as system_id_s2.data (the same windows, exclusions, offset rule, bands, sets S<1 / S<2 / S<3 radar, gauge links GAUGE + radar)"
+    model:                   # system_id_s2.model, with these changes:
+      increments: linear     # ITEM 1: the increments of P and F between the knots are plain parameters >= 0 (L-BFGS-B
+      increment_bounds: [0.0, 30.0]   #   bounds), no exp(). Same knots, P(0) = F(0) = 0, never falling.
+      tau_s_m4b_min: [30, 240]        # ITEM 2: M4b = M4 with tau_s bounded to 30-240 min (S2: the leftover lasts 1-2 h)
+      ladder: [M1, M3, M3D, M4b]      # the candidates (stop rule in this order)
+      reference: [M4]        # the free-tau_s M4 is fitted and shown, NOT a candidate
+      p_starts: {P0: 0.0, Phalf: 0.5, Pitu: 1.0, Pdouble: 2.0}   # P starts = factor x the ITU-R P.838 size of the band's median
+                             #   frequency (vertical) at the knots; STARTING values only
+      start_plan: [[g1, P0], [g2, Phalf], [g3, Pitu], [g4, Pdouble], [g1, Pitu], [g2, Pdouble], [g3, P0], [g4, Phalf]]
+                             # ITEM 3: 8 starts per model (the generic starts g1-g4 of system_id_s2.model.starts for F, the
+                             #   time constants and a = 1; each P start twice). All at d = 0; then the lag profile and the
+                             #   polish from the best, as S2.
+      maxiter: {start: 1000, lag: 300, polish: 1000, em: 500, fold: 120, boot: 30}
+                             # 5 x the S2 cap for the fits on all events, 3 x for the leave-one-event-out folds. The event-
+                             #   bootstrap refits for the parameter intervals keep the S2 cap (30; warm starts from the fit).
+                             #   CONVERGED = L-BFGS-B ends with success (ftol 1e-10, gtol 1e-6) before the cap (maxfun =
+                             #   1.5 x maxiter). A fit that does not converge is kept and marked in the convergence table.
+    judge:                   # as system_id_s2.judge (leave-one-event-out, 1000 event-bootstrap draws, seed 91, 90 %), except:
+      order: [M1, M3, M3D, M4b]   # STOP RULE: best = lowest held-out RMSE; CHOSEN = the first model in this order whose paired
+                             #   difference to the best has a 90 % interval that holds 0. The chosen model of S2b = the one
+                             #   chosen on S<1 with the radar input (the MAIN set, from the S2 length rule); S<2, S<3 and the
+                             #   gauge sets are reported.
+      also_reported: "RMSE 60-180 min after the last wet bin, the integral 0-180 min after the last wet bin (predicted / observed; 1 = right), the after-last-shower curve, the shower peaks (not in the rule)"
+      param_boot_reps: 100   # event-bootstrap refits: M3 and M4b on every set; the chosen model as well if it is neither
+    length_rule:             # as system_id_s2.length_rule: key numbers = the wetting and drying time constants (M3: tau_wet,
+                             #   tau_dry; M4b: tau_f_wet, tau_f_dry) and F per band at 0.5 / 2 / 5 mm/h, on S<1, S<2, S<3 (radar).
+                             #   AGREE if every key number of S<3 lies inside the 90 % interval of S<1, read on the chosen
+                             #   model (M3 if M1 is chosen; M3D has the keys of M3). P at 2 / 5 / 10 mm/h is shown, not in the rule.
+    fake:                    # as system_id_s2.fake (noise, quantization, offsets, a_link sd 0.3, F truth 3.3 (1 - exp(-R / 1))).
+      replicates: 3
+      Tc:                    # ITEM 1 check. The SAME data as S2 (truth M3, tau_wet 3, tau_dry 8, lag 2, P = the ITU size, all
+        seed: [9500, 3]      #   link-events of S<3; seed [9500, 3, replicate]; the S<1 part for the S<1 fit). M3 fitted on S<3
+        tol: 0.3             #   and on S<1 with the S2b fitting. PASS = on S<3 (median over the replicates) every F and P knot
+        knots_mmh: [0.5, 1, 2, 5, 10]   #   at these rain rates, every band, is within +-30 % of the truth, AND P(2 mm/h) is at
+        p2_min_share: 0.5    #   least this share of the truth in every band (no longer near 0). Else Item 1 failed.
+      Te:                    # ITEM 2 check. Truth M4b: phi 0.8, tau_f_wet 3, tau_f_dry 10, tau_s 90 min, lag 2, P = the ITU
+        model: M4b           #   size, on the link-events of S<1 (radar input); seed [9500, 10, replicate]. M3, M3D and M4b
+        phi: 0.8             #   fitted and judged leave-one-event-out. PASS = the stop rule on [M3, M3D, M4b] chooses M4b in
+        tau_f_wet: 3         #   >= 2 of 3 replicates AND the median fitted tau_s is within +-30 % of 90 min. Else Item 2
+        tau_f_dry: 10        #   failed.
+        tau_s: 90
+        lag_min: 2
+        seed: [9500, 10]
+        tol: 0.3
+    compare_s2: "Item 3: per set the chosen model and the key numbers of S2 (its tables) against S2b; how many starts and folds went past the S2 caps (200 / 40 iterations). The change mixes the new increments and the longer fits."
+    time_budget_h: 5.0       # one M4b start on S<3 is timed first (to convergence or the cap); the projection assumes every
+                             #   start needs that many evaluations and every fold the cap. Cut order if the projection is
+                             #   longer: S<2, then the gauge-links radar comparison, then fake replicates 3 -> 2.
+  system_id_s3:              # step S3 (system_id_s3.py, library system_id.py): VERIFICATION of WAA v2. The S2b fits of M3 and M4b
+                             #   (TRAIN events, radar input, S<1 and S<3) are FROZEN: no refit except S3.4. VAL events are read here
+                             #   for the first time. TEST links and TEST events are never read.
+                             #   EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN (2026-10-15), before any VAL data was read and before
+                             #   the all-length dataset was built. Seen before writing: the S2b report (all of it).
+                             #   STANDING RULE: WAA is never estimated by subtracting a power-law rain term. The path part is
+                             #   separated only through its dependence on L (L -> 0) at matched rain conditions. ITU-R P.838 may
+                             #   appear only as a size reference line on a figure, never to correct data.
+    data:                    # as system_id_s2.data (the same A = TL - baseline v2, c = dry median 120-30 min before the first wet
+                             #   bin, link_state windows, exclusions, the three bands 28 / 32 / 38 GHz of S2b), except:
+      links: "every link of the TRAIN link split (split_link == train), both sub-links; TEST links never"
+      max_length_km_all: 100.0   # S3.1: links of ALL lengths (the bands keep only 25-45 GHz sub-links)
+      max_length_km_val: 3.0     # S3.2-S3.4: links shorter than this (= the S<3 of S2b); S3.2 also reports L < 1 km
+      val_short_km: 1.0
+    frozen:                  # the S2b fits used (research/.cache/wet_antenna/system_id_s2b/real_<set>_<model>.pkl), each with its lag d
+      fits: {"M3, S<1": [S1, M3], "M3, S<3": [S3, M3], "M4b, S<1": [S1, M4b], "M4b, S<3": [S3, M4b]}
+      scale_baseline: {"M1, S<1": [S1, M1], "M1, S<3": [S3, M1]}   # S3.2: the static M1 of S2b, for scale only
+      a_link: "the fit's a_link of the link (cml_id) if the link is in that fit's TRAIN set, else 1 (counted). S2b has ONE a_link per link, shared by both sub-links."
+    length_test:             # S3.1, MODEL-FREE: no model enters the bins, the medians or the fit
+      rain_classes_mmh: [[0.5, 1], [1, 2], [2, 5], [5, 10], [10, 20]]   # radar path-mean R of the 5 min bin in [lo, hi)
+      wet_threshold_mmh: 0.3 # "wet" bin = radar path-mean R >= this
+      wet_before_min: 20     # the bin counts only if the 20 min before it (the 4 previous 5 min bins) are all wet
+      prev_window_min: 15    # and the mean R of the 15 min before it (3 previous bins) is within prev_ratio x the bin's R
+      prev_ratio: [0.5, 2.0]
+      bin_needs: "valid A (3 of 5 minutes) and radar; inside the link-event window"
+      per_link_event: "per link-event and class: the median of (A - c) and the median of R over its kept bins (>= 1 bin)"
+      fit: "per band and class: (A - c) = I + s * L (Huber, IRLS, k = 1.345, scale = MAD of the residuals / 0.6745, re-estimated each iteration, 50 iterations); check: I + s * L + q * L^2"
+      huber_k: 1.345
+      irls_iterations: 50
+      min_link_events: 10    # a (band, class) cell is fitted only with at least this many link-events and 3 distinct lengths
+      boot_reps: 1000        # event bootstrap: the events are resampled with replacement (all link-events of a drawn event go in)
+      seed: 95
+      interval: [5, 95]
+      verdict:               # per model AND fit set (M3 / M4b x S<1 / S<3): F_model = median(a_link of that fit) * F_band(R_cell),
+                             #   P_model = P_band(R_cell), R_cell = the median over the cell's link-events of their median R
+                             #   (linear interpolation on the knots). A cell is ELIGIBLE if it has >= min_short_links distinct links
+                             #   with L < short_km and the fit set has the band. CONSISTENT if in >= share of the eligible cells
+                             #   F_model lies inside the 90 % interval of I AND P_model inside the 90 % interval of s. A model
+                             #   "survives" S3.1 if it is consistent for its S<1 fit (the main set of S2b); the S<3 fit is reported.
+        min_short_links: 8
+        short_km: 1.0
+        share: 0.6667
+      model_through_test: true   # information, NOT in the verdict: the same bins and the same fit on the frozen model's own
+                             #   prediction (A_pred - c); shows what I and s the test would give if that model were the truth
+                             #   (it accounts for W not being at its equilibrium a F(R) after 20 min).
+      l0: "I / s per (band, class) with its bootstrap interval (an effective extra length in km); described, no form forced"
+      robustness:
+        r15: "the 5 min radar R replaced by its centred 15 min mean (bins t-1, t, t+1) everywhere (classes, wet rule, stability rule)"
+        late_bins_min: 30    # only bins whose previous 30 min (6 bins) are all wet
+      itu_reference: "ITU-R P.838-3 at the band's median frequency, vertical: a dash-dot line s = k R^alpha on the figure, labelled 'ITU size, reference only'; never used on data"
+    val:                     # S3.2: the frozen fits applied to the VAL events, predicted from the rain alone
+      metrics: "as S2b: RMSE of A (all, during rain, 0-60, 60-180 min after the last wet bin), shower-peak error, after-rain integral pred / obs, the median after-last-shower curve; event-bootstrap 90 % (1000 draws, seed 91)"
+      compare_to: "the TRAIN leave-one-event-out numbers of S2b (system_id_s2b_ladder.csv) of the same model and fit set"
+      length_test_again: "S3.1 on the VAL events only (all lengths), the same thresholds and verdict rule"
+    directions:              # S3.3: the two sub-links of a link share the antennas
+      a_link: "S2b fits ONE a_link per link (both sub-links share it), so its Spearman between directions is 1 by construction and is NOT a test. Substitute without refit: per sub-link the median over its TRAIN link-events (S<3) of observed / predicted peak of A - c (leave-one-event-out M3 and M4b of S2b, link-events with observed peak >= 0.6 dB); Spearman between the directions"
+      quantities: "per link-event pair (same link, same event, both sub-links kept): the observed integral of A - c 0-180 min after the last wet bin (dB min) and the observed peak of A - c (dB); Spearman between directions; median ratio direction 2 / direction 1 (pairs with both values > 0)"
+      sets: "VAL, L < 3 km (the test); TRAIN, L < 3 km (information)"
+      min_peak_db: 0.6
+      expect_spearman: 0.6   # written before the run: Spearman >= 0.6 means "the two directions see the same wetting"
+    gauge_val:               # S3.4: THE ONLY REFIT. M3 and M4b with the GAUGE input (City gauge within 1 km, as S2) on the VAL
+                             #   gauge link-events (L < 3 km); 8 starts (S2b start_plan), caps as S2b (start 1000, lag 300, polish
+                             #   1000), lag grid of S2 (-4..6); no leave-one-event-out; event-bootstrap refits as S2b (100 draws,
+                             #   30 iterations, warm start).
+      boot_reps: 100
+      expect:                # written before the run
+        M3: {tau_wet: [2, 5], tau_dry: [8, 18]}
+        M4b: {tau_f_wet: [2, 5], tau_f_dry: [8, 18]}
+      compare_to: "the TRAIN gauge fits of S2b (gauge links, GAUGE input), and F(0.5 / 2 / 5) per band"
+    time_budget_h: 3.0       # one S3.4 M4b start is timed first and the run projected; if over the budget, cut the S3.4 bootstrap
+                             #   first (100 -> 30 draws, then none); the report says what was cut
+  system_id_s3b:             # step S3b (system_id_s3b.py, libraries system_id.py and length_test.py): REPAIR after S3. The S2 frame
+                             #   A_pred(t) = W(t) + L * P_band(R(t - d)) + c fitted on the TRAIN events of ALL link lengths, so that P
+                             #   is pinned by L (S3: from links < 1 km alone the F / P split is not identifiable). Radar input.
+                             #   EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN (2026-10-15). Seen before writing: the S3 report (all of
+                             #   it). VAL is the judge (the S3b fits never see it); TRAIN numbers are information (the fit saw them).
+                             #   STANDING RULE: WAA is never estimated by subtracting a power-law rain term. The path part is
+                             #   separated only through its dependence on L at matched rain. ITU-R P.838 only as a size reference
+                             #   line and as one of the optimiser starting values of P, never to correct data.
+    data: "the S3 all-length datasets (research/.cache/wet_antenna/system_id_s3/data_train_all.npz, 9780 TRAIN link-events, and data_val_all.npz, 3250 VAL link-events): the S2 rules for A, c, link_state windows and exclusions; bands 28 / 32 / 38 GHz"
+    model: "as system_id_s2b.model: knots 0-40 mm/h, P and F with plain increments >= 0 (bounds 0-30), a_link per link with the ridge (sd 0.5), Huber 0.3 dB, lag grid -4..6 min, tau_s of M4b in 30-240 min; 8 starts = the S2b start_plan (g1-g4 x the 4 P starts 0 / 0.5 / 1 / 2 x the ITU size); caps start 1000, lag 300, polish 1000"
+    fits:                    # name: [model, variant]
+      "M3-A": [M3, A]        # A = free: every parameter fitted
+      "M3-B": [M3, B]        # B = gauge timing: the time constants FIXED at the TRAIN gauge values of S2b; only F, P, a_link, d fitted
+      "M4b-A": [M4b, A]
+      "M4b-B": [M4b, B]
+      "M1": [M1, A]          # static, for scale
+    fixed_B:                 # S2b, gauge links, GAUGE input (rounded as in the WAA v2 box)
+      M3: {tau_wet: 2.9, tau_dry: 12.8}
+      M4b: {tau_f_wet: 2.6, tau_f_dry: 10.3, phi: 0.72, tau_s: 240}
+    leave_one_event_out: false   # no folds: the judge is VAL and the length test
+    boot_reps: 30            # event-bootstrap refits (warm start, 30 iterations, as S2b): TOO NARROW along flat directions (S2b)
+    time_budget_h: 5.0       # one M4b-A start on the all-length set is timed first; projection = 8 starts + lag profile (10 lags at
+                             #   1/3 of a start) + polish (1/2) + the bootstrap (30 x 30 iterations), on the worker processes. Cut order
+                             #   if over: M1, then starts 8 -> 5 (the first 5 of the start plan), then variant B of M4b.
+    checks:
+      length_test_through: # CHECK 1 (THE RULE, read on VAL; TRAIN = information). On the S3.1 steady-rain bins (the same rule, config
+                             #   system_id_s3.length_test) fit (A_pred - c) = I + s L with the same Huber line and event bootstrap.
+                             #   CONSISTENT = the model's I inside the observed I interval AND the model's s inside the observed s
+                             #   interval in >= 2/3 of the eligible cells (>= 8 links under 1 km; the band must be in the fit). Also
+                             #   reported: the S3 equilibrium comparison (median a_link x F against I, P against s), and the same check
+                             #   for the S2b fits of S3 (continuity).
+        share: 0.6667
+      val_by_length:         # CHECK 2: the frozen S3b fits on VAL, from the rain alone (no refit; every VAL link is in TRAIN: a_link
+        length_bins_km: [[0, 1], [1, 3], [3, 100]]   #   from TRAIN; links not in the fit would get 1, counted). Metrics as S3.2. The S2b
+                             #   fits on the same VAL points where their links exist: S<1 fits on L < 1 km, S<3 fits on L < 1 and 1-3 km.
+      residual_vs_L:         # CHECK 3 (VAL): per link-event the median of (A - A_pred) over its 5 min points during rain (link_state
+        bins_km: [0, 0.5, 1, 2, 3, 5, 100]   #   wet, valid A); per band and L bin the median over link-events with an event bootstrap
+        boot_reps: 1000      #   (90 %). FLAT if the intervals of the shortest and the longest bin (each with >= min_links links)
+        seed: 96             #   overlap; else TREND (sign = longest - shortest).
+        min_links: 5
+      timing_short_min: 10   # CHECK 4: "short" = tau_wet (M3-A) / tau_f_wet (M4b-A) with the radar input <= this (a few minutes to
+                             #   about 10 min); compared with the gauge values of S2b (2.9 / 2.6) and S3.4 (1.8 / 2.0).
+    candidate: "WAA v3 candidate = among the fits CONSISTENT in check 1 on VAL, the one with the lowest VAL error (mean over the VAL events of the RMSE of A over all 5 min points, all link lengths). None consistent -> 'none' with what fails. M1 is not a candidate."
+  conditions_s4:             # steps S4.1 + S4.2 (conditions_s4.py, libraries system_id.py and length_test.py): WHY DO EVENTS DIFFER?
+                             #   S3b: every event-independent fit fails the VAL length test because VAL attenuates ~0.6-0.7 x per mm/h
+                             #   of radar rain. Here: the event facts and the split, a random-split test of that gap, per-event
+                             #   factors on the FROZEN M4b-B of S3b (M3-B as a check), radar vs gauge, then (S4.2) the conditions.
+                             #   EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN (2026-10-15). Seen before writing: the S3b report and
+                             #   parameters, the column list of the events table (two TRAIN rows shown while finding the columns),
+                             #   the store list of the release. No per-event factor had been computed. TEST events and TEST links
+                             #   are never read (the S3 datasets hold only TRAIN links x TRAIN / VAL events).
+                             #   STANDING RULE: WAA is never estimated by subtracting a power-law rain term. The path part is
+                             #   separated only through its dependence on L at matched rain. ITU-R P.838 only as a size reference,
+                             #   never to correct data. The rain factor k_e is estimated from the data-learned P of the frozen fit
+                             #   and the spread of L, not from ITU.
+    data: "the S3 all-length datasets (research/.cache/wet_antenna/system_id_s3/data_train_all.npz: 51 TRAIN events, 9780 link-events; data_val_all.npz: 18 VAL events, 3250 link-events), radar input, all link lengths"
+    frozen:                  # the S3b fits (research/.cache/wet_antenna/system_id_s3b/fit_<name>.pkl): F, P, timing, a_link, d unchanged
+      main: "M4b-B"
+      check: "M3-B"
+    facts:                   # S4.1 a) per event (TRAIN and VAL): start / end / duration from the events table; from the dataset:
+                             #   total = median over the event's links of the radar path-mean accumulation inside [start, end) (mm);
+                             #   peak = max over the event's links of the 5 min radar path-mean R inside [start, end) (mm/h), and the
+                             #   median over links of each link's peak; wet fraction = share of the event's 5 min bins (inside
+                             #   [start, end)) whose median-over-links path-mean R >= wet_threshold; links, link-events, links < 1 km
+                             #   and > 3 km. The split: quoted from pipeline/docs/methods.md section 8 and events/core.py.
+      wet_threshold_mmh: 0.3 # as S3.1
+    split_half:              # S4.1 b) Is the TRAIN / VAL gap more than ordinary event-to-event spread?
+      reps: 200              # random splits of the 51 TRAIN events into 33 / 18 (18 = the number of VAL events)
+      half_events: 18
+      seed: 401
+      cells: "the cells eligible on VAL in S3b (>= 8 links under 1 km; 8 cells)"
+      statistics: "per split, on the 18-event half, the S3.1 model-free Huber line (no bootstrap): median over the cells of I_half / I_TRAIN and s_half / s_TRAIN (observed); and of observed / M4b-B-through (the frozen model's own I, s on the same half bins). VAL: the same two statistics (VAL / TRAIN observed; VAL observed / M4b-B through on VAL)."
+      rarely: 0.05           # share of halves with a ratio <= VAL's: < 0.05 = "rarely" (something about the VAL events);
+                             #   >= 0.05 = VAL is within ordinary event variability. Read separately for I and for s.
+    factors:                 # S4.1 c) A_pred = alpha_e * W[a_link F(R / k_e) dynamics] + L * P(R(t - d) / k_e) + c; W and P both see
+                             #   the lagged input R(t - d), as in the frozen frame. k_e > 1: the radar reads event e too high.
+      k_bounds: [0.33, 3.0]
+      alpha_bounds: [0.2, 3.0]
+      grid_points: 121       # per factor, log-spaced over its bounds (steps 1.9 % in k, 2.3 % in alpha) plus the value 1 itself (so
+                             #   that "k = 1" and "alpha = 1" are exact grid points: 122 values); the estimate is the grid
+                             #   minimum (W(k) and L P(k) are simulated once per grid k; alpha enters linearly), no continuous polish
+      loss: "the Huber loss (delta 0.3 dB, as the fits) of the 5 min means over the event's valid points, all its link-events"
+      ridge_per_link: 0.05   # + ridge_per_link * (links of the event, or drawn links) * ((ln k)^2 + (ln alpha)^2), in Huber-loss units.
+                             #   CHANGED BEFORE THE RUN from 0.5: a smoke test of the code on 3 TRAIN events (one fake draw on one
+                             #   light event of 128 links) showed the loss changing by ~4 units from alpha 1 to 1.4 while 0.5 x 128 links
+                             #   costs ~7 at +-40 %, i.e. the ridge, not the data, set the factor. Seen in that smoke test: the
+                             #   real k_e, alpha_e of those 3 events only; no fake-check share, no other real factor.
+      boot_reps: 200         # link bootstrap WITHIN the event (links drawn with replacement, all link-events of a drawn link);
+      seed: 402              #   90 % intervals. An event bootstrap is not possible inside one event.
+      interval: [5, 95]
+      lean_min_links: 3      # an event with fewer than 3 links < 1 km "lacks short links" (alpha_e weakly fixed); fewer than 3 links
+                             #   > 3 km "lacks long links" (k_e leans on the path part)
+      separable_max_corr: 0.7   # |Spearman(ln k_e, ln alpha_e)| over all TRAIN + VAL events > 0.7 = NOT separable (also reported:
+                             #   the median within-event bootstrap correlation)
+      compare: "TRAIN vs VAL: median of k_e and alpha_e with 90 % event-bootstrap intervals (1000 draws), Mann-Whitney U"
+      boot_seed_events: 403
+    fake:                    # S4.1 c) FIRST: the fake check (run before the real factors are read)
+      truth: "frozen M4b-B (F, P, timing, a_link, d) driven by the real radar rain of the 51 TRAIN events, all link-events; per event (k_true, alpha_true) from the 3 x 3 grid below, the 9 pairs repeated over the events in a seeded random order"
+      k_values: [0.7, 1.0, 1.4]
+      alpha_values: [0.6, 1.0, 1.4]
+      noise: "the S2 fake noise (system_id_s2.fake, the code of system_id.make_fake): per sub-link white + AR(1) noise from sim_noise_params (variance x 3), 0.3 dB quantization of the 10 s values, a true offset per link-event (sd = offset_std), c re-measured by the data rule"
+      seed: 404
+      tol: 0.25              # recovered = |estimate / truth - 1| <= 0.25 for BOTH k and alpha
+      pass_share: 0.8        # PASS = >= 80 % of the 51 events recovered. FAIL -> report, and do NOT interpret the real factors.
+    close_gap:               # S4.1 d) the VAL length test (S3.1 bins and Huber line) through the model with the per-event factors
+                             #   applied (in-sample per event: information only). Variants: none (the frozen M4b-B, = S3b); both
+                             #   (k_e, alpha_e); k only = the joint k_e with alpha = 1; alpha only = the joint alpha_e with k = 1. Also
+                             #   reported: the one-factor refits (k fitted with alpha = 1; alpha fitted with k = 1).
+      measure: "median over the VAL-eligible cells of observed / through-model I and s, and the cells with both inside the observed 90 % intervals (the S3b rule)"
+      closes: [0.9, 1.1]     # a variant closes the gap on I (on s) if its median ratio is inside this range
+    radar_gauge:             # S4.1 e)
+      primary: "per event, the gauge link-events (City gauge within 1 km of the path: the S2 pairing, one sub-link per link): sum of the radar path-mean rain / sum of the gauge rain over the minutes of their windows where both are valid; event kept if the gauge sum, averaged over its gauge links, is >= min_gauge_mm"
+      secondary: "per event, the radar pixel at each of the 10 City gauges (radar_at_gauges_5min, R_pixel) / the gauge (gauges_city_5min) over [start, end), summed over the gauges with both valid (information)"
+      min_gauge_mm: 1.0
+      expect_spearman: 0.5   # written before the run: if k_e is radar error, Spearman(k_e, radar / gauge) >= 0.5 (TRAIN + VAL events)
+      boot_reps: 1000        # event bootstrap of the Spearman
+      seed: 405
+    conditions:              # S4.2, DESCRIPTIVE ONLY (no new model). Data already in the repo, nothing downloaded:
+                             #   research/baseline/outputs/products/dew_risk_hourly.csv (SMHI GbgA hourly temperature, humidity,
+                             #   wind speed, dew-point depression, night flag), the events table (dry_before_h), the datasets.
+      per_event: "over the hours of [start, end): mean temperature, humidity, wind speed, dew-point depression, night fraction; rain proxies: peak / mean of the median-link path-mean R inside the event, duration, wet fraction; certified dry hours before the event (events.dry_before_h); band mix: share of link-events at 38 GHz and at 28 GHz"
+      test: "Spearman of ln alpha_e and of ln k_e with each condition over the TRAIN + VAL events; 90 % event-bootstrap intervals (1000 draws); Benjamini-Hochberg at q = 0.10 over all the tests (the number of tests is reported)"
+      boot_reps: 1000
+      seed: 406
+      bh_q: 0.10
+      residual_check: "frozen M4b-B, NO event factors, TRAIN + VAL link-events: per link-event the median (A - A_pred) over its valid 5 min points during rain (link_state wet); median over link-events with a 90 % event-bootstrap interval (1000 draws) per band (28 / 32 / 38 GHz), per night / day (night = more than half of the wet points in night hours of dew_risk_hourly), per temperature tertile (the mean hourly temperature of the wet points; tertiles over link-events)"
+      residual_seed: 407
+    time_budget_h: 2.0       # if over: the M3-B check first loses its bootstrap, then is dropped (the report says so)
+  conditions_s4c:            # step S4.3 (conditions_s4c.py, libraries event_factors.py, system_id.py, length_test.py): IS THE VAL GAP THE
+                             #   RADAR? (1) the VAL length test with the radar rain rescaled by the event's radar / gauge ratio, taken
+                             #   from the City GAUGES only; (2) per-event factors on HEAVY events only, after a new heavy-event fake check.
+                             #   EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN (2026-10-15). Seen before writing: the S4.1 / S4.2 report
+                             #   (all of it, incl. the per-event radar / gauge ratios and the real k_e, alpha_e). No rescaled length
+                             #   test had been computed. TEST events and TEST links are never read.
+                             #   STANDING RULE: WAA is never estimated by subtracting a power-law rain term. The path part is separated
+                             #   only through its dependence on L at matched rain. ITU-R P.838 only as a size reference, never to
+                             #   correct data. The rain correction comes from the City gauges only, never from the links.
+    data: "the S3 all-length datasets (TRAIN 51 events, VAL 18 events), radar input, all link lengths; frozen S3b fits M4b-B (main) and M3-B (check): NO refit of anything"
+    g_e:                     # exactly the S4.1 section 6 definitions (functions moved unchanged to the library event_factors.py)
+      path_mean: "radar path mean of the gauge links (City gauge within 1 km of the path, one sub-link per link) / gauge, over the minutes of their windows where both are valid; used if the gauge sum per gauge link >= min_gauge_mm"
+      pixel: "radar pixel at the 10 City gauges / gauges (5 min) over [start, end), both valid; used if the gauge sum over the gauges >= min_gauge_mm (the S4.1 code rule: the SUM over the gauges)"
+      min_gauge_mm: 1.0
+      other_events: "g_e = 1 (listed in the report)"
+    variants:                # R -> R / g in the model input AND in the observed side (the S3.1 steady-rain bins and classes recomputed
+                             #   from the rescaled R: the class must describe the corrected rain). Applied to TRAIN and VAL events.
+      V0: "no rescaling (= S3b)"
+      V1: "R / g_e per event, path-mean version"
+      V2: "R / g_e per event, pixel version"
+      V3: "R / G per set, G = the pooled path-mean radar / gauge ratio of the set (all radar mm / all gauge mm over the events used for g_e; one number for TRAIN, one for VAL)"
+    length_test: "exactly S3b check 1: the S3.1 bins and Huber line, observed with the event bootstrap (1000 draws, seed of system_id_s3.length_test), the model's own line without bootstrap; eligible cell = >= 8 links < 1 km in the observed cell (and the band in the fit)"
+    rules:                   # written before the run
+      ratio_range: [0.85, 1.15]
+      both_inside_share: 0.6667
+      explained: "on VAL, in V1 (M4b-B): the median over the eligible cells of observed / model I AND of s inside ratio_range, AND both-inside (I and s each inside the observed 90 % interval) in >= both_inside_share of the eligible cells"
+      train_not_broken: "on TRAIN, in V1 (M4b-B): the same three criteria"
+    model_free: "information: the S3.1 observed I and s of VAL and TRAIN per variant; per cell eligible on VAL the ratio VAL / TRAIN, its median: does the observed gap close?"
+    heavy:                   # Part 2
+      events: "intensity_class == heavy (the release events table): TRAIN 16, VAL 6"
+      fake: "the S4.1 fake design (frozen M4b-B; k in 0.7 / 1 / 1.4, alpha in 0.6 / 1 / 1.4, the 9 pairs in a seeded order per replicate; the S2 noise; the same grid and ridge 0.05 per link) on the 16 heavy TRAIN events, 3 replicates"
+      replicates: 3
+      seed: 410
+      tol: 0.25
+      pass_share: 0.8        # PASS = >= 80 % of the 48 event-replicates recover BOTH k and alpha within +-25 %. FAIL -> report and stop Part 2.
+      if_pass: "the real k_e, alpha_e of the heavy TRAIN and VAL events from the S4.1 fits (table conditions_s4_factors.csv, M4b-B; no rerun) with their link-bootstrap intervals; Spearman of ln alpha_e with mean temperature, mean wind speed, mean humidity, dew-point depression, dry hours before, peak / mean rain (the S4.2 per-event values), BH at q = 0.10 over these 6 tests; Spearman of ln k_e with ln g_e (path-mean version, events with g_e): expectation >= 0.5. Descriptive only, about 22 events."
+      bh_q: 0.10
+      boot_reps: 1000        # event bootstrap of each Spearman (90 %)
+      boot_seed: 411
+      expect_k_g_spearman: 0.5
+    time_budget_h: 1.0
+  final_s5a:                 # step S5a (final_s5a.py, libraries system_id.py, length_test.py, event_factors.py): WAA v3 (M4b-B)
+                             #   REFITTED ON GAUGE-CORRECTED RAIN, one last candidate for the slow leftover (M4c), and closed
+                             #   forms for F_band(R) and P_band(R). EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN (2026-10-17). Seen
+                             #   before writing: the S3b and S4.3 reports (all of them). TEST events and TEST links are NEVER read.
+                             #   STANDING RULE: WAA is never estimated by subtracting a power-law rain term. The path part is
+                             #   separated only through its dependence on L at matched rain. ITU-R P.838 only as a size reference
+                             #   (and, as in S2b / S3b, one of the optimiser STARTING values of P). Closed forms are fitted to the
+                             #   curves the data already learned; a power law may appear only as one candidate among several,
+                             #   chosen by the data, never imposed. The rain correction comes from the City gauges only.
+    data: "the S3 all-length datasets (TRAIN 9780 link-events, 51 events; VAL 3250, 18 events), radar input divided per event by g_e = the S4.3 V1 path-mean radar / City-gauge ratio (table conditions_s4c_g_e.csv, column g_path: used where >= 1.0 mm per gauge link, else 1); the same division in the model input (1 min) and in the 5 min radar of the steady-rain bins"
+    fits:                    # name: model, the time constants held FIXED, the dynamic parameters left free
+      "M4b-B": {model: M4b, fixed: {tau_f_wet: 2.6, tau_f_dry: 10.3, phi: 0.72, tau_s: 240}}   # MAIN: WAA v3 refitted on R / g_e (gauge timing as S3b)
+      "M3-B": {model: M3, fixed: {tau_wet: 2.9, tau_dry: 12.8}}                                # CHECK: point fit only (no bootstrap); first in the cut order
+      "M4c": {model: M4c, fixed: {tau_f_wet: 2.6, tau_f_dry: 10.3}}                            # PART 2 (only if its fake check passes): phi, tau_s_wet, tau_s_dry free
+    tau_s_split_bounds: [10, 600]                # M4c: tau_s_wet and tau_s_dry each in 10-600 min
+    starts: "M4b-B, M3-B: the 8 starts of the S2b start plan (as S3b). M4c: 4 starts = the refitted M4b-B solution put into M4c (tau_s_wet = tau_s_dry = 240, phi 0.72: the nested model, so M4c cannot end worse than M4b-B) + the first 3 plan starts with the slow store started at tau_s_wet 60, tau_s_dry 120 min (phi from the generic start)"
+    m4c_slow_start: {tau_s_wet: 60.0, tau_s_dry: 120.0}
+    m4c_plan_starts: 3
+    caps: "as S3b: start 1000, lag 300 (lag grid -4..6 min, warm-started from the best start), polish 1000"
+    bootstrap:               # COLD event-bootstrap refits of M4b-B (not the warm 30-iteration refits of S2b / S3b)
+      reps: 30
+      seed: 5101
+      how: "resample the 51 TRAIN events with replacement (weights = counts); start from the S2b start-plan start that won on all events (its generic start, not the fitted x); lag fixed at the d of the fit on all events; caps start 1000 + polish 1000. Interval = 5-95 % of the draws; SE = their standard deviation"
+      if_m4c_kept: 20        # if M4c replaces M4b-B, 20 cold draws of M4c the same way (for its intervals and the knot SE of Part 3)
+    m4c_fake:                # PART 2, first: truth M4c (fast store 2.6 / 10.3 min; F, P, a_link and lag from the frozen S3b M4b-B
+                             #   fit = curves the data learned, no ITU) driven by the corrected TRAIN rain, observed with the S2 fake
+                             #   noise (white + AR(1) per sub-link, variance x 3, 0.3 dB quantization of the 10 s values, a true
+                             #   offset, the real missing minutes), c by the data rule.
+      truth: {phi: 0.9, tau_s_wet: 30.0, tau_s_dry: 90.0, tau_f_wet: 2.6, tau_f_dry: 10.3}
+      replicates: 2
+      seed: 5201
+      fit_starts: [[g1, P0], [g2, Phalf]]   # slow store started at m4c_slow_start; fitted at the true lag; caps start 1000, polish 1000
+      tol: 0.30
+      pass_rule: "PASS if tau_s_wet AND tau_s_dry are both within +-30 % of the truth in 2 of 2 replicates. FAIL -> M4c is not fitted to the real data; M4b-B stays and the leftover is written down as a known limit"
+    m4c_rule:                # M4c REPLACES M4b-B only if all three hold on VAL with the V1 input (frozen fits, no refit)
+      integral_range: [0.7, 1.4]     # (1) after-rain integral 0-180 min pred / obs (S3.2 definition) for L < 1 km AND for 1-3 km
+      rmse_worse_max_db: 0.005       # (2) overall VAL RMSE (all lengths, mean over events) not worse than the refitted M4b-B by more
+      length_test: "(3) the VAL length test through the model passes (S3b rule: both inside in >= 2/3 of the eligible cells). Otherwise M4b-B stays"
+    val: "PART 1 evaluation on VAL, frozen fits (no refit), with the V0 input (raw radar) and the V1 input (radar / g_e; the observed steady-rain bins rescaled too): RMSE by length class (< 1, 1-3, > 3 km, all) and time window (all, during rain, 0-60, 60-180 min after), shower peak error, after-rain integral, the length test through the model (S3b rule). Fits: S3b M4b-B (reference), the S5a refits, M4c if fitted, the closed form if made"
+    length_bins_km: [[0, 1], [1, 3], [3, 100]]
+    length_share: 0.6667     # the S3b rule
+    closed_forms:            # PART 3, on the model kept after Part 2
+      knots_mmh: [0.5, 1, 2, 5, 10, 20, 40]
+      drop_40_if_fewer_than: 30    # link-events of TRAIN with at least one minute of corrected rain > 20 mm/h in the window
+      se_floor: {rel: 0.05, F_db: 0.02, P_db_km: 0.01}   # SE = sd of the cold draws, floored at max(rel x value, the unit floor); weights 1 / SE^2
+      F: [exp_sat, hyperbolic, tanh_sat, capped_power]   # F_max (1 - exp(-R / R0)); F_max R / (R + R0); F_max tanh(R / R0); min(c R^b, F_max)
+      P: [power, linear, quadratic, shifted_power]       # c R^b; c R; c R + d R^2; c ((R + R1)^b - R1^b)
+      parameter_bounds: "amplitudes, R0, R1 > 0; b in 0.2-3; d >= 0 (every candidate is 0 at R = 0 and never falls)"
+      pooled: "over the bands with the frequency f (GHz) as a variable: (i) one curve for all bands; (ii) the shape parameters shared and the amplitude linear in f, amp = A30 (1 + kappa (f - 30) / 10). 3 frequencies are too few to claim a frequency law"
+      choose: "per band and pooled by AICc (weighted least squares; AICc = n ln(WRSS / n) + 2k + 2k(k+1) / (n - k - 1)); a candidate within 2 AICc of the best with fewer parameters is preferred. All scores reported. The per-band choice goes into the plug-back"
+      aicc_simpler_within: 2.0
+      intervals: "the chosen closed form fitted (same weights) to the knot curves of every cold bootstrap draw: 5-95 % of the parameters"
+      pysr: {maxsize: 10, niterations: 40, seeds: [1, 2, 3], binary: ["+", "-", "*", "/"], unary: [exp, log], julia_check_timeout_min: 20}
+      pysr_note: "PySR 2.7.0 is installed; it needs Julia through juliacall. It is tried first on a tiny problem; if it cannot run it is skipped and the reason is written. Pooled (R, f) -> value for F and for P, weights 1 / SE^2; the Pareto front and whether a candidate form appears are reported"
+      plug_back_knots: {n: 60, lo: 0.05, hi: 40}     # dense knot grid for the closed forms (0 and n log-spaced knots; constant above hi)
+      plug_back: "the free F and P of the kept model replaced by the chosen closed forms (per band) on the dense grid; the closed-form parameters and a_link refitted on the corrected TRAIN data with the time constants, phi and the lag FIXED at the kept model's values (L-BFGS-B, cap 1000)"
+      plug_back_rule:        # holds -> the WAA v4 (closed form) box; else the free curves are kept and the report says which form failed where
+        rmse_worse_max_db: 0.005     # VAL V1 RMSE (all lengths) closed form minus free curves
+        length_test: "the VAL V1 length test through the model still passes (S3b rule)"
+    s5b_plan:                # PART 6, rules for S5b fixed NOW (S5b reads TEST once)
+      model: "the model kept by S5a: WAA v4 (closed form) if the plug-back held, else the S5a refit with the free curves; frozen, no refit on TEST"
+      data: "the TEST events on all links with the S2 rules (TRAIN links and TEST links reported separately; TEST links get a_link = 1)"
+      references: "V0 (raw radar) and V1 (radar / g_e, g_e from the TEST events' City gauges by the S4.1 path-mean definition, >= 1.0 mm per gauge link, else 1); pooled V3 as sensitivity; the TEST gauge links with the gauge input as the independent check (frozen model, gauge input)"
+      pass: "PASS if (1) the TEST length test through the model on V1 passes (S3b rule: both inside in >= 2/3 of the eligible cells) AND (2) the TEST V1 RMSE of every length class (< 1, 1-3, > 3 km) is within 10 % of the VAL V1 RMSE of the same class. Reported, not part of the verdict: after-rain integral, shower peaks, V0 numbers, TEST links against TRAIN links"
+    time_budget_h: 5.0       # one M4b-B start on the corrected TRAIN set is timed first; projection over all jobs on the worker
+                             #   processes. Cut order if over: the M3-B check, PySR seeds 3 -> 1, bootstrap 30 -> 20.
+  tighten_s6:                # step S6 (tighten_s6.py, libraries final_model.py, system_id.py, length_test.py, event_factors.py):
+                             #   tighten the equation. EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN (2026-10-18). NO TEST attenuation
+                             #   or rain is read (TEST links / events are only COUNTED from the split tables).
+                             #   STANDING RULE: WAA is never estimated by subtracting a power-law rain term. The path part is
+                             #   separated only through its dependence on L at matched rain. ITU-R P.838 only as a size reference.
+                             #   The rain correction comes from the City gauges only (g_e of S4.3), never from the links. Closed
+                             #   forms are fitted to curves the data learned; physics candidates and PySR proposals compete under
+                             #   the same rule; nothing is imposed. Integrity rules: docs/ROADMAP.md, "Integrity rules (from S6 on)".
+    decision: "2026-10-18, before any TEST read, a deviation from the S5a rule (which kept M4c): the final model is M4b-B (gauge timing fixed); M4c is dropped because its slow-store parameters are not identified on real data and it gains only 0.0005 dB on VAL. Decided after seeing VAL; the reason is identifiability, not the VAL score"
+    data: "the S3 all-length TRAIN dataset (9780 link-events, 51 events), input V1 = radar / g_e (S4.3 path-mean g_e, table conditions_s4c_g_e.csv; g_e = 1 where the gauges have < 1.0 mm per gauge link), M4b dynamics FIXED at the gauge timing (tau_f_wet 2.6, tau_f_dry 10.3, phi 0.72, tau_s 240 min), lag grid -4..6 min as S3b, a_link with the ridge of S3b (a_prior_sd 0.5). VAL (V1, frozen fits, no refit) checks every choice; VAL numbers are labelled 'used (optimistic)'"
+    val_label: "used (optimistic)"
+    free_fit: "the free-knot M4b-B on V1 is the S5a refit (identical data, settings and starts): read from research/.cache/wet_antenna/final_s5a/fit_M4b-B.pkl and its 30 cold draws boot_M4b-B_*.pkl (read only, never written)"
+    funnel:                  # Part 1, counting only
+      stages: "all sub-links of the metadata -> per frequency band (every nominal band present, kept or not) -> link split (TRAIN / TEST / excluded) -> sub-link status -> events (all / TRAIN / VAL / TEST) -> (event, sub-link) pairs and every rule of build_dataset with its count (TRAIN and VAL, in the order of the rules) -> link-events kept per set and length class. TEST: links and events counted from the split tables only"
+      nominal_bands_ghz: [7, 8, 13, 15, 18, 23, 26, 28, 32, 38]   # a sub-link is listed under the nearest nominal band (information)
+      length_classes_km: [[0, 1], [1, 3], [3, 100]]
+      rain_classes_mmh: [[0, 0.5], [0.5, 1], [1, 2], [2, 5], [5, 10], [10, 20], [20, 1000]]   # V1 rain (radar path mean / g_e, per minute)
+      totals: "TRAIN and VAL: link-event minutes, V1 rain in mm inside the kept link-event windows, minutes per rain class; the share kept at each stage"
+    knot_minutes: "next to each knot R_k: the TRAIN link-event minutes with V1 rain in [R_(k-1), R_(k+1)) (the support of that knot's hat function)"
+    w30: "W_30(R) = the W the model reaches after 30 min of constant R from a dry antenna, a_link = 1: phi F (1 - exp(-30 / tau_f_wet)) + (1 - phi) F (1 - exp(-30 / tau_s)); reported next to the equilibrium F"
+    shared_shape:            # Part 2
+      F: "F_band(R) = A_band * G(R): G on the free knots, monotone, G(5) = 1 (the increments below 5 mm/h are a softmax of free numbers, so they sum to 1; above 5 free increments >= 0); A_band free; P per band free"
+      P: "P_band(R) = B_band * H(R), H(5) = 1 the same way; F per band free"
+      both: "if both are kept, F and P shared together are fitted and judged by the same rule against the free fit; if that fails, the one with the smaller VAL rise is kept"
+      starts: "two: (1) the free fit projected (A_band = F_band(5), G = the mean over the bands of F_band / F_band(5); a_link from the free fit); (2) the generic start that won for the free fit in S5a (g4+Phalf) projected the same way. The lower loss wins"
+      lag: "fixed at the free fit's lag (+1 min)"
+      caps: {start: 1000, polish: 1000}
+      rule: {rmse_rise_max_db: 0.003, length_test: "the VAL V1 length test through the model passes (S3b rule: both inside in >= 2/3 of the eligible cells)"}
+      information: "AICc and BIC on TRAIN with the Huber loss read as a Gaussian -log L (n = valid 5 min points, -2 ln L = n ln(2 loss / n), k = curve parameters + a_link): information only, not the rule"
+    bootstrap:               # Part 3, the MAIN interval, on the kept parametrisation
+      reps: 60
+      reps_if_cut: 40
+      how: "cold event bootstrap as S5a: resample the 51 TRAIN events with replacement; start from the generic start (g4+Phalf, projected if the kept fit is shared); lag fixed at the kept fit's; caps start 1000 + polish 1000; dynamics fixed. If the free fit is kept, draws 0-29 ARE the S5a draws (the same seed and procedure) and 30-59 are new with the same seed sequence; a shared fit gets new draws (seed 6101). Interval = 5-95 % of the converged draws; the converged count is reported"
+      seed_shared: 6101
+      deviation: "2026-10-18, during the run: the written cut (bootstrap 60 -> 40) was taken because the projection said 6.67 h; the real draws took about 2 CPU min each, 4-5 x less than projected, so the full 60 draws fit the budget. Restored to 60 at the learners' request; the 18 draws already made are kept (fixed seed: the same draws a 60-draw run makes)"
+    profile:                 # Part 3, cross-check for the headline numbers
+      quantities: "free kept: F at 1, 2, 5 and P at 2, 10 mm/h per band; F shared: A_band and G(1), G(2); P shared: B_band and H(2), H(10); a_link: the sd of log a_link (shown as its 10-90 % spread)"
+      how: "the quantity held by a stiff penalty lambda (q - v)^2 (the value actually reached is used), everything else of the kept parametrisation refitted warm (cap 200), lag and dynamics fixed. Steps from the estimate: +-1 %, then x3 per step (at most 6 per side) until Delta loss passes the threshold; the crossing by linear interpolation"
+      threshold: "Delta loss <= 1.353 * sigma2 * kappa (90 %: chi2_1 = 2.706, halved); sigma2 = 2 * loss / n (the Huber loss read as 0.5 sum r^2); kappa = (1 + rho1) / (1 - rho1), rho1 = the lag-1 (5 min) autocorrelation of the residuals inside the link-events of the kept fit (an effective sample size n / kappa). Correlation BETWEEN links of one event is not in kappa (said in the report)"
+      lambda: 10000.0
+      cap: 200
+      max_steps: 6
+    timing_sensitivity: {tau_f_wet: [2.4, 3.1], tau_f_dry: [9.2, 11.8], how: "one at a time, the kept parametrisation refitted warm from the kept fit (cap 1000), lag fixed; report how much F and P (or A, G, B, H) move"}
+    fake:                    # Part 4, identifiability of the kept model
+      truth: "the kept model with its fitted parameters (curves, a_link, lag) on the real TRAIN geometry and V1 rain"
+      noise: "the S2 fake noise (white + AR(1) per sub-link, variance x 3, 0.3 dB quantization of the 10 s values, a true offset, the real missing minutes), c by the data rule"
+      replicates: 3
+      seed: 6201
+      refit: "from the same cold start as the bootstrap (g4+Phalf, projected if shared), at the true lag, caps 1000 + 1000"
+      rule: "a quantity is reported as a RESULT only if recovered within +-20 % in 3 of 3 replicates (where |truth| < 0.05 dB or dB/km: within +-0.01 absolute) AND its real bootstrap interval does not touch a bound (a knot value whose lower end is <= 0.001, an a_link percentile at exp(+-3)); otherwise it is listed as NOT IDENTIFIED"
+      tol: 0.20
+      quantities: "the knot values of F (or A_band, G) and P (or B_band, H) at 0.5-20 mm/h (40 mm/h for information), a_link 10 % and 90 %"
+    closed_forms:            # Part 5, on the kept free curves
+      knots_mmh: [0.5, 1, 2, 5, 10, 20, 40]
+      drop_40_if_fewer_than: 30
+      se_floor: {rel: 0.05, F_db: 0.02, P_db_km: 0.01}
+      every_form: "amplitude x shape: F_band(R) = F5_band * g(R), g(5) = 1, g(0) = 0 (P the same with P5_band); shared kept -> the shape parameters are shared over the bands, else per band. A candidate must be >= 0 and non-decreasing on 0-40 mm/h at its fitted parameters, else it is dropped (listed)"
+      F: ["sat5: [R / (R + R0)] / [5 / (5 + R0)]", "exp5: [1 - exp(-R / R0)] / [1 - exp(-5 / R0)]", "capped: min((R / 5)^b, m) / min(1, m)"]
+      P: ["linear: R / 5", "power: (R / 5)^b", "quadratic: (R + d R^2) / (5 + 25 d), d >= 0"]
+      pysr: {seeds: [1, 2, 3], niterations: 40, maxsize: 10, binary: ["+", "-", "*", "/"], unary: [exp, log], join_max_complexity: 8,
+             how: "on the kept free knot values, weights 1 / SE^2: per band (input R) and pooled (inputs R, f). Every equation on a Pareto front with complexity <= 8 joins the candidates: its numeric constants become free parameters (refitted by WLS), its shape taken as g(R) = (h(R) - h(0)) / (h(5) - h(0)); forms with f join only the pooled comparison (information); duplicates kept once"}
+      rule: "weighted least squares on the knots (cold-bootstrap SE, floored), AICc = n ln(WRSS / n) + 2k + 2k(k+1) / (n - k - 1), k = amplitudes + shape parameters; a candidate within 2 AICc of the best with fewer parameters wins. Per band, or over the bands when the shape is shared; pooled with f for information. F_max (the limit of F at large R) only as a derived number with its interval over the draws. 3 frequencies are too few for a frequency law"
+      aicc_simpler_within: 2.0
+      plug_back_knots: {n: 60, lo: 0.05, hi: 40}
+      plug_back: "the chosen forms on the dense knot grid in the model, the amplitudes, shape parameters and a_link refitted on TRAIN V1 with the dynamics and the lag FIXED (L-BFGS-B, cap 1000)"
+      plug_back_rule: {rmse_worse_max_db: 0.005, length_test: "the VAL V1 length test through the model passes (S3b rule)", otherwise: "the candidate keeps the free curves (if F and P together fail, each form is tried alone)"}
+    time_budget_h: 6.0       # one start is timed first and the jobs projected; cut order: bootstrap 60 -> 40, the timing sensitivity, the P shared-shape test
+    candidate: "written into this section (key candidate_numbers) after the run: the form and every number, the quantities NOT identified, the assumptions"
+    candidate_numbers:       # WAA candidate (S6), written 2026-10-18 AFTER the run from outputs/products/tighten_s6_candidate.json ([value, boot 5 %, boot 95 %], 60 cold draws)
+      model: "M4b-B (gauge timing fixed) on R = radar / g_e (S4.3 g_e; 1 if < 1 mm per gauge link)"
+      lag_min: 1
+      dynamics_fixed: {tau_f_wet: 2.6, tau_f_dry: 10.3, phi: 0.72, tau_s: 240}
+      F: "free knots (shared shape F = A_band G(R), G(5) = 1); closed form pysr_F_2 (R / 5)^0.47 not used: its plug-back failed the VAL length test (4 of 6 cells against the rule's 0.6667)"
+      F_knots: {"A[28 GHz]": [2.744, 2.205, 3.37], "A[32 GHz]": [2.562, 1.88, 3.389], "A[38 GHz]": [2.962, 2.492, 3.527], "G(0.5)": [0.354, 0.255, 0.46], "G(1)": [0.354, 0.309, 0.46], "G(2)": [0.629, 0.385, 0.801], "G(5)": [1.0, 1.0, 1.0], "G(10)": [1.209, 1.008, 1.491], "G(20)": [1.729, 1.18, 2.297], "G(40)": [1.966, 1.629, 2.812]}
+      P: "P_band(R) = c_band R (closed form P5 R / 5; plug-back held)"
+      P_c_dB_km_per_mmh: {"28 GHz": [0.1068, 0.0555, 0.12], "32 GHz": [0.1424, 0.0582, 0.1765], "38 GHz": [0.1974, 0.0908, 0.2232]}
+      a_link_p10_p90: {a_p10: [0.759, 0.682, 0.784], a_p90: [1.227, 1.239, 1.402]}
+      not_identified: ["P[28 GHz](0.5)", "P[28 GHz](1)", "P[32 GHz](0.5)", "P[32 GHz](1)", "P[38 GHz](0.5)", "P[38 GHz](1)", "H(0.5)", "H(1)", "phi", "tau_s"]
+      notes: "the F level is the level of a link with a_link = 1 under the ridge prior (the data fix a_link F); P below 1 mm/h not identified; the F closed form failed the length test at 4 / 6 = exactly 2 / 3 against the written 0.6667"
+  validate_s7:               # step S7 (validate_s7.py, libraries final_model.py, system_id.py, length_test.py, event_factors.py):
+                             #   validate the FROZEN S6 candidate without TEST. EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN (2026-10-19).
+                             #   Nothing is refitted (only closed forms of small curves, the PySR screens and their leave-one-out refits
+                             #   of a few constants, which are not the model). NO TEST attenuation or rain is read (TEST links and
+                             #   events are only counted from the split tables).
+                             #   STANDING RULE: WAA is never estimated by subtracting a power-law rain term. The path part is
+                             #   separated only through its dependence on L at matched rain, or by dry-path moments (R = 0 on the whole
+                             #   path). ITU-R P.838 only as a size reference. The rain correction comes from the City gauges only (g_e),
+                             #   never from the links.
+    frozen: "the S6 candidate: products/tighten_s6_candidate.json (its sha256 is printed in the report) = the S6 plug-back 'P only' fit
+             (research/.cache/wet_antenna/tighten_s6/plug_shared_FP_P_only.pkl): F = the kept shared free knots (fixed), P = c_band R,
+             a_link per link, dynamics fixed (tau_f_wet 2.6, tau_f_dry 10.3, phi 0.72, tau_s 240 min), lag +1 min, input V1 = radar / g_e"
+    second_F: "the closed F of S6 (F = A_band g(R), g the PySR shape (R / 5)^b, b about 0.47, with P = c_band R): the cached S6 plug-back
+               'F and P' (plug_shared_FP_F_and_P.pkl). Every cheap check is run for both F descriptions; the verdicts are those of the candidate"
+    data: "the S3 all-length datasets with input V1 (TRAIN: research/.cache/wet_antenna/final_s5a/data_train_v1.npz, 9780 link-events;
+           VAL: data_val_all.npz divided by the S4.3 path-mean g_e of its event). VAL numbers are labelled 'used (optimistic)'"
+    val_label: "used (optimistic)"
+    length_classes_km: [[0, 1], [1, 3], [3, 100]]
+    length_test_share: "at least 4 of 6 cells (decision 2026-10-19); with n eligible cells: at least ceil(2 n / 3)"
+    w_independent_of_L:      # 7.1
+      variables: "per link (a_link is one number per link, so the direction of a sub-link does not apply): L_km, frequency_ghz, mean antenna
+                  diameter of the two ends (sub-link metadata), orientation (bearing of the path, 0-180 deg, from the site coordinates; tested as
+                  |sin| and |cos| of the bearing), polarization (v / h, only 2 links h: information), the site (Kruskal-Wallis over the sites with
+                  >= 3 TRAIN links at one end), n_radar_cells; the metadata has no antenna type, radome or height"
+      test: "Spearman rho of log a_link against each numeric variable, 90 % link-bootstrap interval (1000 draws, seed 7101), the p-value of
+             Spearman (Kruskal-Wallis for the site); BH q = 0.10 over all variables"
+      w_height: "per link the candidate's equilibrium W height a_link F_band(R) at R = 2 and 5 mm/h; per length class the median over links with
+                 a 90 % link-bootstrap interval (1000 draws, seed 7102); also per band and length class (information: the band mix differs by length)"
+      pass: "no |rho| >= 0.3 with an interval that excludes 0 for L, AND at both rain rates the three length classes overlap pairwise in W height.
+             A dependence on another variable is a finding, not a failure (listed)"
+      bh_q: 0.10
+      boot_reps: 1000
+      seeds: {rho: 7101, w_height: 7102}
+    short_links_val:         # 7.2, frozen fits on VAL V1
+      rmse: "RMSE of the 5 min A (valid bins) per length class, per band and per rain class (V1 of the bin: < 0.1, 0.1-2, 2-5, 5-10, >= 10 mm/h),
+             VAL and TRAIN (TRAIN in-sample), with VAL event-bootstrap intervals (1000 draws, seed 7201)"
+      rule: "every length class and every band: VAL RMSE <= 1.15 x the all-class VAL RMSE. The rain classes are compared with TRAIN
+             (VAL / TRAIN <= 1.15, information): heavier rain always has larger errors, so the all-class rule does not apply to them"
+      rmse_factor_max: 1.15
+      rain_classes_mmh: [[0, 0.1], [0.1, 2], [2, 5], [5, 10], [10, 1000]]
+      length_test: "the VAL V1 length test through the model (S3b rule), at least 4 of 6 cells"
+      shape: "short links (L < 1 km) on VAL, per band: the candidate (shared shapes) against the band-specific S5a free fit (frozen); the shared
+              shape must not be worse by more than 0.003 dB in any band (the S6 rule)"
+      shape_rise_max_db: 0.003
+      after_rain: "the median residual (A - A_pred, 5 min) against the minutes after the link's last wet bin, 10 min bins 0-180 min, per length
+                   class, VAL and TRAIN (information: the slow-tail error in dB)"
+      boot_reps: 1000
+      seed: 7201
+    long_links:              # 7.3
+      dry_path:
+        window: "inside every link-event window (TRAIN and VAL V1): a dry start t0 = the start of a run of >= 2 consecutive 5 min bins in
+                 which the radar path-MAX rain (release radar_along_links_5min R_max, every pixel on the path) is <= 0.05 mm/h both as it is
+                 (V0) and divided by g_e (V1), and the City gauge of the link (if the link has one within 1 km) shows 0 in every minute
+                 of those bins; the 60 min before t0 must hold >= 10 minutes with path-mean V1 >= 2 mm/h. The window lasts while the
+                 path stays dry by the same rule (at most 60 min); one window per dry start"
+        measured: "W_obs(t) = A(t) - c (1 min A of the dataset, valid minutes) at t minutes after t0"
+        model: "W_mod(t) = the frozen model's W alone (path term set to 0, c = 0), forward simulated at 1 min with the same a_link and the same
+                V1 rain history"
+        at_min: [5, 10, 20, 40]
+        stats: "per length class and band: windows, links, events; median W_obs, W_mod and the error W_obs - W_mod at 5, 10, 20, 40 min (windows
+                still dry at t), 90 % event-bootstrap intervals (1000 draws, seed 7301)"
+        decay: "per length class: the median over windows of W(t) / W(0..1 min mean) for t = 0-60 min (windows with W(0) >= 0.5 dB); the decay
+                time = the exponential fitted to that median curve over 0-30 min (least squares on log, points > 0.05); measured and model,
+                against 10.3 min; the share left at 40-60 min (mean of the median curve) = the slow store. Event-bootstrap intervals"
+        min_w0_db: 0.5
+        pass: "the L > 3 km class agrees with the L < 1 km class (the event-bootstrap interval of the difference of their median errors at 10 min
+               contains 0) AND |median error at 10 min| <= 0.3 dB in every length class with >= 10 windows"
+        max_err_10_db: 0.3
+        min_windows: 10
+        boot_reps: 1000
+        seed: 7301
+      paired:
+        pairs: "TRAIN links of the datasets: a shared endpoint (the same release site id; sites are merged within their max_member_offset_m), the
+                same band, bearings from the shared site within 15 deg, L2 / L1 >= 1.5, L2 - L1 >= 1 km, and link-events in the same event"
+        max_bearing_deg: 15
+        min_ratio: 1.5
+        min_dL_km: 1.0
+        estimator: "W = (L2 A1 - L1 A2) / (L2 - L1) on A - c, per common 5 min bin"
+        fake: "first: the noise of the estimator with a known truth (W = 1.5 dB, k = 0.5 dB/km): A_i = W + L_i k + the real candidate residual
+               series of each link-event of the pair (aligned in time, so their correlation is kept); noise SD = the SD of the estimator
+               minus the truth over the common rain bins (V1 >= 0.5 on both); per pair-event, then the median"
+        not_testable: "if the median noise SD > 1 dB or there are < 5 pairs: 'not testable', no comparison is forced"
+        max_noise_sd_db: 1.0
+        min_pairs: 5
+        compare: "otherwise: per rain class of V1 (the S3 classes) the median of W_pair (observed) - W_pair (the same estimator on the model
+                  predictions), event bootstrap"
+      intercept:
+        how: "the model-free length test of S3 (steady-rain bins, per link-event and class the median A - c, Huber line I + s L per band and
+              class, event bootstrap 1000, seed 95) on TRAIN V1 twice: links with L < 3 km only and links with L > 1.5 km only. The same two
+              fits on the predictions of both frozen models (information)"
+        short_max_km: 3.0
+        long_min_km: 1.5
+        cells: "the (band, rain class) cells where both fits exist (>= 10 link-events, >= 3 distinct L)"
+        pass: "the 90 % intervals of I overlap in at least two thirds of the cells (at least 4 of 6; k of n = ceil(2 n / 3))"
+      f_form: "say plainly whether the dry-path windows after heavy rain (>= 10 min of V1 >= 10 mm/h in the 60 min before t0), the intercepts of
+               the 10-20 mm/h class or the paired links separate the candidate F (free knots, flattening above 20 mm/h) from the closed F
+               (R / 5)^0.47: the observed number must fall inside its interval for one description and outside for the other.
+               'Cannot tell' is an allowed answer (heavy rain on long links is dominated by the path term)"
+      p_size: "c_band R against ITU-R P.838-3 (vertical, the band's median frequency) at 2, 5 and 10 mm/h, as a ratio, SIZE REFERENCE ONLY;
+               flagged if a ratio is outside 0.5-2"
+      p_ratio_flag: [0.5, 2.0]
+    dew:                     # 7.4 (dew is not in the model: the equation predicts W = 0 when dry)
+      source: "the dew-suspect list in the repo: research/baseline/outputs/products/dry_jumps.csv (baseline module, make_dew_products.py: the R1 C4
+               dry-day level jumps of every TRAIN sub-link with the SMHI GbgA weather of the jump), the positive jumps of the S7 links with
+               hours_since_wet >= 6 that are at dew risk by the baseline rule (config baseline.dew: mean RH >= 90 % or mean dew-point
+               depression < 2 C). Counted before this rule was fixed (count only, no outcome): 125 link-nights on 64 links. The proposal
+               RH >= 95 % gives 5 link-nights (the station RH rarely exceeds 94 %), so the baseline's own dew rule is used"
+      min_link_nights: 8
+      size_timing: "the dew W = median_excess_db and peak_excess_db of the jump (A above the dry baseline), its duration and local start hour;
+                    against the rain W of the candidate at 0.5-1 mm/h (a_link F, the median link) and the 10.3 min drying"
+      same_layer: "Spearman across links between the median dew peak excess of a link and its log a_link, 90 % link-bootstrap interval (seed 7401)"
+      before_rain: "per link-event (TRAIN and VAL): dew before the rain = at least 4 of the 6 hours before the link's first wet bin are dew-risk hours
+                    (research/baseline/outputs/products/dew_risk_hourly.csv, the same rule), and the path was dry in those 6 h (radar R_max
+                    <= 0.05 mm/h in every 5 min bin). Stricter variant (information, if >= 8 link-events): a dew-suspect jump of the sub-link
+                    overlaps those 6 h. Compared: the candidate RMSE and bias (mean A - A_pred) of the link-events with against without,
+                    within the rain class of the link-event (its max 5 min V1: < 2, 2-5, 5-10, >= 10 mm/h), weighted by the link-events with
+                    dew; and c (the pre-rain offset) with against without: an estimate of the dew water inside c. Event bootstrap (seed 7402)"
+      dew_hours_min: 4
+      rain_classes_mmh: [[0, 2], [2, 5], [5, 10], [10, 1000]]
+      boot_reps: 1000
+      seeds: {same_layer: 7401, before_rain: 7402}
+    leftovers:               # 7.5 data-driven, no forcing; nothing enters the equation here
+      a_link: "target log a_link (206 links); variables: those of 7.1 (numeric only) plus the link's dry noise (sublink dry_tl_std, mean of
+               the two directions), its diurnal range (dry_tl_diurnal_range) and its position (x, y of the path midpoint, km)"
+      drying: "target log tau_e: per event (TRAIN and VAL) with >= 5 dry-path windows of 7.3a (W(0) >= 0.5 dB), the decay time of the median
+               normalised measured curve of the event (as 7.3a); variables: temperature, humidity, wind speed, dew-point depression, night
+               share (dew_risk_hourly.csv, mean over the hours of the windows) and the local hour of the windows"
+      min_windows_per_event: 5
+      screen: "Spearman with BH q = 0.10 over the variables of a target"
+      pysr: {seeds: [1, 2, 3], niterations: 40, maxsize: 7, max_complexity: 6, binary: ["+", "-", "*", "/"], unary: [exp, log],
+             how: "on ALL variables (standardised), every seed; the candidate = the lowest-loss equation of complexity 2-6 over the seeds' fronts"}
+      guard: "out of sample: the candidate's structure with its constants refitted leaving one link (a_link) or one event (drying) out;
+              skill = 1 - MSE_eq / MSE_constant (the constant = the mean of the others). Permutation null: the whole procedure (PySR with the
+              same seeds, the same choice, the same leave-one-out) on 50 shuffles of the target (seed 7501). A relation is reported only if
+              skill > 0 AND skill > the 95th percentile of the null; otherwise 'no relation found'. A hit is a hint for the one allowed return"
+      shuffles: 50
+      seed: 7501
+    rain_reference:          # 7.6 decision point for a gauge-based g(R) (parked); S7 applies NO correction
+      how: "the 10 City gauges (5 min rate, release gauges_city_5min) against the radar pixel above them (radar_at_gauges_5min R_pixel), V0 and
+            V1 = R_pixel / g_e (the S4.3 path-mean g_e of the event), inside the TRAIN and VAL event windows only (never TEST); 5 min pairs where
+            both are valid"
+      classes_mmh: [[0.1, 2], [2, 5], [5, 10], [10, 1000]]
+      binnings: "by the GAUGE value and, separately, by the RADAR value (binning by one variable alone biases the ratio: regression to the mean;
+                 a real rate dependence shows in both in the same direction). Ratio of a class = sum radar / sum gauge over its pairs; low = the
+                 pairs of 0.1-5 mm/h, high = >= 10 mm/h; event bootstrap (1000, seed 7601)"
+      rule: "rate dependence is FOUND if the high / low ratio of V1 differs from 1 by more than 25 % in BOTH binnings, in the same direction, with
+             both 90 % intervals excluding 1 (V0 for information)"
+      max_change: 0.25
+      residual: "the mean candidate residual (A - A_pred, 5 min) in bins with V1 >= 10 mm/h against 2-5 mm/h, TRAIN and VAL (information)"
+      per_event: "per event the radar / gauge ratio of the low and high classes (gauge binning; information)"
+      boot_reps: 1000
+      seed: 7601
+    return_rule: "back to S6 (at most once, recorded and dated) only if (a) 7.1 finds a dependence of a_link or the W level on L, (b) 7.3a or 7.3c
+                  fails, (c) 7.6 finds a rate dependence, or (d) 7.5 finds a relation that beats the null. Otherwise the candidate goes to S8 as
+                  it is. 'Not testable' is not a failure"
+    time_budget_h: 8.0       # one PySR run is timed first and the jobs projected; cut order: PySR seeds 3 -> 2, shuffles 50 -> 30, the 7.4 sub-tests
+  return_s6b:                # step S6b (return_s6b.py, libraries wind_drying.py, validation.py, final_model.py, system_id.py, length_test.py):
+                             #   THE ONE ALLOWED RETURN TO S6 (S7 reason (d): the drying time falls with the wind), plus the S7 misfit after
+                             #   the rain. EVERY RULE BELOW WAS WRITTEN BEFORE THE RUN (2026-10-19). After S6b the candidate goes to S8 whatever
+                             #   the outcome; no further return. NO TEST attenuation or rain is read.
+                             #   STANDING RULE: WAA is never estimated by subtracting a power-law rain term; the path part is separated only
+                             #   through L at matched rain or by dry-path moments; ITU-R P.838 only as a size reference; the rain correction comes
+                             #   from the City gauges only (g_e). The S6 candidate (sha256 36135658...d82b) stays the reference (M0).
+    reference: "M0 = the frozen S6 candidate (products/tighten_s6_candidate.json, the S6 plug-back 'P only' fit), as in S7"
+    data: "TRAIN and VAL V1 (as S7); the S7 dry-path windows (validation.dry_windows, the S7 rule) recomputed for every model; VAL is 'used (optimistic)'"
+    val_label: "used (optimistic)"
+    weather: "the hourly SMHI GbgA weather of research/baseline/outputs/products/dew_risk_hourly.csv (as S7): wind_speed, humidity, temperature; an
+              hour's value is held over [hour, hour + 1 h) (UTC)"
+    diagnosis:               # Part 1, on the dry-path windows with M0 frozen; each cause tested separately
+      gauge_end: "(a) windows on links with a City gauge within 2 km of the path (release link_gauge_matches, network city, distance_to_path_m
+                  <= 2000, the nearest): the gauge end of rain = the last minute with gauge rate > 0 in [t0 - 90 min, t0 + window); lag = t0 - gauge
+                  end (> 0: the radar calls the path dry later than the gauge). The model error W_obs - W_M0 against the minutes since the GAUGE
+                  end (figure) and since the radar end. Supported if (i) the error at 5 and 10 min after the radar end is small (|median| < 0.1 dB)
+                  in the windows where the two ends agree (|lag| <= 5 min) AND (ii) the Spearman of the error at 10 min against the lag is
+                  negative with a 90 % event-bootstrap interval excluding 0. Otherwise not supported"
+      gauge_max_m: 2000
+      agree_lag_min: 5
+      faster_drying: "(b) windows with W_obs(0) >= 0.5 dB: the apparent decay time over the first 10 min (exponential fitted on log W over 0-10 min,
+                      per window) of the measured W against the model's W in the same window. Supported if the median ratio measured / model is
+                      <= 0.8 with a 90 % event-bootstrap interval below 1, in the ordinary windows (not after heavy rain) as well. The error AT
+                      t = 0 is reported too: a misfit already there is not a drying effect"
+      fast_ratio_max: 0.8
+      weather: "(c) per window: the error at 5 and 10 min and the decay ratio of (b) against the wind, humidity and temperature of the hour of t0,
+                and against the preceding peak rain (max 1 min V1 in the 60 min before t0). Spearman of each, and partial Spearman (ranks,
+                linear residuals) of wind given the peak rain, of the peak rain given the wind, and of humidity and temperature given the peak rain;
+                90 % event-bootstrap intervals (1000, seed 8101). Supported for a variable if its partial rho has the physical sign (more wind
+                or more rain before -> lower error / faster decay; humidity -> slower) and an interval excluding 0. If a variable is significant
+                alone but neither it nor the other is after partialling: 'not separable'"
+      f_heavy: "(d) the residual A - A_M0 (5 min) DURING rain >= 10 mm/h (V1) on links < 1 km (small path term), TRAIN and VAL: mean and median with
+                90 % event-bootstrap intervals. Supported (F too high at heavy rain) if the mean is <= -0.1 dB with an interval below 0 on TRAIN
+                and VAL alike"
+      f_heavy_max_db: -0.1
+      boot_reps: 1000
+      seed: 8101
+    refinements:             # Part 2, each fitted on TRAIN V1; everything else as S6
+      common: "shared F shape (free knots), P = c_band R, phi 0.72, tau_s 240 min, tau_f_wet 2.6 min, lag +1 min, a_link with the S3b ridge; the
+               standard knots; start = the S6 values (F of the kept shared fit, c_band and a_link of the candidate, tau_f_dry 10.3, k 0); caps 1000 +
+               1000 (L-BFGS-B); kernel wind_drying.kernel_w (exact M4b at k = 0)"
+      M0r: "the control: the same parametrisation refitted with nothing extra (separates the parametrisation from the refinements)"
+      M1: "tau_f_dry free (one number, no weather)"
+      M2: "tau_f_dry = tau_0 exp(-k u), u = the hourly wind standardised over the TRAIN link-event minutes (step-held over the hour): tau_0 and k free"
+      M3: "ONLY if Part 1 supports (c) for the preceding peak rain and NOT for the wind: the same form with u = the standardised preceding peak rain
+           (max 1 min V1 in the previous 60 min). Otherwise not run"
+      k_bounds: [-2.0, 2.0]
+      caps: {start: 1000, polish: 1000}
+      fake: "every extra number (M1: tau_f_dry; M2: tau_0, k): truth = the TRAIN fit, fake data from it on the TRAIN geometry and V1 rain with the S2
+             noise (as S6), 3 replicates (seed 8201), refit from the S6 start (tau_f_dry 10.3, k 0). Identified if within +-20 % in 3 of 3 (|truth|
+             < 0.05: within +-0.01) and the fitted value is not within 1 % of a bound"
+      fake_tol: 0.20
+      fake_replicates: 3
+      fake_seed: 8201
+    box_a_rule:              # Part 3, ALL must hold
+      rule_1: "identified (the Part 2 fake check)"
+      rule_2: "physical sign: k > 0 (more wind -> shorter tau_f_dry); M1: nothing to check"
+      rule_3: "it fixes what it targets, on the VAL dry-path windows: improvement = |median error M0| - |median error Mx| at 5 and at 10 min >= 0.05 dB
+               with a 90 % event-bootstrap interval excluding 0; after heavy rain (the S7 'heavy' windows) the improvement at 5 and 10 min
+               >= 0.1 dB (point estimate: VAL has 63 heavy windows in 3 events; the TRAIN heavy windows are reported too)"
+      rule_3_min_db: 0.05
+      rule_3_heavy_min_db: 0.10
+      rule_4: "it does not hurt: VAL V1 RMSE (the S3-S6 judge) rise <= 0.003 dB against M0; VAL length test at least 4 of 6 cells; the 7.3a error
+               still equal across the length classes (the interval of L > 3 minus L < 1 at 10 min holds 0, TRAIN + VAL windows as S7)"
+      rule_4_rmse_rise_max_db: 0.003
+      rule_5: "not carried by a few events: leave-one-event-out over the TRAIN events with dry-path windows (warm start from the full fit, cap 300):
+               k keeps its sign in every fold (M1: tau_f_dry stays on the same side of 10.3 min); and the fit without the 3 windiest of those
+               events (mean hourly wind over their windows) keeps the VAL improvement of rule 3 (5 and 10 min) at >= half its size"
+      fold_cap: 300
+      rule_5_only_if: "rule 5 (the folds and the 3 windiest dropped) is computed only for a refinement that passes rules 1-4 (else it cannot enter box A); written before the run"
+      rule_6: "if M1 alone passes rules 1-5 and M2 adds < 0.02 dB beyond M1 at 5 and 10 min, M1 is preferred (one number, no weather)"
+      rule_6_db: 0.02
+      outcome: "a refinement passing all rules enters the equation (box A); one with the right sign that improves but fails rule 3, 4 or 5 is box B
+                ('wind speeds drying by about X % per m/s, seen on N events, not in the equation'); otherwise box C. Whichever passes: F, P,
+                A_band and a_link are refitted with it (that is its fit), and the S6 cold event bootstrap (40 draws, seed 8301, generic start as S6,
+                caps 1000 + 1000) and the S6 identifiability check (3 fake replicates, the S6 rule) are repeated for the new candidate"
+      bootstrap: {reps: 40, reps_if_cut: 30, seed: 8301}
+    error_budget: "VAL (used, optimistic), the final candidate, valid 5 min bins: during rain = V1 >= 0.1 mm/h; after rain = V1 < 0.1 and 0-60 min
+                   after the link's last wet bin; dry = the rest (the noise floor). Each as RMSE (dB) and as a share of the total squared error;
+                   during rain split into between events (n_e x the event's mean residual squared, the rain reference) and within events"
+    time_budget_h: 6.0       # one fit start is timed first and the jobs projected; cut order: bootstrap 40 -> 30, M3, the leave-one-event-out folds (keep >= 10)
+    deviation: "2026-10-19, during the run, before any result of Part 2: the projection (7.2 h, worst case: every fit at its cap) cut the bootstrap 40 -> 30 and M3. Both cuts were UNDONE: the same worst-case projection was 4-5 x too long in S6, and M3 is the refinement Part 1 asks for (the preceding rain supported, the wind not). Recorded in the cache plan.json"
+    candidate: "written into this section (key candidate) after the run: the S6 candidate unchanged if nothing passes box A"
+    candidate_result:        # written after the run (2026-10-19); the product: outputs/products/return_s6b_candidate.json (sha256 in the report)
+      by_the_rules: "M1 (tau_f_dry free) passes every box-A rule and is the candidate written: tau_f_dry 3.73 min [1.72, 6.58] (S6: 10.3 fixed)"
+      changed: {tau_f_dry_min: [3.73, 1.72, 6.58], A_db_at_5mmh: {"28 GHz": [3.76, 3.28, 4.64], "32 GHz": [3.41, 3.01, 4.71], "38 GHz": [3.91, 3.60, 5.00]},
+                c_db_km_per_mmh: {"28 GHz": [0.054, 0.0, 0.092], "32 GHz": [0.072, 0.0, 0.121], "38 GHz": [0.112, 0.0, 0.172]}}
+      not_identified: ["c_band (all three bands: the bootstrap interval reaches 0)", "P below 1 mm/h", "phi", "tau_s"]
+      box_B: ["drying faster with wind (M2: identified, right sign, fails rules 3 and 4)", "after-rain level (grows with the preceding rain and in dry air)", "dew"]
+      box_C: ["M3 (drying with the preceding rain): k about 0, wrong sign", "late water on long links", "F shape above 10 mm/h", "P below 1 mm/h", "rain-reference error between events"]
+      decision_needed: "M1 unbinds the path term (c_band not identified), which the roadmap's success definition does not allow for box A. The learners choose, dated, before S8: (1) M1 as written, or (2) the S6 candidate (M0) with the faster effective drying in box B"
+  test_s8:                   # step S8 (test_s8.py, libraries final_model.py, validation.py, system_id.py, length_test.py, event_factors.py,
+                             #   wind_drying.py, baseline/baseline.py): FREEZE, then read TEST ONCE. EVERY RULE BELOW WAS WRITTEN BEFORE TEST
+                             #   WAS READ (2026-10-19). STANDING RULE: WAA is never estimated by subtracting a power-law rain term; ITU-R P.838
+                             #   only as a size reference; the rain correction comes from the City gauges only (g_e; for TEST events from the
+                             #   TEST events' City gauges); nothing of the candidate is refitted on TEST; nothing is changed after TEST is read.
+    decision: "2026-10-19, before any TEST read, a deviation from the outcome of the written S6b rule: the candidate is M0 = the S6 candidate
+               (products/tighten_s6_candidate.json, sha256 36135658c4362397754247faf4a744dc2e6e61b6737e9bcc112c83937519d82b); M1 of S6b is box B
+               (a faster effective drying of 3.7 min removes the end-of-rain misfit but unbinds the path term). Reason: integrity rule 3 and the
+               success definition. M1 is shown on TEST for information only"
+    candidate: "M0: the S6 plug-back 'P only' fit, frozen (final_model.s6_models 'candidate'); input V1 = radar / g_e; a_link of a TEST link = 1"
+    comparison:              # Part 1, fitted on TRAIN V1 only (the S3 all-length TRAIN set, the same c and selection), lag +1 min fixed,
+                             #   P = c_band R refitted for each, a_link with the S3b ridge where the model has an antenna term; caps 1000 + 1000
+      B0: "no WAA: A - c = L c_band R (no antenna term)"
+      B1: "constant WAA while it rains: W = a_link w0_band when the path-mean V1 > 0.1 mm/h, else 0 (a near-step on the knots 0, 0.1,
+           0.1001 mm/h); one w0 per band"
+      B2: "WAA without memory: W = a_link A_band G(R) instantly (the S6 shared shapes on the S6 knots, no stores)"
+      B3: "skipped: no literature WAA model is implemented in the repo (the S4 report names pycomlink's waa_schleiss_2013 [1] without a value;
+           the proposal's [1], [9] are not coded here)"
+      lag_min: 1
+      caps: {start: 1000, polish: 1000}
+      after_fit: "each reported on TRAIN and VAL V1 (VAL used, optimistic) as a sanity check; no further tuning"
+    freeze: "products/test_s8_freeze.json: the sha256 of the candidate file, of each comparison fit (cache pickles), of this config block (the
+             YAML dump of wet_antenna.test_s8 with sorted keys, without the key 'results'), and the git commit of the code; committed BEFORE
+             TEST is read. The TEST run checks the hashes first and stops if one differs"
+    test_data: "TEST events (split_events): the baseline v2 for every (TEST event, sub-link) of the TRAIN and the TEST links (good or degraded
+                sub-links), computed with the frozen baseline code (baseline.event_table; no fake-event uncertainty exists for TEST links, so
+                the offset_std rule does not apply to them; no daily-cycle amplitude for TEST sub-links: that flag is not raised); then the S2
+                rules of the S3 all-length datasets (system_id.build_dataset, max length as S3): TRAIN links (main) and TEST links (P5),
+                counted in the S6 funnel format"
+    g_e: "per TEST event, the S4.3 path-mean rule on the TEST event's gauge link-events of the TRAIN links (City gauge within 1 km): radar sum /
+          gauge sum, used if the gauge sum per gauge link >= 1.0 mm, else g_e = 1; V3 = one pooled ratio over the TEST events where g_e is used;
+          V0 = the radar as it is"
+    rmse: "the RMSE of the 5 min A over the valid bins of the link-events (pooled), with 90 % event-bootstrap intervals (1000 draws, seed 8801)"
+    pass_rules:              # all on TEST, input V1
+      P1: "the length test through the model (S3b machinery, eligible = >= 8 links under 1 km): at least 4 of 6 eligible cells (k of n =
+           ceil(2 n / 3))"
+      P2: "the candidate beats B0, B1 and B2: TEST RMSE difference (Bx minus candidate) > 0 with the 90 % interval excluding 0, for each Bx, on all
+           TEST link-events of the TRAIN links and on those with L < 1 km separately"
+      P3: "W independent of L: the S7.3a dry-path rule on TEST, the median error W_obs - W_M0 at 10 min, L > 3 km minus L < 1 km, the interval
+           contains 0 (not testable if a class has < 10 windows)"
+      P4: "no length class out of line: for L < 1, 1-3, > 3 km, the TEST / VAL RMSE ratio of the class within +-15 % of the all-class TEST / VAL
+           ratio"
+      P5: "new links: on TEST events, the TEST links (a_link = 1, never fitted) have an RMSE at most 20 % above that of the TRAIN links"
+      p4_tol: 0.15
+      p5_max_ratio: 1.20
+    information: "no pass / fail: the share of TEST link-events where the candidate's RMSE is below B0's; the share of TRAIN links with |mean
+                  residual| < 0.3 dB on TEST; the RMSE with V0, V1, V3; the gauge links with the gauge rain as input (the frozen M0, the link-events
+                  with a City gauge within 1 km) against V1 on the same link-events; the TEST error budget (the S6b split); the dry-path error at
+                  5 and 10 min of M0 and M1 (M1 is box B); dew-before-rain link-events (the S7.4 rule) if any"
+    verdict: "'the box-A equation holds on TEST' if P1-P5 pass; else each failed rule and the claim it touches: P1 / P3 W independent of L; P2 the
+              value of the memory and of the antenna term; P4 the length behaviour; P5 the link multiplier. A failure is a result; nothing is
+              refitted"
+    bugs_after_test: "a bug found AFTER TEST is read is fixed only if it is in the evaluation code (not the model or the rules), recorded dated with
+                      the numbers before and after, and the evaluation rerun"
+    boot_reps: 1000
+    seed: 8801
+    time_budget_h: 4.0

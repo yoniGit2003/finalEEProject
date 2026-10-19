@@ -1,0 +1,156 @@
+{
+ "step": "S6",
+ "model": "M4b-B (gauge timing fixed), input R = radar / g_e",
+ "parametrisation": "shared_FP",
+ "lag_min": 1,
+ "dynamics_fixed": {
+  "tau_f_wet": 2.6,
+  "tau_f_dry": 10.3,
+  "phi": 0.72,
+  "tau_s": 240
+ },
+ "closed_forms_hold_for": "P only",
+ "curves": {
+  "F": {
+   "type": "free knots (shared shape F = A_band G(R), G(5) = 1)",
+   "closed_form_tried": [
+    "pysr_F_2"
+   ],
+   "why_not": "its plug-back failed the VAL length test (4 of 6 cells against the rule's 0.6667)",
+   "knots": {
+    "A[28 GHz]": {
+     "value": 2.7442472807814022,
+     "boot_lo": 2.2048882233804186,
+     "boot_hi": 3.3703010346746454
+    },
+    "A[32 GHz]": {
+     "value": 2.562064871749342,
+     "boot_lo": 1.879977209633787,
+     "boot_hi": 3.3894338738523135
+    },
+    "A[38 GHz]": {
+     "value": 2.9619605864319176,
+     "boot_lo": 2.491535292143099,
+     "boot_hi": 3.527118359551352
+    },
+    "G(0.5)": {
+     "value": 0.35434871355120384,
+     "boot_lo": 0.2549147816766788,
+     "boot_hi": 0.4596221834735917
+    },
+    "G(1)": {
+     "value": 0.3543588708857486,
+     "boot_lo": 0.30946999238524187,
+     "boot_hi": 0.459627605437441
+    },
+    "G(2)": {
+     "value": 0.6286124070925719,
+     "boot_lo": 0.384665174665954,
+     "boot_hi": 0.8011663926384767
+    },
+    "G(5)": {
+     "value": 1.0,
+     "boot_lo": 1.0,
+     "boot_hi": 1.0
+    },
+    "G(10)": {
+     "value": 1.2092335048679048,
+     "boot_lo": 1.0081701121502646,
+     "boot_hi": 1.4907142748155824
+    },
+    "G(20)": {
+     "value": 1.7294206932541698,
+     "boot_lo": 1.1800847130411596,
+     "boot_hi": 2.296688246296005
+    },
+    "G(40)": {
+     "value": 1.9655083802515516,
+     "boot_lo": 1.629185988984113,
+     "boot_hi": 2.8120411238555496
+    }
+   }
+  },
+  "P": {
+   "type": "closed form",
+   "form": "P5 R / 5",
+   "chosen_by_AICc": [
+    "linear"
+   ],
+   "amplitude_at_5mmh": {
+    "28 GHz": {
+     "value": 0.53417,
+     "boot_lo": 0.27736818552676046,
+     "boot_hi": 0.5998042920267243
+    },
+    "32 GHz": {
+     "value": 0.71208,
+     "boot_lo": 0.29095197555878594,
+     "boot_hi": 0.8823766563439118
+    },
+    "38 GHz": {
+     "value": 0.98688,
+     "boot_lo": 0.4538537176899859,
+     "boot_hi": 1.116232884738755
+    }
+   },
+   "shape_parameters": {},
+   "values": "plug-back refit; [ ] = 90 % of the form fitted to every bootstrap draw's knots"
+  }
+ },
+ "a_link": {
+  "a_p10": {
+   "value": 0.7589369778822547,
+   "boot_lo": 0.6815083176549962,
+   "boot_hi": 0.7838075243588725
+  },
+  "a_p90": {
+   "value": 1.226555573977683,
+   "boot_lo": 1.2392078898949708,
+   "boot_hi": 1.4023356872487351
+  }
+ },
+ "not_identified": [
+  "P[28 GHz](0.5)",
+  "P[28 GHz](1)",
+  "P[32 GHz](0.5)",
+  "P[32 GHz](1)",
+  "P[38 GHz](0.5)",
+  "P[38 GHz](1)",
+  "H(0.5)",
+  "H(1)"
+ ],
+ "assumptions": [
+  {
+   "assumption": "A(t) = W(t) + L P(R) + c: the antenna and path parts add, the path part is linear in L at matched rain",
+   "checked": "S3.1 / S3b (model-free length test), S5a (V1 length test)"
+  },
+  {
+   "assumption": "W does not depend on L (antennas are alike at all lengths)",
+   "checked": "to check in S7.1"
+  },
+  {
+   "assumption": "The radar / g_e is the right rain at the path scale (one g_e per event from point gauges, the radar already gauge-adjusted)",
+   "checked": "S4.3 (closes the VAL gap; circular); to check in S7.2-7.3"
+  },
+  {
+   "assumption": "The gauge timing (tau_f_wet 2.6, tau_f_dry 10.3 min) holds with the radar input",
+   "checked": "S2b (gauge), S3.4 (replicated on VAL), S3b (radar wetting = input smoothing); S6 timing sensitivity"
+  },
+  {
+   "assumption": "The slow store is fixed (phi 0.72, tau_s 240 min at its bound): not identified, it carries the long tail",
+   "checked": "S2b, S5a (M4c not identified)"
+  },
+  {
+   "assumption": "One a_link per link, constant over the summer, and the same dynamics in every band",
+   "checked": "S3.3 (both directions); to check in S7.1 / S7.5"
+  },
+  {
+   "assumption": "The baseline (v2, 24 h dry median before the event) does not follow the drying tail",
+   "checked": "baseline R1 / R1b"
+  },
+  {
+   "assumption": "Dew and other non-rain wetting are not in the model",
+   "checked": "to check in S7.4"
+  }
+ ]
+}

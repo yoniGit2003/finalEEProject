@@ -1,0 +1,7 @@
+truth,replicate,what,tau_wet,tau_dry,d,tau_s,phi,PASS
+Tc,0,M3 fitted on S<3,2.9416,8.1668,2,,,True
+Tc,0,M3 fitted on S<1,2.9139,8.2539,2,,,True
+Tc,1,M3 fitted on S<3,2.9825,8.0781,2,,,True
+Tc,1,M3 fitted on S<1,3.0039,8.0486,2,,,True
+Te,0,ladder M3 < M3D < M4b on M4b data: chosen M4b,3.0699,10.1825,2,103.7964,0.7952,True
+Te,1,ladder M3 < M3D < M4b on M4b data: chosen M4b,2.9712,10.1742,2,87.6455,0.8007,True

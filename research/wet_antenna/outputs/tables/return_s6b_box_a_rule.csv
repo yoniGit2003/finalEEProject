@@ -1,0 +1,4 @@
+model,1 identified,2 physical sign,3 fixes the after-rain error,3 VAL improvement 5 / 10 min,3 heavy VAL / TRAIN 5 / 10 min,4 does not hurt,4 detail,5 not a few events,5 detail,box
+M1,True,True,True,"0.173 [0.134, 0.197] / 0.119 [0.109, 0.134]",+0.125 / +0.129; +0.301 / +0.257,True,"rise -0.0024 dB; length 4 of 6; L>3 - L<1 at 10 min -0.022 [-0.060, 0.005]",True,"sign kept in 23 of 23 folds; without E20150718_1745, E20150731_1440, E20150802_0400: improvement +0.172 / +0.119 dB (full +0.173 / +0.119)",A
+M2,True,True,False,"0.176 [0.076, 0.247] / 0.112 [0.076, 0.146]",+0.052 / +0.153; +0.321 / +0.292,False,"rise +0.0028 dB; length 4 of 6; L>3 - L<1 at 10 min -0.035 [-0.063, -0.003]",not run (rules 1-4 not all met),,B
+M3,True,False,True,"0.174 [0.133, 0.198] / 0.120 [0.110, 0.135]",+0.131 / +0.127; +0.299 / +0.253,True,"rise -0.0024 dB; length 4 of 6; L>3 - L<1 at 10 min -0.022 [-0.060, 0.005]",not run (rules 1-4 not all met),,C

@@ -1,0 +1,8 @@
+data,M3D_minus_M4_from_R_alone,from_R_lo,from_R_hi,M3D_minus_M4_drift_allowed,drift_allowed_lo,drift_allowed_hi,s_b_db_h,mean_slope_db_h,slope_lo,slope_hi,spearman_slope_rain_depth,tau_s_M4_min,verdict
+"REAL S<3, radar",0.0035,-0.0008,0.0075,-0.0008,-0.0036,0.0017,0.0383,0.0061,0.0018,0.0105,0.1462,395.4206,"SLOW RISE, FORM UNDECIDED"
+"fake Tb (M3 + drift), replicate 0",-0.0005,-0.0009,-0.0,-0.0013,-0.0018,-0.0008,0.047,0.0007,-0.0009,0.0024,0.0285,0.2121,DRIFT-LIKE
+"fake Tb (M3 + drift), replicate 1",-0.001,-0.0016,-0.0006,-0.001,-0.0014,-0.0006,0.0484,-0.0007,-0.0025,0.001,-0.0077,9.2481,DRIFT-LIKE
+"fake Tb (M3 + drift), replicate 2",-0.0008,-0.0012,-0.0004,-0.001,-0.0016,-0.0005,0.0472,0.0006,-0.0014,0.0027,0.0323,28.9722,DRIFT-LIKE
+"fake Tb2 (M4, slow store), replicate 0",0.0085,0.0047,0.0125,0.0044,0.0022,0.0069,0.0439,0.0061,0.0044,0.0079,0.0509,272.9945,WATER-LIKE
+"fake Tb2 (M4, slow store), replicate 1",0.0103,0.0058,0.0148,0.0053,0.0029,0.0081,0.0452,0.0047,0.0023,0.0072,0.1128,279.1383,WATER-LIKE
+"fake Tb2 (M4, slow store), replicate 2",0.0084,0.0047,0.0124,0.0053,0.0029,0.008,0.0413,0.0042,0.0024,0.0059,0.0644,272.9188,WATER-LIKE

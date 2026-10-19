@@ -126,7 +126,8 @@ def compare(rel_tol):
 def step_table():
     rows = ["| # | step | command | what it does | needs | time | without caches |", "|---|---|---|---|---|---|---|"]
     for i, s in enumerate(load_steps(), 1):
-        label = s["name"] + (f" (step {s['id']})" if s.get("id") else "")
+        was = f", was {s['old_id']}" if s.get("old_id") else ""
+        label = s["name"] + (f" (step {s['id']}{was})" if s.get("id") else "")
         rows.append(f"| {i} | {label} | `{shown_command(s)}` | {s['what']} | {', '.join(s.get('needs') or ['-'])} "
                     f"| {s['time']} | {s.get('no_cache', '-')} |")
     return "\n".join(rows)

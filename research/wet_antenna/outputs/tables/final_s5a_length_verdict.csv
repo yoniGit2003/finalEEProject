@@ -1,0 +1,15 @@
+input,set,fit,eligible_cells,I_inside,s_inside,both_inside,share,I_ratio_median,s_ratio_median,passes
+V0,VAL,M4b-B (S3b),8,3,2,1,0.125,0.7223,0.6081,False
+V0,VAL,M4b-B,8,3,2,1,0.125,0.765,0.6408,False
+V0,VAL,M3-B,8,3,2,1,0.125,0.7439,0.6296,False
+V0,VAL,M4c,8,3,1,0,0.0,0.7829,0.6138,False
+V0,VAL,closed form,8,3,2,0,0.0,0.7411,0.6095,False
+V1,VAL,M4b-B (S3b),6,5,6,5,0.8333,0.9852,0.9503,True
+V1,VAL,M4b-B,6,5,6,5,0.8333,1.024,0.9463,True
+V1,VAL,M3-B,6,5,6,5,0.8333,0.9914,0.902,True
+V1,VAL,M4c,6,5,6,5,0.8333,1.0607,0.9121,True
+V1,VAL,closed form,6,5,6,5,0.8333,1.0002,0.9003,True
+V1,TRAIN,M4b-B,10,9,9,8,0.8,1.1058,1.0104,True
+V1,TRAIN,M3-B,10,9,9,8,0.8,1.1134,0.9773,True
+V1,TRAIN,M4c,10,9,10,9,0.9,1.141,0.9621,True
+V1,TRAIN,closed form,10,9,10,9,0.9,1.1044,0.9573,True

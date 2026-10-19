@@ -1,0 +1,5 @@
+group,showers,link_events,peak_R_median_mmh,peak_obs_median_db,peak_M1_median_db,peak_M4_median_db,check,median_L_km,start_obs_median_db,drop_obs_median_db,drop_M1_median_db,drop_M4_median_db
+first shower,1078.0,1078,0.856,0.82,0.974,0.577,"per-shower peaks, link-events with >= 2 showers",,,,,
+later showers,5324.0,1078,0.805,1.0,0.924,0.621,"per-shower peaks, link-events with >= 2 showers",,,,,
+0.6-1 km,,232,,,,,fast drop after the last wet bin,0.869,0.7,0.357,0.185,0.138
+< 0.6 km,,151,,,,,fast drop after the last wet bin,0.459,0.703,0.33,0.165,0.136

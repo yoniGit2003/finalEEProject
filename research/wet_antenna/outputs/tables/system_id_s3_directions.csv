@@ -1,0 +1,7 @@
+set,quantity,pairs,links,spearman_pairs,spearman_per_link_median,median_ratio_2_over_1,pairs_both_positive,freq_diff_median_ghz,freq_diff_max_ghz,same_wetting
+"VAL, L < 3 km",after-rain integral 0-180 min (dB min),965,113,0.337,0.244,0.989,380,1.008,1.442,False
+"VAL, L < 3 km",peak of A - c (dB),965,113,0.964,0.847,1.003,925,1.008,1.442,True
+"TRAIN, L < 3 km",after-rain integral 0-180 min (dB min),2921,113,0.339,0.2,1.024,1201,1.008,1.442,False
+"TRAIN, L < 3 km",peak of A - c (dB),2921,113,0.971,0.837,0.999,2803,1.008,1.442,True
+"TRAIN, L < 3 km (S2b leave-one-event-out)","per-sub-link amplitude: median observed / predicted peak (M3), substitute for a_link",113,113,0.777,,0.998,113,,,True
+"TRAIN, L < 3 km (S2b leave-one-event-out)","per-sub-link amplitude: median observed / predicted peak (M4b), substitute for a_link",113,113,0.625,,1.0,113,,,True

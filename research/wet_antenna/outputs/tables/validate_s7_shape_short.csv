@@ -1,0 +1,3 @@
+band,link_events,bins,candidate (shared shapes),S5a free (band shapes),shared_minus_band_db,ok
+28 GHz,257,36728,0.46324,0.46272,0.00052,True
+38 GHz,274,42153,0.50047,0.50319,-0.00272,True

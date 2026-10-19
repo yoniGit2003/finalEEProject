@@ -1,0 +1,25 @@
+kind,scope,form,formula,k,n,wrss,aicc,usable,amps,theta,source,chosen,delta_aicc
+F,all bands (shared shape),sat5,F5 [R / (R + R0)] / [5 / (5 + R0)],4,21,13.66629,1.4786,True,"[2.82149, 2.6659, 3.04034]",[3.191315],physics,False,11.3867
+F,all bands (shared shape),exp5,F5 [1 - exp(-R / R0)] / [1 - exp(-5 / R0)],4,21,19.30363,8.73118,True,"[2.96186, 2.81116, 3.18656]",[2.797555],physics,False,18.63928
+F,all bands (shared shape),capped,"F5 min((R / 5)^b, m) / min(1, m)",5,21,6.72641,-9.9081,True,"[2.50283, 2.33895, 2.7027]","[0.490857, 2.154146]",physics,False,0.0
+F,all bands (shared shape),pysr_F_0,PySR: 1.2860016,4,21,21000000000000.0,inf,False,"[2.74425, 2.56206, 2.96196]",[1.286002],PySR,False,inf
+F,all bands (shared shape),pysr_F_1,PySR: log(R * 3.4230464),4,21,21000000000000.0,inf,False,"[2.74425, 2.56206, 2.96196]",[3.423046],PySR,False,inf
+F,all bands (shared shape),pysr_F_2,PySR: exp(log(R) * 0.51838696),4,21,8.01666,-9.72301,True,"[2.43529, 2.27026, 2.63035]",[0.466256],PySR,True,0.18509
+F,all bands (shared shape),pysr_F_3,PySR: log(R + 1.2584511) * 1.4115124,5,21,9.74706,-2.11869,True,"[2.66579, 2.50618, 2.87533]","[0.673509, 0.001412]",PySR,False,7.78941
+F,all bands (shared shape),pysr_F_4,PySR: exp(exp((-2.9410195 / R) - -0.56006736)),5,21,28.83643,20.65946,True,"[2.76817, 2.61533, 2.982]","[-0.445831, 2.752272]",PySR,False,30.56756
+F,all bands (shared shape),pysr_F_5,PySR: (log(R) + (0.6610993 / R)) * 1.5241841,5,21,21000000000000.0,inf,False,"[2.74425, 2.56206, 2.96196]","[1.007637, 1.524184]",PySR,False,inf
+F,all bands (shared shape),pysr_F_6,PySR: log((R * log(R)) - -2.8782747),4,21,21000000000000.0,inf,False,"[2.74425, 2.56206, 2.96196]",[2.878275],PySR,False,inf
+F,all bands (shared shape),pysr_F_7,PySR: log((R * 3.0363386) - log(R)),4,21,21000000000000.0,inf,False,"[2.74425, 2.56206, 2.96196]",[3.036339],PySR,False,inf
+F,all bands (shared shape),pysr_F_8,PySR: (log(R - -2.721274) + -0.739768) / 0.513782,6,21,9.74706,1.88131,True,"[2.66579, 2.50618, 2.87533]","[-16.835917, 0.002092, 0.673504]",PySR,False,11.78941
+F,all bands (shared shape),pysr_F_9,PySR: log(R + 1.8591456),4,21,9.74706,-5.61869,True,"[2.66579, 2.50618, 2.87533]",[0.673505],PySR,False,4.28941
+F,all bands (shared shape),pysr_F_10,PySR: log((R * R) + 2.8690124) * 0.84609944,5,21,15.63216,7.80096,True,"[2.63527, 2.48029, 2.83927]","[0.000846, 0.07955]",PySR,False,17.70906
+F,all bands (shared shape),pysr_F_11,PySR: log((R * (R * 0.556515)) + 2.5409875),5,21,15.63216,7.80096,True,"[2.63527, 2.48029, 2.83927]","[5.912657, 0.470356]",PySR,False,17.70906
+F,all bands (shared shape),pysr_F_12,PySR: exp((-3.928051 / R) - -1.4707781) + 1.0104736,6,21,38.14782,30.53587,True,"[2.64738, 2.49641, 2.85118]","[-0.953629, 0.061379, 13.839749]",PySR,False,40.44397
+P,all bands (shared shape),linear,P5 R / 5,3,21,3.25627,-31.73099,True,"[0.4781, 0.63167, 0.91148]",[],physics,True,0.89656
+P,all bands (shared shape),power,P5 (R / 5)^b,4,21,2.82577,-31.62059,True,"[0.49303, 0.64627, 0.93847]",[0.968633],physics,False,1.00696
+P,all bands (shared shape),quadratic,P5 (R + d R^2) / (5 + 25 d),4,21,3.25627,-28.64275,True,"[0.4781, 0.63167, 0.91148]",[0.0],physics,False,3.98479
+P,all bands (shared shape),pysr_P_0,PySR: 0.09150352,4,21,21000000000000.0,inf,False,"[0.57491, 0.75181, 1.0922]",[0.091504],PySR,False,inf
+P,all bands (shared shape),pysr_P_1,PySR: R * 0.09561987,4,21,3.25627,-28.64275,True,"[0.4781, 0.63167, 0.91148]",[0.09562],PySR,False,3.98479
+P,all bands (shared shape),pysr_P_2,PySR: (R + -0.027841799) * 0.09618085,5,21,3.25627,-25.14275,True,"[0.4781, 0.63167, 0.91148]","[-0.002678, 0.096181]",PySR,False,7.48479
+P,all bands (shared shape),pysr_P_3,PySR: ((R * -0.00038908608) + 0.10454788) * R,5,21,2.27997,-32.62755,True,"[0.51226, 0.66635, 0.97207]","[-0.000383, 0.105144]",PySR,False,0.0
+P,all bands (shared shape),pysr_P_4,PySR: (log(R - -0.41084862) + R) * 0.08128306,5,21,2.56611,-30.14477,True,"[0.49899, 0.65339, 0.9494]","[1.894114, 4.535547]",PySR,False,2.48277

@@ -1,0 +1,9 @@
+indicator,column,tails_known,share_not_decaying,share_decays,share_plateau-then-decays,share_rises,share_flat / slow,odds_ratio,or_lo,or_hi,rule_met
+radar R_max > 0 on the path of the link,ev_radar_path,429,0.0,0.0,0.0,0.0,0.0,,,,
+radar R_max > 0 on a link path within 5 km,ev_radar_near,429,0.73,0.879,0.703,0.778,0.73,0.38,0.21,0.66,
+nearest City gauge > 0 mm,ev_gauge_city,429,0.201,0.412,0.188,0.083,0.258,0.36,0.2,0.57,
+SMHI gauge > 0 mm,ev_gauge_smhi,429,0.243,0.433,0.203,0.278,0.258,0.42,0.28,0.98,
+ANY of the four rain indicators,ev_any_rain,429,0.778,0.925,0.703,0.833,0.809,0.29,0.1,0.58,
+dew risk (hourly product of the baseline module),ev_dew_risk,360,0.767,0.87,0.83,0.5,0.779,0.49,0.25,1.37,
+ANY moisture evidence (rain indicators or dew risk) = THE RULE,ev_any_moisture,416,0.983,0.983,0.983,1.0,0.977,0.94,0.17,4.5,False
+"night at t0_trace (NOT moisture evidence; information, added after the first look)",ev_night,429,0.291,0.075,0.188,0.5,0.281,4.96,1.64,14.53,

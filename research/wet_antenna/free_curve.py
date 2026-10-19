@@ -35,6 +35,8 @@ class Curve:
         d2 = CubicSpline(self.xk, np.eye(self.K), bc_type="natural")(fine, 2)
         self.omega = d2.T @ d2 * (fine[1] - fine[0])               # theta' omega theta = integral (log k)''^2 dx
         self.prior_mean, self.prior_sd = prior_mean, prior_sd
+        self.fit_noise = False                                     # step 4b: set to True to fit the noise-variance
+                                                                   #   multiplier too; x is then [theta, log s, log m]
 
     def basis(self, x):
         """Matrix B with log k(x) = B theta (x = log W; straight-line continuation outside the knots)."""
@@ -63,12 +65,15 @@ class Curve:
         return lam * float(th @ self.omega @ th) + float(np.sum((th - self.prior_mean) ** 2)) / (2 * self.prior_sd ** 2)
 
     def loglik(self, x, D):
-        """Pooled marginal log-likelihood (no penalty). x = [theta_1 .. theta_K, log s]."""
-        ll = wp.pooled_loglik("FC", self.table(x[:-1]), float(np.exp(x[-1])), D)
+        """Pooled marginal log-likelihood (no penalty). x = [theta_1 .. theta_K, log s] (+ [log m] with fit_noise)."""
+        if self.fit_noise:
+            ll = wp.pooled_loglik("FC", self.table(x[:-2]), float(np.exp(x[-2])), D, noise_mult=float(np.exp(x[-1])))
+        else:
+            ll = wp.pooled_loglik("FC", self.table(x[:-1]), float(np.exp(x[-1])), D)
         return ll if np.isfinite(ll) else -1e18
 
     def cost(self, x, D, lam):
-        return -self.loglik(x, D) + self.penalty(x[:-1], lam)
+        return -self.loglik(x, D) + self.penalty(x[:-2] if self.fit_noise else x[:-1], lam)
 
     def fit(self, D, x0, lam, maxfev, step=0.4, fatol=0.1):
         """Nelder-Mead from x0 (as pooled_fit.fit: explicit simplex, `step` in every coordinate)."""

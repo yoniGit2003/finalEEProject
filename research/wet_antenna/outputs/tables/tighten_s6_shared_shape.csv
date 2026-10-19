@@ -1,0 +1,5 @@
+fit,"VAL V1 rmse (used, optimistic)",rise_vs_free_db,length_share,length_ok,aicc,bic,rise_ok,kept,delta_aicc,delta_bic
+free,0.3878,0.0,0.8333,True,-3381919.1455,-3378830.7116,,,0.0,57.8989
+shared_F,0.3877,-0.0001,0.8333,True,-3381586.4879,-3378647.4913,True,True,332.6576,241.1191
+shared_P,0.3875,-0.0003,0.8333,True,-3381827.6071,-3378888.6105,True,True,91.5385,0.0
+shared_FP,0.3875,-0.0003,0.8333,True,-3381332.9646,-3378543.4056,True,True,586.1809,345.2048

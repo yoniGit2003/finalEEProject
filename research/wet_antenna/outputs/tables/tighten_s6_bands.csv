@@ -1,0 +1,9 @@
+nominal,sublinks,links,f_min,f_max,kept
+7 GHz,2,2,7.456,7.456,False
+8 GHz,2,2,7.61,7.61,False
+15 GHz,18,9,14.515,15.089,False
+18 GHz,44,22,18.195,19.425,False
+23 GHz,2,1,22.134,23.142,False
+28 GHz,344,172,28.0,29.2705,True
+32 GHz,66,33,32.333,33.257,True
+38 GHz,250,125,37.058,38.682,True

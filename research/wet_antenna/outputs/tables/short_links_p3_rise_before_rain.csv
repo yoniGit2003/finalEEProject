@@ -1,0 +1,6 @@
+group,pairs,tested,early_rise,share_early_rise,median_lead_min,placebo_tested,placebo_early,share_placebo_early,events_tested,events_with_early_rise
+all short links,1663,1531,65,0.042,16.0,1380,20,0.014,30,20
+< 0.6 km,685,642,32,0.05,16.0,593,8,0.013,29,13
+0.6-1 km,978,889,33,0.037,18.0,787,12,0.015,29,15
+28 GHz,777,710,31,0.044,16.0,628,12,0.019,29,15
+38 GHz,886,821,34,0.041,16.0,752,8,0.011,29,15

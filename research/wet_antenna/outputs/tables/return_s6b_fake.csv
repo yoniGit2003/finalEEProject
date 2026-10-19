@@ -1,0 +1,16 @@
+model,quantity,replicate,truth,estimate,within,at_bound,converged
+M1,M1 tau_0,0,3.7333,3.715,True,False,True
+M1,M1 tau_0,1,3.7333,3.7282,True,False,True
+M1,M1 tau_0,2,3.7333,3.7574,True,False,True
+M2,M2 tau_0,0,2.976,2.967,True,False,True
+M2,M2 k_wind,0,0.8296,0.8261,True,False,True
+M2,M2 tau_0,1,2.976,2.9459,True,False,True
+M2,M2 k_wind,1,0.8296,0.8329,True,False,True
+M2,M2 tau_0,2,2.976,2.9798,True,False,True
+M2,M2 k_wind,2,0.8296,0.7964,True,False,True
+M3,M3 tau_0,0,3.6687,3.711,True,False,True
+M3,M3 k_wind,0,-0.0088,-0.0091,True,False,True
+M3,M3 tau_0,1,3.6687,3.667,True,False,True
+M3,M3 k_wind,1,-0.0088,-0.0097,True,False,True
+M3,M3 tau_0,2,3.6687,3.6699,True,False,True
+M3,M3 k_wind,2,-0.0088,-0.0091,True,False,True

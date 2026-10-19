@@ -1,4 +1,4 @@
-% last updated: 2026-10-12 commit=0d354ba
+% last updated: 2026-10-19 commit=872716c
 % (the line above is read and rewritten by /updatedocs: the date and the git commit the content of this document describes)
 % Project structure: which folders and files the repository has, and what each one is for.
 % Build:  python docs/build_research_log.py project_structure   (writes docs/project_structure.pdf only)
@@ -71,7 +71,7 @@
 CellEnMon lab, final-year electrical engineering project\par
 Data-driven discovery of rain-induced and wet-antenna attenuation laws in commercial microwave links\par
 \vspace{0.6em}
-12 October 2026
+19 October 2026
 \end{center}
 
 \inshort{The repository has three parts that depend on each other in one direction. \code{pipeline/} turns the raw
@@ -330,31 +330,48 @@ v2 (pre-event window, the current method). \\
 \end{tabularx}
 \end{table}
 
-\subsection{\texttt{wet\_antenna/}: the WAA drying law}
+\subsection{\texttt{wet\_antenna/}: the wet-antenna attenuation}
+
+Two series of steps: T0--T18, the drying-tail exploration (closed; the old step number is in brackets), and S1--S5,
+the system identification on whole events that replaced it.
 
 \begin{table}[H]
 \centering
 \caption{The scripts that are run, in run order.}
 \small
-\begin{tabularx}{\linewidth}{@{}l F{4.6cm} Y@{}}
+\begin{tabularx}{\linewidth}{@{}l F{5.3cm} Y@{}}
 \toprule
 \textbf{Step} & \textbf{Script} & \textbf{What it does} \\
 \midrule
-0 & \code{inventory.py} & What data there is for WAA; no analysis. \\
-1 & \code{extract_tails.py} & Cuts out every drying tail after every rain event, with no selection. \\
-2 & \code{select_tails.py} & Selects usable tails by rules fixed in advance; tests the ``fast drop''. \\
-2b & \code{refine_selection.py} & Fixes after looking at the selected tails. \\
-2c & \code{freeze_tail_set.py} & Last fixes, then freezes tail set v1 that all modelling uses. \\
-3a & \code{calibrate_simulator.py} & A simulator of tails with known drying laws and realistic noise. \\
-3b-1 & \code{check_per_tail_fit.py} & Fit one tail at a time on simulated tails (cannot find the true law). \\
-3b-1b & \code{check_pooled_fit.py} & Fit all tails together. \\
-3b-1c & \code{stress_pooled_fit.py} & Stress test of the pooled fit. \\
-3b-2 & \code{check_sindy.py} & Weak-form SINDy directly on simulated tails (failed). \\
-3b-3 & \code{check_free_curve.py} & Learn a free drying curve $k(W)$ from all tails, then name its equation. \\
-3b-3b & \code{confirm_free_curve.py} & Confirms that on fresh simulated tails, with the rule written first. \\
-3b-3c & \code{check_discovery_method.py} & The rest of the discovery method (model choice, bootstrap band). \\
-3b-4 & \code{check_quantization.py} & Is the 0.3 dB quantization of RSL the cause of the false step? (no) \\
-4 & \code{fit_real_drying.py} & The first fit on the real tails, train events only. \\
+T0 (0) & \code{inventory.py} & What data there is for WAA; no analysis. \\
+T1 (1) & \code{extract_tails.py} & Cuts out every drying tail after every rain event, with no selection. \\
+T2 (2) & \code{select_tails.py} & Selects usable tails by rules fixed in advance; tests the ``fast drop''. \\
+T3 (2b) & \code{refine_selection.py} & Fixes after looking at the selected tails. \\
+T4 (2c) & \code{freeze_tail_set.py} & Last fixes, then freezes tail set v1 that all tail modelling uses. \\
+T5 (3a) & \code{calibrate_simulator.py} & A simulator of tails with known drying laws and realistic noise. \\
+T6 (3b-1) & \code{check_per_tail_fit.py} & Fit one tail at a time on simulated tails (cannot find the true law). \\
+T7 (3b-1b) & \code{check_pooled_fit.py} & Fit all tails together. \\
+T8 (3b-1c) & \code{stress_pooled_fit.py} & Stress test of the pooled fit. \\
+T9 (3b-2) & \code{check_sindy.py} & Weak-form SINDy directly on simulated tails (failed). \\
+T10 (3b-3) & \code{check_free_curve.py} & Learn a free drying curve $k(W)$ from all tails, then name its equation. \\
+T11 (3b-3b) & \code{confirm_free_curve.py} & Confirms that on fresh simulated tails, with the rule written first. \\
+T12 (3b-3c) & \code{check_discovery_method.py} & The rest of the discovery method (model choice, bootstrap band). \\
+T13 (3b-4) & \code{check_quantization.py} & Is the 0.3 dB quantization of RSL the cause of the false step? (no) \\
+T14 (4) & \code{fit_real_drying.py} & The first fit on the real tails, train events only. \\
+T15 (4b) & \code{diagnose_stalled_tails.py} & Why do some real tails stall or rise? \\
+T16 (4c) & \code{characterise_tails.py} & What is in a drying tail, before any law is fitted. \\
+T17 (4c2) & \code{check_drying_after_rain.py} & Does drying start when the rain nearby ends? Data only. \\
+T18 (7a) & \code{short_links.py} & Very short links: enough data, and does the fast first phase grow with length? \\
+S1 & \code{system_id_ladder.py} & Rain in, attenuation out, on links below 1 km: the model ladder M0--M4. \\
+S2 & \code{system_id_s2.py} & The same on links up to 3 km, the slow part, and the free rung M5. \\
+S2b & \code{system_id_s2b.py} & Repairs of the S2 model (the path / level trap, a bounded slow store, longer fits). \\
+S3 & \code{system_id_s3.py} & Verification of the frozen S2b fits: model-free length test, validation events,
+directions, gauge input. \\
+S3b & \code{system_id_s3b.py} & The same models fitted on all link lengths, so that the path term is pinned by $L$. \\
+S4.1--S4.2 & \code{conditions_s4.py} & Why events differ: per-event factors, radar against gauges, the conditions. \\
+S4.3 & \code{conditions_s4c.py} & Is the validation gap the radar? The length test with gauge-rescaled rain; heavy events. \\
+S5a & \code{final_s5a.py} & The model refitted on gauge-corrected rain, a last slow-store candidate (M4c), closed forms of $F(R)$ and $P(R)$. \\
+S6 & \code{tighten_s6.py} & Tighten the equation: data funnel, shared shapes, intervals, fake identifiability, closed forms (physics and PySR). \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -372,7 +389,11 @@ v2 (pre-event window, the current method). \\
 \code{pooled_fit.py} & The fit of all tails together. \\
 \code{free_curve.py} & The free curve and the naming of its equation. \\
 \code{sindy.py} & A minimal weak-form SINDy, written with numpy only. \\
-\code{tails.py} & Small helpers for the selection steps. \\
+\code{tails.py} & Small helpers for the real drying tails (selection, tail classes, rain traces, a tail from any start). \\
+\code{system_id.py} & The models with rain as input (M0--M5), their fit, the event datasets and the leave-one-event-out judge. \\
+\code{length_test.py} & The model-free length test, and running a fitted model on another dataset. \\
+\code{event_factors.py} & Per-event factors on a frozen fit, their fake data, and the radar / gauge ratio per event. \\
+\code{final_model.py} & The model setup of S5a, a fitted model run on another dataset, the closed forms of $F(R)$ and $P(R)$ and their plug-back. \\
 \code{datasets.py} & The noise tables, the tail sets on disk and the bootstraps. \\
 \code{fit_jobs.py} & The long fitting jobs; they save their progress, so an interrupted run continues. \\
 \bottomrule

@@ -1,0 +1,3 @@
+length,links_in_those_pairs,events_in_those_pairs,pairs_pass_v1_exclusions,link_events_with_rain,tails_0.4dB_60min,enough
+CUT < 0.6 km,18,37,685,661,113,True
+CUT < 1 km,41,41,1663,1382,276,True

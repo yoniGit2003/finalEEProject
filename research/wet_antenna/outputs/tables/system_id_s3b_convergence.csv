@@ -1,0 +1,6 @@
+fit,model,variant,loss,d,converged_on_all_events,starts,starts_converged,starts_median_iterations,spread_over_starts,best_start,lag_profile_loss_range,boot_draws,minutes
+M3-A,M3,A,165536.943,2,True,8,0,1000.0,0.392,g3+P0,7038.889,30,90.8
+M3-B,M3,B,168784.043,2,True,8,4,973.5,0.22,g3+Pitu,7095.278,30,85.9
+M4b-A,M4b,A,160343.769,1,False,8,0,1000.0,0.593,g3+P0,7369.903,30,88.9
+M4b-B,M4b,B,163990.706,1,True,8,6,863.5,0.081,g1+P0,7844.175,30,81.2
+M1,M1,A,172852.397,3,True,8,2,1000.0,0.303,g3+Pitu,21260.089,30,72.6

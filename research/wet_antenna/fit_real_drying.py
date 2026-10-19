@@ -44,6 +44,7 @@ from research.wet_antenna import datasets as dsets
 from research.wet_antenna import pooled_fit as wp
 from research.wet_antenna import free_curve as wc
 from research.wet_antenna import sindy as sd
+from research.wet_antenna.tails import raw_rate
 
 CFG = load_config()
 W = CFG["wet_antenna"]
@@ -317,21 +318,6 @@ def pysr_misfit(equation, w, h):
         return float(np.sqrt(np.mean((val / h - 1) ** 2)))
     except Exception:                                      # noqa: BLE001  (a formula sympy cannot read)
         return np.nan
-
-
-def raw_rate(d, edges, smooth):
-    """Model-free look (information): mean drying rate per level of A. A is smoothed per tail (centred mean of
-    `smooth` minutes), dA/dt = central difference; per bin of smoothed A: k = -mean(dA/dt) / median(A)."""
-    d = d.sort_values(["tail_id", "minutes_since_t0_trace"])
-    sm = d.groupby("tail_id").A_db.transform(lambda a: a.rolling(smooth, center=True, min_periods=smooth - 2).mean())
-    dd = sm.groupby(d.tail_id).transform(lambda v: (v.shift(-1) - v.shift(1)) / 2)
-    x = pd.DataFrame({"tail_id": d.tail_id, "A": sm, "dadt": dd}).dropna()
-    g = x.groupby(pd.cut(x.A, edges), observed=True)
-    out = g.agg(tail_minutes=("dadt", "size"), tails=("tail_id", "nunique"), median_A_db=("A", "median"),
-                mean_dadt_db_per_min=("dadt", "mean"), median_dadt_db_per_min=("dadt", "median")).reset_index(names="A_bin_db")
-    out["k_from_mean_per_min"] = -out.mean_dadt_db_per_min / out.median_A_db
-    out["A_bin_db"] = out.A_bin_db.astype(str)
-    return out.round(4)
 
 
 def jump2(w, k, rng):

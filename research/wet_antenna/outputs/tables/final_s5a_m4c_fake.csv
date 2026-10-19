@@ -1,0 +1,3 @@
+replicate,phi_true,phi,tau_s_wet_true,tau_s_wet,tau_s_dry_true,tau_s_dry,tau_s_wet_ok,tau_s_dry_ok,both_ok,converged,minutes
+0,0.9,0.9,30.0,29.913,90.0,95.065,True,True,True,True,17.8
+1,0.9,0.901,30.0,26.617,90.0,103.034,True,True,True,False,24.4

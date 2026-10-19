@@ -1,0 +1,148 @@
+what,set,S2,S2b,note
+chosen model,"S<1, radar",M3D,M3,S2 ladder M1 < M3 < M3D < M4 < M5; S2b M1 < M3 < M3D < M4b
+chosen model,"S<3, radar",M4,M4b,S2 ladder M1 < M3 < M3D < M4 < M5; S2b M1 < M3 < M3D < M4b
+chosen model,"gauge links, GAUGE input",M3D,M3D,S2 ladder M1 < M3 < M3D < M4 < M5; S2b M1 < M3 < M3D < M4b
+tau_wet: S2 M3 -> S2b M3,"S<1, radar",43.0107,42.984791959791124,S2 interval 15.1..174
+tau_dry: S2 M3 -> S2b M3,"S<1, radar",24.6548,24.669206917618286,S2 interval 13.6..83.6
+F[28 GHz](0.5): S2 M3 -> S2b M3,"S<1, radar",0.7966,0.8274951001073838,S2 interval 0.56..1.58
+F[28 GHz](2): S2 M3 -> S2b M3,"S<1, radar",1.3384,1.3975081072143718,S2 interval 0.711..2.26
+F[28 GHz](5): S2 M3 -> S2b M3,"S<1, radar",1.4721,1.5278274453271823,S2 interval 1.17..2.48
+F[38 GHz](0.5): S2 M3 -> S2b M3,"S<1, radar",0.8215,0.8758539313081403,S2 interval 0.504..1.38
+F[38 GHz](2): S2 M3 -> S2b M3,"S<1, radar",1.6939,1.8071529167259017,S2 interval 1.16..2.75
+F[38 GHz](5): S2 M3 -> S2b M3,"S<1, radar",1.6947,1.8071529167259017,S2 interval 1.16..2.75
+P[28 GHz](2): S2 M3 -> S2b M3,"S<1, radar",1.3073,1.307001449414225,S2 interval 0.673..1.65
+P[28 GHz](10): S2 M3 -> S2b M3,"S<1, radar",3.1015,3.107204950460029,S2 interval 2.44..4.07
+P[38 GHz](2): S2 M3 -> S2b M3,"S<1, radar",1.6475,1.6477523006279446,S2 interval 0.922..2.02
+P[38 GHz](10): S2 M3 -> S2b M3,"S<1, radar",4.2177,4.2238896312104925,S2 interval 3.27..6.92
+tau_f_wet: S2 M4 -> S2b M4,"S<1, radar",17.2427,17.187075688733707,S2 interval 8.95..35.7
+tau_f_dry: S2 M4 -> S2b M4,"S<1, radar",8.2643,8.246042655559478,S2 interval 5.68..9.81
+tau_s: S2 M4 -> S2b M4,"S<1, radar",512.1228,511.52942907309347,S2 interval 225..600
+F[28 GHz](0.5): S2 M4 -> S2b M4,"S<1, radar",1.4624,1.400884713859595,S2 interval 1.07..1.83
+F[28 GHz](2): S2 M4 -> S2b M4,"S<1, radar",2.8167,2.7086536192869737,S2 interval 2..3.18
+F[28 GHz](5): S2 M4 -> S2b M4,"S<1, radar",3.1755,3.0412006631380013,S2 interval 2.29..4.43
+F[38 GHz](0.5): S2 M4 -> S2b M4,"S<1, radar",1.3498,1.2981845662758,S2 interval 0.993..1.79
+F[38 GHz](2): S2 M4 -> S2b M4,"S<1, radar",3.1816,3.048101530737144,S2 interval 2.55..4.54
+F[38 GHz](5): S2 M4 -> S2b M4,"S<1, radar",3.2187,3.1010312394314945,S2 interval 2.58..4.58
+P[28 GHz](2): S2 M4 -> S2b M4,"S<1, radar",0.1628,0.15314825827656414,S2 interval 0.0726..0.402
+P[28 GHz](10): S2 M4 -> S2b M4,"S<1, radar",1.5054,1.508864130863118,S2 interval 0.98..2.31
+P[38 GHz](2): S2 M4 -> S2b M4,"S<1, radar",0.3048,0.30366110199346097,S2 interval 0.0362..0.671
+P[38 GHz](10): S2 M4 -> S2b M4,"S<1, radar",2.5022,2.4839174930506878,S2 interval 1.75..4.52
+tau_f_wet: S2 M4 -> S2b M4b,"S<1, radar",17.2427,15.043970842813723,S2 interval 8.95..35.7
+tau_f_dry: S2 M4 -> S2b M4b,"S<1, radar",8.2643,7.40080596035995,S2 interval 5.68..9.81
+tau_s: S2 M4 -> S2b M4b,"S<1, radar",512.1228,239.99999999999997,S2 interval 225..600
+F[28 GHz](0.5): S2 M4 -> S2b M4b,"S<1, radar",1.4624,1.3521504277542298,S2 interval 1.07..1.83
+F[28 GHz](2): S2 M4 -> S2b M4b,"S<1, radar",2.8167,2.562660978230155,S2 interval 2..3.18
+F[28 GHz](5): S2 M4 -> S2b M4b,"S<1, radar",3.1755,2.98180038173527,S2 interval 2.29..4.43
+F[38 GHz](0.5): S2 M4 -> S2b M4b,"S<1, radar",1.3498,1.2541753287475004,S2 interval 0.993..1.79
+F[38 GHz](2): S2 M4 -> S2b M4b,"S<1, radar",3.1816,2.8918000870964096,S2 interval 2.55..4.54
+F[38 GHz](5): S2 M4 -> S2b M4b,"S<1, radar",3.2187,3.0040424084671296,S2 interval 2.58..4.58
+P[28 GHz](2): S2 M4 -> S2b M4b,"S<1, radar",0.1628,0.13244773050595693,S2 interval 0.0726..0.402
+P[28 GHz](10): S2 M4 -> S2b M4b,"S<1, radar",1.5054,1.4387736682765526,S2 interval 0.98..2.31
+P[38 GHz](2): S2 M4 -> S2b M4b,"S<1, radar",0.3048,0.25959648930372714,S2 interval 0.0362..0.671
+P[38 GHz](10): S2 M4 -> S2b M4b,"S<1, radar",2.5022,2.400698551386903,S2 interval 1.75..4.52
+tau_wet: S2 M3 -> S2b M3,"S<3, radar",50.2662,50.26861040971534,S2 interval 12.7..152
+tau_dry: S2 M3 -> S2b M3,"S<3, radar",22.5454,22.536567427865258,S2 interval 14.2..35.4
+F[28 GHz](0.5): S2 M3 -> S2b M3,"S<3, radar",0.8684,0.8850313504276309,S2 interval 0.57..1.48
+F[28 GHz](2): S2 M3 -> S2b M3,"S<3, radar",1.3205,1.3455157220648875,S2 interval 0.674..2.22
+F[28 GHz](5): S2 M3 -> S2b M3,"S<3, radar",1.5916,1.624892229021402,S2 interval 1.32..2.64
+F[32 GHz](0.5): S2 M3 -> S2b M3,"S<3, radar",1.0504,0.8384958414264396,S2 interval 0.573..1.97
+F[32 GHz](2): S2 M3 -> S2b M3,"S<3, radar",1.8244,1.4516967149071527,S2 interval 1.09..3.23
+F[32 GHz](5): S2 M3 -> S2b M3,"S<3, radar",1.8313,1.4516967149071527,S2 interval 1.1..3.23
+F[38 GHz](0.5): S2 M3 -> S2b M3,"S<3, radar",1.1009,1.0129782261629023,S2 interval 0.656..1.94
+F[38 GHz](2): S2 M3 -> S2b M3,"S<3, radar",2.1884,2.014083082960809,S2 interval 1.4..3.57
+F[38 GHz](5): S2 M3 -> S2b M3,"S<3, radar",2.1896,2.014083082960809,S2 interval 1.4..3.57
+P[28 GHz](2): S2 M3 -> S2b M3,"S<3, radar",0.5723,0.5720891415041558,S2 interval 0.413..0.693
+P[28 GHz](10): S2 M3 -> S2b M3,"S<3, radar",2.05,2.051426028738784,S2 interval 1.8..2.55
+P[32 GHz](2): S2 M3 -> S2b M3,"S<3, radar",0.6467,0.6497791644414819,S2 interval 0.397..0.802
+P[32 GHz](10): S2 M3 -> S2b M3,"S<3, radar",1.9863,1.9903981897863048,S2 interval 1.63..2.71
+P[38 GHz](2): S2 M3 -> S2b M3,"S<3, radar",0.8252,0.824576277233342,S2 interval 0.569..0.962
+P[38 GHz](10): S2 M3 -> S2b M3,"S<3, radar",2.8013,2.7999735399469996,S2 interval 2.42..3.46
+tau_f_wet: S2 M4 -> S2b M4,"S<3, radar",15.9071,16.54335530140326,S2 interval 6.43..58.6
+tau_f_dry: S2 M4 -> S2b M4,"S<3, radar",5.5145,5.642232521688518,S2 interval 3.08..7.11
+tau_s: S2 M4 -> S2b M4,"S<3, radar",395.4206,399.868436902995,S2 interval 169..600
+F[28 GHz](0.5): S2 M4 -> S2b M4,"S<3, radar",1.4155,1.4460425189617059,S2 interval 1.08..1.98
+F[28 GHz](2): S2 M4 -> S2b M4,"S<3, radar",2.4262,2.5532223513957333,S2 interval 1.79..2.96
+F[28 GHz](5): S2 M4 -> S2b M4,"S<3, radar",2.7739,2.924224937920333,S2 interval 2.2..3.98
+F[32 GHz](0.5): S2 M4 -> S2b M4,"S<3, radar",1.4342,1.560992059279945,S2 interval 0.934..2.04
+F[32 GHz](2): S2 M4 -> S2b M4,"S<3, radar",2.7238,3.0213642885466694,S2 interval 2.15..3.6
+F[32 GHz](5): S2 M4 -> S2b M4,"S<3, radar",2.7585,3.0213642885466694,S2 interval 2.19..3.63
+F[38 GHz](0.5): S2 M4 -> S2b M4,"S<3, radar",1.3618,1.4566867073533658,S2 interval 0.988..1.66
+F[38 GHz](2): S2 M4 -> S2b M4,"S<3, radar",3.073,3.2876062667365344,S2 interval 2.49..3.93
+F[38 GHz](5): S2 M4 -> S2b M4,"S<3, radar",3.0841,3.2876062667365344,S2 interval 2.5..3.94
+P[28 GHz](2): S2 M4 -> S2b M4,"S<3, radar",0.1965,0.2198549895575448,S2 interval 0.0647..0.387
+P[28 GHz](10): S2 M4 -> S2b M4,"S<3, radar",1.5236,1.5593728956814643,S2 interval 1.2..1.89
+P[32 GHz](2): S2 M4 -> S2b M4,"S<3, radar",0.244,0.249394512030083,S2 interval 0.125..0.398
+P[32 GHz](10): S2 M4 -> S2b M4,"S<3, radar",1.4379,1.4778604620855087,S2 interval 1.03..1.96
+P[38 GHz](2): S2 M4 -> S2b M4,"S<3, radar",0.3611,0.3742403485905878,S2 interval 0.157..0.583
+P[38 GHz](10): S2 M4 -> S2b M4,"S<3, radar",2.2619,2.2799175194872854,S2 interval 1.85..2.71
+tau_f_wet: S2 M4 -> S2b M4b,"S<3, radar",15.9071,13.954228544253342,S2 interval 6.43..58.6
+tau_f_dry: S2 M4 -> S2b M4b,"S<3, radar",5.5145,4.928415330620982,S2 interval 3.08..7.11
+tau_s: S2 M4 -> S2b M4b,"S<3, radar",395.4206,239.99999999999997,S2 interval 169..600
+F[28 GHz](0.5): S2 M4 -> S2b M4b,"S<3, radar",1.4155,1.4405856827391452,S2 interval 1.08..1.98
+F[28 GHz](2): S2 M4 -> S2b M4b,"S<3, radar",2.4262,2.4757521126671014,S2 interval 1.79..2.96
+F[28 GHz](5): S2 M4 -> S2b M4b,"S<3, radar",2.7739,2.991568130707681,S2 interval 2.2..3.98
+F[32 GHz](0.5): S2 M4 -> S2b M4b,"S<3, radar",1.4342,1.3957904731600437,S2 interval 0.934..2.04
+F[32 GHz](2): S2 M4 -> S2b M4b,"S<3, radar",2.7238,2.73142940051412,S2 interval 2.15..3.6
+F[32 GHz](5): S2 M4 -> S2b M4b,"S<3, radar",2.7585,2.73142940051412,S2 interval 2.19..3.63
+F[38 GHz](0.5): S2 M4 -> S2b M4b,"S<3, radar",1.3618,1.3908881828836106,S2 interval 0.988..1.66
+F[38 GHz](2): S2 M4 -> S2b M4b,"S<3, radar",3.073,3.105330210523255,S2 interval 2.49..3.93
+F[38 GHz](5): S2 M4 -> S2b M4b,"S<3, radar",3.0841,3.105330210523255,S2 interval 2.5..3.94
+P[28 GHz](2): S2 M4 -> S2b M4b,"S<3, radar",0.1965,0.20117253844771038,S2 interval 0.0647..0.387
+P[28 GHz](10): S2 M4 -> S2b M4b,"S<3, radar",1.5236,1.4975961744455346,S2 interval 1.2..1.89
+P[32 GHz](2): S2 M4 -> S2b M4b,"S<3, radar",0.244,0.21905926509044404,S2 interval 0.125..0.398
+P[32 GHz](10): S2 M4 -> S2b M4b,"S<3, radar",1.4379,1.4401223913412617,S2 interval 1.03..1.96
+P[38 GHz](2): S2 M4 -> S2b M4b,"S<3, radar",0.3611,0.33511133547012756,S2 interval 0.157..0.583
+P[38 GHz](10): S2 M4 -> S2b M4b,"S<3, radar",2.2619,2.2306572527535256,S2 interval 1.85..2.71
+tau_wet: S2 M3 -> S2b M3,"gauge links, GAUGE input",2.9507,2.904120520785781,S2 interval 2.58..3.6
+tau_dry: S2 M3 -> S2b M3,"gauge links, GAUGE input",12.8691,12.789508570082223,S2 interval 11.4..15.5
+F[28 GHz](0.5): S2 M3 -> S2b M3,"gauge links, GAUGE input",0.1358,0.6440298831590875,S2 interval 0.122..0.147
+F[28 GHz](2): S2 M3 -> S2b M3,"gauge links, GAUGE input",0.6232,1.9683484859904183,S2 interval 0.558..0.671
+F[28 GHz](5): S2 M3 -> S2b M3,"gauge links, GAUGE input",2.3814,2.7936725517142547,S2 interval 2.06..2.7
+F[32 GHz](0.5): S2 M3 -> S2b M3,"gauge links, GAUGE input",0.0914,0.5404958709728157,S2 interval 0.0837..0.1
+F[32 GHz](2): S2 M3 -> S2b M3,"gauge links, GAUGE input",0.4659,1.6580603165022842,S2 interval 0.414..0.506
+F[32 GHz](5): S2 M3 -> S2b M3,"gauge links, GAUGE input",2.0778,2.381419705394296,S2 interval 1.61..2.37
+F[38 GHz](0.5): S2 M3 -> S2b M3,"gauge links, GAUGE input",0.1616,0.8142130247577802,S2 interval 0.145..0.176
+F[38 GHz](2): S2 M3 -> S2b M3,"gauge links, GAUGE input",0.7879,2.478897910786307,S2 interval 0.715..0.852
+F[38 GHz](5): S2 M3 -> S2b M3,"gauge links, GAUGE input",3.6568,3.4744051181087796,S2 interval 3.11..4.28
+P[28 GHz](2): S2 M3 -> S2b M3,"gauge links, GAUGE input",0.2697,0.39131834826801715,S2 interval 0.228..0.308
+P[28 GHz](10): S2 M3 -> S2b M3,"gauge links, GAUGE input",0.5175,0.5418722891008718,S2 interval 0.426..0.627
+P[32 GHz](2): S2 M3 -> S2b M3,"gauge links, GAUGE input",0.3013,0.5584248150741163,S2 interval 0.275..0.333
+P[32 GHz](10): S2 M3 -> S2b M3,"gauge links, GAUGE input",0.6729,0.6768576152245376,S2 interval 0.587..0.809
+P[38 GHz](2): S2 M3 -> S2b M3,"gauge links, GAUGE input",0.3115,0.5856343092085166,S2 interval 0.273..0.349
+P[38 GHz](10): S2 M3 -> S2b M3,"gauge links, GAUGE input",0.8357,0.8461852771277829,S2 interval 0.651..1.06
+tau_f_wet: S2 M4 -> S2b M4,"gauge links, GAUGE input",2.7487,2.736540655358106,S2 interval 2.45..3.08
+tau_f_dry: S2 M4 -> S2b M4,"gauge links, GAUGE input",10.6081,10.58038853162692,S2 interval 9.54..12.2
+tau_s: S2 M4 -> S2b M4,"gauge links, GAUGE input",484.1824,480.60064395404225,S2 interval 344..600
+F[28 GHz](0.5): S2 M4 -> S2b M4,"gauge links, GAUGE input",0.1685,0.9842374163069074,S2 interval 0.157..0.185
+F[28 GHz](2): S2 M4 -> S2b M4,"gauge links, GAUGE input",0.7594,2.964730735609346,S2 interval 0.71..0.827
+F[28 GHz](5): S2 M4 -> S2b M4,"gauge links, GAUGE input",3.8089,4.009060585359675,S2 interval 3.31..4.33
+F[32 GHz](0.5): S2 M4 -> S2b M4,"gauge links, GAUGE input",0.1041,0.8354294094046955,S2 interval 0.0937..0.115
+F[32 GHz](2): S2 M4 -> S2b M4,"gauge links, GAUGE input",0.4827,2.518514194948307,S2 interval 0.427..0.532
+F[32 GHz](5): S2 M4 -> S2b M4,"gauge links, GAUGE input",2.1154,3.4150734380249785,S2 interval 1.72..2.43
+F[38 GHz](0.5): S2 M4 -> S2b M4,"gauge links, GAUGE input",0.2052,1.2137030008720038,S2 interval 0.184..0.224
+F[38 GHz](2): S2 M4 -> S2b M4,"gauge links, GAUGE input",0.9447,3.653050336338551,S2 interval 0.845..1.02
+F[38 GHz](5): S2 M4 -> S2b M4,"gauge links, GAUGE input",4.5076,4.926460005822737,S2 interval 3.95..5.34
+P[28 GHz](2): S2 M4 -> S2b M4,"gauge links, GAUGE input",0.277,0.269753709608999,S2 interval 0.22..0.321
+P[28 GHz](10): S2 M4 -> S2b M4,"gauge links, GAUGE input",0.4069,0.35967161281199866,S2 interval 0.32..0.473
+P[32 GHz](2): S2 M4 -> S2b M4,"gauge links, GAUGE input",0.2962,0.40571186630673833,S2 interval 0.252..0.338
+P[32 GHz](10): S2 M4 -> S2b M4,"gauge links, GAUGE input",0.5479,0.5409491550756511,S2 interval 0.446..0.658
+P[38 GHz](2): S2 M4 -> S2b M4,"gauge links, GAUGE input",0.3193,0.513009823149302,S2 interval 0.263..0.361
+P[38 GHz](10): S2 M4 -> S2b M4,"gauge links, GAUGE input",0.6775,0.6840130975324027,S2 interval 0.487..0.822
+tau_f_wet: S2 M4 -> S2b M4b,"gauge links, GAUGE input",2.7487,2.6100761197245483,S2 interval 2.45..3.08
+tau_f_dry: S2 M4 -> S2b M4b,"gauge links, GAUGE input",10.6081,10.31543406442908,S2 interval 9.54..12.2
+tau_s: S2 M4 -> S2b M4b,"gauge links, GAUGE input",484.1824,239.99999999999997,S2 interval 344..600
+F[28 GHz](0.5): S2 M4 -> S2b M4b,"gauge links, GAUGE input",0.1685,0.9236874620221135,S2 interval 0.157..0.185
+F[28 GHz](2): S2 M4 -> S2b M4b,"gauge links, GAUGE input",0.7594,2.7831655796433146,S2 interval 0.71..0.827
+F[28 GHz](5): S2 M4 -> S2b M4b,"gauge links, GAUGE input",3.8089,3.7673690095518495,S2 interval 3.31..4.33
+F[32 GHz](0.5): S2 M4 -> S2b M4b,"gauge links, GAUGE input",0.1041,0.7172355892682065,S2 interval 0.0937..0.115
+F[32 GHz](2): S2 M4 -> S2b M4b,"gauge links, GAUGE input",0.4827,2.1639292975459625,S2 interval 0.427..0.532
+F[32 GHz](5): S2 M4 -> S2b M4b,"gauge links, GAUGE input",2.1154,2.9422775355190067,S2 interval 1.72..2.43
+F[38 GHz](0.5): S2 M4 -> S2b M4b,"gauge links, GAUGE input",0.2052,1.1471506590472231,S2 interval 0.184..0.224
+F[38 GHz](2): S2 M4 -> S2b M4b,"gauge links, GAUGE input",0.9447,3.453499815874256,S2 interval 0.845..1.02
+F[38 GHz](5): S2 M4 -> S2b M4b,"gauge links, GAUGE input",4.5076,4.660889668588711,S2 interval 3.95..5.34
+P[28 GHz](2): S2 M4 -> S2b M4b,"gauge links, GAUGE input",0.277,0.2666161910049141,S2 interval 0.22..0.321
+P[28 GHz](10): S2 M4 -> S2b M4b,"gauge links, GAUGE input",0.4069,0.365359282938984,S2 interval 0.32..0.473
+P[32 GHz](2): S2 M4 -> S2b M4b,"gauge links, GAUGE input",0.2962,0.3940392897906707,S2 interval 0.252..0.338
+P[32 GHz](10): S2 M4 -> S2b M4b,"gauge links, GAUGE input",0.5479,0.5253857197208943,S2 interval 0.446..0.658
+P[38 GHz](2): S2 M4 -> S2b M4b,"gauge links, GAUGE input",0.3193,0.48361700157966314,S2 interval 0.263..0.361
+P[38 GHz](10): S2 M4 -> S2b M4b,"gauge links, GAUGE input",0.6775,0.6448226687728842,S2 interval 0.487..0.822

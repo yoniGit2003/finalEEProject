@@ -1,0 +1,61 @@
+quantity,value,lo,hi,draws,fake_within_3_of_3,interval_at_bound,identified,kind,replicate,truth,estimate,within
+A[28 GHz],3.7582,3.2815,4.6411,40.0,True,False,True,bootstrap,,,,
+c[28 GHz],0.0542,0.0,0.0924,40.0,True,True,False,bootstrap,,,,
+A[32 GHz],3.4065,3.0105,4.7075,40.0,True,False,True,bootstrap,,,,
+c[32 GHz],0.0719,0.0,0.1205,40.0,True,True,False,bootstrap,,,,
+A[38 GHz],3.9135,3.5988,5.0028,40.0,True,False,True,bootstrap,,,,
+c[38 GHz],0.1124,0.0,0.172,40.0,True,True,False,bootstrap,,,,
+G(0.5),0.308,0.2187,0.372,40.0,True,False,True,bootstrap,,,,
+G(1),0.308,0.2832,0.372,40.0,True,False,True,bootstrap,,,,
+G(2),0.6068,0.3734,0.7591,40.0,True,False,True,bootstrap,,,,
+G(10),1.2208,1.0401,1.6351,40.0,True,False,True,bootstrap,,,,
+G(20),2.0015,1.2896,2.542,40.0,True,False,True,bootstrap,,,,
+G(40),2.7037,1.751,5.0609,40.0,True,False,True,bootstrap,,,,
+a_p10,0.8078,0.709,0.7842,40.0,True,False,True,bootstrap,,,,
+a_p90,1.2998,1.2498,1.3677,40.0,True,False,True,bootstrap,,,,
+tau_0,3.7333,1.7167,6.5831,40.0,True,False,True,bootstrap,,,,
+A[28 GHz],,,,,,,,identifiability,0.0,3.7582,3.8405,True
+c[28 GHz],,,,,,,,identifiability,0.0,0.0542,0.0533,True
+A[32 GHz],,,,,,,,identifiability,0.0,3.4065,3.6074,True
+c[32 GHz],,,,,,,,identifiability,0.0,0.0719,0.0714,True
+A[38 GHz],,,,,,,,identifiability,0.0,3.9135,4.0182,True
+c[38 GHz],,,,,,,,identifiability,0.0,0.1124,0.1131,True
+G(0.5),,,,,,,,identifiability,0.0,0.308,0.3079,True
+G(1),,,,,,,,identifiability,0.0,0.308,0.3079,True
+G(2),,,,,,,,identifiability,0.0,0.6068,0.6031,True
+G(10),,,,,,,,identifiability,0.0,1.2208,1.2191,True
+G(20),,,,,,,,identifiability,0.0,2.0015,1.9979,True
+G(40),,,,,,,,identifiability,0.0,2.7037,2.6759,True
+a_p10,,,,,,,,identifiability,0.0,0.8078,0.791,True
+a_p90,,,,,,,,identifiability,0.0,1.2998,1.2409,True
+tau_0,,,,,,,,identifiability,0.0,3.7333,3.7467,True
+A[28 GHz],,,,,,,,identifiability,1.0,3.7582,3.8064,True
+c[28 GHz],,,,,,,,identifiability,1.0,0.0542,0.0552,True
+A[32 GHz],,,,,,,,identifiability,1.0,3.4065,3.5944,True
+c[32 GHz],,,,,,,,identifiability,1.0,0.0719,0.0719,True
+A[38 GHz],,,,,,,,identifiability,1.0,3.9135,3.9977,True
+c[38 GHz],,,,,,,,identifiability,1.0,0.1124,0.1164,True
+G(0.5),,,,,,,,identifiability,1.0,0.308,0.3072,True
+G(1),,,,,,,,identifiability,1.0,0.308,0.3126,True
+G(2),,,,,,,,identifiability,1.0,0.6068,0.607,True
+G(10),,,,,,,,identifiability,1.0,1.2208,1.2115,True
+G(20),,,,,,,,identifiability,1.0,2.0015,1.9784,True
+G(40),,,,,,,,identifiability,1.0,2.7037,2.6637,True
+a_p10,,,,,,,,identifiability,1.0,0.8078,0.7773,True
+a_p90,,,,,,,,identifiability,1.0,1.2998,1.2476,True
+tau_0,,,,,,,,identifiability,1.0,3.7333,3.7173,True
+A[28 GHz],,,,,,,,identifiability,2.0,3.7582,3.8433,True
+c[28 GHz],,,,,,,,identifiability,2.0,0.0542,0.053,True
+A[32 GHz],,,,,,,,identifiability,2.0,3.4065,3.5455,True
+c[32 GHz],,,,,,,,identifiability,2.0,0.0719,0.0722,True
+A[38 GHz],,,,,,,,identifiability,2.0,3.9135,4.0364,True
+c[38 GHz],,,,,,,,identifiability,2.0,0.1124,0.1116,True
+G(0.5),,,,,,,,identifiability,2.0,0.308,0.3087,True
+G(1),,,,,,,,identifiability,2.0,0.308,0.3087,True
+G(2),,,,,,,,identifiability,2.0,0.6068,0.6085,True
+G(10),,,,,,,,identifiability,2.0,1.2208,1.2254,True
+G(20),,,,,,,,identifiability,2.0,2.0015,1.9986,True
+G(40),,,,,,,,identifiability,2.0,2.7037,2.6907,True
+a_p10,,,,,,,,identifiability,2.0,0.8078,0.7826,True
+a_p90,,,,,,,,identifiability,2.0,1.2998,1.2605,True
+tau_0,,,,,,,,identifiability,2.0,3.7333,3.7211,True

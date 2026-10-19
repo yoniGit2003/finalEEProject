@@ -1,0 +1,6 @@
+set,link_events,links,events,points_5min,links_28 GHz,links_32 GHz,links_38 GHz
+"S<1, radar",1718,41,42,367190,17,0,24
+"S<2, radar",4381,99,50,929641,42,8,49
+"S<3, radar",6653,144,51,1351199,62,12,70
+"gauge links, GAUGE input",1998,42,43,388362,14,5,23
+"gauge links, radar input (same points)",1998,42,43,388362,14,5,23

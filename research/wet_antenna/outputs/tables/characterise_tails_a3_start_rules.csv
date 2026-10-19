@@ -1,0 +1,4 @@
+start_rule,tails,events,links,share_decays,share_plateau-then-decays,share_rises,share_flat / slow,A_over_A_start_10min,A_over_A_start_30min,A_over_A_start_60min,t_half_min,share_half_within_60min,k_slope,k_slope_lo,k_slope_hi,bins_in_slope,delay_median_min,delay_q25_min,delay_q75_min,delay_median_night_min,delay_median_day_min,tails_night,tails_day
+S0 = t0_trace (v1),429,24,159,0.559,0.149,0.084,0.207,0.568,0.229,0.142,14.0,0.865,-0.8,-1.55,-0.43,6,0.0,0.0,0.0,0.0,0.0,73,356
+S1 = strict dry,129,14,69,0.186,0.318,0.14,0.357,0.937,0.708,0.518,48.0,0.581,-1.85,-3.02,-1.05,6,15.0,10.0,25.0,25.0,15.0,31,98
+S2 = signal onset,571,27,174,0.608,0.105,0.032,0.256,0.525,0.223,0.166,12.0,0.877,-0.56,-0.92,-0.02,6,0.0,0.0,16.0,3.0,0.0,89,482

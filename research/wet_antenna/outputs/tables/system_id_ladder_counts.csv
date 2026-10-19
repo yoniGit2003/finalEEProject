@@ -1,0 +1,5 @@
+group,links,sub_links,link_events,events,points_5min,wet_points,dry_points,links_with_city_gauge_1km,offset_flagged,cut_at_tsl_step,median_window_h
+all,41,67,1718,42,367190,93081,274109,18,124,0,14.8
+28 GHz,17,31,803,39,169208,41914,127294,6,66,0,14.7
+38 GHz,24,36,915,39,197982,51167,146815,12,58,0,14.8
+< 0.6 km,18,28,709,38,152918,37890,115028,7,47,0,14.8

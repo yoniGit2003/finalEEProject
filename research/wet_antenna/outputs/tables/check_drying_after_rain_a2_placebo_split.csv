@@ -1,0 +1,7 @@
+threshold_db,placebo tails,tails,events,median_A_start_db,A_over_A_start_10min,A_over_A_start_30min,A_over_A_start_60min,t_half_min,share_half_within_60min,median_delay_from_S0_min
+0.25,placebo start BEFORE the pair's S1 (rain still within 5 km),1026,38,0.373,0.883,0.679,0.509,34.0,0.649,15.0
+0.25,placebo start at or after the pair's S1,1185,45,0.36,0.926,0.774,0.66,43.0,0.573,25.0
+0.4,placebo start BEFORE the pair's S1 (rain still within 5 km),465,34,0.6,0.836,0.581,0.382,33.0,0.681,15.0
+0.4,placebo start at or after the pair's S1,508,36,0.6,0.9,0.717,0.545,43.0,0.579,20.0
+0.6,placebo start BEFORE the pair's S1 (rain still within 5 km),233,25,0.847,0.821,0.5,0.294,29.0,0.739,15.0
+0.6,placebo start at or after the pair's S1,251,23,0.92,0.938,0.67,0.487,41.0,0.587,20.0

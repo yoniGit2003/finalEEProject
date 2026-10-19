@@ -1,0 +1,8 @@
+test,column,rho,lo,hi,p,events,bh_discovery
+ln alpha_e vs mean temperature (C),temperature,-0.1413,-0.5195,0.2744,0.5306,22,False
+ln alpha_e vs mean wind speed (m/s),wind_speed,-0.0509,-0.4062,0.3241,0.8221,22,False
+ln alpha_e vs mean humidity (%),humidity,0.3719,-0.0432,0.6867,0.0884,22,False
+ln alpha_e vs dew-point depression (C),dew_point_depression,-0.395,-0.6848,-0.0348,0.0688,22,False
+ln alpha_e vs dry hours before,dry_before_h,-0.0436,-0.409,0.3871,0.8474,22,False
+ln alpha_e vs peak / mean rain,peak_over_mean,-0.4905,-0.735,-0.1324,0.0205,22,False
+"ln k_e vs ln g_e (path mean, events with g_e)",g_path,0.6436,0.2672,0.8934,0.004,18,

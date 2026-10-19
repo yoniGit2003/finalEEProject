@@ -20,6 +20,14 @@ FC (step 3b-3) is not a menu law but a FREE curve: dW/dt = -W k(W), with k(W) gi
 the table from a spline and calls pooled_loglik("FC", table, s, D)). Table layout in theta: [n, x_0, dx, T_0 .. T_(n-1),
 k_0 .. k_(n-1)], x = log W on a regular grid, T(x) = integral from x_0 to x of dx / k (the time the law needs to dry
 from x to x_0). A tail that starts at x(0) is then x(tau) = T^-1(T(x(0)) - tau). Outside the grid k is constant.
+
+Two options added in step 4b (both OFF by default, so every earlier step gives the same numbers as before):
+    bound_w0    the start of F1 and F4 is kept inside [0.001, 30] dB, as it always was for F3, F5, F6 and FC. Without
+                it a tail that RISES gets a negative start (negative water) under F1 / F4, which the other laws cannot
+                do, so their BIC values were not comparable on real tails (found in step 4).
+    noise_mult  one number m > 0 that multiplies the noise VARIANCE of every tail of the dataset (the dry-weather
+                noise model keeps its shape; m is its level during drying). The likelihood then needs the term
+                -1/2 n log m per tail (it was a constant before). fit(..., fit_noise=True) fits m with theta and s.
 """
 import numpy as np
 from numba import njit, prange
@@ -142,14 +150,16 @@ def _whiten(x, rho, ma, out):
 
 
 @njit(cache=True)
-def _profile(code, linear, th, t, fy, f1, rho, ma, s2, g0, o2, a0, f):
+def _profile(code, linear, th, t, fy, f1, rho, ma, s2, g0, o2, a0, f, bound=False, nm=1.0):
     """Profile log-likelihood of one tail at speed factor f: max over W0 and over the offset c (with its prior).
-    fy, f1: the whitened data and the whitened constant 1 (they do not depend on the parameters)."""
+    fy, f1: the whitened data and the whitened constant 1 (they do not depend on the parameters).
+    bound: keep the start of a linear law inside [0.001, 30] dB; nm: multiplier of the noise variance."""
     n = t.shape[0]
     w = np.empty(n)
     fw = np.empty(n)
-    wt = np.full(n, 1.0 / s2)
-    wt[0] = 1.0 / g0
+    wt = np.full(n, 1.0 / (nm * s2))
+    wt[0] = 1.0 / (nm * g0)
+    lognm = 0.5 * n * np.log(nm)                                    # normalisation of the noise level (0 for nm = 1)
     s11 = np.sum(wt * f1 * f1) + 1.0 / o2
     if linear:
         _curve(code, th, t, 1.0, f, w)
@@ -163,11 +173,14 @@ def _profile(code, linear, th, t, fy, f1, rho, ma, s2, g0, o2, a0, f):
             return -1e18, 0.0, 0.0
         c = (s22 * r1 - s12 * r2) / det
         w0 = (s11 * r2 - s12 * r1) / det
+        if bound and (w0 < 1e-3 or w0 > 30.0):                      # at the bound: the best offset for that start
+            w0 = min(max(w0, 1e-3), 30.0)
+            c = (r1 - w0 * s12) / s11
         q = 0.0
         for k in range(n):
             e = fy[k] - c * f1[k] - w0 * fw[k]
             q += wt[k] * e * e
-        return -0.5 * (q + c * c / o2), w0, c
+        return -0.5 * (q + c * c / o2) - lognm, w0, c
     # nonlinear in W0: two Gauss-Newton steps from W0 = A_start (sensitivity rate(W) / rate(W0)), then c
     w0 = max(a0, 0.05)
     wd = np.empty(n)
@@ -196,11 +209,11 @@ def _profile(code, linear, th, t, fy, f1, rho, ma, s2, g0, o2, a0, f):
     for k in range(n):
         e = fy[k] - fw[k] - c * f1[k]
         q += wt[k] * e * e
-    return -0.5 * (q + c * c / o2), w0, c
+    return -0.5 * (q + c * c / o2) - lognm, w0, c
 
 
 @njit(parallel=True, cache=True)
-def _tails_laplace(code, linear, th, s, T, FY, F1, start, length, rho, ma, s2, g0, o2, a0, glat):
+def _tails_laplace(code, linear, th, s, T, FY, F1, start, length, rho, ma, s2, g0, o2, a0, glat, bound=False, nm=1.0):
     """Per tail: Laplace summary (l_star, g_star, kappa) of l_i(g) over g = u + v."""
     nt = start.shape[0]
     lstar = np.empty(nt)
@@ -212,7 +225,7 @@ def _tails_laplace(code, linear, th, s, T, FY, F1, start, length, rho, ma, s2, g
         t, fy, f1 = T[a:b], FY[a:b], F1[a:b]
         ll = np.empty(ng)
         for j in range(ng):
-            ll[j] = _profile(code, linear, th, t, fy, f1, rho[i], ma[i], s2[i], g0[i], o2[i], a0[i], np.exp(s * glat[j]))[0]
+            ll[j] = _profile(code, linear, th, t, fy, f1, rho[i], ma[i], s2[i], g0[i], o2[i], a0[i], np.exp(s * glat[j]), bound, nm)[0]
         jm = np.argmax(ll)
         j0 = min(max(jm, 1), ng - 2)
         y0, y1, y2 = ll[j0 - 1], ll[j0], ll[j0 + 1]
@@ -221,9 +234,9 @@ def _tails_laplace(code, linear, th, s, T, FY, F1, start, length, rho, ma, s2, g
         g = glat[j0] if den >= 0 else glat[j0] + 0.5 * dg * (y0 - y2) / den
         g = min(max(g, glat[0]), glat[ng - 1])
         hh = 0.05
-        lm = _profile(code, linear, th, t, fy, f1, rho[i], ma[i], s2[i], g0[i], o2[i], a0[i], np.exp(s * (g - hh)))[0]
-        lc = _profile(code, linear, th, t, fy, f1, rho[i], ma[i], s2[i], g0[i], o2[i], a0[i], np.exp(s * g))[0]
-        lp = _profile(code, linear, th, t, fy, f1, rho[i], ma[i], s2[i], g0[i], o2[i], a0[i], np.exp(s * (g + hh)))[0]
+        lm = _profile(code, linear, th, t, fy, f1, rho[i], ma[i], s2[i], g0[i], o2[i], a0[i], np.exp(s * (g - hh)), bound, nm)[0]
+        lc = _profile(code, linear, th, t, fy, f1, rho[i], ma[i], s2[i], g0[i], o2[i], a0[i], np.exp(s * g), bound, nm)[0]
+        lp = _profile(code, linear, th, t, fy, f1, rho[i], ma[i], s2[i], g0[i], o2[i], a0[i], np.exp(s * (g + hh)), bound, nm)[0]
         if lc < ll[jm]:                                             # refinement worse than the lattice: keep lattice
             g, lc = glat[jm], ll[jm]
             k2 = -den / (dg * dg)
@@ -233,12 +246,13 @@ def _tails_laplace(code, linear, th, s, T, FY, F1, start, length, rho, ma, s2, g
     return lstar, gstar, kap
 
 
-def pooled_loglik(cand, theta, s, D):
-    """Marginal log-likelihood of a dataset D (dict from pack()) for candidate `cand`, parameters theta, spread s."""
+def pooled_loglik(cand, theta, s, D, bound_w0=False, noise_mult=1.0):
+    """Marginal log-likelihood of a dataset D (dict from pack()) for candidate `cand`, parameters theta, spread s.
+    bound_w0, noise_mult: the two options of step 4b (module docstring); the defaults are the earlier behaviour."""
     code = CAND_CODE[cand]
     lstar, gstar, kap = _tails_laplace(code, cand in LINEAR, np.asarray(theta, float), float(s), D["T"], D["FY"], D["F1"],
                                        D["start"], D["length"], D["rho"], D["ma"], D["s2"], D["g0"], D["o2"],
-                                       D["a0"], G_LATTICE)
+                                       D["a0"], G_LATTICE, bool(bound_w0), float(noise_mult))
     # per tail and link node u: log h_i(u) = l* - 1/2 log(1 + k/2) - (k/2)(u - g*)^2 / (1 + k/2)
     k2 = kap[:, None] / 2
     logh = lstar[:, None] - 0.5 * np.log1p(k2) - k2 * (U_NODES[None, :] - gstar[:, None]) ** 2 / (1 + k2)
@@ -319,22 +333,31 @@ NAMES = {"F1": ["tau"], "F4": ["tau_f", "tau_s", "phi"], "F3": ["k", "n"], "F5":
          "F6": ["k_run", "k_evap", "A_c"]}
 
 
-def fit(cand, D, theta0, s0, maxfev=400, step=0.4, fatol=0.1):
+def fit(cand, D, theta0, s0, maxfev=400, step=0.4, fatol=0.1, bound_w0=False, fit_noise=False):
     """Maximise the pooled marginal log-likelihood over (theta, s) with Nelder-Mead in the unconstrained space,
-    starting from an explicit simplex (`step` in every coordinate; the default simplex is too small at log s = 0)."""
+    starting from an explicit simplex (`step` in every coordinate; the default simplex is too small at log s = 0).
+    fit_noise: also fit the noise-variance multiplier (one more coordinate, log m, started at 0)."""
     from scipy.optimize import minimize
     x0 = from_theta(cand, theta0, s0)
+    if fit_noise:
+        x0 = np.r_[x0, 0.0]
     simplex = np.vstack([x0] + [x0 + step * np.eye(len(x0))[k] for k in range(len(x0))])
 
     def cost(x):
-        ll = pooled_loglik(cand, *to_theta(cand, x), D)
+        if fit_noise:
+            ll = pooled_loglik(cand, *to_theta(cand, x[:-1]), D, bound_w0, float(np.exp(x[-1])))
+        else:
+            ll = pooled_loglik(cand, *to_theta(cand, x), D, bound_w0)
         return -ll if np.isfinite(ll) else 1e18                     # a start far from the optimum can overflow
 
     res = minimize(cost, x0, method="Nelder-Mead",
                    options={"maxfev": maxfev, "initial_simplex": simplex, "xatol": 1e-3, "fatol": fatol})   # fatol: log-likelihood units
-    theta, s = to_theta(cand, res.x)
-    return {"ll": -float(res.fun), "theta": [float(v) for v in theta], "s": s, "nfev": int(res.nfev),
-            "success": bool(res.success)}
+    theta, s = to_theta(cand, res.x[:-1] if fit_noise else res.x)
+    out = {"ll": -float(res.fun), "theta": [float(v) for v in theta], "s": s, "nfev": int(res.nfev),
+           "success": bool(res.success)}
+    if fit_noise:
+        out["noise_mult"] = float(np.exp(res.x[-1]))
+    return out
 
 
 def tail_speed_factors(cand, theta, s, D):
