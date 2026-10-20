@@ -2,6 +2,7 @@
 helpers. Moved unchanged from validate_s7.py (S6b uses them too); dry_windows takes the models from its W1 argument.
 Settings: config `wet_antenna.validate_s7`.
 """
+import copy
 import math
 import pickle
 
@@ -12,7 +13,7 @@ from cmlpipe.api import CMLData
 from research.wet_antenna import length_test as LTL
 from research.wet_antenna import paths as P
 from research.wet_antenna import system_id as sid
-from research.wet_antenna.final_model import CFG, DATA, fit_dict, length_bins, load_sets, predict, s6_models
+from research.wet_antenna.final_model import CFG, DATA, M, SHAPES, fit_dict, length_bins, load_sets, predict, s6_models
 
 LB = length_bins()                                                # ((lo, hi), name) of the three length classes
 MODELS = ("candidate", "closed F")
@@ -217,3 +218,23 @@ def error_budget(D, le, pred):
                  "share_of_squared_error": (sse_r - between) / tot})
     rows.append({"part": "all", "bins": int(w.sum()), "rmse_db": float(np.sqrt(tot / w.sum())), "share_of_squared_error": 1.0})
     return pd.DataFrame(rows)
+
+
+# =================================================================================================== the S8 comparison models (moved unchanged from test_s8.py; S8b uses them too)
+def step_g(R):
+    """B1: 0 below 0.1 mm/h, 1 from 0.1001 mm/h on (a near-step on the knots)."""
+    return np.clip((np.asarray(R, float) - 0.1) / 1e-4, 0.0, 1.0)
+
+
+def comp_setup(name, nb):
+    """(spec, M of the model, the static problem name) of a comparison model."""
+    lin = {**SHAPES["linear"]}
+    Mx = copy.deepcopy(M)
+    if name == "B1":
+        Mx["knots_mmh"] = [0.0, 0.1, 0.1001] + [k for k in M["knots_mmh"] if k > 0.1001]
+        F = ("form", {"g": step_g, "lo": [], "hi": [], "starts": [[]], "text": "w0 (R > 0.1 mm/h)", "names": []}, True)
+    elif name == "B0":
+        F = ("fixed", np.zeros((nb, len(Mx["knots_mmh"]))))
+    else:
+        F = "shared"
+    return {"F": F, "P": ("form", lin, True)}, Mx

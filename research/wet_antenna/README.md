@@ -9,6 +9,20 @@ like f = L + L0. The later steps learn a dynamic model of the wetting / drying w
 compare it with the literature models [1], [9]. Tails are never selected by how well a model fits them (that would be
 circular).
 
+## Final equation (Part 1 closed, S9, 2026-10-19)
+
+```
+A(t) - c = W_f + W_s + L c_band R(t - 1 min)
+dW_f/dt = (0.72 u - W_f) / tau_f   (tau_f 2.6 min wetting, 10.3 min drying)
+dW_s/dt = (0.28 u - W_s) / 240 min
+u = a_link A_band (R / 5)^b,  b = 0.54 [0.47, 0.63]
+```
+
+- A_band = 2.57 / 2.36 / 2.77 dB.
+- c_band = 0.105 / 0.141 / 0.194 dB/km per mm/h (28 / 32 / 38 GHz).
+- R = radar / g_e. Valid 0-40 mm/h.
+- Numbers, files, the code and the two documents: **[FINAL.md](FINAL.md)**.
+
 ## Status
 
 **Part 1 (T0-T18) closed; Part 2 (S1-S5): S1, S2, S2b (WAA v2), S3, S3b, S4.1-S4.2, S4.3 and S5a done; WAA v3 provisional = M4b-B of S3b (S3b: on VAL every fit predicts too much attenuation per mm/h; S4: VAL is a rare event set, its radar reads ~1.7 x the gauges against ~0.9 x in TRAIN; the per-event factors failed their fake check; S4.3: dividing the radar by the event's radar / gauge ratio explains the VAL gap, M4b-B kept).** Part 1 = the drying-tail exploration, which identified no drying law;
@@ -48,7 +62,10 @@ renamed T0-T18 on 2026-10-13; the old number is in brackets, and scripts, output
 | S6 | Part 2: tighten the equation of M4b-B on R / g_e: data funnel, shared shapes, 60-draw cold bootstrap + profile, fake identifiability, closed forms (physics and PySR), plug-back (`tighten_s6.py`) | done 2026-10-18: shared shapes kept (VAL V1 -0.0003 dB, length test 5 / 6; TRAIN AICc prefers band shapes); P = c_band R (c 0.107 / 0.142 / 0.197 dB/km per mm/h); F stays free shared knots (the AICc form (R / 5)^0.47 failed the length test at 4 / 6 = exactly 2 / 3); the F level is set by the a_link prior; P below 1 mm/h not identified |
 | S7 | Part 2: validate the frozen S6 candidate without TEST: W against L and the link metadata, short links on VAL, long links without a power law (dry-path moments, paired links, intercepts from short-only and long-only links), dew, leftovers (Spearman + PySR with leave-one-out and a permutation null), radar against the City gauges (`validate_s7.py`) | done 2026-10-19: W does not depend on L (a_link rho +0.05; W height equal in the three length classes; dry-path W error -0.18 dB at 10 min in every class; intercepts overlap 13 / 15); no rate-dependent radar error (the two binnings move apart); paired links not testable (4 pairs); the RMSE rule fails for L > 3 km (1.18 x); after heavy rain the model is 0.5 dB high on dry paths; dew W 1.7 dB, weakly tied to a_link; the per-event drying time falls with the wind (beats the null) -> return to S6 (the one allowed return, 2026-10-19) |
 | S6b | Part 2: the one return to S6 (S7 reason (d)): the after-rain misfit cause by cause; refinements tau_f_dry free (M1), with the wind (M2), with the preceding rain (M3), each with a fake check; the box-A rule on VAL; the three boxes; the VAL error budget (`return_s6b.py`) | done 2026-10-19: the misfit is a level at the end of rain (not the radar timing, not a general faster drying, not F at heavy rain), growing with the preceding rain and in dry air; M1 (tau_f_dry 3.7 min) passes every box-A rule but halves c_band and makes it NOT identified; M2 (wind) box B; M3 box C. A learners' decision is needed before S8: M1 as written, or the S6 candidate |
-| S5 | Part 2: the final equation | planned, not started (plan: `docs/ROADMAP.md`) |
+| S8 | Part 2: freeze (hashes, committed), comparison models B0-B2 on TRAIN, then TEST once with pass rules P1-P5 (`test_s8.py`) | done 2026-10-19: candidate = the S6 candidate (decision 2026-10-19); P2-P5 pass (TEST RMSE 0.692 dB against 0.862 / 0.760 / 0.727 for no WAA / constant WAA / WAA without memory); P1 fails (4 of 8 cells: the antenna level at 0.5-2 mm/h is higher on TEST); two evaluation bugs fixed after the read, recorded. S9 next |
+| S8b | Part 2: a post-freeze evaluation of a pre-freeze model: the closed form F = A_band (R / 5)^b (S6 plug-back fit) on TRAIN (bootstrap, identifiability) and on TEST against the table F (`test_s8b.py`) | done 2026-10-19: same P1-P5 verdicts, paired TEST RMSE difference +0.0025 [-0.0065, +0.0085] dB: the closed form is adopted as the written form of F (b 0.54 [0.47, 0.63]; valid 0-40 mm/h). S9 next |
+| S9 | Part 2: formulate Part 1: the official equation file and code with a unit test, the overview checked statement by statement, the WAA document `docs/WAA_research_overview.pdf`, FINAL.md (`formulate_s9.py`, library `waa_equation.py`) | done 2026-10-19: **Part 1 closed** ([FINAL.md](FINAL.md)); no new analysis, no refitting, no new reading of TEST. Next: R1, then Part 2 (the path law) |
+| S5 | Part 2: the final equation | not run as such: its parts became S6, S8 and S9 (2026-10-18) |
 
 Inputs: release `openmrg_v1` (pinned in `research/config.yaml`) and the frozen baseline v2 products of
 `research/baseline/` (`baselines.csv`, `baseline_uncertainty.csv`, `dew_risk_hourly.csv`, `dry_jumps.csv`).
@@ -83,6 +100,7 @@ Each script can also be run directly, e.g. `python -m research.wet_antenna.extra
 - Step S6 (`tighten_s6.py`) reads the S3 datasets, the S5a corrected TRAIN set and the S5a M4b-B fit and draws (read only); its jobs (about 1 h on 3 processes) are cached in `research/.cache/wet_antenna/tighten_s6/`.
 - Step S7 (`validate_s7.py`) rebuilds the two frozen S6 fits from the S6 cache (read only) and caches its PySR runs (306, about 15 min on 3 processes) in `research/.cache/wet_antenna/validate_s7/`.
 - Step S6b (`return_s6b.py`) caches every fit, fake replicate, fold and bootstrap draw (about 45 min on 3 processes the first time) in `research/.cache/wet_antenna/return_s6b/`.
+- Step S8 (`test_s8.py`) runs twice: the first run fits B0-B2 (cached in `research/.cache/wet_antenna/test_s8/`) and writes the freeze file, which is committed; the second checks the hashes and reads TEST (its baselines and datasets are cached there too). `S8_DRYRUN=VAL` checks the evaluation code on VAL without reading TEST.
 - Step S5a (`final_s5a.py`) reads the S3 datasets, the S4.3 g_e table and the frozen S3b fit; its fits (about 4 h the first time on 3 processes; every start and bootstrap draw saved) are cached in `research/.cache/wet_antenna/final_s5a/`.
 - The steps that fit (3b-1 to 4b) save every finished fit in `research/.cache/wet_antenna/<script name>/`, so a second
   run takes seconds to minutes. `python pipeline/get_caches.py` downloads our saved fits; delete a folder to fit again.
@@ -132,8 +150,14 @@ Each script can also be run directly, e.g. `python -m research.wet_antenna.extra
 | `tighten_s6.py` | step S6: the data funnel; the shared shapes F = A_band G(R), P = B_band H(R) (rule on VAL V1, used / optimistic); 60 cold bootstrap draws, profile likelihood and timing sensitivity; fake identifiability; closed forms (physics and PySR) with the plug-back; the WAA candidate (S6); settings `wet_antenna.tighten_s6`; jobs cached in `.cache/tighten_s6/`; writes `outputs/reports/tighten_s6.md` and `outputs/products/tighten_s6_candidate.json` |
 | `validate_s7.py` | step S7: validate the frozen S6 candidate without TEST (7.1-7.6: W against L and metadata, short links on VAL, dry-path moments, paired links, short-only / long-only intercepts, P against ITU-R P.838 as a size reference, dew, leftovers with PySR and a permutation null, radar against the City gauges) and the return decision; settings `wet_antenna.validate_s7`; writes `outputs/reports/validate_s7.md` |
 | `return_s6b.py` | step S6b: the one return to S6: the after-rain diagnosis, the refinements M1-M3 with fake checks, the box-A rule, the three boxes, the VAL error budget, the candidate for S8 (`outputs/products/return_s6b_candidate.json`); settings `wet_antenna.return_s6b` |
+| `test_s8.py` | step S8: the comparison models, the freeze (`outputs/products/test_s8_freeze.json`), the TEST baselines (`outputs/products/test_s8_baselines.csv`), P1-P5 on TEST and the information items; settings `wet_antenna.test_s8` |
+| `test_s8b.py` | step S8b: the closed-F model (S6 plug-back 'F and P') on TRAIN (cold bootstrap, identifiability, against the table F) and on TEST (P1-P5 beside the table F, the paired difference) and the decision rule; settings `wet_antenna.test_s8b`; cache `.cache/test_s8b/` |
+| `formulate_s9.py` | step S9: writes the official equation (`outputs/products/waa_equation_final.json`), the unit-test reference (`outputs/products/waa_equation_reference.json`, 3 TEST link-events from the S8 cache) and the tables of the document figures (`formulate_s9_*.csv`); settings `wet_antenna.formulate_s9`; no refitting |
+| `waa_equation.py` | library: the final WAA equation (`WAAEquation`: rain series, L, band, a_link in; W_f, W_s, W and the path term out), numbers from the equation file |
+| `tests/test_waa_equation.py` | unit test: `waa_equation.py` reproduces the S8b W and path term of 3 TEST link-events within 1e-6 dB (`python -m pytest research/wet_antenna/tests`) |
+| `FINAL.md` | one page: the final equation, its numbers and where the files and the two documents are |
 | `wind_drying.py` | library of S6b: M4b with a drying time of the fast store that may follow a covariate (the wind), tau_f_dry exp(-k u); a numba kernel with the exact gradient (identical to `system_id.kernel2` at k = 0), `ProblemW`, the hourly wind per minute |
-| `validation.py` | library of S7 and S6b: the frozen S6 models on TRAIN / VAL V1, the dry-path windows, event-bootstrap helpers (moved unchanged from `validate_s7.py`) |
+| `validation.py` | library of S7, S6b and S8: the frozen S6 models on TRAIN / VAL V1, the dry-path windows, event-bootstrap helpers (moved unchanged from `validate_s7.py`), the error budget (moved from `return_s6b.py`) |
 | `length_test.py` | library of S3 and S3b: the steady-rain bins, the Huber line I + s L with the event bootstrap, the comparison with a model (equilibrium a F, P) and the verdict table; running a fitted model on another dataset (x_for, the S2b fits) |
 | `stress_pooled_fit.py` | stress test of the pooled fit on fake tails (first 60 min; truths m1, m4, m5, m6): T1 noise with two slow time scales, T2 generic optimiser starts, T3 truths recalibrated to the real early decay; parallel fits cached in `.cache/stress_pooled_fit/`; win shares, recovery, start sensitivity, pre-set rule per cell; writes `outputs/reports/stress_pooled_fit.md` |
 | `check_pooled_fit.py` | event-bootstrap replicates per truth (m1, m3, m4, m5, m6), simulates them, pooled fit of every candidate in three windows (cached in `.cache/check_pooled_fit/`), confusion, recovery, pre-set decision rule, population statistics; writes `outputs/reports/check_pooled_fit.md` |

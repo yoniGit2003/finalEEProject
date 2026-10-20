@@ -1,0 +1,12 @@
+item,value
+share of TEST link-events where the candidate beats B0,0.744
+share of TRAIN links with |mean residual| < 0.3 dB on TEST (all minutes),0.956
+"share of TRAIN links with |mean residual| < 0.3 dB on TEST (rain minutes only, 206 links)",0.544
+candidate RMSE with input V0,0.724
+candidate RMSE with input V1,0.692
+candidate RMSE with input V3,0.701
+gauge links (786 link-events): candidate RMSE with V1,0.612
+gauge links: candidate RMSE with the gauge rain as input,0.678
+"dry-path median error at 5 min, M0 (candidate) / M1 (box B)",-0.184 / +0.013 dB (1787 windows)
+"dry-path median error at 10 min, M0 (candidate) / M1 (box B)",-0.147 / +0.010 dB (1298 windows)
+dew-before-rain link-events on TEST (S7.4 rule),0 of 3355 (0 events)

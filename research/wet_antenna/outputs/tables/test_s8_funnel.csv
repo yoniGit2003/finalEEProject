@@ -1,0 +1,26 @@
+stage,count
+TEST events,18
+"TEST events, TRAIN links: (event, sub-link) pairs with a baseline row",10188
+"TEST events, TRAIN links:   minus no baseline",316
+"TEST events, TRAIN links:   minus no wet bin of the link in the event",4679
+"TEST events, TRAIN links:   minus sub-link not good",481
+"TEST events, TRAIN links:   minus use_in_waa_main false",679
+"TEST events, TRAIN links:   minus offset_std > 0.3 dB",373
+"TEST events, TRAIN links:   minus frequency outside the two bands",293
+"TEST events, TRAIN links:   minus cut at a TSL step",152
+"TEST events, TRAIN links:   minus TSL step before the rain",12
+"TEST events, TRAIN links:   minus too few valid 5 min bins",0
+"TEST events, TRAIN links:   minus too many 5 min bins without radar",0
+"TEST events, TRAIN links: link-events kept",3355
+"TEST events, TEST links: (event, sub-link) pairs with a baseline row",2556
+"TEST events, TEST links:   minus no baseline",70
+"TEST events, TEST links:   minus no wet bin of the link in the event",1182
+"TEST events, TEST links:   minus sub-link not good",124
+"TEST events, TEST links:   minus use_in_waa_main false",16
+"TEST events, TEST links:   minus offset_std > 0.3 dB",0
+"TEST events, TEST links:   minus frequency outside the two bands",154
+"TEST events, TEST links:   minus cut at a TSL step",51
+"TEST events, TEST links:   minus TSL step before the rain",0
+"TEST events, TEST links:   minus too few valid 5 min bins",0
+"TEST events, TEST links:   minus too many 5 min bins without radar",0
+"TEST events, TEST links: link-events kept",1010

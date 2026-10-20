@@ -499,3 +499,24 @@ S8_FIG_RATIO = FIGURES / "test_s8_test_over_val.png"
 S8_FIG_NEW = FIGURES / "test_s8_new_links.png"
 S8_FIG_BUDGET = FIGURES / "test_s8_error_budget.png"
 S8_REPORT = REPORTS / "test_s8.md"
+
+# step S8b (test_s8b.py): a post-freeze evaluation of a pre-freeze model (the closed F of S6)
+S8B_CACHE = CACHE / "test_s8b"                                          # the TRAIN bootstrap draws and fake replicates of the closed-F model
+S8B_TRAIN = TABLES / "test_s8b_closed_f_train.csv"                      # Part 1: estimate, bootstrap interval, identifiability
+S8B_COMPARE_F = TABLES / "test_s8b_closed_vs_table_f.csv"               # Part 1: closed F against table F per band and knot
+S8B_TEST = TABLES / "test_s8b_test.csv"                                 # Part 2: P1-P5 side by side, the paired difference, dry-path errors
+S8B_FIG_F = FIGURES / "test_s8b_F.png"
+S8B_FIG_RMSE = FIGURES / "test_s8b_rmse.png"
+S8B_REPORT = REPORTS / "test_s8b.md"
+
+# step S9 (formulate_s9.py, library waa_equation.py): formulate Part 1
+S9_EQUATION = PRODUCTS / "waa_equation_final.json"                      # the official WAA equation (closed F of S8b), every number
+S9_REFERENCE = PRODUCTS / "waa_equation_reference.json"                 # the unit-test reference: 3 TEST link-events, inputs and outputs
+S9_EXAMPLE = TABLES / "formulate_s9_example_event.csv"                  # figure: one event on a short and a long link
+S9_MEMORY = TABLES / "formulate_s9_memory.csv"                          # figure: the equation's response to 60 min of 5 mm/h
+S9_CLOSED_BAND = TABLES / "formulate_s9_closed_f_band.csv"              # figure: the closed F and its 90 % band per R
+S9_DRY_CURVES = TABLES / "formulate_s9_dry_curves.csv"                  # figure: median dry-path curves, measured and model
+S9_BOXES = TABLES / "formulate_s9_boxes.csv"                            # figure: the three boxes after the S8 decision, with sizes
+S9_CHECK = REPORTS / "formulate_s9_check.md"                            # the overview checked against the repo (written by hand)
+S9_REPORT = REPORTS / "formulate_s9.md"                                 # what S9 wrote, the corrections, open items
+FINAL = MODULE / "FINAL.md"                                             # the one-page pointer to the Part 1 result

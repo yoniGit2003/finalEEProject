@@ -1,0 +1,18 @@
+box,effect,size,source
+A,"antenna level rises with the rain, F = A_band (R / 5)^b","about 1 dB at 0.75 mm/h, 2.4-2.8 dB at 5 mm/h","S6, S8b"
+A,"one shape of F for all bands, one amplitude per band","A_band 2.36-2.77 dB, intervals overlap","S6, S8b"
+A,memory: a fast store wets in 2.6 min and dries in 10.3 min,72 % of the water,"S2b, S3.4"
+A,a slow store holds the rest for hours (its numbers fixed),"28 % of the water, 240 min","S2b, S5a"
+A,"path loss per km is a straight line, P = c_band R",0.105-0.194 dB/km per mm/h,"S6, S8b"
+A,one multiplier per link,80 % of links 0.77-1.24,"S6, S8b"
+A,W does not depend on the link length,"rho +0.05, equal dry-path error, TEST P3","S7, S8"
+B,dew wets the same radomes without rain,about 1.7 dB for about 4 h on humid nights,S7.4
+B,the antenna holds less water at the end of rain than the model,"0.2-0.3 dB, 0.5 dB after heavy rain","S7.3a, S6b"
+B,"a faster effective drying (3.7 min) removes that, but unbinds the path part",0.17 dB at 5 min on VAL,S6b
+B,drying is faster with wind,"about 42 % per m/s, fails two rules","S7.5, S6b"
+C,the WAA level in light rain varies between storms,TEST 1.35-1.55 dB against 0.83-1.11 dB,S8 P1
+C,why some links wet more than others,no link property explains it,"S7.1, S7.5"
+C,late water on long links after rain,about 0.05 dB at 40 min,S7.3a
+C,the shape of F above 10 mm/h,0.4 % of the minutes,"S6, S8b"
+C,the path loss below 1 mm/h,"< 0.1 dB/km, interval at 0",S6
+C,"the rest of the error during rain, within storms",61-64 % of the squared error,"S6b, S8"

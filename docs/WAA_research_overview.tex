@@ -1,0 +1,611 @@
+% The WAA overview: the one document of Part 1 (the wet antenna equation). The first version (19 October 2026) had no LaTeX
+% source in the repository. This source keeps its structure and look, with the corrections of the S9 check
+% (research/wet_antenna/outputs/reports/formulate_s9_check.md), real-data figures where the first version had illustrations,
+% the text revised to academic style (20 October 2026) and the complete model in a box (Figure 7, Section 8).
+% Every number comes from research/wet_antenna/outputs (reports, tables, products/waa_equation_final.json) and
+% research/baseline/outputs/reports. Figures: WAA_research_overview_figures/, made by its figs.py from saved tables only.
+% Build: python docs/build_research_log.py WAA_research_overview   (writes docs/WAA_research_overview.pdf)
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[scaled=0.92]{helvet}
+\usepackage{microtype}
+\usepackage[a4paper,margin=2.5cm,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,tabularx,array}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage[font={small,sf},skip=6pt]{caption}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={Wet antenna attenuation: where we stand}, pdfauthor={Yonatan Haber and Yehonatan Tsitseluk}}
+
+\linespread{1.15}
+\titleformat{\section}{\Large\sffamily}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\sffamily}{\thesubsection}{1em}{}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\small\sffamily Wet antenna attenuation: where we stand}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\parskip}{0pt}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcommand{\Rb}{\bar{R}}
+\newcommand{\head}[1]{\par\medskip\noindent{\sffamily #1}\quad}
+\newcommand{\alink}{a_{\mathrm{link}}}
+\newcommand{\Aband}{A_{\mathrm{band}}}
+\newcommand{\cband}{c_{\mathrm{band}}}
+\newcommand{\Fband}{F_{\mathrm{band}}}
+\newcommand{\twet}{\tau_{\mathrm{wet}}}
+\newcommand{\tdry}{\tau_{\mathrm{dry}}}
+\newcommand{\iv}[2]{\,[#1,\,#2]}
+\graphicspath{{WAA_research_overview_figures/}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\sffamily Wet antenna attenuation in commercial microwave links}\\[0.4em]
+{\large\sffamily Where the research stands, explained from the beginning}\\[0.8em]
+Yonatan Haber and Yehonatan Tsitseluk\\
+CellEnMon lab, Tel Aviv University\\
+20 October 2026
+\end{center}
+
+This note presents Part 1 of our project to a reader who knows the topic only by name. It describes the problem, the data,
+the dry reference level (the baseline), the wet antenna model and the checks that support it. Methods that were tried and
+not adopted are left out. The complete model, with every parameter and its uncertainty, is given in Section~\ref{sec:model}
+(Figure~\ref{fig:model}).
+
+\section{The problem}
+
+\subsection{Microwave links as rain sensors}
+Mobile phone networks connect their towers with point-to-point radio links called commercial microwave links (CMLs). Each
+link is a beam between two dish antennas on rooftops, typically a few kilometres apart, at frequencies of tens of GHz. The
+radios record the transmitted signal level (TSL) and the received signal level (RSL), both in dBm. Their difference is the
+attenuation along the path,
+\begin{equation}
+A(t) = \mathrm{TSL}(t) - \mathrm{RSL}(t),
+\label{eq:A}
+\end{equation}
+in dB. Raindrops absorb and scatter microwaves, so $A$ rises when it rains on the path. Because the networks are dense and
+already exist, they can serve as rain sensors, which is the long-term aim of the lab. The standard model for the rain part is
+a power law integrated along the path,
+\begin{equation}
+A_{\mathrm{rain}}(t) = \int_0^L a\,R(l,t)^b\,dl \approx a\,\Rb(t)^b\,L,
+\label{eq:powerlaw}
+\end{equation}
+where $R$ is the rain rate in mm/h, $\Rb$ its mean along the path, $L$ the link length in km, and $a$ and $b$ coefficients that
+depend on frequency and polarisation.
+
+\subsection{The wet antenna}
+Rain also wets the covers of the two antennas (the radomes). A water film on a radome attenuates the signal. This is wet
+antenna attenuation (WAA), written here as $W$, in dB. WAA is local to the antennas, so it does not grow with the link length.
+It also has memory: the film builds up within minutes after rain starts and dries within minutes after rain stops.
+
+Figure~\ref{fig:example} shows the consequence. On a 0.36 km link the model attributes most of the measured attenuation to
+WAA. On a 4.13 km link WAA is a smaller share during heavy rain, and after the rain stops it is the only part left. A rain
+estimate that ignores WAA therefore overestimates rain, and the error is largest on short links.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{example_event.png}
+\caption{Real data. One storm of the training set seen by a short (0.36 km) and a long (4.13 km) link at 28 GHz, one value per
+minute. Top: the rain over the short link. Thin grey line: the measured attenuation $A - c$. Solid: the model. Dashed: the WAA
+part of the model, $W$. Dotted: the path part of the model, $L\,P$.}
+\label{fig:example}
+\end{figure}
+
+\subsection{Our goal}
+Part 1 of the project, the subject of this note, derives an equation for $W(t)$ from data: its size, its dependence on the
+rain and its growth and decay in time. Part 2 will use this equation to study how the rain part depends on the link length.
+Part 1 follows one rule. WAA is never computed by subtracting a power-law rain term from the measurement, because every error
+of that formula would then be counted as WAA. The data themselves must separate the two parts.
+
+\section{The data}
+We use OpenMRG, an open dataset from Gothenburg, Sweden, that covers 1 June to 31 August 2015 \cite{openmrg}. It contains three
+kinds of measurement.
+\begin{itemize}[leftmargin=1.5em]
+\item Links. 728 sub-links (364 links, each measured in both directions), sampled every 10 s. RSL is quantised to 0.3 dB and
+TSL to 1 dB. The frequencies range from 7.5 to 38.7 GHz.
+\item Weather radar. One rain map every 5 min on a grid of about 2 km by 2 km. It covers the whole path of every link, but its
+scale error differs from storm to storm.
+\item Rain gauges. Ten city gauges with 1 min resolution. They measure rain on the ground accurately, but only at their own
+location.
+\end{itemize}
+A separate data pipeline cleaned and synchronised the link data, averaged them to 1 min and 5 min values, and marked rain
+events and quality problems. We kept the 28, 32 and 38 GHz bands, which hold 660 of the 728 sub-links (91\,\%). The other 68
+sub-links belong to links of 4 km or more, so their antenna part cannot be separated from the path part by comparing lengths.
+
+The data were split before any modelling (Table~\ref{tab:split}). Whole rain events were assigned to one of three sets: the
+training set (TRAIN) for fitting, the validation set (VAL) for choosing between model versions, and the test set (TEST) for one
+final check. In addition, 71 of the 364 links (20\,\%) were held out as unseen links. TEST was read once, after the model had
+been frozen (Section~\ref{sec:test}).
+
+\begin{table}[H]
+\centering
+\caption{The split of the data. A link-event is one sub-link during one rain event. Two of the 53 TRAIN events contain no
+usable link-event.}
+\label{tab:split}
+\begin{tabular}{lrrl}
+\toprule
+Set & Events & Link-events & Use\\
+\midrule
+TRAIN & 53 & 9\,780 & fitting the model\\
+VAL & 18 & 3\,250 & choosing between versions\\
+TEST & 18 & 3\,355 + 1\,010 & one final check (known links + unseen links)\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Rain is rare in the data. Only 12\,\% of the minutes used have a rain rate of 0.5 mm/h or more, and only 0.4\,\% have 10 mm/h or
+more. Results for heavy rain therefore rest on few data.
+
+\section{The dry level (baseline)}
+Without rain a link still has an attenuation level that differs between links and drifts slowly. This dry level, the
+baseline, must be known for every link and every event before the rain part can be studied. From here on, $A$ denotes the
+attenuation of Equation~\ref{eq:A} minus the baseline.
+
+\subsection{Method}
+For each event and each sub-link the baseline is one constant value.
+\begin{enumerate}[leftmargin=1.5em]
+\item The 24 h before the event start are taken (48 h if less than 1 h of dry data remains).
+\item Only 5 min slots that radar and gauges mark as dry, and that start at least 1 h after the last rain, are kept. This
+excludes the drying after earlier rain.
+\item The baseline is the median attenuation over these slots.
+\end{enumerate}
+Links with a large daily cycle of the dry level, or with erratic behaviour, are flagged and excluded from the WAA study.
+
+\subsection{Validation}
+In real rain the true baseline is unknown, so the method was tested where the truth is known. Fake events were placed inside dry
+periods, where the correct WAA is zero, and the baseline error was measured. For 6 h events the median error was 0.00 dB, and
+the 10th and 90th percentiles were $-0.21$ and $+0.22$ dB. The error has no bias and therefore averages out over many events.
+Each sub-link keeps its own measured error, and sub-links with an error above 0.3 dB are excluded. A second test checked that
+the baseline does not absorb the drying after rain. One hour after real rain the level was 0.04 dB above that of a dry control,
+and the difference fell to zero within 12 h, as expected for a drying antenna.
+
+\subsection{A side finding: dew}
+The same test showed that on humid nights the attenuation can rise without rain. This is consistent with dew on the radomes,
+that is, WAA without rain. Such nights are flagged. Dew was not used to build the model, but it served later as an independent
+check (Section~\ref{sec:cannot}).
+
+\section{The wet antenna model}
+
+\subsection{What a link measures}
+During a rain event, the measured attenuation of a link is written as
+\begin{equation}
+A(t) - c = W(t) + L\,P\big(\Rb(t)\big).
+\label{eq:frame}
+\end{equation}
+Here $c$ is a small residual offset, defined as the median of $A$ over the dry minutes from 120 to 30 min before the first rain
+on the link. $W$ is the WAA, and $P(R)$ is the specific path attenuation, the loss per km caused by rain on the path, in dB/km.
+$P$ is not fixed in advance but learned from the data. Table~\ref{tab:assume} lists the assumptions behind
+Equation~\ref{eq:frame}, the physical reason for each, and the test that checked it.
+
+\begin{table}[H]
+\centering\small
+\caption{The assumptions of the model.}
+\label{tab:assume}
+\begin{tabularx}{\textwidth}{LLL}
+\toprule
+Assumption & Physical reason & Checked by\\
+\midrule
+The two parts add up & They are separate losses in series & the length test (Section~\ref{sec:length})\\
+$W$ does not depend on $L$ & Every link has two antennas, whatever its length & three tests (Section~\ref{sec:indep})\\
+The path part is $L$ times a loss per km & Each km of path in the same rain causes the same loss & a quadratic term in $L$ differs from zero in 4 of 15 rain groups only\\
+The radar mean along the path, scaled by the gauges, is the right rain input & The radar covers the path, the gauges set its scale & the scaling closes the gap between TRAIN and VAL (Section~\ref{sec:ge})\\
+Rain drives the wetting & Water on the radome comes from the rain & dew is excluded from the model on purpose\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The third assumption is an approximation. Rain is not uniform along a path, so $L\,P(\Rb)$ differs from the true integral in
+general. It is exact when $P$ is linear in $R$, because then $\int c\,R(l)\,dl = c\,L\,\Rb$ for any rain pattern. The data
+showed that $P$ is close to linear (Section~\ref{sec:eq}), so the error caused by uneven rain is expected to be small. The
+general dependence of the rain loss on length is the subject of Part 2.
+
+\subsection{Separating antenna and path by link length}
+\label{sec:length}
+\head{Aim.} This step estimates, from the data alone, how much of the measured attenuation comes from the antennas and how much
+from the rain on the path. It gives the size of WAA and its growth with rain without any rain formula. The later model is
+built on this result and checked against it.
+
+\head{The problem.} For one link at one time, Equation~\ref{eq:frame} reads $A - c = W + L\,P$ with two unknowns. Many pairs fit
+the same measurement. A 1 km link that measures 3.2 dB could have 2.6 dB from the antennas and 0.6 dB from the path, or 1.0 dB
+and 2.2 dB. One link alone cannot separate them.
+
+\head{The idea.} The two parts depend differently on length. The antenna part is the same for every link, because every link
+has two antennas. The path part grows with length. Between links of different length in the same rain, any difference therefore
+comes from the path. Table~\ref{tab:example} gives an example with three links.
+
+\begin{table}[H]
+\centering
+\caption{An illustrative example of three links in the same rain.}
+\label{tab:example}
+\begin{tabular}{lccc}
+\toprule
+$L$ (km) & 1 & 3 & 5\\
+$A - c$ (dB) & 3.2 & 4.4 & 5.6\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each additional km adds 0.6 dB, so $P = 0.6$ dB/km. Removing the path part from the 1 km link leaves $3.2 - 0.6 = 2.6$ dB, which
+is the antenna part. The same 2.6 dB remains on the other two links.
+
+\head{Method.} In real data many links rarely see the same rain at the same time. Instead, all moments of steady rain whose path
+rain falls in the same range, for example 2 to 5 mm/h, are collected from all links and events. This set is a rain group. Each
+link contributes one point per event, the median of its $A - c$ in that group. A straight line is fitted through the points with
+a robust (Huber) fit, which limits the influence of outliers,
+\begin{equation}
+A - c = I + s\,L.
+\label{eq:line}
+\end{equation}
+The intercept at $L = 0$, a link without a path, is the antenna part, $I = W$. The slope is the loss per km, $s = P$. This
+procedure is called the length test.
+
+\head{Output.} Each rain group gives one value of $W$ and one value of $P$. Several rain groups give several points of the
+curves $W(R)$ and $P(R)$ (Figure~\ref{fig:length}). These measured curves are the reference that the full model must reproduce.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{length_test.png}
+\caption{Real data (TRAIN). The length test. (a) Each point is one link in one event at 28 GHz, grouped by rain rate, with a
+straight line per group (marker shapes show the group). (b) The intercepts at $L = 0$ form the WAA curve $W(R)$. (c) The slopes
+form the path attenuation curve $P(R)$. Bars are 90\,\% intervals, line styles and markers show the band.}
+\label{fig:length}
+\end{figure}
+
+On TRAIN the intercept rose from about 1.0 dB at 0.5 to 1 mm/h to 2.4 to 2.8 dB at 5 to 20 mm/h and then grew only slowly,
+while the slope grew roughly in proportion to $R$. The test also showed why short links alone are not sufficient. When all
+links are short, a small path loss and a small additional antenna loss have the same effect. On links below 1 km the fitted
+path loss halved when links up to 3 km were added. The final model is therefore fitted on links of all lengths together.
+
+\subsection{Memory: wetting and drying}
+The length test gives a mean level, but the water on the radome does not follow the rain instantly. We model it as a store
+that relaxes toward a target set by the current rain,
+\begin{equation}
+\frac{dW}{dt} = \frac{u(t) - W}{\tau}, \qquad u(t) = \alink\,F\big(R(t)\big).
+\label{eq:bucket}
+\end{equation}
+$F(R)$ is the steady-state WAA in constant rain $R$, and $\alink$ is a dimensionless factor per link, the link factor, because
+some antennas collect more water than others. When $W$ is below its target the store fills (wetting), and when it is above, it
+empties (drying). Wetting and drying have different time constants. In addition, a small part of the water remains for hours,
+so the store is split into a fast and a slow part,
+\begin{equation}
+\frac{dW_f}{dt} = \frac{0.72\,u - W_f}{\tau_f}, \qquad
+\tau_f = \begin{cases} \twet = 2.6 \text{ min} & \text{if } 0.72\,u > W_f \text{ (wetting)}\\
+\tdry = 10.3 \text{ min} & \text{if } 0.72\,u \le W_f \text{ (drying)}\end{cases}
+\label{eq:fast}
+\end{equation}
+\begin{equation}
+\frac{dW_s}{dt} = \frac{0.28\,u - W_s}{240 \text{ min}}, \qquad W = W_f + W_s.
+\label{eq:slow}
+\end{equation}
+The condition on $\tau_f$ separates wetting from drying. When the rain sets a target above the water on the radome, the fast
+store fills with the short time constant. When the rain weakens or stops, the target falls below the stored water and the store
+empties with the long time constant. For a step in the rain the two cases give
+\begin{equation}
+\text{wetting: } W_f(t) = 0.72\,u\,\big(1 - e^{-t/2.6}\big), \qquad \text{drying: } W_f(t) = W_0\,e^{-t/10.3},
+\label{eq:jump}
+\end{equation}
+with $t$ in minutes and $W_0$ the stored water when the rain stops. After 2.6 min of wetting the fast store has covered 63\,\% of
+the way to its target, and after 10.3 min of drying 37\,\% of its water remains.
+
+The two time constants were measured with the rain gauges, which record the start and end of rain to the minute, against the
+rise and fall of the links. On TRAIN they are 2.6\iv{2.4}{3.1} min for wetting and 10.3\iv{9.2}{11.8} min for drying (90\,\%
+intervals), and on VAL 2.0\iv{1.5}{3.2} and 8.8\iv{5.8}{13.1} min. The radar, with its 5 min maps, cannot resolve them.
+On fake data, a 5 min noisy input alone made the wetting 2.1 times slower. These values, the fast share of 0.72 and the slow time
+constant of 240 min, were therefore held fixed in the final fit. Figure~\ref{fig:memory} shows the response to 1 h of steady rain.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{memory.png}
+\caption{Illustration computed from the equation (not measured data). 60 min of 5 mm/h rain on a 28 GHz link with
+$\alink = 1$. The fast store fills within minutes and empties within about 30 min, and the slow store remains for hours.}
+\label{fig:memory}
+\end{figure}
+
+\subsection{Correcting the rain input with the gauges}
+\label{sec:ge}
+The model needs the rain along the path of every link, every minute. The ten gauges are accurate but measure at ten points,
+while the links form hundreds of paths. Only the radar covers every path. The two are therefore combined: the radar gives where
+and when it rains on each path, and the gauges give how much. For each event with at least 1 mm of gauge rain per gauge link,
+the radar is divided by one factor per event,
+\begin{equation}
+R(t) = \frac{R_{\mathrm{radar}}(t)}{g_e}, \qquad
+g_e = \frac{\text{radar rain in event } e}{\text{gauge rain in event } e},
+\label{eq:ge}
+\end{equation}
+and $g_e = 1$ otherwise. In the large VAL storms the radar measured about 1.7 times the gauge rain, against about 0.9 times on
+TRAIN. Before the correction the model fitted VAL worse than TRAIN, and the VAL length test passed in at most 1 of 8 rain
+groups. After the correction it passed in 5 of 6. The difference between the sets was therefore in the rain input, not in the
+antennas. A test of whether the radar error depends on the rain rate, which would require a curve instead of one factor, found
+no such dependence. The apparent dependence reversed direction when the data were binned by the radar instead of the gauge,
+which is the signature of regression to the mean between two noisy measurements.
+
+\subsection{The equation and its parameters}
+\label{sec:eq}
+All parts were first fitted together on TRAIN with $F$ and $P$ as free curves, that is, as values at fixed rain rates between 0.05 and
+40 mm/h joined by straight lines, with no formula assumed. Three results followed. First, one shape of $F$ for the three bands,
+scaled by one level per band, predicted VAL as well as separate shapes (root mean square error, RMSE, 0.3875 against 0.3878 dB),
+although TRAIN alone favoured separate shapes. Second, $F$ rises steeply in light rain and more slowly at higher rates. Third,
+$P$ is close to linear in $R$.
+
+Closed formulas were then fitted to these free points and compared by the corrected Akaike information criterion (AICc), which
+weighs the fit against the number of parameters. The candidates were physical forms (curves that saturate at a maximum, and
+capped power laws) and forms proposed by symbolic regression with the PySR library. The simplest form that describes $F$ as well
+as the free points is a power of $R$ close to a square root, proposed by PySR. It was inserted into the full model, which was
+then refitted. The result is
+\begin{equation}
+u = \alink\,\Fband(R), \qquad \Fband(R) = \Aband\left(\frac{R}{5\ \mathrm{mm/h}}\right)^{b}, \qquad P(R) = \cband\,R,
+\label{eq:final}
+\end{equation}
+with $b = 0.54\iv{0.47}{0.63}$ (90\,\% interval from refitting on 40 resampled sets of whole TRAIN events). Values within this
+interval cannot be distinguished. The interval contains 0.5, so the steady-state WAA grows approximately as the square root of
+the rain rate, and it excludes a linear dependence ($b = 1$). $\Aband$ is the steady-state WAA at 5 mm/h. Table~\ref{tab:numbers}
+gives all values and Figure~\ref{fig:FP} the curves. The formula has no maximum, so the data do not show whether WAA saturates.
+Above 10 mm/h it rests on 0.4\,\% of the minutes, and it is not valid above 40 mm/h. Section~\ref{sec:test} describes its test
+on TEST.
+
+The linear form of $P$ is consistent with the power law $k = \alpha R^{\beta}$ of the ITU-R P.838 recommendation. At 28 to
+38 GHz its exponent is $\beta = 0.86$ to 0.92, so the power law is itself nearly linear in this range. No shape was imposed. $P$
+was learned as free points, and a power law fitted to these points gave an exponent of 0.97, with a quadratic term of zero. The
+linear form was selected because it has fewer parameters and fits equally well. Its size is 0.52 to 0.74 times the ITU-R value.
+Whether this reflects a remaining error in the radar rain or an effect of uneven rain along the path is a question for Part 2.
+
+\begin{table}[H]
+\centering\small
+\caption{The fitted parameters of the final equation, with 90\,\% intervals from 40 event-bootstrap refits on TRAIN. $\Aband$
+is the steady-state WAA at 5 mm/h, $b$ the exponent of $F$ and $\cband$ the path attenuation per km per mm/h. All were
+recovered on fake data (Section~\ref{sec:fake}).}
+\label{tab:numbers}
+\begin{tabular}{lccc}
+\toprule
+ & 28 GHz & 32 GHz & 38 GHz\\
+\midrule
+$\Aband$ (dB) & 2.57\iv{2.00}{3.21} & 2.36\iv{1.70}{3.06} & 2.77\iv{2.25}{3.40}\\
+$\cband$ (dB km$^{-1}$ per mm/h) & 0.105\iv{0.058}{0.138} & 0.141\iv{0.047}{0.190} & 0.194\iv{0.111}{0.245}\\
+\midrule
+\multicolumn{4}{l}{$b$ (all bands): 0.54\iv{0.47}{0.63} \qquad $\alink$: 10th to 90th percentile of 206 links, 0.77 to 1.24}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{F_P.png}
+\caption{Real data (TRAIN). The learned curves with 90\,\% intervals, on linear axes. (a) Points: the free curve of $F$. Lines:
+the final formula $\Aband (R/5)^{0.54}$, one line style per band. $F$ is about 1 dB at 0.5 to 1 mm/h and 2.4 to 2.8 dB at
+5 mm/h, and is poorly determined above 10 mm/h (shaded). (b) The path attenuation per km is close to linear in each band.}
+\label{fig:FP}
+\end{figure}
+
+\section{Evidence for the results}
+A fitted number is reported as a result only if it passed checks whose pass criteria were written down before the check was run.
+Three kinds of check were used.
+
+\subsection{Fake data}
+\label{sec:fake}
+Artificial data were generated from the fitted model, with realistic noise, on the real links and the real rain, and the model
+was fitted again. All 62 parameters of the free curves were recovered within 20\,\% of their true values in each of three fake
+data sets, 61 of them within 10\,\%. The 9 parameters of the final equation were also recovered within 20\,\%. The method can
+therefore measure them. Eight parameters, the path attenuation below 1 mm/h, are too close to zero to be distinguished from it
+and are not reported as results.
+
+\subsection{Unseen events}
+Every change to the structure of the model was judged by its prediction error on events left out of the fit. A more complex
+version was kept only if it predicted unseen events better and its additional parameters were recovered on fake data. The choice
+among closed formulas used AICc on the learned points, and the chosen formula was then checked on unseen events.
+
+\subsection{Independence of the WAA from the link length}
+\label{sec:indep}
+The central assumption of the model is that $W$ does not depend on $L$. It was tested in three independent ways.
+\begin{itemize}[leftmargin=1.5em]
+\item The link factor $\alink$ does not depend on the length (Figure~\ref{fig:alink}). The Spearman rank correlation is $+0.05$,
+with a 90\,\% interval of $-0.07$ to $+0.17$.
+\item The length test of Section~\ref{sec:length} was repeated with links shorter than 3 km only, and with links longer than
+1.5 km only. If WAA does not depend on length, both versions give the same intercept at $L = 0$. They agreed in 13 of 15 rain
+groups.
+\item In 9\,081 periods after rain the radar showed no rain on any pixel along the path. There the path part is zero, so the
+measurement is WAA alone, obtained without any rain model. The measured WAA and the model error were the same for short, medium
+and long links, with a median model error of $-0.18$ dB at 10 min in every length class (Figure~\ref{fig:indep}).
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.7\textwidth]{a_link.png}
+\caption{Real data. The link factor $\alink$ of each of the 206 TRAIN links against its length. Markers show the band. There is
+no trend.}
+\label{fig:alink}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{dry_path.png}
+\caption{Real data. WAA measured after rain, when no rain remains on the path (solid), against the model (dashed), for three
+length classes (medians over the periods). The three classes agree. The model starts too high, which is discussed in
+Section~\ref{sec:cannot}.}
+\label{fig:indep}
+\end{figure}
+
+\subsection{Summary of the results}
+\begin{table}[H]
+\centering\small
+\caption{The results and the evidence for each.}
+\label{tab:results}
+\begin{tabularx}{\textwidth}{LL}
+\toprule
+Result & Evidence\\
+\midrule
+WAA does not depend on the link length & three independent tests (Section~\ref{sec:indep})\\
+WAA has memory: wetting time constant 2.6 min, drying time constant 10.3 min, and 28\,\% of the water in a slow store & gauge timing, similar on TRAIN and VAL, and models with memory predict better than models without\\
+The steady-state WAA grows approximately as the square root of the rain rate, about 1 dB at 0.5 to 1 mm/h and 2.4 to 2.8 dB at 5 mm/h & length test without a rain formula, and a formula selected among several forms, recovered on fake data, and equivalent to the free curve on TEST\\
+The equation predicts unseen storms and unseen links better than simpler models & the final test (Section~\ref{sec:test})\\
+No difference between the 28, 32 and 38 GHz bands is detected & overlapping intervals of $\Aband$ (for example 2.00 to 3.21 against 2.25 to 3.40 dB)\\
+One curve with a link factor describes most links & 80\,\% of links have $\alink$ between 0.77 and 1.24\\
+The path attenuation per km is close to linear in $R$ & free curves, the linear form selected among other forms and still passing the length test\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{The final test}
+\label{sec:test}
+All earlier checks used TRAIN and VAL. VAL had been used to choose between versions, so its errors are optimistic. TEST had not
+been read. Before reading it, we froze the equation, the pass rules and three simpler comparison models, and stored a
+cryptographic hash of each. TEST was then read once. It contains 18 storms, with 3\,355 link-events on known links and 1\,010 on
+59 links that the model had never seen. After the read, two errors were found in the evaluation code, not in the model: storms
+without a usable radar-to-gauge ratio had no defined rain input. Both were fixed with the fallback $g_e = 1$ that the rule already
+specified, and the numbers before and after the fix are recorded.
+
+The test does not require the true WAA, which is unknown. Every model receives only the rain (radar scaled by the gauges) and the
+link length, and predicts the total attenuation that the link should measure. The prediction is compared with the measurement.
+The comparison models were fitted on TRAIN in the same way: no WAA, a constant WAA while it rains, and a WAA without memory. The
+model without WAA was free to choose a larger path attenuation to explain all of $A$ as rain on the path, and it chose
+0.27 dB km$^{-1}$ per mm/h at 28 GHz, 2.6 times the value of our equation. If a WAA part with memory predicts unseen storms
+better, that part describes a real effect. The split between antenna and path is checked separately, by the length test and by
+the dry-path periods after rain.
+
+\begin{table}[H]
+\centering\small
+\caption{The test rules, written before the test, and the results. The error is the RMSE between predicted and measured
+5 min attenuation, with 90\,\% intervals from resampling storms.}
+\label{tab:test}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.3\textwidth}Lc}
+\toprule
+Rule & Result & Verdict\\
+\midrule
+Lower error than no WAA, a constant WAA, and a WAA without memory & 0.69 dB against 0.86, 0.76 and 0.73 dB (links below 1 km: 0.56 against 0.84, 0.64 and 0.60 dB), every difference with an interval above zero & pass\\
+Equal WAA on short and long links & dry-path error, long minus short links, $-0.04$ dB ($-0.15$ to $+0.04$ dB) & pass\\
+No length class out of line & ratio of TEST to VAL error 1.12, each class within 5\,\% of this ratio & pass\\
+Unseen links ($\alink = 1$) & error 1.07 times that on known links (limit 1.20) & pass\\
+Length test on TEST & 4 of 8 rain groups agree, 6 required & fail\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The failed rule locates the limit of the equation. The slopes, which measure the rain on the path, agree in 7 of 8 rain groups.
+The intercepts, which measure WAA, disagree in light rain (0.5 to 2 mm/h). In the test storms the intercept was 1.35 to 1.55 dB
+in light rain, against 0.83 to 1.11 dB in the equation. The WAA level in light rain therefore varies between storms more than
+the equation describes. This failure does not indicate a dependence of WAA on length, which the second rule tested and passed.
+
+\head{The formula for $F$.} The equation frozen for the test still described $F$ by free points. The formula of
+Section~\ref{sec:eq} had been fitted before the test but was not the frozen version. After the test it was evaluated on the same
+data, without refitting, under a rule written before the evaluation: the formula is adopted only if it gives the same five
+verdicts and an error within 0.01 dB of the free points. Both conditions held. The error differed by $+0.0025$ dB (interval
+$-0.0065$ to $+0.0085$ dB), and all five verdicts were the same. The formula is therefore the written form of $F$.
+
+\section{Limitations}
+\label{sec:cannot}
+The model does not describe every effect in the data. Each effect is assigned to one of three groups.
+\begin{itemize}[leftmargin=1.5em]
+\item In the equation: the effects in Table~\ref{tab:results}.
+\item Observed, but outside the equation. Dew wets the same antennas: on 125 humid link-nights the median rise was 1.7 dB for
+about 4 h, and links with a larger $\alink$ also had more dew (Spearman correlation $+0.26$). Directly after rain the antenna
+holds less water than the model (see below). These effects are described with their size and conditions but are not part of
+the equation.
+\item Not explained. The cause of the differences in $\alink$ (no link property explains them). The variation of the WAA level
+in light rain between storms (the failed test rule). The effect of the equation on rain estimates from the links, which has not
+been tested. The shape of $F$ above 10 mm/h, where data are scarce. The path attenuation below 1 mm/h.
+\end{itemize}
+
+One misfit remains. When the path becomes dry, the model holds 0.25 dB more water than is measured, and about 0.5 dB more after
+heavy rain (Figure~\ref{fig:indep}). The possible causes were tested one by one. The measured decay rate is 0.87 times that of
+the model (interval 0.70 to 1.06), so the drying speed is consistent with the model, and the error lies in the amount of water
+left when the rain ends. The radar timing does not cause it, and the model is not too high during heavy rain. The error is
+larger after heavier rain and in drier air. One explanation consistent with these observations, which this work cannot confirm,
+is that water runs off the radome. Laboratory measurements have shown runoff directly after wetting \cite{tiede}. Storms with
+more wind first appeared to dry faster (Spearman correlation $-0.76$ over 17 storms), but the effect disappeared when the
+preceding rain was held fixed, because the windy hours are mostly the hours after heavy showers.
+
+A version of the model with a free drying time constant (3.7 min instead of 10.3 min) removes this misfit, but it was not
+adopted. With such fast drying the antenna part follows the rain almost instantly, like the path part, and the two can no longer
+be separated: the path attenuation halves and its interval reaches zero in every band. In addition, 3.7 min does not agree with
+the drying time measured with the gauges. The misfit is also a small part of the error: 2\,\% of the squared error on VAL and
+6\,\% on TEST. Most of the remaining error, 61 to 64\,\%, occurs during rain within storms. A likely cause is that the radar
+resolves rain more coarsely (5 min, 2 km) than a link, but this has not been tested.
+
+\subsection{Next steps}
+\begin{enumerate}[leftmargin=1.5em]
+\item Test whether removing the WAA with this equation improves the rain estimated from the links, with the gauges as reference.
+This step requires its own written plan and a decision about TEST, which has already been read once.
+\item Part 2: the dependence of the rain loss on the link length, with the WAA removed by the frozen equation.
+\end{enumerate}
+
+\section{The WAA model}
+\label{sec:model}
+Figure~\ref{fig:model} states the complete WAA model of Part 1: the inputs, the equations, the numerical scheme, every
+parameter with its uncertainty, and the range of validity. It is the model frozen for the test, with the formula for $F$
+adopted after the test (Section~\ref{sec:test}).
+
+\begin{figure}[H]
+\centering
+\setlength{\fboxsep}{7pt}\setlength{\fboxrule}{0.8pt}%
+\fbox{\begin{minipage}{0.955\textwidth}\small\linespread{1.0}\selectfont\setlength{\parindent}{0pt}
+{\sffamily Measured quantity.} $A(t) = \mathrm{TSL}(t) - \mathrm{RSL}(t) - B$ in dB, at 1 min resolution, where the baseline $B$
+is the median dry-weather attenuation over the 24 h before the event (48 h if less than 1 h of dry data remains). The offset $c$
+is the median of $A$ over the dry minutes from 120 to 30 min before the first rain on the link (0 if fewer than 30 such
+minutes exist).
+
+\smallskip
+{\sffamily Inputs.} Link length $L$ (km). Band from the frequency: 28 GHz (25 to 30.5 GHz), 32 GHz (30.5 to 35 GHz), 38 GHz
+(35 to 45 GHz). Link factor $\alink$ (dimensionless). Rain rate $R(t)$ (mm/h, one value per minute):
+$R = R_{\mathrm{radar}}/g_e$, with $R_{\mathrm{radar}}$ the radar rain averaged over the pixels along the path and held over its
+5 min interval, and $g_e$ the ratio of radar to city-gauge rain in the event over the gauges within 1 km of a path ($g_e = 1$ if
+the gauges caught less than 1 mm per gauge link).
+
+\smallskip
+{\sffamily Equations.}
+\begin{align*}
+A(t) - c &= W_f(t) + W_s(t) + L\,\cband\,R(t-d)\\
+\frac{dW_f}{dt} &= \frac{\varphi\,u(t) - W_f}{\tau_f}, \qquad \tau_f = \begin{cases}\twet & \text{if } \varphi\,u(t) > W_f\\ \tdry & \text{otherwise}\end{cases}\\
+\frac{dW_s}{dt} &= \frac{(1-\varphi)\,u(t) - W_s}{\tau_s}\\
+u(t) &= \alink\,\Aband\left(\frac{R(t-d)}{5\ \mathrm{mm/h}}\right)^{b}
+\end{align*}
+Initial state $W_f = W_s = 0$ in dry weather before the event. Numerical scheme: one step per minute, $W \leftarrow v + (W - v)\,
+e^{-\Delta t/\tau}$ with $\Delta t = 1$ min and $v$ the target of the store ($\varphi u$ or $(1-\varphi)u$), output after the step.
+
+\smallskip
+{\sffamily Parameters} (90\,\% intervals).
+
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.3cm} L >{\raggedright\arraybackslash}p{4.6cm}@{}}
+\toprule
+Parameter & Value & Source of the value and interval\\
+\midrule
+$A_{28}$, $A_{32}$, $A_{38}$ (dB) & 2.57\iv{2.00}{3.21}, 2.36\iv{1.70}{3.06}, 2.77\iv{2.25}{3.40} & fitted on TRAIN, 40 event-bootstrap refits\\
+$b$ & 0.54\iv{0.47}{0.63} & fitted, as above\\
+$c_{28}$, $c_{32}$, $c_{38}$ (dB km$^{-1}$ per mm/h) & 0.105\iv{0.058}{0.138}, 0.141\iv{0.047}{0.190}, 0.194\iv{0.111}{0.245} & fitted, as above\\
+$\alink$ & one value per TRAIN link (206 links), 10th to 90th percentile 0.77 to 1.24, 1 for a new link & fitted with the parameters above\\
+$\twet$, $\tdry$ (min) & 2.6\iv{2.4}{3.1}, 10.3\iv{9.2}{11.8} & fixed, from the gauge-input fit on TRAIN (warm-started refits, intervals possibly too narrow)\\
+$\varphi$ & 0.72\iv{0.60}{0.81} & fixed, as above\\
+$\tau_s$ (min) & 240 & fixed at the search bound, not identified\\
+$d$ (min) & 1 & selected in the fit (integer minutes)\\
+\bottomrule
+\end{tabularx}
+
+\smallskip
+{\sffamily Validity.} $0 \le R \le 40$ mm/h (above 10 mm/h based on 0.4\,\% of the minutes), the three bands above, link lengths
+0.14 to 8.7 km (the TRAIN links), OpenMRG (Gothenburg, summer 2015). Not identified: $\tau_s$, the path attenuation below 1 mm/h,
+and the level of $F$ separately from $\alink$ (the median $\alink$ is close to 1 by construction).
+
+\smallskip
+{\sffamily Performance on TEST} (RMSE of the 5 min attenuation, 90\,\% intervals). All links 0.695\iv{0.497}{0.795} dB, links
+below 1 km 0.564\iv{0.422}{0.630} dB. Without WAA, 0.862\iv{0.607}{0.998} and 0.838\iv{0.568}{0.977} dB.
+\end{minipage}}
+\caption{The WAA model of Part 1. All values are stored in the equation file of the project, together with the per-link
+factors, and are computed by its reference implementation.}
+\label{fig:model}
+\end{figure}
+
+\begin{thebibliography}{9}
+\bibitem{openmrg} J. C. M. Andersson, J. Olsson, R. van de Beek and J. Hansryd, ``OpenMRG: Open data from Microwave links,
+Radar, and Gauges for rainfall quantification in Gothenburg, Sweden,'' \emph{Earth System Science Data}, 14, 5411--5426, 2022.
+\url{https://doi.org/10.5194/essd-14-5411-2022}
+\bibitem{tiede} J. Tiede, C. Chwala, U. Siart and T. Eibert, ``Frequency-dependent variations of the antenna reflection
+coefficient due to different wetness conditions on the antenna radome,'' \emph{Advances in Radio Science}, 23, 13--19, 2025.
+\url{https://doi.org/10.5194/ars-23-13-2025}
+\end{thebibliography}
+
+\end{document}

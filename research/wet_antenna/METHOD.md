@@ -1,5 +1,9 @@
 # wet_antenna: method, decisions and open issues
 
+**Final equation (Part 1 closed, S9, 2026-10-19):** A(t) - c = W_f + W_s + L c_band R(t - 1 min), with dW_f/dt = (0.72 u - W_f) /
+tau_f (2.6 min wetting, 10.3 min drying), dW_s/dt = (0.28 u - W_s) / 240 min, u = a_link A_band (R / 5)^b, b = 0.54. The numbers,
+files and documents: [FINAL.md](FINAL.md). How it was reached: "Part 2: S-steps" below, S9 last.
+
 Parts: (1) the rules that define a drying tail and the frozen tail set v1, (2) what each step T0-T18 decided, with the
 numbers behind it, then "Part 2: S-steps" (the reboot, S1 on), (3) the open issues. Settings: section `wet_antenna` of `research/config.yaml`. TRAIN events only
 for every number unless stated. The step reports with all tables are in `outputs/reports/` (one per script).
@@ -1059,6 +1063,58 @@ used only to build fake data and as a size reference.
   candidate with the faster drying in box B).
 - Report: `outputs/reports/return_s6b.md`; figures `return_s6b_after_rain_causes.png`, `_fake.png`, `_dry_path.png`, `_boxes.png`,
   `_error_budget.png`.
+
+### S8, freeze, then TEST once (`test_s8.py`, 2026-10-19)
+
+- Decision 2026-10-19 (before TEST): the candidate is the S6 candidate; M1 of S6b goes to box B (it unbinds the path term). Lesson: a
+  refinement rule must also require that the other numbers stay identified.
+- Comparison models fitted on TRAIN V1: B0 no WAA, B1 a constant WAA while it rains, B2 WAA without memory (static, the S6 shapes); B3
+  skipped (no literature WAA model is implemented in the repo). VAL (used): candidate 0.620, B0 0.717, B1 0.646, B2 0.630 dB.
+- Freeze: `outputs/products/test_s8_freeze.json` (hashes of the candidate, the B fits, the rules; code commit 761c6f1), committed in
+  bb30b5c before TEST was read. The evaluation code was first run on VAL (`S8_DRYRUN=VAL`).
+- TEST: baselines for the TEST events computed with the frozen baseline code (TRAIN and TEST links); 3 355 link-events on TRAIN links,
+  1 010 on TEST links; g_e from the TEST events' gauge links (4 events used). Two evaluation bugs fixed after the read (a zero radar /
+  gauge ratio; events without a g_e entry), both giving undefined rain; recorded with the numbers before and after.
+- **P2-P5 pass**: TEST RMSE 0.692 dB against 0.862 / 0.760 / 0.727 (B0 / B1 / B2), L < 1 km 0.562 against 0.838 / 0.644 / 0.601; dry-path
+  error equal across lengths; TEST / VAL 1.12 in every length class within 5 %; TEST links 1.07 x TRAIN links.
+- **P1 fails** (4 of 8 cells): the slopes fit in 7 of 8, the intercepts at 0.5-2 mm/h are higher on TEST (1.35-1.55 dB against
+  0.83-1.11 dB in the model): the antenna level at light rain, not the dependence on L.
+- Report: `outputs/reports/test_s8.md`; figures `test_s8_rmse.png`, `_length_cells.png`, `_dry_path.png`, `_test_over_val.png`,
+  `_new_links.png`, `_error_budget.png`.
+
+### S8b, post-freeze evaluation of a pre-freeze model: the closed form of F (`test_s8b.py`, 2026-10-19)
+
+- The S6 plug-back fit "F and P" (F = A_band (R / 5)^b, P = c_band R; cache file modified 2026-10-18 12:45, before the S8 freeze). Rule
+  (written after TEST, before this run): adopted as the written form of F iff the same P1-P5 verdicts as the table F and the paired TEST
+  RMSE difference within [-0.01, +0.01] dB (all and L < 1 km).
+- TRAIN: 40 cold draws, all 9 numbers identified (b 0.54 [0.47, 0.63]; A 2.57 / 2.36 / 2.77 dB; c 0.105 / 0.141 / 0.194 dB/km per mm/h);
+  inside the table F's interval at 21 / 21 knots; +2.3-2.7 dB above it at 40 mm/h (no saturation).
+- TEST: the same verdicts (P1 fails, P2-P5 pass); paired difference +0.0025 [-0.0065, +0.0085] dB (L < 1 km +0.0016 [-0.0082, +0.0078]).
+  **The closed form is adopted** as the written form of F (valid 0-40 mm/h). S8's comparison-model setup moved to `validation.py`
+  (S8 re-run identical).
+
+### S9, formulate Part 1: the official equation and the documents (`formulate_s9.py`, library `waa_equation.py`, 2026-10-19)
+
+No new analysis, no refitting, no new reading of TEST. Rules in config `wet_antenna.formulate_s9`, written before the run.
+
+- **The final equation** (the closed-F model of S8b; FINAL.md): A(t) - c = W_f + W_s + L c_band R(t - 1 min), dW_f/dt = (0.72 u - W_f) /
+  tau_f (2.6 min wetting, 10.3 min drying), dW_s/dt = (0.28 u - W_s) / 240 min, u = a_link A_band (R / 5)^b; b 0.542 [0.472, 0.626],
+  A 2.57 / 2.36 / 2.77 dB, c 0.105 / 0.141 / 0.194 dB/km per mm/h (28 / 32 / 38 GHz), a_link 10-90 % 0.77-1.24; R = radar / g_e; valid
+  0-40 mm/h. Stored in `outputs/products/waa_equation_final.json` (every number with its 90 % interval, the fit's sha256
+  `1d8163cd...e0b9`, its own sha256 in the S9 report).
+- **The code** `waa_equation.py` steps the stores once per minute exactly as `system_id.kernel2` and evaluates F on the fit's 61-knot
+  grid by default (`exact=True` gives the pure formula; they differ by at most 0.05 dB, near R = 0 where R^0.54 is steep, and by
+  < 0.004 dB from 0.5 to 40 mm/h). The unit test
+  (`tests/test_waa_equation.py`) reproduces the S8b W and path term of 3 TEST link-events (one per length class, from the S8 cache)
+  within 1e-6 dB (achieved 8.9e-16 dB).
+- **The overview check** (`outputs/reports/formulate_s9_check.md`): the overview's LaTeX source was not in the repo, so
+  `docs/WAA_research_overview.tex` was rebuilt from the PDF. 113 statements: 89 confirmed, 21 corrected, 2 unsupported (reworded), 1
+  added. The main corrections: the lower bands were dropped because their links are all >= 4 km; the VAL timing is similar, not
+  equal; the fake recovery is within 20 % (61 of 62 within 10 %); a_link 0.77-1.24; the ITU exponent 0.86-0.92; the reference [2] title.
+- **The document** `docs/WAA_research_overview.pdf` (13 pages): the first overview's look and wording with the corrections, figures
+  drawn by `docs/WAA_research_overview_figures/figs.py` from saved tables only (colour-free). Figures 1 and 2 of the first version
+  (model illustrations) are now real data. The memory figure stays an illustration from the equation and is captioned so. (S9 first
+  wrote a short and a full version in `docs/overview/`; the learners merged them into this one document on 2026-10-19.)
 
 # 3. Open issues
 

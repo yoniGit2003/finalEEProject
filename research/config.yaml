@@ -1750,3 +1750,57 @@ wet_antenna:
     boot_reps: 1000
     seed: 8801
     time_budget_h: 4.0
+    results:                 # written AFTER TEST was read (excluded from the freeze hash of this block)
+      bug_fix_2026_10_19: "evaluation code, found after TEST was read: TEST event E20150603_1500 has gauges with 1.1 mm per gauge link but a radar sum of 0, so the S4.3 rule gave g_e = 0 and V1 = radar / 0 (infinite or undefined), which the model reads as the heaviest rain over the whole event. Fixed: a radar / gauge ratio of 0 or not finite cannot rescale the radar; such an event gets the rule's fallback g_e = 1. Neither the model nor a pass rule changed. BEFORE the fix (V1): candidate pooled RMSE 2.152 dB (V0 0.724, V3 0.701); P1 4 of 8 cells FAIL; P2 FAIL (all: B2 better by 0.386 dB); P3 pass; P4 FAIL (TEST / VAL 3.47; L < 1 km 0.33 x, L > 3 km 1.24 x); P5 pass (0.89 x). The outputs before the fix are kept in research/explorations/s8_checks/before_fix/. AFTER the 1st fix: candidate RMSE (V1) 1.997 dB, still far above V0 (0.724): a 2nd bug of the same kind: the 3 TEST events without gauge link-events had no g_e entry, so V1 = radar / NaN (read as the heaviest rain). Fixed: every event without a usable ratio gets g_e = 1 (the written fallback). AFTER both fixes: see the report test_s8.md"
+  test_s8b:                  # step S8b (test_s8b.py, libraries final_model.py, validation.py, system_id.py, length_test.py): a POST-FREEZE
+                             #   EVALUATION OF A PRE-FREEZE MODEL. TEST was read once in S8 with the frozen S6 candidate (table F). This step
+                             #   refits nothing on TEST and does not change the S8 verdict. Written 2026-10-19, after TEST was read, BEFORE
+                             #   this evaluation.
+    model: "the S6 plug-back fit 'F and P' (F = A_band (R / 5)^b, P = c_band R, everything else as S6; the 'closed F' of S7):
+            research/.cache/wet_antenna/tighten_s6/plug_shared_FP_F_and_P.pkl, sha256 1d8163cd8b84aafc85f59c6c223f44b33923278265e3e40819923d8076c8e0b9,
+            modified 2026-10-18 12:45:04 (+0300), before the S8 freeze (2026-10-19 18:14)"
+    fit_sha256: "1d8163cd8b84aafc85f59c6c223f44b33923278265e3e40819923d8076c8e0b9"
+    rule: "the closed form is adopted as THE written form of F if and only if, on TEST, (1) its verdicts on P1-P5 are the same as the table F's,
+           and (2) the paired event-bootstrap 90 % interval of its RMSE minus the table F's RMSE lies within [-0.01, +0.01] dB (all link-events
+           and L < 1 km). Otherwise the table F stays the equation and the closed form is reported as an approximate description"
+    rule_band_db: 0.01
+    train:                   # Part 1, TRAIN only
+      bootstrap: {reps: 40, seed: 8901, how: "cold event bootstrap of the closed-F model (as S6): start = the generic S6 start (g4+Phalf) read at 5 mm/h
+                  for F and P, b = the PySR constant 0.518, a_link = 1; caps 1000 + 1000; dynamics and lag fixed"}
+      fake: {replicates: 3, seed: 8902, rule: "the S6 rule: within +-20 % in 3 of 3 (|truth| < 0.05: +-0.01) and the bootstrap interval not at a bound
+             (A, c lower end <= 0.001; b at its shape bounds; a_link percentile at exp(+-3))"}
+      compare_F: "per band: the largest |closed F - table F| over 0.5-40 mm/h (the table F linear between its knots), and at the knots 0.5-40 mm/h
+                  whether the closed F lies inside the table F's S6 bootstrap interval"
+    test: "the S8 TEST link-events (the S8 cache files, TRAIN and TEST links), V1 with the S8 g_e after its bug fix (outputs/tables/test_s8_g_e.csv:
+           g_path where path_used, else 1), the comparison fits B0-B2 of S8 (cache), P1-P5 exactly as config test_s8.pass_rules; the paired RMSE
+           difference closed minus table (event bootstrap 1000, seed 8903; all link-events of the TRAIN links and L < 1 km); the dry-path errors at
+           5, 10, 20 min"
+    boot_reps: 1000
+    seed: 8903
+  formulate_s9:              # step S9 (formulate_s9.py, library waa_equation.py; docs/WAA_research_overview_figures/figs.py): formulate Part 1, the WAA
+                             #   equation. Written 2026-10-19 before the run. No new analysis, no refitting, no new reading of TEST (the
+                             #   unit-test reference uses 3 link-events of the S8 TEST cache, already read once, only to check the code).
+    equation: "the closed-F model of S8b (the S6 plug-back fit 'F and P', research/.cache/wet_antenna/tighten_s6/plug_shared_FP_F_and_P.pkl,
+               sha256 1d8163cd8b84aafc85f59c6c223f44b33923278265e3e40819923d8076c8e0b9): form, every number with its 90 % interval (the 40
+               cold draws of S8b), fixed dynamics, lag, rain input, valid range, bands, the not-identified list -> outputs/products/
+               waa_equation_final.json (its own sha256 in the S9 report, FINAL.md and the roadmap)"
+    tabulated_F: "the fit evaluates F = A_band (R / 5)^b at 61 knots (0 and 60 log-spaced knots from 0.05 to 40 mm/h), linear between them
+                  and constant above 40 mm/h; waa_equation.py uses the same grid by default (exact=True gives the pure formula)"
+    unit_test: {link_events: 3, tolerance_db: 1.0e-6, how: "3 TEST link-events of the S8 cache (V1 with the S8 g_e after its fix): the S8b model's
+                1 min W and path term (system_id kernel) saved with their inputs to outputs/products/waa_equation_reference.json; the test
+                recomputes them with waa_equation.py", pick: "the first link-event of the S8 TEST list in each length class (< 1, 1-3, > 3 km)
+                that has at least 30 minutes of V1 >= 1 mm/h"}
+    example_event: "for the figure: the TRAIN event with the most link-events that have V1 >= 10 mm/h; in it the 28 GHz link-event with the
+                    largest rain on a link < 1 km and on a link > 4 km; measured A - c (1 min), the model W and L P (the S8b model)"
+    dry_curves: "for the figure: the S7 dry-path windows (TRAIN + VAL, the S7 rule) with the S8b model; median measured and model W per length
+                 class, 0-59 min"
+    closed_band: "for the figure: F = A_band (R / 5)^b of each of the 40 S8b cold draws on 0-40 mm/h; 5 % and 95 % per R"
+    memory_curve: "for the figure: the equation's W_f, W_s, W for 60 min of 5 mm/h on a 28 GHz link (a_link = 1), 0-180 min (an illustration
+                   from the equation)"
+    check: "outputs/reports/formulate_s9_check.md: every statement of the overview (docs/WAA_research_overview.pdf; its LaTeX source was not
+            in the repo, so docs/WAA_research_overview.tex was rebuilt from the PDF) against the repo: confirmed / corrected / unsupported,
+            with the source; the repo wins"
+    documents: {document: docs/WAA_research_overview.tex, figures: docs/WAA_research_overview_figures/, note: "the short and the full
+                version written in S9 were merged into this one document by the learners (2026-10-19)",
+                rules: "A4, 11 pt, numbered sections and equations, captions below figures, simple wording, no semicolons, no bold in the text;
+                figures only from saved tables, one style, colour-free"}

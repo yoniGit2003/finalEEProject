@@ -1,4 +1,4 @@
-% last updated: 2026-10-19 commit=872716c
+% last updated: 2026-10-19 commit=bb30b5c
 % (the line above is read and rewritten by /updatedocs: the date and the git commit the content of this document describes)
 % Project structure: which folders and files the repository has, and what each one is for.
 % Build:  python docs/build_research_log.py project_structure   (writes docs/project_structure.pdf only)
@@ -153,9 +153,11 @@ and the reproduce page. \\
 \code{research_log.tex}, \code{.pdf} & The research report at the level of ideas: what was done, what it found, what
 comes next. \\
 \code{project_structure.tex}, \code{.pdf} & This document. \\
-\code{build_research_log.py} & Builds either PDF from its \code{.tex} with pdflatex. \\
+\code{build_research_log.py} & Builds each PDF from its \code{.tex} with pdflatex: the two above and the WAA overview. \\
 \code{pipeline_log.pdf} & The report on how the data pipeline was built. \\
 \code{sindy_intro_report_2026-03.pdf} & Our earlier report ``Introduction to SINDy''. \\
+\code{WAA_research_overview.tex}, \code{.pdf} & The document of Stage~1 (the WAA equation), explained from the beginning for a reader who knows the topic only by name. \\
+\code{WAA_research_overview_figures/} & Its figures, and \code{figs.py}, which draws them from saved research tables only. \\
 \code{papers/} & The OpenMRG dataset paper. \\
 \bottomrule
 \end{tabularx}
@@ -311,7 +313,7 @@ $A(t) = \mathrm{TSL}(t) - \mathrm{RSL}(t) - \text{baseline}$. This module estima
 \toprule
 \textbf{File} & \textbf{What it does} \\
 \midrule
-\code{baseline.py} & The baseline method itself (functions only). \\
+\code{baseline.py} & The baseline method itself (functions only), and the baseline table for any event split (used by S8 for the test events). \\
 \code{run_sample.py} & Runs the method on a sample of events and sub-links: v1 (two windows, kept for comparison) or
 v2 (pre-event window, the current method). \\
 \code{make_dew_products.py} & The hourly dew risk and the list of dry-weather jumps. \\
@@ -332,12 +334,14 @@ v2 (pre-event window, the current method). \\
 
 \subsection{\texttt{wet\_antenna/}: the wet-antenna attenuation}
 
-Two series of steps: T0--T18, the drying-tail exploration (closed; the old step number is in brackets), and S1--S5,
-the system identification on whole events that replaced it.
+Two series of steps: T0--T18, the drying-tail exploration (closed; the old step number is in brackets), and S1--S9,
+the system identification on whole events that replaced it. Besides \code{README.md} and \code{METHOD.md} the module has
+\code{FINAL.md}, one page that points to the final equation and the WAA document, and \code{tests/}, the unit test of the
+equation.
 
 \begin{table}[H]
 \centering
-\caption{The scripts that are run, in run order.}
+\caption{The scripts that are run, in run order: the drying-tail exploration.}
 \small
 \begin{tabularx}{\linewidth}{@{}l F{5.3cm} Y@{}}
 \toprule
@@ -362,6 +366,18 @@ T15 (4b) & \code{diagnose_stalled_tails.py} & Why do some real tails stall or ri
 T16 (4c) & \code{characterise_tails.py} & What is in a drying tail, before any law is fitted. \\
 T17 (4c2) & \code{check_drying_after_rain.py} & Does drying start when the rain nearby ends? Data only. \\
 T18 (7a) & \code{short_links.py} & Very short links: enough data, and does the fast first phase grow with length? \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{The scripts that are run, in run order: the system identification.}
+\small
+\begin{tabularx}{\linewidth}{@{}l F{5.3cm} Y@{}}
+\toprule
+\textbf{Step} & \textbf{Script} & \textbf{What it does} \\
+\midrule
 S1 & \code{system_id_ladder.py} & Rain in, attenuation out, on links below 1 km: the model ladder M0--M4. \\
 S2 & \code{system_id_s2.py} & The same on links up to 3 km, the slow part, and the free rung M5. \\
 S2b & \code{system_id_s2b.py} & Repairs of the S2 model (the path / level trap, a bounded slow store, longer fits). \\
@@ -372,6 +388,11 @@ S4.1--S4.2 & \code{conditions_s4.py} & Why events differ: per-event factors, rad
 S4.3 & \code{conditions_s4c.py} & Is the validation gap the radar? The length test with gauge-rescaled rain; heavy events. \\
 S5a & \code{final_s5a.py} & The model refitted on gauge-corrected rain, a last slow-store candidate (M4c), closed forms of $F(R)$ and $P(R)$. \\
 S6 & \code{tighten_s6.py} & Tighten the equation: data funnel, shared shapes, intervals, fake identifiability, closed forms (physics and PySR). \\
+S7 & \code{validate_s7.py} & Validate the frozen S6 candidate without the test set: $W$ against $L$ and the link metadata, short links, dry-path moments, dew, leftovers, radar against gauges. \\
+S6b & \code{return_s6b.py} & The one return to S6: the after-rain misfit cause by cause, drying-time refinements, the box-A rule, the three boxes, the error budget. \\
+S8 & \code{test_s8.py} & Comparison models, the freeze (hashes, committed), then the test set read once with the pass rules. \\
+S8b & \code{test_s8b.py} & A post-freeze evaluation of a pre-freeze model: the closed form of $F$ on the test set, by a rule written first. \\
+S9 & \code{formulate_s9.py} & Formulate Stage~1: the official equation file, the reference of its unit test, the tables behind the document figures and the S9 report. No refitting. \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -393,7 +414,10 @@ S6 & \code{tighten_s6.py} & Tighten the equation: data funnel, shared shapes, in
 \code{system_id.py} & The models with rain as input (M0--M5), their fit, the event datasets and the leave-one-event-out judge. \\
 \code{length_test.py} & The model-free length test, and running a fitted model on another dataset. \\
 \code{event_factors.py} & Per-event factors on a frozen fit, their fake data, and the radar / gauge ratio per event. \\
-\code{final_model.py} & The model setup of S5a, a fitted model run on another dataset, the closed forms of $F(R)$ and $P(R)$ and their plug-back. \\
+\code{final_model.py} & The model setup of S5a, a fitted model run on another dataset, the closed forms of $F(R)$ and $P(R)$ and their plug-back; the S6 parametrisations and the frozen S6 models. \\
+\code{validation.py} & The frozen S6 models on the datasets, the dry-path windows, event-bootstrap helpers, the error budget and the S8 comparison models. \\
+\code{wind_drying.py} & The two-store model with a drying time that may follow the wind (S6b). \\
+\code{waa_equation.py} & The final WAA equation: a rain series, the link length, the band and the link amplitude in; $W(t)$ and the path part out. \\
 \code{datasets.py} & The noise tables, the tail sets on disk and the bootstraps. \\
 \code{fit_jobs.py} & The long fitting jobs; they save their progress, so an interrupted run continues. \\
 \bottomrule

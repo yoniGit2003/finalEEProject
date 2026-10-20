@@ -1,0 +1,6 @@
+rule,numbers,verdict,claim
+P1 length test through the model,4 of 8 eligible cells (needed 6),FAIL,W independent of L
+"P2 the candidate beats B0, B1, B2","all B0 +0.1694 [+0.0833, +0.2160] dB; all B1 +0.0673 [+0.0389, +0.0825] dB; all B2 +0.0345 [+0.0197, +0.0457] dB; L < 1 km B0 +0.2763 [+0.1143, +0.3608] dB; L < 1 km B1 +0.0814 [+0.0343, +0.1069] dB; L < 1 km B2 +0.0388 [+0.0202, +0.0545] dB",pass,the value of the memory and of the antenna term
+P3 dry-path error equal across lengths,"L > 3 minus L < 1 at 10 min -0.042 [-0.153, +0.040] dB (320 / 262 windows)",pass,W independent of L
+P4 TEST / VAL per length class within +-15 % of all,all 1.117 (1.00 x); L < 1 km 1.163 (1.04 x); 1-3 km 1.150 (1.03 x); L > 3 km 1.064 (0.95 x),pass,the length behaviour
+P5 TEST links at most 20 % above TRAIN links,"0.743 / 0.692 = 1.073 [0.998, 1.114]",pass,the link multiplier

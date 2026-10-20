@@ -316,6 +316,23 @@ steps:
     no_cache: "45 min"
     report: research/wet_antenna/outputs/reports/test_s8.md
 
+  - name: test_s8b
+    module: research.wet_antenna.test_s8b
+    id: "S8b"
+    what: "A post-freeze evaluation of a pre-freeze model: the closed form F = A_band (R / 5)^b (the S6 plug-back fit, fitted on TRAIN before TEST was read): its cold bootstrap and identifiability on TRAIN, the closed F against the table F, and on TEST P1-P5 side by side with the table F and the paired RMSE difference; the decision by the rule written before this run. Nothing is refitted on TEST"
+    needs: [release, caches, tighten_s6, test_s8]
+    time: "5 min"
+    no_cache: "1 h"
+    report: research/wet_antenna/outputs/reports/test_s8b.md
+
+  - name: formulate_s9
+    module: research.wet_antenna.formulate_s9
+    id: "S9"
+    what: "Formulate Part 1: the official WAA equation file (closed-F model of S8b, every number with its interval, sha256), the unit-test reference of waa_equation.py (3 TEST link-events of the S8 cache), the tables behind the figures of docs/WAA_research_overview.pdf and the S9 report. No refitting, no new reading of TEST. Then: python docs/WAA_research_overview_figures/figs.py and python docs/build_research_log.py WAA_research_overview"
+    needs: [release, caches, tighten_s6, test_s8, test_s8b]
+    time: "1 min"
+    report: research/wet_antenna/outputs/reports/formulate_s9.md
+
 # Scripts that are run by another step (not on their own): listed so that the test knows they are not forgotten.
 run_by_other_steps:
   research.baseline.validation.c1_fake_events: baseline_validation

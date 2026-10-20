@@ -15,7 +15,6 @@ Every rule is in config `wet_antenna.test_s8` (written before TEST is read). Cac
 Run from the repository root (twice: the freeze, then TEST):
     python -m research.wet_antenna.test_s8
 """
-import copy
 import hashlib
 import json
 import os
@@ -42,7 +41,7 @@ from research.wet_antenna import paths as P
 from research.wet_antenna import system_id as sid
 from research.wet_antenna.event_factors import radar_gauge_primary, rescaled
 from research.wet_antenna.final_model import CFG, DATA, J, M, SHAPES, WA, Curves, load_sets, predict, s6_models, through
-from research.wet_antenna.validation import LB, boot_items, ci, dry_windows, error_budget, ev_draws, need, radar_max, w_minutes
+from research.wet_antenna.validation import LB, boot_items, ci, comp_setup, dry_windows, error_budget, ev_draws, need, radar_max, w_minutes
 from research.wet_antenna.wind_drying import ProblemW
 
 S = WA["test_s8"]
@@ -57,25 +56,6 @@ STANDING = ("**Standing rule.** WAA is never estimated by subtracting a power-la
 
 
 # =================================================================================================== the comparison models
-def step_g(R):
-    """B1: 0 below 0.1 mm/h, 1 from 0.1001 mm/h on (a near-step on the knots)."""
-    return np.clip((np.asarray(R, float) - 0.1) / 1e-4, 0.0, 1.0)
-
-
-def comp_setup(name, nb):
-    """(spec, M of the model, the static problem name) of a comparison model."""
-    lin = {**SHAPES["linear"]}
-    Mx = copy.deepcopy(M)
-    if name == "B1":
-        Mx["knots_mmh"] = [0.0, 0.1, 0.1001] + [k for k in M["knots_mmh"] if k > 0.1001]
-        F = ("form", {"g": step_g, "lo": [], "hi": [], "starts": [[]], "text": "w0 (R > 0.1 mm/h)", "names": []}, True)
-    elif name == "B0":
-        F = ("fixed", np.zeros((nb, len(Mx["knots_mmh"]))))
-    else:
-        F = "shared"
-    return {"F": F, "P": ("form", lin, True)}, Mx
-
-
 _W = {}
 
 
@@ -205,12 +185,20 @@ def test_set(d, bands_cfg, link_split, tb):
 def g_test(D, le):
     rg = radar_gauge_primary(D, le)
     mn = WA["conditions_s4c"]["g_e"]["min_gauge_mm"]
-    rg["path_used"] = rg.gauge_mm_per_link >= mn
+    # BUG FIX 2026-10-19 (after TEST was read; evaluation code): a radar / gauge ratio of 0 (the radar saw no rain where the gauges caught
+    # >= 1 mm) cannot rescale the radar: dividing by it gave infinite / undefined rain, which the model reads as the heaviest rain. Such an
+    # event gets the rule's fallback g_e = 1 (config wet_antenna.test_s8.results.bug_fix_2026_10_19, with the numbers before and after).
+    rg["zero_or_undefined_ratio"] = ~(np.isfinite(rg.radar_over_gauge) & (rg.radar_over_gauge > 0))
+    rg["path_used"] = (rg.gauge_mm_per_link >= mn) & ~rg.zero_or_undefined_ratio
     rg["g_path"] = np.where(rg.path_used, rg.radar_over_gauge, 1.0)
     u = rg[rg.path_used]
     G = float(u.radar_mm_sum.sum() / u.gauge_mm_sum.sum()) if len(u) else 1.0
     rg["G_set"] = G
-    return rg, dict(zip(rg.event_id, rg.g_path)), G
+    # BUG FIX 2026-10-19 (2nd, after TEST was read; evaluation code): events without gauge link-events had no entry, so the rescaling
+    # gave NaN rain (read by the model as the heaviest rain). Every event of the dataset gets g_e = 1 unless the rule gives a ratio.
+    gm = {e: 1.0 for e in le.event_id.unique()}
+    gm.update(dict(zip(rg.event_id, rg.g_path)))
+    return rg, gm, G
 
 
 def m1_fz(Dt1, let, Ck, zk):
@@ -681,6 +669,9 @@ def write_report(q):
     a(f"- M1 (box B, information) `{fr['m1_box_b_fit']['file']}`: sha256 `{fr['m1_box_b_fit']['sha256']}`")
     a(f"- config block `wet_antenna.test_s8`: sha256 `{fr['config_block_test_s8']}`")
     a(f"- code commit `{fr['code_commit']}`; code changed since then: {', '.join(q['code_diff']) or 'none'}\n")
+    bf = S.get("results", {}).get("bug_fix_2026_10_19")
+    if bf and not q["dry"]:
+        a(f"**Bug fix after TEST was read (2026-10-19, evaluation code only; recorded in config `wet_antenna.test_s8.results`):** {bf}\n")
     a("## 2. The comparison models (fitted on TRAIN only)\n")
     a(f"B3 skipped: {S['comparison']['B3']}.\n")
     a(md_table(q["cmp_t"].round(4)) + "\n")

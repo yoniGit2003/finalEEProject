@@ -8,7 +8,7 @@ the closed drying-tail exploration (steps T0-T18) follows as history. What each 
 # Part A: project checklist
 
 Status: in progress (baseline frozen; Stage 1 WAA: the drying-tail exploration T0-T18 is closed, with no drying law
-identified; rebooted on 2026-10-13 as system identification on short links, steps S1-S5; S1, S2, S2b (WAA v2), S3 and S3b done; WAA v3 provisional = M4b-B of S3b; S4.1 / S4.2 / S4.3 and S5a done; final model M4b-B (decision 2026-10-18); S5b not run; S6 done (WAA candidate S6); S7 done 2026-10-19; S6b (the one return to S6) done 2026-10-19; decision 2026-10-19: the S8 candidate is the S6 candidate (M1 to box B); S8 in progress, then S9; the path law after S9).
+identified; rebooted on 2026-10-13 as system identification on short links, steps S1-S5; S1, S2, S2b (WAA v2), S3 and S3b done; WAA v3 provisional = M4b-B of S3b; S4.1 / S4.2 / S4.3 and S5a done; final model M4b-B (decision 2026-10-18); S5b not run; S6 done (WAA candidate S6); S7 done 2026-10-19; S6b (the one return to S6) done 2026-10-19; decision 2026-10-19: the S8 candidate is the S6 candidate (M1 to box B); S8 done 2026-10-19 (TEST read once: P2-P5 pass, P1 fails on the antenna level at light rain); S8b done 2026-10-19 (closed form of F adopted); S9 done 2026-10-19: **Part 1 (the WAA equation) closed**, `research/wet_antenna/FINAL.md`; next R1, then the path law).
 
 ## 0. Data layer (pipeline/): done, release `openmrg_v1`
 Open extensions:
@@ -29,7 +29,7 @@ Open extensions:
 - [ ] Characterise what a drying tail contains (daily cycle, dew, path rain, start of drying) before fitting a law
 - [ ] Fit literature WAA models [1], [9] per link
 - [ ] Learn a dynamic WAA model with weak-form SINDy (rain as input)
-- [ ] System identification of WAA on short links (S1-S5)
+- [x] System identification of WAA on short links (S1-S5), formulated as the final equation (S6-S9, closed 2026-10-19: `research/wet_antenna/FINAL.md`)
 - [ ] Compare the learned models across links (same form, different coefficients?)
 - [ ] Drying time from SINDy vs drying time measured directly from tails
 - [ ] When this stage is finished: publish the fit caches (`python pipeline/get_caches.py --pack`, upload the zip
@@ -292,7 +292,53 @@ store that overshoots; both must be fixed before S3 verifies anything.)
   - **S8** freeze (hashed), then TEST once (added 2026-10-19; rules in config `wet_antenna.test_s8`, written before TEST is read):
     comparison models on TRAIN (B0 no WAA, B1 constant WAA while it rains, B2 WAA without memory; B3 skipped: no literature WAA model is
     implemented in the repo); a freeze file with hashes, committed before TEST is read; pass rules P1-P5 on TEST; information items.
+  - **S8: done 2026-10-19** (`research/wet_antenna/outputs/reports/test_s8.md`). Freeze `test_s8_freeze.json` committed in `bb30b5c` (code
+    `761c6f1`); TEST read once. Two evaluation-code bugs found after the read and fixed (a radar / gauge ratio of 0 and 3 events without
+    a g_e entry gave undefined rain; both now get the written fallback g_e = 1); recorded with the numbers before and after in config
+    `test_s8.results`; nothing of the model or the rules changed. Results:
+    - P2 pass: TEST RMSE candidate 0.692 dB against B0 0.862, B1 0.760, B2 0.727 (L < 1 km 0.562 against 0.838 / 0.644 / 0.601).
+    - P3 pass (dry-path error L > 3 minus L < 1 km -0.04 [-0.15, +0.04] dB); P4 pass (TEST / VAL 1.12, classes 0.95-1.04 x); P5 pass (TEST links 1.07 x).
+    - **P1 FAIL** (4 of 8 cells): the slopes s fit in 7 of 8, the intercepts I in 4 of 8 - the antenna level at 0.5-2 mm/h is higher on TEST
+      (1.35-1.55 dB observed against 0.83-1.11 dB): the size of W at light rain, not its dependence on L (P3 passes).
+    - Verdict: the box-A equation does not fully hold on TEST (P1). V1 (0.692 dB) beats V0 (0.724); the after-rain misfit is as on VAL
+      (-0.18 / -0.15 dB at 5 / 10 min; M1 of box B removes it).
+  - **S8 in short:**
+    - P2-P5 pass: the candidate beats no WAA, constant WAA and WAA without memory on TEST (all links and L < 1 km); the dry-path error is equal across lengths; TEST / VAL is even across lengths; new links 1.07 x.
+    - P1 fails (4 of 8 cells): the slopes match; the intercept (the WAA level) at 0.5-2 mm/h is higher on TEST (about 1.4-1.5 dB against 0.8-1.1 dB in the model) -> **box C**: the WAA level in light rain varies between storms more than the equation captures.
+    - The after-rain misfit is 6 % of the TEST error (M1, box B, removes it).
+    - Two evaluation bugs (g_e = 0 or missing) were fixed after reading TEST with the written fallback g_e = 1.
+  - **S8b** (added 2026-10-19, after TEST was read): a **post-freeze evaluation of a pre-freeze model** - the S6 plug-back fit "F and P"
+    (F = A_band (R / 5)^b, P = c_band R, everything else as S6; the "closed F" of S7). Nothing is refitted on TEST and the S8 verdict does
+    not change. The fit: `research/.cache/wet_antenna/tighten_s6/plug_shared_FP_F_and_P.pkl`, sha256
+    `1d8163cd8b84aafc85f59c6c223f44b33923278265e3e40819923d8076c8e0b9`, modified 2026-10-18 12:45:04 (+0300): BEFORE the S8 freeze
+    (`test_s8_freeze.json`, 2026-10-19 18:14).
+  - **DECISION RULE (2026-10-19, after TEST was read, before this evaluation):** the closed form is adopted as THE written form of F if and
+    only if, on TEST, (1) its verdicts on P1-P5 are the same as the table F's, and (2) the paired event-bootstrap 90 % interval of its RMSE
+    minus the table F's RMSE lies within [-0.01, +0.01] dB (all link-events and L < 1 km). Otherwise the table F stays the equation and
+    the closed form is reported as an approximate description. Either outcome is reported.
+  - **S8b: done 2026-10-19** (`research/wet_antenna/outputs/reports/test_s8b.md`; post-freeze evaluation of a pre-freeze model):
+    - The same P1-P5 verdicts as the table F on TEST; the paired RMSE difference +0.0025 [-0.0065, +0.0085] dB (L < 1 km +0.0016 [-0.0082, +0.0078]); on TRAIN all 9 numbers identified, inside the table F's interval at 21 / 21 knots.
+    - **By the rule the closed form is ADOPTED as the written form of F**: F_band(R) = A_band (R / 5)^b, b = 0.54 [0.47, 0.63], A = 2.57 / 2.36 / 2.77 dB (28 / 32 / 38 GHz), with P = c_band R (0.105 / 0.141 / 0.194 dB/km per mm/h); valid 0-40 mm/h only (no saturation; +2.3-2.7 dB above the table F at 40 mm/h).
+  - **S8b in short:** the closed form F = A_band (R / 5)^b was fitted on TRAIN in S6, before the S8 freeze. It was run on TEST after S8
+    without refitting, under a rule written first: the same P1-P5 verdicts, RMSE difference +0.0025 [-0.0065, +0.0085] dB. Adopted as the
+    written form of F: b = 0.542 [0.472, 0.626], A = 2.57 / 2.36 / 2.77 dB, c = 0.105 / 0.141 / 0.194 dB/km per mm/h; valid 0-40 mm/h.
+  - **S9** formulate Part 1 (added 2026-10-19): the official equation (`outputs/products/waa_equation_final.json` and
+    `research/wet_antenna/waa_equation.py` with a unit test), a sentence-by-sentence check of the overview against the repo, the short
+    overview and the full (school) version in `docs/overview/`, and `research/wet_antenna/FINAL.md` (the two documents were merged into
+    `docs/WAA_research_overview.pdf` afterwards, see below). No new analysis, no refitting, no
+    new reading of TEST.
+  - **Plan after S9 (2026-10-19):** **R1** "does the WAA correction improve link rain estimates against the gauges" (its own written plan,
+    and a decision about TEST, which was already read once), then **Part 2** (the path law).
   - **S9** formulate: the story, the assumptions with their checks, the data funnel, the core figures, FINAL.md. The last step.
+  - **S9: done 2026-10-19** (`research/wet_antenna/outputs/reports/formulate_s9.md`; no new analysis, no refitting, no new reading of TEST):
+    - The official equation `research/wet_antenna/outputs/products/waa_equation_final.json` (sha256 `b06ebc8b75867171368e8ea0540bb011014e9615d3dde74f8559b524a25be9cd`; the fit sha256 `1d8163cd...e0b9`) and `research/wet_antenna/waa_equation.py`; the unit test reproduces 3 TEST link-events of the S8 cache within 9e-16 dB.
+    - The overview checked statement by statement (`formulate_s9_check.md`; its LaTeX source was missing, so it was rebuilt from the PDF): 113 statements, 21 corrected, 2 unsupported and reworded (a 25 % band difference, the cause of the remaining error), reference [2] title corrected.
+    - `docs/overview/waa_overview.pdf` (short, 12 pages) and `docs/overview/waa_part1_full.pdf` (full school version, 19 pages), 12 colour-free figures from saved tables (`docs/overview/figs.py`); `research/wet_antenna/FINAL.md`.
+    - **Change (2026-10-19, decided by the learners after S9):** one WAA document only. The corrected short overview was merged into
+      `docs/WAA_research_overview.pdf` (the first overview's look and wording, the S9 corrections, real-data figures; source
+      `docs/WAA_research_overview.tex`, figures by `docs/WAA_research_overview_figures/figs.py`). `docs/overview/` and the full school
+      version were deleted.
+  - **PART 1 CLOSED (2026-10-19).** Next: **R1** (its own written plan, and a decision about TEST), then **Part 2** (the path law).
 
 ## Integrity rules (from S6 on)
 
@@ -447,8 +493,10 @@ its place.
 | Part 2 (reboot) | S6 | Tighten the equation: M4b-B on V1, data funnel, well-determined parametrisation (shared shape), cold bootstrap + profile intervals, fake identifiability, closed forms (physics and PySR compete), plug-back | done 2026-10-18 | Shared shapes kept; P = c_band R; F free shared knots (closed form failed the length test at exactly 2 / 3); F level set by the a_link prior; P < 1 mm/h not identified. Report: `research/wet_antenna/outputs/reports/tighten_s6.md` |
 | Part 2 (reboot) | S7 | Validate without TEST: W independent of L, short links on VAL, long links (dry-path moments, paired links, short-only / long-only intercepts), dew, leftovers vs metadata and weather (PySR), radar vs gauges by rate | done 2026-10-19 | W independent of L (a_link, W height, dry-path W, intercepts pass); no rate-dependent radar error; paired links not testable; RMSE rule fails for L > 3 km; model 0.5 dB high after heavy rain on dry paths; drying time falls with the wind -> RETURN TO S6 (2026-10-19, run as S6b). Report: `research/wet_antenna/outputs/reports/validate_s7.md` |
 | Part 2 (reboot) | S6b | The one return to S6: the after-rain misfit cause by cause; tau_f_dry free (M1), with the wind (M2), with the preceding rain (M3); the box-A rule; the three boxes; the error budget | done 2026-10-19 | Misfit = a level at the end of rain; M1 passes box A but makes c_band NOT identified; M2 (wind) box B; M3 box C. Candidate by the rules: M1, sha256 06ac89c0...; a learners' decision (M1 or the S6 candidate) before S8. Report: `research/wet_antenna/outputs/reports/return_s6b.md` |
-| Part 2 (reboot) | S8 | Freeze (hashes, committed), comparison models B0-B2 on TRAIN, then TEST once: pass rules P1-P5 and information items | in progress (2026-10-19) | Candidate M0 = the S6 candidate (decision 2026-10-19; M1 to box B). Deliverable: the TEST numbers |
-| Part 2 (reboot) | S9 | Formulate: story, assumptions with checks, data funnel, core figures, FINAL.md | planned (added 2026-10-18) | Deliverable: FINAL.md |
+| Part 2 (reboot) | S8 | Freeze (hashes, committed), comparison models B0-B2 on TRAIN, then TEST once: pass rules P1-P5 and information items | done 2026-10-19 | P2-P5 pass (candidate 0.692 dB vs B0 0.862 / B1 0.760 / B2 0.727); P1 FAIL (4 of 8 cells: the antenna level at 0.5-2 mm/h is higher on TEST); two evaluation bugs fixed after the read (recorded). Report: `research/wet_antenna/outputs/reports/test_s8.md` |
+| Part 2 (reboot) | S8b | Post-freeze evaluation of a pre-freeze model: the closed form F = A_band (R / 5)^b on TEST against the table F, by a rule written before the run | done 2026-10-19 | Same P1-P5 verdicts; paired RMSE difference within +-0.01 dB: the closed form is ADOPTED as the written form of F (b 0.54; valid 0-40 mm/h). Report: `research/wet_antenna/outputs/reports/test_s8b.md` |
+| Part 2 (reboot) | S9 | Formulate: story, assumptions with checks, data funnel, core figures, FINAL.md | done 2026-10-19 | Equation file `waa_equation_final.json` (sha256 `b06ebc8b...25be9cd`), `waa_equation.py` with a unit test (1e-6 dB, achieved 9e-16), the overview checked (113 statements: 89 confirmed, 21 corrected, 2 unsupported, 1 added), one document `docs/WAA_research_overview.pdf` (after the learners merged the short and the full version), `FINAL.md`. **Part 1 closed.** Report: `research/wet_antenna/outputs/reports/formulate_s9.md` |
+| Part 2 (reboot) | R1 | Does the WAA correction improve link rain estimates against the gauges? | next (added 2026-10-19) | Its own written plan first, and a decision about TEST (already read once) |
 
 Order of work: S1 -> S2 -> S2b -> S3 -> S4 -> S5a -> S6 -> S7 -> S6b (the one return) -> S8 -> S9.
 
