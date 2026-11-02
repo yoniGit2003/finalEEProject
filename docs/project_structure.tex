@@ -1,4 +1,4 @@
-% last updated: 2026-11-02 commit=f470b31
+% last updated: 2026-11-02 commit=e41b787
 % (the line above is read and rewritten by /updatedocs: the date and the git commit the content of this document describes)
 % Project structure: which folders and files the repository has, and what each one is for.
 % Build:  python docs/build_research_log.py project_structure   (writes docs/project_structure.pdf only)
@@ -156,8 +156,10 @@ comes next. \\
 \code{build_research_log.py} & Builds each PDF from its \code{.tex} with pdflatex: the two above and the WAA overview. \\
 \code{pipeline_log.pdf} & The report on how the data pipeline was built. \\
 \code{sindy_intro_report_2026-03.pdf} & Our earlier report ``Introduction to SINDy''. \\
-\code{WAA_research_overview.tex}, \code{.pdf} & The document of Stage~1 (the WAA equation), explained from the beginning for a reader who knows the topic only by name. \\
-\code{WAA_research_overview_figures/} & Its figures, and \code{figs.py}, which draws them from saved research tables only. \\
+\code{WAA_research_overview.tex}, \code{.pdf} & The document of Stage~1 (the WAA equation), a two-column paper: problem, method, results, the comparison of all WAA models, discussion. \\
+\code{WAA_research_overview_v1.tex}, \code{.pdf} & The first version of that document (kept). \\
+\code{WAA_research_overview_figures/} & Its figures, drawn from saved research tables only: \code{figs_v2.py} for the paper (\code{v2_*.png}), \code{figs.py} for the first version. \\
+\code{reference/} & A previous report of ours used as the model for the paper's format and style. \\
 \code{papers/} & The OpenMRG dataset paper. \\
 \bottomrule
 \end{tabularx}
@@ -394,6 +396,7 @@ S8 & \code{test_s8.py} & Comparison models, the freeze (hashes, committed), then
 S8b & \code{test_s8b.py} & A post-freeze evaluation of a pre-freeze model: the closed form of $F$ on the test set, by a rule written first. \\
 S9 & \code{formulate_s9.py} & Formulate Stage~1: the official equation file, the reference of its unit test, the tables behind the document figures and the S9 report. No refitting. \\
 S8c & \code{literature_s8c.py} & After the freeze: our final equation (not refitted) against two published WAA models (Schleiss 2013, Pastorek 2022), fitted on the training events, on the test set. \\
+S8d & \code{comparison_all_models.py} & After the freeze, nothing refitted: every WAA model of S8 and S8c against the model-free length test, the dry-path WAA after rain, the gauge timing and its link factor against the length. \\
 \bottomrule
 \end{tabularx}
 \end{table}

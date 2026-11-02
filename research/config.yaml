@@ -1861,3 +1861,19 @@ wet_antenna:
       verdict: "per literature model and subset (all link-events, L < 1 km): the paired 90 % interval of (its RMSE minus ours) above 0 = ours better,
                 below 0 = ours worse, containing 0 = no difference; reported as it comes out"
       dry_t_min: [5, 10, 20] # dry-path error W_obs - W_model (median over the S7 dry-path windows of TEST, event bootstrap)
+  comparison_all_models:     # comparison_all_models.py (libraries final_model.py, validation.py, literature_s8c.py, test_s8b.py): the
+                             #   physical consistency of every WAA model of S8 / S8c on TEST. Written 2026-11-02 BEFORE the run. A POST-FREEZE
+                             #   SUMMARY: nothing is refitted, our equation is unchanged, no pass rule (numbers only).
+    models: "B0, B1, B2 (S8 cache fits), Schleiss a / b and Pastorek a / b (S8c cache fits), ours (the S8b closed-F fit = the equation file), the
+             S8 table-F candidate (reference)"
+    length_test: "exactly S8 P1 (final_model.through): the model-free cell line with the event bootstrap, each model's own line on the same bins"
+    dry_t_min: [5, 10, 20]   # dry-path error W_obs - W_model on the S7 / S8 TEST windows
+    boot_reps: 1000
+    seed: 8912               # event bootstrap of the dry-path windows
+    gauge_timing_min: {train: [2.6, 10.3], val: [2.0, 8.8]}   # wetting, drying of the fast store with the gauge input (S3 / S5a), for reference
+    a_link_vs_L:             # ADDED 2026-11-02 AFTER THE FIRST RUN of this script (its other numbers were seen): Pastorek (b) has c_band
+                             #   0.6-0.7 x ours (S8c) but its length-test slope equals the measured one, which a link factor growing with L
+                             #   would explain. The same test as S7 check 7.1 (Spearman of a_link against L over the TRAIN links, link
+                             #   bootstrap 90 %), applied to every model with a fitted a_link. Information only, no rule.
+      boot_reps: 1000
+      seed: 8913

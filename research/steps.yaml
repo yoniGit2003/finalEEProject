@@ -341,6 +341,13 @@ steps:
     time: "1 min"
     no_cache: "1-2 h"
     report: research/wet_antenna/outputs/reports/literature_s8c.md
+  - name: comparison_all_models
+    module: research.wet_antenna.comparison_all_models
+    id: "S8d"
+    what: "A post-freeze summary of every WAA model of S8 / S8c on TEST (nothing refitted): the length test through each model (its slope and intercept against the model-free cell intervals, the S8 P1 procedure), the dry-path error at 5 / 10 / 20 min, the wetting and drying times each model uses next to the gauge timing, and the number of fitted and identified parameters"
+    needs: [release, caches, tighten_s6, test_s8, test_s8b, literature_s8c]
+    time: "1 min"
+    report: research/wet_antenna/outputs/reports/comparison_all_models.md
 
 # Scripts that are run by another step (not on their own): listed so that the test knows they are not forgotten.
 run_by_other_steps:

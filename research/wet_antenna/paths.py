@@ -531,3 +531,10 @@ S8C_DRY_CURVES = TABLES / "literature_s8c_dry_curves.csv"               # TEST m
 S8C_FIG_RMSE = FIGURES / "literature_s8c_rmse.png"
 S8C_FIG_DRY = FIGURES / "literature_s8c_dry_path.png"
 S8C_REPORT = REPORTS / "literature_s8c.md"
+
+# comparison_all_models: the physical consistency of every WAA model in the comparison (TEST, post-freeze)
+CMP_TABLE = TABLES / "comparison_all_models.csv"                        # one row per model: length-test cells, dry-path errors, timing, parameters
+CMP_CELLS = TABLES / "comparison_all_models_cells.csv"                  # every length-test cell per model (slope and intercept against the measured)
+CMP_DRY = TABLES / "comparison_all_models_dry_path.csv"                 # dry-path errors per model at 5 / 10 / 20 min
+CMP_DRY_CURVES = TABLES / "comparison_all_models_dry_curves.csv"          # median dry-path W per minute over all windows, measured and every model
+CMP_REPORT = REPORTS / "comparison_all_models.md"

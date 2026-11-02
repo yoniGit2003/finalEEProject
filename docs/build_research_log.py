@@ -20,7 +20,7 @@ import tempfile
 from pathlib import Path
 
 DOCS = Path(__file__).resolve().parent
-DOCUMENTS = ("research_log", "project_structure", "WAA_research_overview")   # the .tex files of docs/ that this script builds
+DOCUMENTS = ("research_log", "project_structure", "WAA_research_overview", "WAA_research_overview_v1")   # the .tex files of docs/ that this script builds
 
 
 def main() -> int:
