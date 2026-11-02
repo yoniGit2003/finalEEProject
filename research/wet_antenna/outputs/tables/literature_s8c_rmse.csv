@@ -1,0 +1,91 @@
+set,subset,model,rmse,lo,hi,bins
+TRAIN,all,ours,0.8127,0.6697,0.9555,1892910
+TRAIN,all,table F,0.8123,0.6726,0.9501,1892910
+TRAIN,all,B0,0.9844,0.8047,1.1582,1892910
+TRAIN,all,B1,0.8891,0.7354,1.0465,1892910
+TRAIN,all,B2,0.8465,0.7045,0.9889,1892910
+TRAIN,all,Schleiss a,0.9809,0.8567,1.0928,1892910
+TRAIN,all,Schleiss b,0.8517,0.7015,0.9996,1892910
+TRAIN,all,Pastorek a,0.8561,0.7083,1.0,1892910
+TRAIN,all,Pastorek b,0.8432,0.6983,0.9881,1892910
+TRAIN,L < 1 km,ours,0.648,0.5402,0.7597,367190
+TRAIN,L < 1 km,table F,0.6462,0.5387,0.7569,367190
+TRAIN,L < 1 km,B0,0.8601,0.7333,0.9714,367190
+TRAIN,L < 1 km,B1,0.7339,0.6249,0.8431,367190
+TRAIN,L < 1 km,B2,0.6829,0.572,0.7934,367190
+TRAIN,L < 1 km,Schleiss a,0.8451,0.7572,0.9302,367190
+TRAIN,L < 1 km,Schleiss b,0.6993,0.5865,0.8118,367190
+TRAIN,L < 1 km,Pastorek a,0.694,0.5774,0.8081,367190
+TRAIN,L < 1 km,Pastorek b,0.6818,0.5697,0.7947,367190
+"VAL (used, optimistic)",all,ours,0.6194,0.5083,0.6936,430487
+"VAL (used, optimistic)",all,table F,0.6195,0.5071,0.6941,430487
+"VAL (used, optimistic)",all,B0,0.717,0.5828,0.8177,430487
+"VAL (used, optimistic)",all,B1,0.6458,0.5392,0.7222,430487
+"VAL (used, optimistic)",all,B2,0.6296,0.5177,0.7054,430487
+"VAL (used, optimistic)",all,Schleiss a,0.7922,0.6644,0.8874,430487
+"VAL (used, optimistic)",all,Schleiss b,0.6542,0.5427,0.7319,430487
+"VAL (used, optimistic)",all,Pastorek a,0.6329,0.5166,0.7142,430487
+"VAL (used, optimistic)",all,Pastorek b,0.6232,0.511,0.6988,430487
+"VAL (used, optimistic)",L < 1 km,ours,0.4839,0.4281,0.5225,78881
+"VAL (used, optimistic)",L < 1 km,table F,0.4835,0.4258,0.5237,78881
+"VAL (used, optimistic)",L < 1 km,B0,0.6174,0.5149,0.6981,78881
+"VAL (used, optimistic)",L < 1 km,B1,0.5106,0.4579,0.5509,78881
+"VAL (used, optimistic)",L < 1 km,B2,0.5005,0.4348,0.5421,78881
+"VAL (used, optimistic)",L < 1 km,Schleiss a,0.7124,0.612,0.7843,78881
+"VAL (used, optimistic)",L < 1 km,Schleiss b,0.546,0.4781,0.5957,78881
+"VAL (used, optimistic)",L < 1 km,Pastorek a,0.5057,0.4402,0.5482,78881
+"VAL (used, optimistic)",L < 1 km,Pastorek b,0.495,0.4335,0.5353,78881
+TEST,all,ours,0.6947,0.5145,0.8033,518313
+TEST,all,table F,0.6922,0.517,0.7978,518313
+TEST,all,B0,0.8616,0.6246,1.0045,518313
+TEST,all,B1,0.7596,0.5668,0.8745,518313
+TEST,all,B2,0.7267,0.5472,0.8334,518313
+TEST,all,Schleiss a,0.8591,0.7457,0.9288,518313
+TEST,all,Schleiss b,0.7033,0.5262,0.8044,518313
+TEST,all,Pastorek a,0.7255,0.5468,0.8325,518313
+TEST,all,Pastorek b,0.7203,0.538,0.8296,518313
+TEST,L < 1 km,ours,0.5637,0.4361,0.6334,94583
+TEST,L < 1 km,table F,0.5621,0.4407,0.6281,94583
+TEST,L < 1 km,B0,0.8384,0.5875,0.9866,94583
+TEST,L < 1 km,B1,0.6435,0.4953,0.7292,94583
+TEST,L < 1 km,B2,0.6009,0.4726,0.6706,94583
+TEST,L < 1 km,Schleiss a,0.7634,0.6694,0.8183,94583
+TEST,L < 1 km,Schleiss b,0.5755,0.4543,0.6395,94583
+TEST,L < 1 km,Pastorek a,0.5905,0.4768,0.6535,94583
+TEST,L < 1 km,Pastorek b,0.5946,0.4629,0.6668,94583
+TEST,1-3 km,ours,0.6842,0.5161,0.7844,268168
+TEST,1-3 km,table F,0.6811,0.5179,0.775,268168
+TEST,1-3 km,B0,0.8498,0.6267,0.9818,268168
+TEST,1-3 km,B1,0.7498,0.5702,0.8555,268168
+TEST,1-3 km,B2,0.7149,0.5453,0.8109,268168
+TEST,1-3 km,Schleiss a,0.8454,0.7416,0.9067,268168
+TEST,1-3 km,Schleiss b,0.6929,0.5243,0.7872,268168
+TEST,1-3 km,Pastorek a,0.7061,0.5452,0.7986,268168
+TEST,1-3 km,Pastorek b,0.7087,0.5365,0.8063,268168
+TEST,L > 3 km,ours,0.7797,0.5509,0.9273,155562
+TEST,L > 3 km,table F,0.7777,0.5528,0.9238,155562
+TEST,L > 3 km,B0,0.8953,0.6344,1.0635,155562
+TEST,L > 3 km,B1,0.8375,0.6004,0.9927,155562
+TEST,L > 3 km,B2,0.8118,0.5805,0.9616,155562
+TEST,L > 3 km,Schleiss a,0.9343,0.7745,1.042,155562
+TEST,L > 3 km,Schleiss b,0.7867,0.562,0.9299,155562
+TEST,L > 3 km,Pastorek a,0.8258,0.5866,0.9851,155562
+TEST,L > 3 km,Pastorek b,0.805,0.5748,0.957,155562
+TEST links (a_link = 1),all,ours,0.7458,0.5236,0.8795,159432
+TEST links (a_link = 1),all,table F,0.7427,0.5259,0.8716,159432
+TEST links (a_link = 1),all,B0,0.8822,0.603,1.0471,159432
+TEST links (a_link = 1),all,B1,0.8012,0.5634,0.9417,159432
+TEST links (a_link = 1),all,B2,0.7787,0.5466,0.9122,159432
+TEST links (a_link = 1),all,Schleiss a,0.8977,0.7474,0.988,159432
+TEST links (a_link = 1),all,Schleiss b,0.7403,0.5252,0.8628,159432
+TEST links (a_link = 1),all,Pastorek a,0.7695,0.5452,0.9009,159432
+TEST links (a_link = 1),all,Pastorek b,0.7798,0.5403,0.9206,159432
+TEST links (a_link = 1),L < 1 km,ours,0.5593,0.4559,0.6118,34223
+TEST links (a_link = 1),L < 1 km,table F,0.5591,0.4577,0.6107,34223
+TEST links (a_link = 1),L < 1 km,B0,0.8023,0.5823,0.9189,34223
+TEST links (a_link = 1),L < 1 km,B1,0.6699,0.5085,0.7519,34223
+TEST links (a_link = 1),L < 1 km,B2,0.581,0.4841,0.6341,34223
+TEST links (a_link = 1),L < 1 km,Schleiss a,0.7651,0.6745,0.8196,34223
+TEST links (a_link = 1),L < 1 km,Schleiss b,0.5922,0.4807,0.6565,34223
+TEST links (a_link = 1),L < 1 km,Pastorek a,0.5717,0.4838,0.6232,34223
+TEST links (a_link = 1),L < 1 km,Pastorek b,0.5738,0.4759,0.6268,34223

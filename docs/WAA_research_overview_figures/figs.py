@@ -169,7 +169,29 @@ def dry_path():
     save(fig, "dry_path")
 
 
+def literature():
+    """Figure 8: TEST error of our equation against the comparison models and the two literature WAA models (step S8c)."""
+    rm = pd.read_csv(T / "literature_s8c_rmse.csv")
+    order = ["ours", "table F", "B0", "B1", "B2", "Schleiss a", "Schleiss b", "Pastorek a", "Pastorek b"]
+    names = {"ours": "our equation", "table F": "our equation, F as free points", "B0": "no WAA", "B1": "constant WAA while it rains",
+             "B2": "WAA without memory", "Schleiss a": "Schleiss, pycomlink defaults, assumed drying", "Schleiss b": "Schleiss, fitted on TRAIN",
+             "Pastorek a": "Pastorek, pycomlink defaults", "Pastorek b": "Pastorek, fitted on TRAIN"}
+    fig, axes = plt.subplots(1, 2, figsize=(10, 3.6), sharey=True)
+    for ax, sub in zip(axes, ("all", "L < 1 km")):
+        g = rm[(rm.set == "TEST") & (rm.subset == sub)].set_index("model").loc[order]
+        y = np.arange(len(order))[::-1]
+        for yi, (m, r) in zip(y, g.iterrows()):
+            ax.errorbar(r.rmse, yi, xerr=[[r.rmse - r.lo], [r.hi - r.rmse]], fmt="o" if m == "ours" else "s", color=INK,
+                        mfc=INK if m == "ours" else "white", capsize=3, ms=5)
+        ax.axvline(g.loc["ours", "rmse"], color=GREY, ls=":", lw=1)
+        ax.set_yticks(y, [names[m] for m in order])
+        ax.set_title("all links" if sub == "all" else "links shorter than 1 km")
+        ax.set_xlabel("TEST RMSE of 5 min attenuation (dB)")
+    fig.tight_layout()
+    save(fig, "literature")
+
+
 if __name__ == "__main__":
-    for f in (example_event, length_test, memory, F_and_P, a_link, dry_path):
+    for f in (example_event, length_test, memory, F_and_P, a_link, dry_path, literature):
         f()
     print("figures written to", OUT)

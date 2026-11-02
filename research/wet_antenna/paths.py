@@ -520,3 +520,14 @@ S9_BOXES = TABLES / "formulate_s9_boxes.csv"                            # figure
 S9_CHECK = REPORTS / "formulate_s9_check.md"                            # the overview checked against the repo (written by hand)
 S9_REPORT = REPORTS / "formulate_s9.md"                                 # what S9 wrote, the corrections, open items
 FINAL = MODULE / "FINAL.md"                                             # the one-page pointer to the Part 1 result
+
+# step S8c (literature_s8c.py): our final equation against two literature WAA models (post-freeze comparison)
+S8C_CACHE = CACHE / "literature_s8c"                                    # the TRAIN fits of the literature models
+S8C_FITS = PRODUCTS / "literature_s8c_fits.json"                        # the fitted parameters of every literature model version
+S8C_RMSE = TABLES / "literature_s8c_rmse.csv"                           # RMSE of every model on TRAIN / VAL / TEST, all, L < 1 km, length classes
+S8C_PAIRED = TABLES / "literature_s8c_paired.csv"                       # TEST: model minus ours, paired 90 % interval, verdict
+S8C_DRY = TABLES / "literature_s8c_dry_path.csv"                        # TEST dry-path errors at 5 / 10 / 20 min
+S8C_DRY_CURVES = TABLES / "literature_s8c_dry_curves.csv"               # TEST median dry-path curves per length class (figure)
+S8C_FIG_RMSE = FIGURES / "literature_s8c_rmse.png"
+S8C_FIG_DRY = FIGURES / "literature_s8c_dry_path.png"
+S8C_REPORT = REPORTS / "literature_s8c.md"

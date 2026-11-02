@@ -333,6 +333,15 @@ steps:
     time: "1 min"
     report: research/wet_antenna/outputs/reports/formulate_s9.md
 
+  - name: literature_s8c
+    module: research.wet_antenna.literature_s8c
+    id: "S8c"
+    what: "A post-freeze comparison: our final WAA equation (not refitted) against two literature WAA models on the S8 forward task (V1 rain, L and band in, 5 min A - c out): Pastorek et al. 2022 KR-alt (no memory) and Schleiss et al. 2013 (memory; driven by the radar wet flag, without the link's own measured attenuation), each (a) with the published / pycomlink parameters and (b) fitted on TRAIN with the a_link ridge of our model; RMSE on TRAIN, VAL (used, optimistic) and TEST, paired TEST differences with the verdicts, the TEST dry-path errors"
+    needs: [release, caches, tighten_s6, test_s8, test_s8b, formulate_s9]
+    time: "1 min"
+    no_cache: "1-2 h"
+    report: research/wet_antenna/outputs/reports/literature_s8c.md
+
 # Scripts that are run by another step (not on their own): listed so that the test knows they are not forgotten.
 run_by_other_steps:
   research.baseline.validation.c1_fake_events: baseline_validation

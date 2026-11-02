@@ -1,7 +1,8 @@
 % The WAA overview: the one document of Part 1 (the wet antenna equation). The first version (19 October 2026) had no LaTeX
 % source in the repository. This source keeps its structure and look, with the corrections of the S9 check
 % (research/wet_antenna/outputs/reports/formulate_s9_check.md), real-data figures where the first version had illustrations,
-% the text revised to academic style (20 October 2026) and the complete model in a box (Figure 7, Section 8).
+% the text revised to academic style (20 October 2026), the complete model in a box (Figure 7, Section 8) and the comparison
+% with two published WAA models (step S8c, 28 October 2026, research/wet_antenna/outputs/reports/literature_s8c.md).
 % Every number comes from research/wet_antenna/outputs (reports, tables, products/waa_equation_final.json) and
 % research/baseline/outputs/reports. Figures: WAA_research_overview_figures/, made by its figs.py from saved tables only.
 % Build: python docs/build_research_log.py WAA_research_overview   (writes docs/WAA_research_overview.pdf)
@@ -497,6 +498,57 @@ data, without refitting, under a rule written before the evaluation: the formula
 verdicts and an error within 0.01 dB of the free points. Both conditions held. The error differed by $+0.0025$ dB (interval
 $-0.0065$ to $+0.0085$ dB), and all five verdicts were the same. The formula is therefore the written form of $F$.
 
+\head{Comparison with published WAA models.} After the test, and without changing our equation, we compared it with two
+published WAA models on the same task. This comparison was added after the freeze. The published models were fitted on TRAIN
+only, and no part of our equation depends on the result.
+\begin{itemize}[leftmargin=1.5em]
+\item Pastorek et al.\ \cite{pastorek} relate the WAA directly to the rain rate, $W = C\,(1 - e^{-d R^{\zeta}})$ with $d = 0.1$
+and an upper limit $C$. The model has no memory, so the WAA disappears as soon as the rain stops. Its exponent $\zeta$ acts
+inside a saturating function, so it is not comparable with our $b$.
+\item Schleiss et al.\ \cite{schleiss} describe a WAA with memory. It rises toward a maximum $W_{\max}$ while it rains and
+decreases exponentially after the rain.
+\end{itemize}
+Both models were taken from the open-source package pycomlink (version 0.6.0). Its version of the Schleiss model uses the
+attenuation measured on the link itself, which would give the model the answer. We therefore marked a minute as wet when the
+radar rain on the path exceeded 0.1 mm/h, and replaced the step that uses the measurement by an exponential drying. Each model
+was used in two versions. In version (a) its default parameters were kept and only the path attenuation per km was fitted. For
+the Schleiss model this version also needs a drying time, which we could not check in the paper. We assumed it equal to the
+wetting time (15 min), so this version is the pycomlink defaults with an assumed drying time, not the published model. In
+version (b) all parameters were fitted on TRAIN, with the same link factor as our equation. Version (b) is the fair comparison.
+A difference whose 90\,\% interval lies above zero means that our equation is better.
+
+\begin{table}[H]
+\centering\small
+\caption{TEST error of the published WAA models against our equation (RMSE of the 5 min attenuation, 90\,\% intervals from
+resampling storms). Ours: 0.695\iv{0.514}{0.803} dB for all links and 0.564\iv{0.436}{0.633} dB for links below 1 km.}
+\label{tab:lit}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.3\textwidth}ccL}
+\toprule
+Model & RMSE, all links (dB) & Minus ours (dB) & Verdict, all links and below 1 km\\
+\midrule
+Schleiss (a), pycomlink defaults, assumed drying & 0.859 & $+0.164$\iv{+0.084}{+0.286} & ours better, ours better\\
+Schleiss (b), fitted on TRAIN & 0.703 & $+0.009$\iv{-0.010}{+0.039} & no difference, no difference\\
+Pastorek (a), pycomlink defaults & 0.725 & $+0.031$\iv{+0.017}{+0.047} & ours better, ours better\\
+Pastorek (b), fitted on TRAIN & 0.720 & $+0.026$\iv{+0.015}{+0.038} & ours better, ours better\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{literature.png}
+\caption{Real data (TEST). The error of our equation (filled circle, dotted line) against the three comparison models of the
+test and the two published WAA models in both versions (open squares), with 90\,\% intervals from resampling storms.}
+\label{fig:lit}
+\end{figure}
+
+Our equation predicted the test storms better than both versions of the Pastorek model, by about 0.03 dB, and better than the
+Schleiss model with the pycomlink defaults and the assumed drying time. The Schleiss model fitted on TRAIN was as good as ours, with a difference of
+$+0.009$ dB ($-0.010$ to $+0.039$ dB), and also below 1 km. It reaches this with a different split between antenna and path.
+Its path attenuation per km is 1.7 to 1.8 times ours, its WAA builds up over hours (wetting time 309 min) and dries in 77 min,
+and after rain it holds more water than is measured ($-0.25$ dB at 10 min, against $-0.15$ dB for our equation). The Pastorek
+model, without memory, holds too little water after rain ($+0.25$ dB at 10 min).
+
 \section{Limitations}
 \label{sec:cannot}
 The model does not describe every effect in the data. Each effect is assigned to one of three groups.
@@ -606,6 +658,12 @@ Radar, and Gauges for rainfall quantification in Gothenburg, Sweden,'' \emph{Ear
 \bibitem{tiede} J. Tiede, C. Chwala, U. Siart and T. Eibert, ``Frequency-dependent variations of the antenna reflection
 coefficient due to different wetness conditions on the antenna radome,'' \emph{Advances in Radio Science}, 23, 13--19, 2025.
 \url{https://doi.org/10.5194/ars-23-13-2025}
+\bibitem{schleiss} M. Schleiss, J. Rieckermann and A. Berne, ``Quantification and modeling of wet-antenna attenuation for
+commercial microwave links,'' \emph{IEEE Geoscience and Remote Sensing Letters}, 10(5), 1195--1199, 2013.
+\url{https://doi.org/10.1109/LGRS.2012.2236074}
+\bibitem{pastorek} J. Pastorek, M. Fencl, J. Rieckermann and V. Bare\v{s}, ``Precipitation estimates from commercial microwave
+links: practical approaches to wet-antenna correction,'' \emph{IEEE Transactions on Geoscience and Remote Sensing}, 60, 1--9,
+2022. \url{https://doi.org/10.1109/TGRS.2021.3110004}
 \end{thebibliography}
 
 \end{document}

@@ -1804,3 +1804,60 @@ wet_antenna:
                 version written in S9 were merged into this one document by the learners (2026-10-19)",
                 rules: "A4, 11 pt, numbered sections and equations, captions below figures, simple wording, no semicolons, no bold in the text;
                 figures only from saved tables, one style, colour-free"}
+  literature_s8c:            # step S8c (literature_s8c.py, libraries final_model.py, validation.py, system_id.py, test_s8b.py): our final WAA
+                             #   equation against two literature WAA models. Written 2026-10-28 BEFORE the run. A POST-FREEZE COMPARISON: TEST
+                             #   was read in S8 / S8b. The literature models are fitted on TRAIN only, our equation is not refitted, and no
+                             #   choice about our equation depends on this step.
+    ours: {equation: research/wet_antenna/outputs/products/waa_equation_final.json, fit_sha256: "1d8163cd8b84aafc85f59c6c223f44b33923278265e3e40819923d8076c8e0b9",
+           how: "the S8b closed-F model (the fit behind the equation file), run forward as in S8b; the S6 table-F candidate is shown as a reference"}
+    task: "as S8: every model gets only the rain input V1 (radar / g_e, the S8 g_e after its fix), the link length and band, and predicts A - c =
+           W + L c_band R(t - d) at 5 min; the same link-events, baseline and c as S8; d = 1 min (the lag of our equation) for every model"
+    pycomlink: {version: "0.6.0", functions: "processing.wet_antenna.waa_pastorek_2021 and _numba_waa_schleiss_2013", note: "the forms are coded in
+                literature_s8c.py; research/explorations/s8c_checks/check_pycomlink.py checks them against pycomlink 0.6.0 itself"}
+    pastorek:                # Pastorek et al. 2021 (KR-alt): W = C (1 - exp(-d R^zeta)), no memory, upper limit C
+      d: 0.1                 # fixed, as in the paper (C and d compensate each other)
+      default: {C_db: 14.0, zeta: 0.55}   # pycomlink defaults (A_max, zeta); the paper's Table II gives no literature values for KR-alt
+      zeta_bounds: [0.1, 2.0]
+      C_bounds_db: [0.0, 50.0]
+    schleiss:                # Schleiss et al. 2013: W rises toward W_max while it rains, decays after
+      wet_mmh: 0.1           # wet flag = V1(t - d) > 0.1 mm/h (radar), not the link's own wet / dry classification
+      dt_min: 1.0
+      wet_step: "W[i] = min(W_max, W[i-1] + (W_max - W[i-1]) * 3 * dt / tau_wet)   (pycomlink, without its cap at A_obs[i])"
+      dry_step: "W[i] = W[i-1] - W[i-1] * 3 * dt / tau_dry   (replaces pycomlink's W[i] = min(A_obs[i], W_max), which uses the measured signal;
+                 the form follows the paper's abstract: the WAA decreases exponentially as soon as the rain stops)"
+      default: {W_max_db: 2.3, tau_wet_min: 15.0, tau_dry_min: 15.0}   # version (a) = "pycomlink defaults plus an assumed drying time equal to the
+                             #   wetting time (15 min), not taken from the paper"; the verdict that counts is version (b)   # 2.3 dB and 15 min as quoted from Schleiss et al. in Pastorek et al. Table II;
+                             #   tau_dry = tau_wet is an ASSUMPTION (no drying constant could be checked in an open source)
+      tau_bounds_min: [3.0, 600.0]      # >= 3 min so that the explicit step 3 dt / tau stays <= 1
+      W_max_bounds_db: [0.0, 50.0]
+    versions:
+      a: "published / pycomlink default parameters, a_link = 1, only c_band fitted on TRAIN"
+      b: "all parameters fitted on TRAIN: the amplitude per band (C_band or W_max_band, as our A_band), the shape parameters shared (zeta; tau_wet,
+          tau_dry), c_band, and a_link with the ridge of our model"
+    fit:
+      huber_delta_db: 0.3    # as our model: Huber loss of the 5 min residuals, summed over the bins
+      a_prior_sd: 0.5        # the a_link ridge of our model: 0.5 (huber_delta / a_prior_sd)^2 (log a_link)^2 per link
+      log_a_bounds: [-3, 3]
+      c_band_bounds: [0.0, 2.0]
+      amp_bounds_db: [0.0, 50.0]                  # C_band (Pastorek) or W_max_band (Schleiss), as the C / W_max bounds above
+      inner: {method: L-BFGS-B, maxiter: 3000}    # amplitudes, c_band, log a_link for given shape parameters
+      outer: "Pastorek b: bounded scalar search over zeta (xatol 0.001); Schleiss b: the grid, then the refinement (outer_schleiss)"
+      outer_schleiss:        # CHANGE 2026-10-28, made BEFORE ANY RESULT (the first run was stopped by the machine's low memory after 15
+                             #   Nelder-Mead steps of Schleiss b, nothing was evaluated and no fit of version b was saved; replaces
+                             #   "Nelder-Mead from the defaults, xatol 0.01, fatol 0.5, maxiter 80")
+        grid: {tau_wet_min: [3, 10, 30, 100, 300, 600], tau_dry_min: [3, 10, 30, 100, 300]}   # 30 points, about x3 apart
+        refine: "Nelder-Mead over (log tau_wet, log tau_dry) from the best grid point, first simplex steps log(3) / 2 in each direction,
+                 clipped to the tau bounds, xatol 0.02, fatol 0.5, maxiter 25; the best point of grid and refinement is the fit"
+        refine_step_log: 0.5493                     # log(3) / 2
+        xatol: 0.02
+        fatol: 0.5
+        maxiter: 25
+      cache_every_step: "every outer evaluation (shape -> amplitudes, c_band, log a_link, loss) is saved to the cache at once, so a stopped run
+                         loses nothing (change 2026-10-28, before any result)"
+    evaluation:
+      sets: "TRAIN (fitted), VAL V1 (used, optimistic), TEST: the S8 cache (TEST events on TRAIN links; TEST links with a_link = 1 for information)"
+      boot_reps: 1000
+      seed: 8911             # event bootstrap of TEST (paired: the same draws for every model)
+      verdict: "per literature model and subset (all link-events, L < 1 km): the paired 90 % interval of (its RMSE minus ours) above 0 = ours better,
+                below 0 = ours worse, containing 0 = no difference; reported as it comes out"
+      dry_t_min: [5, 10, 20] # dry-path error W_obs - W_model (median over the S7 dry-path windows of TEST, event bootstrap)
