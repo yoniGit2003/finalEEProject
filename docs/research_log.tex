@@ -1,4 +1,4 @@
-% last updated: 2026-10-19 commit=bb30b5c
+% last updated: 2026-11-02 commit=f470b31
 % (the line above is read and rewritten by /updatedocs: the date and the git commit the content of this report describes)
 % Research log: what has been implemented in research/, at the level of ideas (no code).
 % Build:  python docs/build_research_log.py   (pdflatex three times; writes docs/research_log.pdf only)
@@ -76,7 +76,7 @@
 CellEnMon lab, final-year electrical engineering project\par
 Data-driven discovery of rain-induced and wet-antenna attenuation laws in commercial microwave links\par
 \vspace{0.6em}
-19 October 2026
+2 November 2026
 \end{center}
 
 \vspace{1em}
@@ -111,8 +111,10 @@ links it never saw do as well as the training links. One check failed: in light 
 events is higher than the equation says, a level that varies between storms more than the equation captures. A
 check made after the test, of a model fitted before it, showed that the antenna level can be written as
 $F = A\,(R/5)^{0.54}$ with no loss. The equation was then written up: stored with its numbers and intervals, computed by
-a program that reproduces the fit exactly, and described in a short and a full document, after every statement of an
-earlier overview had been checked against the results. This closes Stage~1. Still to come are a test of whether the
+a program that reproduces the fit exactly, and described in one document, after every statement of an
+earlier overview had been checked against the results. This closes Stage~1. A comparison made after the freeze with
+two published WAA models [1], [9], each refitted on the training events, found the equation better than the model
+without memory [9] and as good as the model with memory [1] on the test events. Still to come are a test of whether the
 correction improves the rain estimated from the links, then the path law $f(L,\Rbar,Z)$ and the rain estimate.
 
 \enlargethispage{2\baselineskip}
@@ -124,7 +126,7 @@ correction improves the rain estimated from the links, then the path law $f(L,\R
 
 \subsection{What this report covers}
 
-The report covers the research folder of the repository as it stood on 19 October 2026: the baseline module and the
+The report covers the research folder of the repository as it stood on 2 November 2026: the baseline module and the
 WAA module. The data layer below it (the pipeline that turns the raw OpenMRG files into a verified data set) has its
 own technical report and is summarised here in one page (Section~\ref{sec:data}). Every number in this report is
 taken from the documents the two modules keep: their method descriptions, their decision logs and their step reports
@@ -166,7 +168,7 @@ Figure~\ref{fig:roadmap} shows the whole project and Table~\ref{tab:status} the 
 \node[done, text width=23mm, below=17mm of waa] (s3) {Final model\\{\scriptsize S5a, S6: refit, tightened}};
 \node[done, text width=23mm, left=of s3] (s2) {Model ladder\\{\scriptsize S1--S4.3: ladder, radar vs gauges}};
 \node[done, text width=23mm, left=of s2] (s1) {Drying tails\\{\scriptsize T0--T18: closed, no law}};
-\node[done, text width=23mm, right=of s3] (s4) {Validate, test\\{\scriptsize S7, S6b, S8, S8b: TEST once}};
+\node[done, text width=23mm, right=of s3] (s4) {Validate, test\\{\scriptsize S7--S8b: TEST once; S8c}};
 \node[done, text width=23mm, right=of s4] (s5) {Write-up\\{\scriptsize S9: Stage 1 closed}};
 \draw[arr] (s1) -- (s2); \draw[arr] (s2) -- (s3); \draw[arr] (s3) -- (s4); \draw[arr] (s4) -- (s5);
 \node[draw, densely dashed, rounded corners=3pt, inner sep=4pt, fit=(s1)(s2)(s3)(s4)(s5)] (grp) {};
@@ -180,7 +182,7 @@ progress. Dotted border: planned.}
 
 \begin{table}[H]
 \centering
-\caption{Steps of the research part and their state on 19 October 2026. The old step numbers of the drying-tail
+\caption{Steps of the research part and their state on 2 November 2026. The old step numbers of the drying-tail
 exploration are given in brackets.}
 \label{tab:status}
 \small
@@ -211,11 +213,12 @@ S7 & Validate the WAA candidate without the test set & done & \ref{sec:s7} \\
 S6b & The one return to S6: the after-rain misfit, drying and wind; three boxes & done & \ref{sec:s6b} \\
 S8 & Frozen model, test set read once & done: 4 of 5 rules pass & \ref{sec:test} \\
 S8b & The closed form of $F$ on the test set (a pre-freeze model) & done: adopted & \ref{sec:s8b} \\
-S9 & The write-up of Stage~1: the official equation, the overview checked, two documents & done: Stage~1 closed & \ref{sec:s9} \\
+S9 & Write-up: the equation, one document & done: Stage~1 closed & \ref{sec:s9} \\
+S8c & Two published WAA models [1], [9] & done: one worse, one equal & \ref{sec:s8c} \\
 R1 & Does the WAA correction improve the link rain estimates against the gauges? & next, not started & \ref{sec:next} \\
 Old 5--9 & Planned tail steps (drying conditions, wetting law, verification) & cancelled 13 Oct & \ref{sec:reboot} \\
-Stage 2 & Path law $f(L,\Rbar,Z)$ with symbolic regression & not started & \ref{sec:next} \\
-Evaluation & Rain estimate, comparison with the literature & not started & \ref{sec:next} \\
+Stage 2 & Path law $f(L,\Rbar,Z)$ with PySR [7] & not started & \ref{sec:next} \\
+Evaluation & Rain estimate, literature comparison & not started & \ref{sec:next} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -1761,7 +1764,7 @@ thirds of the cells, so the learned curve is kept. The data fix $a_{\mathrm{link
 1 mm/h and the slow store are not identified.}
 
 % =====================================================================================================================
-\section{Stage 1, part 6: validation, the one return, the test and the write-up (S7--S9)}
+\section{Stage 1, part 6: validation, the one return, the test and the write-up (S7--S9, S8c)}
 \label{sec:validate}
 
 \subsection{S7: validation without the test set}
@@ -1919,6 +1922,65 @@ within 20\,\% (61 of 62 within 10\,\%); and the cause of the remaining error (th
 not a result. The corrected overview is now the one document of Stage~1. Its figures are drawn from the saved tables
 only, and the illustrations of the first version were replaced by real data where real data show the same.
 
+\subsection{S8c: the published WAA models on the same test}
+\label{sec:s8c}
+
+This step came after the freeze and after the write-up, so nothing in the equation depends on it: the equation was
+not refitted and no choice was made from the test events. Two published WAA models were put on exactly the task of
+S8: each gets only the corrected radar rain, the length and the band, and predicts $A(t)$ at 5 minutes, with the same
+events, baselines, offsets and path term $L\,c_{\mathrm{band}}R$ as our equation.
+\begin{itemize}
+\item Pastorek et al.\ [9] tie the WAA directly to the rain rate, $W = C\,(1 - e^{-d R^{\zeta}})$ with $d = 0.1$: an
+upper limit $C$ and no memory, so the WAA vanishes when the rain stops. Its $\zeta$ acts inside a saturating function,
+so it is not comparable with our exponent $b$; no agreement between the two is claimed.
+\item Schleiss et al.\ [1] give the WAA memory: it rises towards a maximum $W_{\max}$ while it rains and decreases
+exponentially after. The open-source version used (pycomlink) feeds the link's own measured attenuation into the
+model, which would hand it the answer; here a minute is wet when the radar rain on the path exceeds 0.1 mm/h, and the
+step that uses the measurement is replaced by an exponential drying with its own time constant.
+\end{itemize}
+Each model was run in two versions. Version (a) keeps the published or default parameters and fits only the path
+term. For Schleiss this needs a drying time that could not be checked in the paper; it was set equal to the wetting
+time (15 minutes), so version (a) is the default parameters with an \emph{assumed} drying time, not the published
+model. Version (b) fits everything on the training events, with the same link factor as our equation; the Schleiss
+time constants were found by a coarse grid and a refinement around its best point, a plan written down before any
+result. Version (b) is the fair comparison, and its verdict is the one that counts.
+
+\begin{table}[H]
+\centering
+\caption{Test-set RMSE of the 5-minute $A$ and the paired difference to our equation (model minus ours, 90\,\%
+interval from resampling events; above zero: ours better). Post-freeze; the literature models fitted on training
+events only.}
+\label{tab:s8c}
+\small
+\begin{tabularx}{\linewidth}{@{}Y c c c l@{}}
+\toprule
+\textbf{Model} & \textbf{RMSE, all} & \textbf{Difference, all} & \textbf{$L<1$ km} & \textbf{Verdict} \\
+\midrule
+Our equation & 0.695 & -- & -- & -- \\
+Schleiss (a), assumed drying & 0.859 & $+0.164$ ($+0.084$, $+0.286$) & $+0.200$ & ours better \\
+Schleiss (b), fitted & 0.703 & $+0.009$ ($-0.010$, $+0.039$) & $+0.012$ & no difference \\
+Pastorek (a), defaults & 0.725 & $+0.031$ ($+0.017$, $+0.047$) & $+0.027$ & ours better \\
+Pastorek (b), fitted & 0.720 & $+0.026$ ($+0.015$, $+0.038$) & $+0.031$ & ours better \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../research/wet_antenna/outputs/figures/literature_s8c_rmse.png}
+\caption{Test-set RMSE (dB) of our equation, the S8 comparison models and the two literature models in both versions,
+all links (left) and links below 1 km (right), with 90\,\% intervals. Each model has its own marker and a text label;
+the dotted line is our equation.}
+\label{fig:s8c}
+\end{figure}
+
+The model without memory is worse than ours by about 0.03$\dB$ in both versions, about as much as the WAA without
+memory of S8. The fitted model with memory is as good as ours. Its fit chose a slow wetting (about 300 minutes) and a
+drying of about 77 minutes, and after the rain it holds more water than measured where the path is dry ($-0.25\dB$ at
+10 minutes, against $-0.15\dB$ for our equation). Limits: both papers fit the WAA so that the corrected link rain
+matches gauges, not to predict $A$ from radar rain; the defaults were calibrated on other links; the fitted literature
+parameters have no intervals; and the default values of the Pastorek model could not be checked in the paper's text.
+
 \subsection{The equation of Stage 1}
 \label{sec:equation}
 
@@ -1941,7 +2003,8 @@ length. The one return to S6 found the after-rain misfit to be a level at the en
 remove it but unbind the path part, so it stays outside the equation, with the wind and dew. Frozen and read once,
 the equation beats no WAA, a constant WAA and a WAA without memory on the test set, its error does not depend on the
 length, and new links do as well as known ones; in light rain the test storms have a higher antenna level than the
-equation (the one failed rule). The antenna level can be written as $A\,(R/5)^{0.54}$.}
+equation (the one failed rule). The antenna level can be written as $A\,(R/5)^{0.54}$. After the freeze, a published
+model without memory [9] did worse and one with memory [1], refitted, did as well.}
 
 % =====================================================================================================================
 \section{Where we stand}
@@ -1949,7 +2012,7 @@ equation (the one failed rule). The antenna level can be written as $A\,(R/5)^{0
 
 \begin{table}[H]
 \centering
-\caption{What is established, and what is not, on 19 October 2026.}
+\caption{What is established, and what is not, on 2 November 2026.}
 \label{tab:stand}
 \small
 \begin{tabularx}{\linewidth}{@{}Y Y@{}}
@@ -1964,6 +2027,8 @@ The antenna part does not depend on the length: link amplitudes, antenna heights
 What sets the antenna level of a storm in light rain: on the test storms it is higher than the equation (P1). \\
 The equation of Eq.~\eqref{eq:final} beats no WAA, a constant WAA and a WAA without memory on the test set, on all links and on short links; new links do as well as known ones. &
 The cause of the link multiplier (no link property explains it); the numbers of the slow store. \\
+After the freeze, a published WAA without memory [9] predicts the test events worse than the equation (by about 0.03$\dB$), and a published WAA with memory [1], refitted, as well (S8c). &
+Whether the equation improves the rain estimated from the links, which is what the published models were made for (R1). \\
 The path part is a straight line, $P = c\,R$, identified above 1 mm/h; the antenna level is $A\,(R/5)^{0.54}$ up to 40 mm/h. &
 The shape of $F$ above 10 mm/h (few minutes) and the path part below 1 mm/h. \\
 Dew is a real wet-antenna signal (about 1.7$\dB$ for hours on humid nights); the wind speeds the drying. Both are identified and kept outside the equation. &
@@ -2024,7 +2089,7 @@ Figure~\ref{fig:plan} shows the route.
 \item \textbf{R1, does the correction help the rain estimate (next, not started).} Remove the WAA with the equation and
 check whether the rain estimated from the links agrees better with the gauges. It needs its own written plan first,
 and a decision about the test set, which has already been read once. The comparison with the WAA models of the
-literature [1], [9] was not part of S9 and belongs here or in the evaluation, with their values read from the papers.
+literature [1], [9] on predicting $A(t)$ was made in S8c (Section~\ref{sec:s8c}); on the rain estimate it is still to come.
 \item \textbf{Publishing the fit caches.} Stage~1 is finished, so the saved fits are now due to be published, so that
 others can rebuild the reports without hours of fitting (not done yet).
 \end{enumerate}
@@ -2186,6 +2251,7 @@ Validation without the test set (S7) & \code{validate\_s7.md}, same folder \\
 The one return to S6 and the three boxes (S6b) & \code{return\_s6b.md}, same folder \\
 The freeze and the test set (S8) & \code{test\_s8.md}, same folder; the freeze in \code{test\_s8\_freeze.json}, in the products folder \\
 The closed form of $F$ on the test set (S8b) & \code{test\_s8b.md}, same folder \\
+The published WAA models on the test set (S8c) & \code{literature\_s8c.md}, same folder; the fitted parameters in \code{literature\_s8c\_fits.json}, in the products folder \\
 The write-up (S9) and the final equation & \code{formulate\_s9.md} and \code{formulate\_s9\_check.md}, same folder; \code{research/wet\_antenna/FINAL.md}; the equation in \code{waa\_equation\_final.json}, in the products folder \\
 The document of Stage~1 (the WAA overview) & \code{docs/WAA\_research\_overview.pdf} \\
 Integrity rules, the three boxes and every dated decision & \code{docs/ROADMAP.md}, part B \\

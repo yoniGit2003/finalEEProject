@@ -1,4 +1,4 @@
-% last updated: 2026-10-19 commit=bb30b5c
+% last updated: 2026-11-02 commit=f470b31
 % (the line above is read and rewritten by /updatedocs: the date and the git commit the content of this document describes)
 % Project structure: which folders and files the repository has, and what each one is for.
 % Build:  python docs/build_research_log.py project_structure   (writes docs/project_structure.pdf only)
@@ -71,7 +71,7 @@
 CellEnMon lab, final-year electrical engineering project\par
 Data-driven discovery of rain-induced and wet-antenna attenuation laws in commercial microwave links\par
 \vspace{0.6em}
-19 October 2026
+2 November 2026
 \end{center}
 
 \inshort{The repository has three parts that depend on each other in one direction. \code{pipeline/} turns the raw
@@ -393,6 +393,7 @@ S6b & \code{return_s6b.py} & The one return to S6: the after-rain misfit cause b
 S8 & \code{test_s8.py} & Comparison models, the freeze (hashes, committed), then the test set read once with the pass rules. \\
 S8b & \code{test_s8b.py} & A post-freeze evaluation of a pre-freeze model: the closed form of $F$ on the test set, by a rule written first. \\
 S9 & \code{formulate_s9.py} & Formulate Stage~1: the official equation file, the reference of its unit test, the tables behind the document figures and the S9 report. No refitting. \\
+S8c & \code{literature_s8c.py} & After the freeze: our final equation (not refitted) against two published WAA models (Schleiss 2013, Pastorek 2022), fitted on the training events, on the test set. \\
 \bottomrule
 \end{tabularx}
 \end{table}
