@@ -57,3 +57,16 @@ def g_table():
 def g_map():
     g = g_table()
     return dict(zip(g.event_id, g.g_path))
+
+
+BRANCH_BANDS = ["28 GHz", "38 GHz"]                            # 32 GHz is excluded by rule A1e (no eligible length-test cell)
+
+
+def branch_train(d=None):
+    """(D0, D1, le, BANDS): the TRAIN dataset of this branch = the Part 1 TRAIN dataset without the 32 GHz link-events.
+    D0 = radar input, D1 = radar / g_e (V1). The band index of a link-event stays the Part 1 index (0 = 28, 2 = 38 GHz)."""
+    D0, _, le, _, BANDS = train(d)
+    keep = le.band_name.isin(BRANCH_BANDS).to_numpy()
+    le_b = le[keep].reset_index(drop=True)
+    D0b = sid.subset(D0, keep)
+    return D0b, rescaled(D0b, le_b, g_map()), le_b, BANDS

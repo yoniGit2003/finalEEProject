@@ -7,3 +7,25 @@ a1:
   length_classes_km: [[0, 1], [1, 3], [3, 100]]
   rainy_mmh: 0.3                                # a "rainy" 5 min bin: R >= this (the Part 1 wet threshold of the length test)
   extra_classes_mmh: [[0.1, 0.25], [0.25, 0.5]] # the two classes A3a may add
+
+a3:                                             # F(R) and P(R) from the length test (choices dated 2026-11-11 in decisions.md)
+  classes_mmh: [[0.1, 0.25], [0.25, 0.5], [0.5, 1], [1, 2], [2, 5], [5, 10], [10, 20]]
+  boot_reps: 200                                # event-bootstrap draws (rule A3a)
+  seed: 95                                      # the Part 1 seed of the length test
+  interval: [5, 95]
+  durations_min: [5, 15, 30, 60]                # (b) at least this long in the same rain class
+  duration_test: [30, 5]                        # (b) the paired difference I(30) - I(5)
+  duration_share: 0.25                          # (b) the rule fires if the interval excludes 0 in MORE than this share of the eligible cells
+  eiv:                                          # (d) the errors-in-variables fake check
+    truth:                                      # the Part 1 closed forms (waa_equation_final.json), known and independent of A3
+      A_band_db: {"28 GHz": 2.57, "38 GHz": 2.77}
+      b: 0.542
+      c_band: {"28 GHz": 0.105, "38 GHz": 0.194}
+    a_sd: 0.19                                  # sd of ln a_link (Part 1: 80 % of links within 0.77-1.24)
+    noise_sd_db: 0.2                            # white noise per 5 min value
+    pixel_km: 2.0                               # n_pix = max(1, L / pixel_km)
+    min_rain_mmh: 0.5                           # the radar-vs-gauge scatter is measured where both are >= this
+    reps: 20
+    seed: 311
+    pass: {intercept_db: 0.15, slope_rel: 0.20}
+  grid: {r_min: 0.01, r_max: 60.0, n: 400}      # the dense R grid of the curve product (plus R = 0)

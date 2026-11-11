@@ -39,3 +39,17 @@ A1_SHORT_MINUTES = TABLES / "a1_audit_short_minutes.csv"       # minutes per rai
 A1_GAUGE = TABLES / "a1_audit_gauge_set.csv"          # the gauge-input set and the g_e use
 A1_FITS = TABLES / "a1_audit_stored_fits.csv"         # the stored comparison fits: path, loads
 A1_REPORT = REPORTS / "a1_audit.md"
+
+# ---- A3: F(R) and P(R) from the length test (a3_length_test.py, library lt.py) ----------------------------------
+A3_CELLS = TABLES / "a3_length_test_cells.csv"        # (a) per band and class: I, s with intervals, counts, eligible
+A3_DURATION = TABLES / "a3_length_test_duration.csv"  # (b) I per cell and minimum duration, the paired difference
+A3_INPUT = TABLES / "a3_length_test_rain_input.csv"   # (c) I and s: gauge-ratio events against g_e = 1 events
+A3_EIV = TABLES / "a3_length_test_eiv.csv"            # (d) the errors-in-variables fake check per cell
+A3_EIV_NOISE = TABLES / "a3_length_test_eiv_noise.csv"  # (d) the measured radar-vs-gauge scatter (sigma_1, rho)
+A3_KNOTS = TABLES / "a3_length_test_knots.csv"        # (e) the cell values the curves go through (after the monotone step)
+A3_CURVES = TABLES / "a3_length_test_curves.csv"      # (e) F and P per band on a dense R grid, with intervals (THE product)
+A3_FIG_CURVES = FIGURES / "a3_length_test_F_P.png"
+A3_FIG_DURATION = FIGURES / "a3_length_test_duration.png"
+A3_FIG_INPUT = FIGURES / "a3_length_test_rain_input.png"
+A3_FIG_EIV = FIGURES / "a3_length_test_eiv.png"
+A3_REPORT = REPORTS / "a3_length_test.md"

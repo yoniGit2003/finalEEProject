@@ -188,3 +188,100 @@ assumed and what is not.
 writes it; the two differ only when k depends on W.
 
 **Verdict.** PASS.
+
+## Step A3: F(R) and P(R) from the length test (2026-11-11)
+
+**Question served.** Q1 (can F and P be trusted?).
+
+**What.** On TRAIN, 28 and 38 GHz, rain input V1 (radar / g_e): (a) the length test per band and rain class with 200
+event-bootstrap draws; (b) the intercept against the rain duration; (c) the intercept on gauge-ratio events against g_e = 1
+events; (d) an errors-in-variables fake check of the length test; (e) the curves F(R) and P(R) per band.
+
+**Why.** F and P are fixed inputs of every later fit (rule A3f). A biased F would be absorbed by k (a target that is too
+high looks like slow wetting), so F must be shown to be steady (b), not driven by the rain reference (c), and not an artefact
+of a rain error that depends on the link length (d), before k is learned.
+
+**Choices fixed before the run (2026-11-11), where the rule leaves room.**
+1. *Classes (a).* The seven classes 0.1–0.25, 0.25–0.5, 0.5–1, 1–2, 2–5, 5–10, 10–20 mm/h. The Part 1 steady rule is used
+   unchanged for all of them (wet = R >= 0.3 mm/h in the 20 min before; previous 15 min mean within 0.5–2 times the bin's R).
+   Known consequence, stated now: a bin of the class 0.1–0.25 needs wetter bins before it, so its values come from rain that
+   is falling off. A new class enters the curves only if it is eligible by the Part 1 rule (fitted, and >= 8 links below
+   1 km).
+2. *Duration (b).* The duration of a steady bin = 5 min times the number of consecutive bins ending at it whose R is in the
+   same class. "At least 5 / 15 / 30 / 60 min" = at least 1 / 3 / 6 / 12 such bins. Paired interval: the same 200 event
+   draws for both durations, 90 % interval of I(30) − I(5). A cell whose 30 min fit is not possible counts in the
+   denominator (eligible cells) and not in the numerator. If the rule fires, ONE common duration is used for all cells: the
+   longest of 5 / 15 / 30 / 60 min at which every eligible cell is still fitted with >= 8 links below 1 km.
+3. *Rain-input diagnostic (c).* Two separate length tests: the link-events of the 14 events with a gauge ratio, and those of
+   the 37 events with g_e = 1; 200 event draws inside each group. Report only.
+4. *Errors-in-variables check (d).*
+   - True rain = the real V1 rain of each link-event (5 min). Known truth, independent of this step's results: the Part 1
+     closed forms F_true = A_band·(R / 5)^0.542 (A_band 2.57 / 2.77 dB) and P_true = c_band·R (0.105 / 0.194 dB/km per mm/h).
+   - Fake A − c = a_link·F_true(R_true) + L·P_true(R_true) + noise: ln a_link normal with sd 0.19 (the Part 1 spread, 80 % of
+     links within 0.77–1.24), independent of L; white noise of sd 0.2 dB per 5 min value; an offset error per link-event with
+     the sd of the sub-link's `offset_std`.
+   - Observed rain = R_true·exp(e), a classical error. e is AR(1) in time per link-event with the sd σ_1 / √n_pix and the
+     lag-1 correlation ρ, n_pix = max(1, L / 2 km) (the radar pixels along the path). σ_1 and ρ are measured on the
+     gauge-input set: σ_1 = 1.4826·MAD of ln(radar / gauge) over the 5 min bins with both >= 0.5 mm/h, ρ = the lag-1
+     correlation of that log ratio inside link-events. The whole scatter is given to the radar (conservative: part of it is
+     the point gauge).
+   - The length test runs on the observed rain exactly as on real data. Truth of a cell = F_true and P_true at the cell's
+     R_cell (the median observed R), because that is where the cell value is placed on the curve. 20 replicates; the number
+     judged is the median over the replicates. PASS if in every eligible cell |I − F_true| <= 0.15 dB and
+     |s − P_true| / P_true <= 20 %. Else STOP.
+5. *Curves (e).* Per band: the points (R_cell, I) and (R_cell, s) of the eligible cells plus (0, 0). If the cell values do
+   not rise with R, they are first made monotone by pooling adjacent violators (weights 1 / bootstrap variance). Monotone
+   cubic interpolation (PCHIP). Interval: the same construction on each bootstrap draw, 5–95 % per R. Valid range: from the
+   lowest to the highest eligible R_cell. Above it F is held constant and P continues with its last slope; both are marked
+   as extrapolation. If (b) fires, the cell values are those of the chosen duration.
+
+**Pass rule (2026-11-11).** (d) as stated, else STOP. (a), (b), (c), (e): report; (b) decides the duration by its rule.
+
+**Result (2026-11-11).** Script `research/waa_ksurface/a3_length_test.py`, report `outputs/reports/a3_length_test.md`.
+- (a) All 14 cells (7 classes x 2 bands) are eligible, including the two added classes (28 GHz 0.1–0.25: 12 links below
+  1 km; 38 GHz 0.1–0.25: 9). Intercepts rise from 0.57 / 0.59 dB (0.1–0.25 mm/h) to 3.09 / 3.45 dB (10–20 mm/h).
+- (b) I(30 min) − I(5 min) excludes zero in 0 of 14 eligible cells. The rule does not fire: F from all steady values.
+- (c) Reported in the table `a3_length_test_rain_input.csv`.
+- (d) **FAIL.** Measured radar-vs-gauge scatter: σ_1 = 0.708, ρ = 0.403 (14 949 bins). With this rain error the length test
+  does not return the truth: the intercept is outside ±0.15 dB in 14 of 14 cells (from +0.19 to +0.36 dB at 0.1–5 mm/h,
+  −0.35 dB at 5–10 mm/h, −1.30 / −1.37 dB at 10–20 mm/h), and the slope is outside ±20 % in 5 of 14 cells (largest −60 %,
+  28 GHz 0.25–0.5 mm/h). The recovered F is flatter than the true F (too high in light rain, too low in heavy rain).
+- (e) The curves were written by the script before the stop (`a3_length_test_curves.csv`). **They are not approved**: by
+  rule (d) they must not be used.
+- Detail fixed in the code before the run and not written in the entry above: the fake rain error has mean one
+  (E[exp(e)] = 1), so the observed rain is unbiased on average.
+
+**Verdict.** STOP at A3d (rule: "PASS if the length test returns the true intercept within 0.15 dB and the true slope within
+20 % in every eligible cell. Else STOP").
+
+### The one diagnostic allowed after a failed check (2026-11-11, written before it is run)
+
+**What.** The same fake check with the rain error scaled by 0, 0.25, 0.5 and 1 (σ = scale·σ_1 / √n_pix), 5 replicates each,
+everything else unchanged (`a3_eiv_diagnostic.py`).
+
+**Why.** To locate the cause: if the errors vanish at scale 0, the cause is the rain error itself (selecting bins by a noisy
+R pulls the true R of a class towards the middle of the rain distribution), and not the noise, a_link, the steady rule or the
+Huber line. The scales in between show how small the rain error must be for the test to pass. Nothing is changed or patched
+on the basis of this diagnostic; Block A stops after it.
+
+**Result of the diagnostic (2026-11-11).** `outputs/reports/a3_eiv_diagnostic.md`, 5 replicates per scale.
+
+| rain error scale | σ_1 | largest intercept error (dB) | cells with intercept inside ±0.15 dB | largest slope error | cells with slope inside ±20 % |
+|---|---|---|---|---|---|
+| 0 | 0 | 0.11 | 14 of 14 | 59 % | 13 of 14 |
+| 0.25 | 0.18 | 0.16 | 13 of 14 | 34 % | 13 of 14 |
+| 0.5 | 0.35 | 0.66 | 10 of 14 | 40 % | 11 of 14 |
+| 1 | 0.71 | 1.23 | 0 of 14 | 65 % | 8 of 14 |
+
+- **The cause is the rain error.** Without it the length test returns every intercept within 0.11 dB. The one slope miss at
+  scale 0 is 28 GHz 0.1–0.25 mm/h, where the true slope is 0.024 dB/km (an error of 0.014 dB/km).
+- The error grows with the size of the rain error and has one shape: too high below about 5 mm/h, too low above. This is the
+  flattening expected when bins are sorted into rain classes by a noisy R.
+- The check would pass only with a rain error of about a quarter of the measured radar-vs-gauge scatter or less.
+- What the diagnostic does not say: how much of σ_1 = 0.71 is radar error. The scatter was all given to the radar (choice 4,
+  conservative); part of it is the point gauge against the path mean. No number in this step separates the two.
+
+**Block A stops here (2026-11-11).** A3e curves are not approved; A4, A5 and A6 were not run. Nothing was patched.
+
+**Side observation, not pursued (report only, rule A3c).** The intercepts on the g_e = 1 events are far below those on the
+gauge-ratio events (for example 28 GHz 2–5 mm/h: 0.36 dB against 2.04 dB), with few short links in the g_e = 1 cells (0 to 17).
