@@ -591,3 +591,48 @@ standard.
 
 **This is a choice made after seeing a result** (the E3 fake test and its diagnostic), which is why it is a deviation. The
 E3 numbers already seen: under R2 the largest absolute slope error was 0.065 dB/km and no intercept was outside.
+
+**L_med (2026-11-11).** The median length of the 187 distinct links of the TRAIN length-test dataset (28 and 38 GHz, events
+with a gauge ratio) is **2.113 km**. The slope tolerance is 0.15 dB / 2.113 km = **0.0710 dB/km**.
+
+## Step E3 re-evaluated under Deviation 3 (2026-11-11)
+
+Same rules, same order, same fake world and seeds (`e3_bin_rule.py`, report `outputs/reports/e3_bin_rule.md`).
+
+- R1 (20 min, factor 2): 14 cells judged, 3 outside (intercepts +0.152, +0.166, +0.164 dB; one of them also on the slope).
+  FAIL.
+- **R2 (30 min, factor 1.5): 12 cells judged, 0 outside. PASS.** Largest intercept error +0.129 dB (28 GHz, 2–5 mm/h); largest
+  slope error 0.065 dB/km (38 GHz, 0.5–1 mm/h) against the tolerance 0.071.
+- **Adopted: R2.** Steady rain = every bin of the 30 min before the bin within [R / 1.5, 1.5·R].
+- **Consequence, recorded:** under R2 the two 10–20 mm/h cells are not eligible (on real data: 28 GHz 4 events and 0 short
+  links, 38 GHz 3 events and 0 short links). **F and P are measured up to the 5–10 mm/h class only** (R_cell about 6.3 mm/h).
+- The intercept is still slightly high in the fake world with memory (median about +0.07 dB): inside the tolerance, not zero.
+
+**Verdict.** PASS with R2.
+
+## The g_e = 1 exclusion, formalized (2026-11-11)
+
+**Rule.** Events with g_e = 1 (no gauge ratio) do not enter the length test. **Reason:** E1 measured the radar at about 2.5
+times the gauges in them, an uncorrected one-sided scale error; a test that sorts bins by radar rain cannot use them.
+(This is a property of the rain reference, so it is a data-quality rule of this branch, not a choice by the fit of any
+model.)
+
+**What is left (TRAIN, 28 and 38 GHz, rule R2):** 14 events, 4 563 link-events, 187 links, 41 of them below 1 km. 12 of 14
+cells are eligible. Per eligible cell: short links min 7, median 17; events min 7, median 9; link-events 103 to 565
+(`outputs/tables/e3_bin_rule_adopted_real_cells.csv`).
+
+## Step E2: addendum to the pre-registration (2026-11-11, before the E2 code is run)
+
+- The definitions are those adopted in E3 (rule R2, classes, n_short = 5); the criteria are those of Deviation 3 (intercept
+  within 0.15 dB, slope within 0.0710 dB/km). 12 cells are eligible, so "at least 13 of 14" reads, as written: all judged
+  cells but at most one.
+- The fake world, the three candidates and the adoption rule are unchanged from the entry "Steps E3 and E2".
+- Details of candidate (iii) fixed now: the proxy of the true rain is x' = M + b·(m − M) + a·(x − m) + v / 2, with x = ln R of
+  the wet bins of a link-event, m their mean, M the mean of m over the event's link-events, a² = 1 − (per-bin error
+  variance of the link) / (pooled variance of x inside link-events), b² = 1 − (error variance of m) / (pooled variance of m
+  inside events), both floored at 0.2², and v the total error variance (the errors have mean one, so the observed logs sit
+  v / 2 below the true ones). The curves inside the correction are the monotone curves through (0, 0) and the current cell
+  values. The simulation inside the correction uses the same error model as the fake world (it knows σ, not the truth).
+- **The error-size sweep (asked for in the E2–E4 instructions):** every candidate is also run with the whole rain error
+  scaled by f = 0, 0.25, 0.5, 0.75 (per-bin sd f·0.48, scale part f·0.43), to report the largest rain error at which it
+  still passes. f = 1 is the σ_lo run. Report only; it does not change the adoption rule.

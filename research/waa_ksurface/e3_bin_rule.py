@@ -34,13 +34,13 @@ def link_spread(D, le, rule):
     return cells, {"link_sd_db": between, "storm_sd_db": within, "short_links": n_links, "link_storm_values": n_values}
 
 
-def fake_test(D, le, n_cells, sizes, rule, n_short):
+def fake_test(D, le, n_cells, sizes, rule, n_short, l_med):
     """The plain length test in the fake world without rain error (memory and noise only)."""
     tabs = []
     for rep in range(FK["reps"]):
         Dk = fw.make(D, le, n_cells, sizes, 0.0, FK, FK["seed"] + rep)
         tabs.append(ltest.cell_fits(ltest.steady_values(Dk, le, LT, rule), LT, n_short)[0])
-    return fw.judge(tabs, FK)
+    return fw.judge(tabs, FK, l_med=l_med)
 
 
 def main():
@@ -55,17 +55,20 @@ def main():
     sizes.update(spread)
     n_short = int(max(LT["n_short_floor"], np.ceil((spread["link_sd_db"] / LT["tolerance_db"]) ** 2)))
     print(f"sizes: {sizes}; n_short = {n_short}", flush=True)
+    l_med = float(le.drop_duplicates("cml_id").L_km.median())                # Deviation 3: the median link of the length-test dataset
+    sizes["l_med_km"], sizes["slope_tolerance_db_km"] = l_med, FK["pass"]["intercept_db"] / l_med
+    print(f"L_med = {l_med:.3f} km, slope tolerance {sizes['slope_tolerance_db_km']:.4f} dB/km", flush=True)
     short32 = int(le_all[(le_all.band_name == "32 GHz") & (le_all.L_km < LT["short_km"])].cml_id.nunique())
 
     # ---- the fake test of the rules, in order
     parts, adopted, verdicts = [], None, {}
     real_parts = [real_cells.assign(rule="R1")]
     for name, rule in LT["rules"].items():
-        tab, n_fail, ok = fake_test(D, le, n_cells, sizes, rule, n_short)
+        tab, n_fail, ok = fake_test(D, le, n_cells, sizes, rule, n_short, l_med)
         verdicts[name] = (len(tab), n_fail, ok)
         parts.append(tab.assign(rule=name))
         print(f"rule {name} {rule}: {len(tab)} cells judged, {n_fail} outside -> {'PASS' if ok else 'fail'}\n"
-              + tab[["band", "class", "R_cell", "F_true", "I", "I_err", "s_err_rel", "links_short", "I_ok", "s_ok"]].round(3).to_string(), flush=True)
+              + tab[["band", "class", "R_cell", "F_true", "I", "I_err", "s_err_abs", "links_short", "I_ok", "s_ok"]].round(3).to_string(), flush=True)
         if name != "R1":
             real_parts.append(ltest.cell_fits(ltest.steady_values(D, le, LT, rule), LT, n_short)[0].assign(rule=name))
         if ok and adopted is None:
@@ -93,14 +96,27 @@ def main():
          f"32 GHz has {short32} links below {LT['short_km']:g} km, so by this rule it has no eligible cell: **32 GHz stays excluded from the branch for every model.**\n",
          "## The fake test of the rules (memory and noise, no rain error)\n",
          f"Truth: F = {FK['truth']['f_top_db']:g}·R / (R + {FK['truth']['f_half_mmh']:g}) dB, P = 0.1·R / 0.2·R dB/km, one store with {FK['truth']['tau_wet_min']:g} min (wetting) and "
-         f"{FK['truth']['tau_dry_min']:g} min (drying). {FK['reps']} replicates, medians. Pass: intercept within {FK['pass']['intercept_db']} dB and slope within "
-         f"{100 * FK['pass']['slope_rel']:.0f} % in all judged cells but at most {FK['pass']['cells_may_fail']}.\n"]
+         f"{FK['truth']['tau_dry_min']:g} min (drying). {FK['reps']} replicates, medians. Pass (Deviation 3): intercept within {FK['pass']['intercept_db']} dB and "
+         f"slope within {FK['pass']['intercept_db']} dB / L_med = {sizes['slope_tolerance_db_km']:.4f} dB/km (L_med = {l_med:.3f} km, the median of the {le.cml_id.nunique()} links) "
+         f"in all judged cells but at most {FK['pass']['cells_may_fail']}.\n"]
     for name, (n, n_fail, ok) in verdicts.items():
         r = LT["rules"][name]
         a.append(f"### Rule {name}: {r['t_pre_min']} min within a factor {r['q']:g} — {n} cells judged, {n_fail} outside: {'PASS' if ok else 'FAIL'}\n")
-        a.append(md_table(fake[fake.rule == name][["band", "class", "R_cell", "F_true", "I", "I_err", "P_true", "s", "s_err_rel", "links_short", "I_ok", "s_ok"]].round(3)))
+        a.append(md_table(fake[fake.rule == name][["band", "class", "R_cell", "F_true", "I", "I_err", "P_true", "s", "s_err_abs", "links_short", "I_ok", "s_ok"]].round(3)))
         a.append("")
     a.append(f"**Adopted rule: {adopted or 'none (STOP)'}.** (`{rel(P.E3_FAKE)}`, `{rel(P.E3_SIZES)}`)\n")
+    if adopted:
+        # the real data under the adopted rule. Only events with a gauge ratio enter: in the g_e = 1 events the radar reads about 2.5 times the gauges (E1)
+        rc = ltest.cell_fits(ltest.steady_values(D, le, LT, LT["rules"][adopted]), LT, n_short)[0]
+        save(rc[["band", "class", "R_cell", "link_events", "links", "events", "bins", "links_short", "links_long", "fitted", "eligible"]].round(4), P.E3_ADOPTED_CELLS, index=False)
+        el, gone = rc[rc.eligible], rc[~rc.eligible]
+        a.append(f"## The real data under rule {adopted} (events with g_e = 1 excluded)\n")
+        a.append(f"Events with g_e = 1 do not enter the length test: E1 measured the radar at about 2.5 times the gauges in them. Left: {le.event_id.nunique()} events, "
+                 f"{len(le)} link-events, {le.cml_id.nunique()} links ({le[le.L_km < LT['short_km']].cml_id.nunique()} below {LT['short_km']:g} km). "
+                 f"Eligible cells: {len(el)} of {len(rc)}; short links per eligible cell: min {int(el.links_short.min())}, median {el.links_short.median():g}; "
+                 f"events per eligible cell: min {int(el.events.min())}, median {el.events.median():g}. (`{rel(P.E3_ADOPTED_CELLS)}`)\n")
+        a.append(md_table(rc[["band", "class", "R_cell", "link_events", "links", "events", "links_short", "links_long", "eligible"]].round(3)))
+        a.append("\nNot eligible: " + ("; ".join(f"{r.band} {r._2} mm/h ({r.events} events, {r.links_short} short links)" for r in gone.itertuples()) if len(gone) else "none") + ".\n")
     save("\n".join(a) + "\n", P.E3_REPORT)
     print(f"adopted: {adopted}; report: {rel(P.E3_REPORT)}", flush=True)
     if adopted is None:

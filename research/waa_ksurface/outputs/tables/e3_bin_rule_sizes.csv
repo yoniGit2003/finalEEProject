@@ -7,6 +7,8 @@ link_sd_db,0.24104276629353102
 storm_sd_db,0.5924290187062803
 short_links,41
 link_storm_values,539
+l_med_km,2.1125770000000004
+slope_tolerance_db_km,0.07100332910942417
 n_short,5
-adopted_rule,none
+adopted_rule,R2
 links_32GHz_below_1km,0

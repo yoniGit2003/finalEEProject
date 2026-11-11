@@ -164,24 +164,27 @@ def make(D, le, n_cells, sizes, sigma, cfg, seed, memory=True, with_noise=True):
 
 
 # =================================================================================================== the judge
-def judge(cell_tables, cfg, min_reps=None):
+def judge(cell_tables, cfg, min_reps=None, l_med=None):
     """Per cell over the replicates: the median error of I against F_true and of s against P_true, both at the cell's own
-    R_cell. A cell is judged if it is eligible in at least half of the replicates. Returns (table, n_fail, passed)."""
+    R_cell. A cell is judged if it is eligible in at least half of the replicates. Returns (table, n_fail, passed).
+    l_med (km) given: the slope is judged by the absolute rule of Deviation 3, |s - P_true| <= intercept tolerance / l_med
+    (the intercept tolerance applied to the path term of a median link). l_med = None: the first rule (relative), kept so
+    that the E3 diagnostic can be reproduced."""
     rows = []
     for rep, t in enumerate(cell_tables):
         e = t[t.eligible]
         for r in e.itertuples():
             ft, pt = float(f_true(r.R_cell, cfg)), float(p_true(r.band, r.R_cell, cfg))
             rows.append({"rep": rep, "band": r.band, "class": r._2, "cls": r.cls, "R_cell": r.R_cell, "I": r.I, "s": r.s, "F_true": ft, "P_true": pt,
-                         "I_err": r.I - ft, "s_err_rel": (r.s - pt) / pt, "links_short": r.links_short})
+                         "I_err": r.I - ft, "s_err_abs": r.s - pt, "s_err_rel": (r.s - pt) / pt, "links_short": r.links_short})
     if not rows:
         return pd.DataFrame(), 0, False
     a = pd.DataFrame(rows)
     g = a.groupby(["band", "cls", "class"], sort=True)
     out = g.agg(reps=("rep", "size"), R_cell=("R_cell", "median"), F_true=("F_true", "median"), I=("I", "median"), I_err=("I_err", "median"),
-                P_true=("P_true", "median"), s=("s", "median"), s_err_rel=("s_err_rel", "median"), links_short=("links_short", "median")).reset_index()
+                P_true=("P_true", "median"), s=("s", "median"), s_err_abs=("s_err_abs", "median"), s_err_rel=("s_err_rel", "median"), links_short=("links_short", "median")).reset_index()
     out = out[out.reps >= (min_reps or int(np.ceil(len(cell_tables) / 2)))].reset_index(drop=True)
     out["I_ok"] = out.I_err.abs() <= cfg["pass"]["intercept_db"]
-    out["s_ok"] = out.s_err_rel.abs() <= cfg["pass"]["slope_rel"]
+    out["s_ok"] = (out.s_err_rel.abs() <= cfg["pass"]["slope_rel"]) if l_med is None else (out.s_err_abs.abs() <= cfg["pass"]["intercept_db"] / l_med)
     n_fail = int((~(out.I_ok & out.s_ok)).sum())
     return out, n_fail, bool(len(out) > 0 and n_fail <= cfg["pass"]["cells_may_fail"])

@@ -71,6 +71,7 @@ E1_REPORT = REPORTS / "e1_rain_error.md"
 E3_SIZES = TABLES / "e3_bin_rule_sizes.csv"               # measured noise, link spread, n_short, the adopted rule (later steps read it)
 E3_REAL_CELLS = TABLES / "e3_bin_rule_real_cells.csv"     # the plain cells on real data per rule (counts; used only for sigma_link)
 E3_FAKE = TABLES / "e3_bin_rule_fake.csv"                 # the fake test of each rule, per cell
+E3_ADOPTED_CELLS = TABLES / "e3_bin_rule_adopted_real_cells.csv"   # real data under the adopted rule: counts per cell, eligible
 E3_REPORT = REPORTS / "e3_bin_rule.md"
 
 # ---- E2: the candidates (e2_candidates.py) ----------------------------------------------------------------------
