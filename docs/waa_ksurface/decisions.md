@@ -567,3 +567,27 @@ for an accuracy of thousandths of a dB/km. Whether the slope criterion should be
 **The rescue stops here (2026-11-11).** E2 (the candidates) and E4 (the re-measurement of F and P) were not run. Nothing was
 patched. The E2 code (candidates (i)–(iii)) is not written; the libraries `ltest.py` and `fakeworld.py` hold the bin rule,
 the line, the fake world and the E1 error model that E2 needs.
+
+---
+
+# E2–E4 after the E3 stop (2026-11-11, unattended)
+
+## Deviation 3: the slope criterion becomes absolute (2026-11-11, logged before any run)
+
+**What changes.** In the fake tests of E3 and E2 the slope criterion "within 20 % of the true slope" is replaced by an
+absolute tolerance:
+
+    |s − P_true| <= 0.15 dB / L_med
+
+L_med = the median length of the links in the TRAIN length-test dataset (the distinct links of 28 and 38 GHz in the events
+with a gauge ratio). It is computed and recorded below, before the re-evaluation. No other rule changes: the intercept
+tolerance stays 0.15 dB, "all judged cells but at most one" stays, the two bin rules and their order stay, the E2 candidates
+and the E1 error model stay.
+
+**Reason.** A relative tolerance is undefined for slopes near zero. In the E3 diagnostic it failed with neither memory nor
+noise, on errors of 0.01–0.07 dB/km, because the true slope below 1 mm/h is only 0.013–0.14 dB/km. The absolute form is the
+intercept tolerance (0.15 dB) applied to the path term L·s of a median link, so the intercept and the slope are held to one
+standard.
+
+**This is a choice made after seeing a result** (the E3 fake test and its diagnostic), which is why it is a deviation. The
+E3 numbers already seen: under R2 the largest absolute slope error was 0.065 dB/km and no intercept was outside.
