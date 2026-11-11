@@ -166,3 +166,25 @@ summer and blanks the minutes inside VAL and TEST events (Part 1 behaviour, unch
 **Environment note.** Without the conda env activated, `numpy.linalg.lstsq` crashed natively (Windows exception 0xc06d007f, a
 DLL that fails to load). Every script of the branch is therefore run with the env folders (`Library\bin` etc.) first on PATH,
 which is what `conda activate cmlpipe` does. No code was changed for this.
+
+## Step A2: theory note (2026-11-11)
+
+**Question served.** Q2 (what is k?): the note fixes what k means, when the rewrite dW/dt = k·(a_link·F − W) is exact, and
+what the one-state model cannot represent, before any k is fitted.
+
+**What.** Write `docs/waa_ksurface/theory.md` (no code).
+
+**Why.** The claim "k·(F − W) is a rewrite, not an assumed form" holds only under stated conditions. They must be written
+before the fits, so that a later result (for example a k that falls towards the target) is read against a condition fixed
+in advance and not explained after the fact.
+
+**Pass rule (2026-11-11).** The note covers every item of rule A2: the one-state assumption; the steady state and the sign
+conditions; the factorization with its exact conditions and the degenerate case; the wetting / drying split and the jump of
+k; where a_link enters; constant k = the Part 1 fast store, the two-store model not a special case; the list of what is
+assumed and what is not.
+
+**Result (2026-11-11).** `docs/waa_ksurface/theory.md` written: 10 sections, every item of rule A2 covered (sections 2, 3, 4,
+5, 6, 8, 10). One choice is made explicit there: k is evaluated at the link's own W (dB), not at W / a_link, as rule A5
+writes it; the two differ only when k depends on W.
+
+**Verdict.** PASS.
