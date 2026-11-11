@@ -636,3 +636,47 @@ cells are eligible. Per eligible cell: short links min 7, median 17; events min 
 - **The error-size sweep (asked for in the E2–E4 instructions):** every candidate is also run with the whole rain error
   scaled by f = 0, 0.25, 0.5, 0.75 (per-bin sd f·0.48, scale part f·0.43), to report the largest rain error at which it
   still passes. f = 1 is the σ_lo run. Report only; it does not change the adoption rule.
+
+**Result of E2 (2026-11-11).** Script `research/waa_ksurface/e2_candidates.py` (library `candidates.py`), report
+`outputs/reports/e2_candidates.md`. Fake data only: 4 563 link-events, 187 links, 14 events; rule R2; n_short = 5; 5
+replicates.
+
+| candidate | low end (σ = 0.48): cells inside / judged | high end (σ = 0.87) | largest intercept error at the low end | passes |
+|---|---|---|---|---|
+| (i) gauge-ratio events, plain | 2 / 11 | 0 / 0 | 0.52 dB | no |
+| (ii) instrument binning (area-mean radar) | 6 / 8 | 0 / 0 | 0.17 dB | no |
+| (iii) forward-bias correction | 3 / 11 | 0 / 0 | 0.80 dB | no |
+
+- **At the high end no cell can be judged for any candidate.** The steady-rain rule R2 asks for 30 min of rain within a
+  factor 1.5; with a per-bin rain error of sd 0.87 the observed rain almost never stays that close. One fake replicate keeps
+  136 steady bins (8 539 without rain error, 1 285 at the low end) and has no eligible cell.
+- **(i) at the low end:** the intercept is too high by 0.28–0.52 dB from 0.2 to 2 mm/h in both bands and by 0.17 dB at
+  38 GHz 2–5 mm/h (9 cells outside). The rule keeps the bins whose noisy rain happened to look steady, and their true rain is
+  on average not what the class says.
+- **(ii) at the low end:** intercepts within 0.14 dB except 38 GHz 2–5 mm/h (+0.17 dB), but only 8 cells can be judged (no
+  5–10 mm/h cell), and the slope is too low at 2–5 mm/h in both bands (−0.12 and −0.16 dB/km). It fails already WITHOUT rain
+  error (6 of 10 cells): the slopes at 1–5 mm/h are too low by 0.08–0.11 dB/km. The links of one event do not share one
+  rain, so sorting by the area mean mixes links with different rain, and part of the path term is lost.
+- **(iii) at the low end:** the correction does not converge to the truth: errors from −0.21 to +0.80 dB (8 cells outside).
+  With the steady rule this strict and the rain error this large, each simulated test keeps few bins, so the correction
+  chases noise.
+
+**The largest rain error at which each candidate still passes** (the whole error scaled by f; f = 1 is the low end):
+
+| candidate | f = 0 | f = 0.25 | f = 0.5 | f = 0.75 | largest error passed |
+|---|---|---|---|---|---|
+| (i) | 12 / 12 | 11 / 12 | 8 / 12 | 4 / 12 | f = 0.25: per-bin sd 0.12, scale part 0.11 |
+| (ii) | 6 / 10 | 8 / 10 | 7 / 10 | 8 / 10 | none (fails without rain error) |
+| (iii) | 12 / 12 | 12 / 12 | 11 / 12 | 6 / 12 | f = 0.5: per-bin sd 0.24, scale part 0.21 |
+
+The measured radar error (per-bin sd 0.48–0.87, scale part 0.43) is two to four times larger than what the best candidate
+can take.
+
+**Verdict.** STOP at E2 (rule: "if none passes, STOP and report which cells fail and why"). No candidate is adopted. **E4
+was not run**; the per-link residual criterion was therefore not written and the spread not computed for it. Nothing was
+patched.
+
+**What this means for Q1 (can F and P be trusted?).** With radar as the rain input, at 5 min and with the radar error
+measured in E1, the length test of this branch cannot return F(R) to 0.15 dB. This holds for the plain test, for area-mean
+binning and for the forward correction as designed here. The A3a intercepts (superseded) and the E3 real cells carry this
+error and its size is not known cell by cell.

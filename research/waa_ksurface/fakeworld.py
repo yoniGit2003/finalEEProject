@@ -134,9 +134,11 @@ def rain_error(le, n_cells, sigma, cfg, rng, scale_sd=None):
 
 
 # =================================================================================================== a fake dataset
-def make(D, le, n_cells, sizes, sigma, cfg, seed, memory=True, with_noise=True):
+def make(D, le, n_cells, sizes, sigma, cfg, seed, memory=True, with_noise=True, scale_sd=None):
     """A fake dataset on the link-events of D: known F and P, one store with memory, measured noise, the E1 rain error.
-    Returns the dataset as the length test reads it (r5 = OBSERVED rain, y5 = fake A, c = 0) and keeps the true rain."""
+    Returns the dataset as the length test reads it (r5 = OBSERVED rain, y5 = fake A, c = 0) and keeps the true rain.
+    sigma = the per-bin sd of the rain error; scale_sd = the scale part per link-event (default: the config value; with
+    sigma = 0 there is no rain error at all)."""
     rng = np.random.default_rng(seed)
     T = cfg["truth"]
     n5 = D["le_n"] // 5
@@ -153,7 +155,7 @@ def make(D, le, n_cells, sizes, sigma, cfg, seed, memory=True, with_noise=True):
     if with_noise:
         link_off = rng.normal(0, sizes["link_sd_db"], D["nl"])[D["le_link"]]
         y = y + sizes["white_sd_db"] * rng.standard_normal(len(y)) + (rng.normal(0, sizes["offset_sd_db"], len(le)) + link_off)[rep]
-    err = rain_error(le, n_cells, sigma, cfg, rng, scale_sd=None if sigma > 0 else 0.0) if sigma > 0 else np.zeros(len(y))
+    err = rain_error(le, n_cells, sigma, cfg, rng, scale_sd=scale_sd) if sigma > 0 else np.zeros(len(y))
     Dk = dict(D)
     Dk["r_true"] = r_true
     Dk["r5"] = r_true * np.exp(err)
