@@ -78,3 +78,14 @@ fake:                                           # the fake world (decisions.md, 
   seed: 700
   pass: {intercept_db: 0.15, slope_rel: 0.20, cells_may_fail: 1}
   correction: {iterations: 4, sims: 4, shrink_min: 0.2}   # candidate (iii)
+
+t1:                                             # the conditional rain error (decisions.md, step T1)
+  min_label_mmh: 1.0                            # windows with a radar label below this are not used (the gauge resolves too little)
+  shared_share: 0.46                            # E1: share of the radar error shared in space
+  min_windows: 30                               # (a) needs at least this many used windows
+  min_events: 5                                 #     in at least this many events
+  boot_reps: 200
+  seed: 511
+  interval: [5, 95]
+  count_grid: [0.0, 0.05, 0.1, 0.2, 0.3, 0.48]  # (b) added per-bin error sd
+  count_reps: 3

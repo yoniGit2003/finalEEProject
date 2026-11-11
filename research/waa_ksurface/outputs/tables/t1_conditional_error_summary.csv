@@ -1,0 +1,3 @@
+set,windows_label_ge_min,dropped_gauge_zero,windows,events,sd_total,median_d,sigma_ev,sigma_w,sigma_cond,sigma_shared
+steady windows,175,3,172,8,0.50054,0.20042,0.44852,0.30082,0.22106,0.20403
+all windows (reference),4280,183,4097,13,0.78589,0.10096,0.35905,0.71017,0.52186,0.48166

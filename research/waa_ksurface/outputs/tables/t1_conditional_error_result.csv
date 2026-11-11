@@ -1,0 +1,13 @@
+quantity,value
+sigma_c_lo,0.18212439371366757
+sigma_c_hi,0.256489515488226
+sigma_cond (point),0.22105554286292337
+sigma_shared (point),0.20402502748616316
+sigma_ev (point),0.4485241859788928
+sigma_w (point),0.3008184915711655
+sd_total,0.5005441792850002
+median_d,0.20041873015870607
+windows,172
+events,8
+fast_error_upper_bound (constant truth),0.5091304479438336
+source,"(a) steady windows at the gauges, event bootstrap"

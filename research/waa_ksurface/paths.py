@@ -89,3 +89,11 @@ E4_VS_A3 = TABLES / "e4_remeasure_vs_a3.csv"              # the new F against th
 E4_FIG = FIGURES / "e4_remeasure_F_P.png"
 E4_FIG_LINKS = FIGURES / "e4_remeasure_link_residuals.png"
 E4_REPORT = REPORTS / "e4_remeasure.md"
+
+# ---- T1: the conditional rain error (t1_conditional_error.py) ---------------------------------------------------
+T1_SUMMARY = TABLES / "t1_conditional_error_summary.csv"       # (a) sd of ln(label / gauge) and its split, steady and all windows
+T1_BY_CLASS = TABLES / "t1_conditional_error_by_class.csv"     # (a) per label class
+T1_WINDOWS = TABLES / "t1_conditional_error_windows.csv"       # (a) every used steady window
+T1_COUNTS = TABLES / "t1_conditional_error_counts.csv"         # (b) steady bins against the added per-bin error
+T1_RESULT = TABLES / "t1_conditional_error_result.csv"         # THE result: sigma_c_lo, sigma_c_hi and the parts (T3 reads it)
+T1_REPORT = REPORTS / "t1_conditional_error.md"

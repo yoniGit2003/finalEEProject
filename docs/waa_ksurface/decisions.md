@@ -730,3 +730,88 @@ the second reading of (b), with its caveat, and σc_lo = 0.
 
 **Pass rule (2026-11-11).** T1 is a measurement. It passes if (a) returns [σc_lo, σc_hi] from at least 30 windows in at least
 5 events, or the fallback (c) is used and said so.
+
+**Result of T1 (2026-11-11).** Script `research/waa_ksurface/t1_conditional_error.py`, report
+`outputs/reports/t1_conditional_error.md`.
+
+- **(a)** 175 steady windows with a label >= 1 mm/h at the 10 City gauges; 3 dropped for a zero gauge; **172 used, in 8 of
+  the 14 events.** sd of ln(label / gauge) = 0.50 (median +0.20: the label is about 22 % above the gauge).
+  - per-event scale part σ_ev = **0.45** (between events; it is there although the radar is already divided by g_e);
+  - within events σ_w = 0.30, of which shared in space √0.46·σ_w = 0.20 and **link-independent σ_cond = √0.54·σ_w = 0.22**;
+  - **[σc_lo, σc_hi] = [0.18, 0.26]** (200 event draws).
+  - Reference, every 35 min window with a label >= 1 mm/h (4 097 windows, 13 events): sd 0.79, within events 0.71. **The
+    steadiness rule cuts the within-event error from 0.71 to 0.30.**
+  - By class the sd is 0.59 (1–2 mm/h, 57 windows), 0.62 (2–5, 38 windows), 0.24 (5–10, 77 windows in 4 events). Not
+    measured below 1 mm/h.
+- **(b)** Real data: 8 551 steady bins in 14 events. With the observed radar as the truth and a per-bin error added, the
+  count falls to 96 % (sd 0.05), 87 % (0.10), 64 % (0.20), 43 % (0.30), 18 % (0.48). **Caveat, verbatim: the σ that matches
+  the real count is an EFFECTIVE bound, biased low because the fake truth (the observed radar) already carries error.** The
+  match is at 0 by construction. Second reading: 2.5 % of the rainy bins with 30 min of history are steady; a perfectly
+  constant rain gives that share at a per-bin sd of 0.51. This upper bound is too loose to be of use (most rain is simply
+  not steady).
+- (c) not needed: (a) is computable (172 windows, 8 events).
+
+**Verdict.** PASS (a measurement). [σc_lo, σc_hi] = [0.18, 0.26] for the link-independent window-level part; shared part
+0.17–0.24 (the same ratio); per-event scale part 0.45. **Limits: 8 events; nothing below 1 mm/h; the gauge's own error is
+inside these numbers.**
+
+## Steps T2 and T3: candidate (iv), and E2 rerun at the conditional error (2026-11-11, written before any run)
+
+**Question served.** Q1.
+
+### The rain error of the T3 fake world for candidates (i), (ii), (iii)
+
+The fake world of E3 / E2 is kept (links, events, true rain = the observed rain input, F_true = 3·R / (R + 2), P_true =
+0.1·R and 0.2·R, one store with 5 / 15 min, the measured noise, rule R2, n_short = 5, 5 replicates, Deviation 3 criteria).
+Only the rain error changes, to the one T1 measured for steady windows:
+
+    ln(R_obs / R_true) = E_event + c_t + e_link,t      (shifted so that the mean of R_obs / R_true is one)
+
+- E_event: one value per event, shared by all its links, sd σ_ev = 0.45.
+- e_link,t: the link's own part, sd σ_c / √n_cells, σ_c = σc_lo = 0.18 and σc_hi = 0.26 (the two ends of the range).
+- c_t: shared by all links of the event at one time, sd √(0.46 / 0.54)·σ_c (0.17 and 0.24).
+- c and e change slowly: AR(1) per 5 min bin with ρ = 0.9^(1/6) = 0.983, so that the error is 0.9-correlated over the 30 min
+  of a window. Reason: T1 measured the error of a window label, and an error that jumped inside a window would break the
+  steadiness that defines the window.
+- No extra fast per-bin error. Reason (the T1b caveat): the fake truth is the observed radar, which already carries the
+  radar's fast error; adding more only removes steady windows that the real data do have.
+- Candidate (iii) is given this model (it knows the sizes, not the truth). Its stand-in for the true rain shrinks at three
+  levels: bins about the link-event mean, link-event means about the event mean, event means about the overall mean, each by
+  the share of the variance that the model's error explains (floor 0.2).
+
+### Candidate (iv): the gauge-binned length test (T2)
+
+- Links: the TRAIN link-events of 28 and 38 GHz whose link has a City gauge within 1 km of its path (the pairing of the
+  data layer), in ALL TRAIN events. Reason for all events: this test never uses the radar, so the g_e = 1 exclusion (a radar
+  problem) does not apply to it.
+- Gauge series: 5 min means of the gauge's 1 min rates (all 5 minutes valid).
+- Window: the 30 min before a bin plus the bin (7 bins). Label = the mean gauge rate of the 7 bins; it must lie in a class.
+- **Steadiness with the written rule for zeros and steps:** the 30 min before the bin are cut into three 10 min means a, b,
+  c. The window is steady if max(a, b, c) − δ <= 1.5·(min(a, b, c) + δ), where δ is one gauge step in a 10 min rate
+  (0.6 mm/h for a 0.1 mm weighing gauge, 1.2 mm/h for a 0.2 mm tipping bucket). Reason: a gauge reports whole steps, so two
+  10 min sums of the same rain can differ by a step; single zero minutes are absorbed in the sums, and a 10 min sum of zero
+  passes only if the others are within one step of zero. Known consequence, stated now: below about 1 mm/h the rule passes
+  almost every window, so there the gauge cannot show steadiness.
+- Line and eligibility: as E3 (Huber line over the links' lengths; values from >= 5 events; >= 5 links below 1 km and >= 5 of
+  1 km or more). **If the floor of 5 short links leaves no eligible cell on real data: report the counts and the floor at
+  which cells would exist, and STOP for this candidate. The floor is not lowered here.**
+- **Its fake world:** the same truth, memory and noise; the fake gauge rate = the true path rain × exp(e_own + e_rep),
+  then turned into whole gauge steps (running total, 0.1 or 0.2 mm).
+  - e_own: the gauge's own error, white per 5 min bin, sd 0.32·√3 = 0.55, so that a 15 min mean has the E1 value 0.32.
+  - e_rep: point-vs-path representativeness, AR(1) with ρ = 0.35. **Rule for the link length:** E1 gave a variogram that
+    rises linearly with distance, slope s = 0.17² / 1.04 km = 0.028 per km (the point-vs-pixel sd 0.17 over the mean
+    distance 1.04 km). For a gauge at distance d from a path of length L the variance between the point and the path mean is
+    taken as s·(d + L / 3): d to reach the path, L / 3 the mean distance between two random points of the path. sd at
+    15 min = √(s·(d + L / 3)), per bin = that / √0.516 (the E1 factor).
+  - Normal end: as above. **Pessimistic end: the representativeness sd doubled.**
+  - The steps are applied on top of e_own, which already holds some step error: conservative.
+
+### T3: verdicts per cell, and the adoption rule (written before running)
+
+- A cell of a candidate is **valid** if it is judged (eligible in at least 3 of the 5 replicates) at BOTH ends and its
+  fake-world intercept error (<= 0.15 dB) and slope error (<= 0.0710 dB/km) are inside tolerance at BOTH ends. The ends are
+  σc_lo and σc_hi for (i), (ii), (iii), and normal and doubled representativeness for (iv).
+- **Adoption: the single candidate with the most valid cells, if it has at least 8 valid cells of which at least 3 lie
+  below 2 mm/h (classes 0.1–0.2, 0.2–0.5, 0.5–1, 1–2). Ties are broken by the narrower bootstrap intervals of F on real
+  data. No mixing of candidates per cell. If no candidate qualifies: go to T4.**
+- If a candidate is adopted, F and P are taken only from its valid cells.
