@@ -1,0 +1,12 @@
+quantity,value
+white_sd_db,0.05426936337115968
+white_link_events,4361
+offset_sd_db,0.13586654481538077
+offset_link_events,4547
+link_sd_db,0.24104276629353102
+storm_sd_db,0.5924290187062803
+short_links,41
+link_storm_values,539
+n_short,5
+adopted_rule,none
+links_32GHz_below_1km,0

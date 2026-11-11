@@ -506,3 +506,64 @@ passes: STOP.**
 fewer than 14 cells are eligible: in all eligible cells but at most one), at BOTH σ_lo and σ_hi. The simplest passing
 candidate is adopted; if several pass, the one with the narrowest F intervals on real data; **if none passes, STOP** and
 report which cells fail and why.
+
+**Result of E3 (2026-11-11).** Script `research/waa_ksurface/e3_bin_rule.py`, report `outputs/reports/e3_bin_rule.md`.
+4 563 TRAIN link-events of 187 links in the 14 events with a gauge ratio.
+
+- Sizes measured on real data: white noise of a 5 min value 0.054 dB; offset error of a link-event 0.136 dB; between-link sd
+  of the short links' residuals 0.241 dB (41 links); storm-to-storm sd inside a link 0.592 dB.
+- n_short = max(5, ceil((0.241 / 0.15)²)) = **5** (the floor decides: the formula alone gives 3).
+- 32 GHz has 0 links below 1 km: no eligible cell by rule 6, so it stays excluded from the branch for every model.
+- **Fake test of the bin rules (memory and noise, NO rain error): both rules FAIL.**
+  - R1 (20 min, factor 2): 14 cells judged, 7 outside. The intercept is too high in every cell but one (+0.05 to +0.17 dB);
+    3 cells exceed 0.15 dB (28 GHz 0.5–1 and 2–5 mm/h, 38 GHz 10–20 mm/h). The slope is outside ±20 % in 5 cells, all below
+    1 mm/h, all too low (−25 % to −104 %).
+  - R2 (30 min, factor 1.5): 12 cells judged (the two 10–20 mm/h cells are no longer eligible), 4 outside. Every intercept
+    is inside ±0.15 dB (largest +0.13 dB). The 4 failures are slopes below 1 mm/h (−79 %, −53 %, +49 %, +77 %).
+  - The failing slopes are small numbers: the true slope there is 0.013–0.14 dB/km, so the errors are 0.01–0.07 dB/km.
+
+**Verdict.** STOP at E3 (rule: "If neither rule passes: STOP"). E2 and E4 are not run. Nothing is patched.
+
+### The one diagnostic allowed after the failed check (2026-11-11, written before it is run)
+
+**What.** The same fake test for R1 and R2 with the two ingredients of the fake world switched on and off: memory (the store)
+on / off, noise (white noise, offset error, link offset) on / off; still no rain error. 5 replicates per combination
+(`e3_diagnostic.py`).
+
+**Why.** To locate the cause of (1) the intercept that is too high and (2) the slope errors in light rain: the memory of
+the store (the bin is still entered from heavier rain more often than from lighter rain, and drying is slower than
+wetting), the noise, or the method itself (a class holds a range of R while the cell is placed at one R_cell; with neither
+memory nor noise only this is left). Nothing is changed on the basis of this diagnostic; the rescue stops after it.
+
+**Result of the diagnostic (2026-11-11).** `outputs/reports/e3_diagnostic.md`, 5 replicates per row, no rain error.
+
+| rule | memory | noise | cells | cells outside | median intercept error (dB) | intercepts outside | slopes outside | largest slope error (dB/km) |
+|---|---|---|---|---|---|---|---|---|
+| R1 | on | on | 14 | 7 | +0.10 | 3 | 5 | 0.10 |
+| R1 | on | off | 14 | 1 | +0.08 | 0 | 1 | 0.10 |
+| R1 | off | on | 14 | 4 | +0.03 | 1 | 3 | 0.13 |
+| R1 | off | off | 14 | 1 | 0.00 | 1 | 0 | 0.14 |
+| R2 | on | on | 12 | 4 | +0.07 | 0 | 4 | 0.06 |
+| R2 | on | off | 12 | 5 | +0.04 | 0 | 5 | 0.07 |
+| R2 | off | on | 12 | 4 | +0.03 | 0 | 4 | 0.05 |
+| R2 | off | off | 12 | 5 | 0.00 | 0 | 5 | 0.06 |
+
+- **The intercept.** The method itself is unbiased (median 0.00 dB without memory and noise). The memory of the store lifts
+  the intercept by about 0.07 dB under R1 and 0.04 dB under R2: even with a symmetric band a bin is still more often entered
+  from heavier rain, and the store dries more slowly than it wets. The noise adds about 0.03 dB. Together they reach
+  +0.10 dB under R1, and three cells cross 0.15 dB. Under R2 no intercept is outside in any combination.
+- **The slope in light rain.** Under R2 four or five slopes are outside ±20 % in every combination, also with neither memory
+  nor noise. So this failure is not caused by the bin rule, the memory or the noise. The errors are 0.01–0.07 dB/km in
+  absolute size; they fail because the true slope below 1 mm/h is itself only 0.013–0.14 dB/km, so 20 % of it is a few
+  thousandths of a dB/km. A probable mechanism, not tested further (one diagnostic only): inside one rain class the links'
+  R differs a little with their length, and in light rain F changes fast with R, so a small part of F leaks into the slope.
+- The one cell that fails without memory and noise under R1 is 38 GHz 10–20 mm/h (intercept +0.22 dB, 6 short links).
+
+**What this says about the stop.** Neither rule passes the criterion as written. Under R2 the intercept (the quantity F is
+taken from) is inside the tolerance in every cell; what fails is the relative slope criterion in light rain, where it asks
+for an accuracy of thousandths of a dB/km. Whether the slope criterion should be absolute in light rain, or whether P below
+1 mm/h should be declared not measurable, is a decision for the review. It is not taken here.
+
+**The rescue stops here (2026-11-11).** E2 (the candidates) and E4 (the re-measurement of F and P) were not run. Nothing was
+patched. The E2 code (candidates (i)–(iii)) is not written; the libraries `ltest.py` and `fakeworld.py` hold the bin rule,
+the line, the fake world and the E1 error model that E2 needs.

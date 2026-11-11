@@ -46,3 +46,35 @@ e1:                                             # the radar rain error (rules da
   pairs_fit_max_km: 8.0                         # the line through the semivariance uses the pairs up to this separation
   pixel_mean_distance_km: 1.04                  # mean distance between two random points of a 2 km square (0.5214 x 2)
   scale_min_gauge_mm: 1.0                       # an event (or a gauge in an event) enters the scale part with at least this much gauge rain
+
+ltest:                                          # the length test of this branch (derived in decisions.md, step E3; nothing from Part 1)
+  class_edges_mmh: [0.1, 0.2, 0.5, 1, 2, 5, 10, 20]   # equal steps in log R (1-2-5 series)
+  rules:                                        # steady rain: every bin of the t_pre_min before the bin within [R / q, R * q]
+    R1: {t_pre_min: 20, q: 2.0}                 # tried first (keeps more data)
+    R2: {t_pre_min: 30, q: 1.5}
+  huber_k: 1.345                                # standard constant: 95 % efficiency for normal errors
+  min_events: 5                                 # a cell is fitted with values from at least this many events
+  short_km: 1.0                                 # the shortest length class of the data layer
+  n_short_floor: 5                              # n_short = max(this, ceil((sigma_link / tolerance)^2))
+  tolerance_db: 0.15                            # the intercept tolerance of the fake tests
+  boot_reps: 200
+  seed: 95
+  interval: [5, 95]
+
+fake:                                           # the fake world (decisions.md, steps E3 and E2): generic truth, round numbers
+  truth:
+    f_top_db: 3.0                               # F_true = 3 R / (R + 2) dB
+    f_half_mmh: 2.0
+    p_per_mmh: {"28 GHz": 0.1, "38 GHz": 0.2}   # P_true = 0.1 R and 0.2 R dB/km
+    tau_wet_min: 5.0                            # one store: 5 min while W is below its target,
+    tau_dry_min: 15.0                           #            15 min while above
+  rain_error:                                   # the E1 measurement (outputs/tables/e1_rain_error_synthesis.csv)
+    sigma_lo: 0.48
+    sigma_hi: 0.87
+    scale_sd: 0.43                              # scale part left after g_e, per link-event
+    shared_share: 0.46                          # share of the per-bin variance shared by all links at one time
+    rho: 0.35                                   # lag-1 correlation of the per-bin parts
+  reps: 5
+  seed: 700
+  pass: {intercept_db: 0.15, slope_rel: 0.20, cells_may_fail: 1}
+  correction: {iterations: 4, sims: 4, shrink_min: 0.2}   # candidate (iii)

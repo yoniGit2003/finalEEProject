@@ -66,3 +66,25 @@ E1_SYNTHESIS = TABLES / "e1_rain_error_synthesis.csv"     # (d) THE result: sigm
 E1_FIG_PAIRS = FIGURES / "e1_rain_error_gauge_pairs.png"
 E1_FIG_REVERSAL = FIGURES / "e1_rain_error_reversal.png"
 E1_REPORT = REPORTS / "e1_rain_error.md"
+
+# ---- E3: the bin definitions (e3_bin_rule.py; libraries ltest.py, fakeworld.py) ---------------------------------
+E3_SIZES = TABLES / "e3_bin_rule_sizes.csv"               # measured noise, link spread, n_short, the adopted rule (later steps read it)
+E3_REAL_CELLS = TABLES / "e3_bin_rule_real_cells.csv"     # the plain cells on real data per rule (counts; used only for sigma_link)
+E3_FAKE = TABLES / "e3_bin_rule_fake.csv"                 # the fake test of each rule, per cell
+E3_REPORT = REPORTS / "e3_bin_rule.md"
+
+# ---- E2: the candidates (e2_candidates.py) ----------------------------------------------------------------------
+E2_FAKE = TABLES / "e2_candidates_fake.csv"               # every candidate, sigma and cell: truth, estimate, errors
+E2_VERDICT = TABLES / "e2_candidates_verdict.csv"         # per candidate and sigma: cells inside, verdict
+E2_FIG = FIGURES / "e2_candidates_fake.png"
+E2_REPORT = REPORTS / "e2_candidates.md"
+
+# ---- E4: F(R) and P(R) re-measured (e4_remeasure.py) -------------------------------------------------------------
+E4_CELLS = TABLES / "e4_remeasure_cells.csv"              # per band and class: value, bootstrap interval, error-range interval
+E4_CURVES = TABLES / "e4_remeasure_curves.csv"            # F and P per band on a dense R grid (THE product, after review)
+E4_LINKS = TABLES / "e4_remeasure_link_residuals.csv"     # per link: mean residual, number of storms
+E4_LINK_TEST = TABLES / "e4_remeasure_link_test.csv"      # the per-link factor criterion
+E4_VS_A3 = TABLES / "e4_remeasure_vs_a3.csv"              # the new F against the superseded A3a values
+E4_FIG = FIGURES / "e4_remeasure_F_P.png"
+E4_FIG_LINKS = FIGURES / "e4_remeasure_link_residuals.png"
+E4_REPORT = REPORTS / "e4_remeasure.md"

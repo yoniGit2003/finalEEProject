@@ -14,6 +14,7 @@ from research.wet_antenna import system_id as sid
 from research.wet_antenna.event_factors import rescaled
 from research.waa_ksurface import paths as P
 
+import numpy as np
 import pandas as pd
 
 CFG1 = load_config()                                           # Part 1 settings (read only)
@@ -70,3 +71,15 @@ def branch_train(d=None):
     le_b = le[keep].reset_index(drop=True)
     D0b = sid.subset(D0, keep)
     return D0b, rescaled(D0b, le_b, g_map()), le_b, BANDS
+
+
+def gauge_ratio_train(d=None):
+    """(D, le, n_cells): the branch TRAIN link-events of the events WITH a gauge ratio (rain = radar / g_e), and the number of
+    radar cells along the link of every link-event (data layer: links table, column n_cells)."""
+    d = d or open_release()
+    _, D1, le, _ = branch_train(d)
+    g = g_table()
+    keep = le.event_id.isin(set(g[g.path_used].event_id)).to_numpy()
+    le_g = le[keep].reset_index(drop=True)
+    n_cells = le_g.cml_id.map(d.links().set_index("cml_id").n_cells).to_numpy(float)
+    return sid.subset(D1, keep), le_g, np.maximum(n_cells, 1.0)
