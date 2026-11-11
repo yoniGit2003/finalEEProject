@@ -1,6 +1,6 @@
 # Data guide: openmrg v1
 
-Generated from `catalog.json` (code 211f942743ac, built 2026-10-02T17:42:28Z). Column-level
+Generated from `catalog.json` (code fde431c39052, built 2026-11-11T09:24:19Z). Column-level
 details: `DATA_DICTIONARY.md`. Methods: `pipeline/docs/methods.md` in the repository.
 **Licence:** CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/), derived from OpenMRG (Andersson et al. 2022, https://doi.org/10.5281/zenodo.7107689); see LICENSE.txt.
 

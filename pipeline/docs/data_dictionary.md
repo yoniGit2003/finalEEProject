@@ -1,6 +1,6 @@
 # Data dictionary: openmrg v1
 
-Generated 2026-10-02T17:42:28Z from catalog.json (code 211f942743ac91f118c4bbcf3e65b5484d43f7ea). Conventions:
+Generated 2026-11-11T09:24:19Z from catalog.json (code fde431c39052ea40a10793e3f2b94f57173ab072). Conventions:
 
 - **time**: UTC, tz-naive; every value is labelled by the START of its interval [t, t + dt) ('interval_start'); radar stamps are instants assigned to [t, t + 5 min)
 - **keys**: cml_id (int, link); sublink_id (str '<cml_id>_<1|2>'; sub-link 1 transmits site_0 -> site_1); gauge_id (City station name or 'GbgA'); event_id ('E' + start, e.g. E20150728_1455); run_id ('<event_id>_Rnn')
