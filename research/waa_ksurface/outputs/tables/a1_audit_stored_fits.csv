@@ -1,0 +1,6 @@
+model,path,loads,content
+Schleiss b,research/wet_antenna/outputs/products/literature_s8c_fits.json,True,"shape [309.236952, 76.92152], amp per band, c_band, a_link of 206 links"
+Pastorek b,research/wet_antenna/outputs/products/literature_s8c_fits.json,True,"shape [0.566297], amp per band, c_band, a_link of 206 links"
+Part 1 equation,research/wet_antenna/outputs/products/waa_equation_final.json,True,"every number of the equation, a_link of 206 links"
+no memory (B2 of S8),research/.cache/wet_antenna/test_s8/fit_B2.pkl,False,MISSING: the Part 1 fit cache is not on this machine; only its sha256 and its error numbers are committed
+no WAA (B0 of S8),research/.cache/wet_antenna/test_s8/fit_B0.pkl,False,MISSING: the Part 1 fit cache is not on this machine; only its sha256 and its error numbers are committed

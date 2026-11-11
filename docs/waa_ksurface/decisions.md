@@ -109,3 +109,60 @@ and `research.baseline`. Also, `data_processed/` was not git-ignored, so its lar
 
 **Verdict.** Fail on task 4 (the cache cannot be fetched). Per the stop rule this is reported and not patched. Every other
 task passes.
+
+---
+
+# Block A (2026-11-11, unattended)
+
+## Step A0: rules frozen (2026-11-11)
+
+The core idea, the Block A rules A1–A6 and the Block B rules B1–B6 were written to `plan.md` and committed as `f8f076f`
+(2026-11-11 12:49 +02:00), before any analysis.
+
+## Step A1: data audit and reproduction gate (2026-11-11)
+
+**Question served.** Q1 (can F and P be trusted?): F and P come from the length test on the Part 1 TRAIN dataset, so the
+dataset and the test must first be shown to be the same as in Part 1.
+
+**What.**
+- (a) Rebuild the Part 1 TRAIN dataset with the Part 1 code (`system_id.build_dataset`, called exactly as
+  `system_id_s3.dataset` calls it: bands from `merged_bands`, all link lengths, `event_split="train"`), saved in
+  `research/.cache/waa_ksurface/`.
+- (b) Run the Part 1 length test (`length_test.steady_table` + `length_fits`, config `system_id_s3.length_test`) on TRAIN, for
+  both rain inputs (V0 = radar, V1 = radar / g_e), and compare I and s with the TRAIN rows of
+  `research/wet_antenna/outputs/tables/final_s5a_length_test.csv`.
+- (c) Count the TRAIN data. (d) Locate the stored comparison fits. (e) Apply the 32 GHz rule.
+
+**Why.** The fit cache with the Part 1 datasets is missing, so the dataset is rebuilt. A rebuilt dataset that differs from
+Part 1 would make every later number incomparable with Part 1 (statistical reason: same sample).
+
+**Pass rule (2026-11-11).** (a) exactly 206 links and 9 780 TRAIN link-events, else STOP. (b) every I and s within 0.01 dB
+(dB/km) of the stored value, else STOP. (c), (d): report. (e) 32 GHz is excluded from the branch if it has no eligible cell.
+
+**Note on isolation.** The branch settings go in `research/waa_ksurface/config.yaml`, not in `research/config.yaml`, because
+files outside the branch folders must not change. `build_dataset` loads the 1 min store of the kept sub-links for the whole
+summer and blanks the minutes inside VAL and TEST events (Part 1 behaviour, unchanged); no VAL or TEST link-event is built.
+
+**Result (2026-11-11).** Script `research/waa_ksurface/a1_audit.py`, report `research/waa_ksurface/outputs/reports/a1_audit.md`.
+- (a) **PASS.** 206 links, 9 780 TRAIN link-events (51 events). Every row of the selection funnel equals the Part 1 funnel.
+- (b) **PASS.** The stored table holds 15 TRAIN cells (input V1 = radar / g_e). Largest difference: I 0.00005 dB, s 0.00005
+  dB/km, interval ends 0.00005 (rounding of the stored table).
+- Steady-rain 5 min value (Part 1): a 5 min bin with valid A (3 of 5 minutes) and radar, R in a rain class, the 20 min before
+  it all wet (R >= 0.3 mm/h), and the mean R of the 15 min before it within 0.5–2 times the bin's R. Per link-event and class:
+  the median of (A − c) and of R.
+- Eligible cell (Part 1): a band x rain-class cell with at least 10 link-event values and 3 distinct lengths (so it is
+  fitted), and at least 8 distinct links shorter than 1 km.
+- (c) Counts: in the report. Gauge-input set: 50 links, 2 425 link-events (18 links and 749 link-events below 1 km). Gauge
+  ratio used in 14 events (5 047 link-events); g_e = 1 in 37 events (4 733 link-events).
+- (d) Schleiss b, Pastorek b (`literature_s8c_fits.json`) and the Part 1 equation (`waa_equation_final.json`) load, each with
+  the a_link of 206 links. **The no-memory fit (B2) and the no-WAA fit (B0) of S8 are missing**: they exist only in the Part 1
+  fit cache (`research/.cache/wet_antenna/test_s8/fit_B{2,0}.pkl`), which is not on this machine. Not refitted (rule).
+  This does not block Block A; it is an open item for B6.
+- (e) 32 GHz has 0 eligible cells (no link below 1 km); 28 GHz and 38 GHz have 5 each. **32 GHz is excluded from this branch
+  for every model.** The branch dataset is 187 links and 8 836 link-events (28 and 38 GHz).
+
+**Verdict.** PASS (gates a and b). 32 GHz excluded by rule (e).
+
+**Environment note.** Without the conda env activated, `numpy.linalg.lstsq` crashed natively (Windows exception 0xc06d007f, a
+DLL that fails to load). Every script of the branch is therefore run with the env folders (`Library\bin` etc.) first on PATH,
+which is what `conda activate cmlpipe` does. No code was changed for this.

@@ -1,0 +1,9 @@
+# Settings of the waa_ksurface branch (Block A). The Part 1 settings stay in research/config.yaml and are read, never changed.
+release: openmrg_v1
+
+a1:
+  expect: {links: 206, link_events: 9780}       # the gate of A1a (Part 1: tighten_s6_lengths.csv)
+  tolerance: 0.01                               # A1b: largest allowed difference of I (dB) and s (dB/km)
+  length_classes_km: [[0, 1], [1, 3], [3, 100]]
+  rainy_mmh: 0.3                                # a "rainy" 5 min bin: R >= this (the Part 1 wet threshold of the length test)
+  extra_classes_mmh: [[0.1, 0.25], [0.25, 0.5]] # the two classes A3a may add

@@ -1,0 +1,13 @@
+stage,count
+pairs of the short TRAIN links in TRAIN events,29998
+no baseline,1148
+no wet bin of the link in the event,13480
+sub-link not good,1450
+use_in_waa_main false,1971
+offset_std > 0.3 dB,1139
+frequency outside the two bands,862
+cut at a TSL step,679
+TSL step before the rain,16
+too few valid 5 min bins,12
+too many 5 min bins without radar,140
+link-events kept,9780

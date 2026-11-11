@@ -1,0 +1,11 @@
+what,count
+gauge-input set (City gauge within 1000 m of the path): links,50
+gauge-input set: link-events,2425
+gauge-input set: events,44
+"gauge-input set, L < 1 km: links",18
+"gauge-input set, L < 1 km: link-events",749
+TRAIN events with link-events,51
+events with a gauge ratio (g_e used),14
+events with g_e = 1 (fallback),37
+link-events in events with a gauge ratio,5047
+link-events in events with g_e = 1,4733
