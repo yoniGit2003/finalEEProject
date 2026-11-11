@@ -53,3 +53,16 @@ A3_FIG_DURATION = FIGURES / "a3_length_test_duration.png"
 A3_FIG_INPUT = FIGURES / "a3_length_test_rain_input.png"
 A3_FIG_EIV = FIGURES / "a3_length_test_eiv.png"
 A3_REPORT = REPORTS / "a3_length_test.md"
+
+# ---- E1: the radar rain error (e1_rain_error.py; rain data only) ------------------------------------------------
+E1_TC = TABLES / "e1_rain_error_triple_collocation.csv"   # (a) error variance per sensor and triplet
+E1_PAIRS = TABLES / "e1_rain_error_gauge_pairs.csv"       # (b) every City pair: separation, correlation, semivariance
+E1_PAIR_FIT = TABLES / "e1_rain_error_gauge_pair_fit.csv" # (b) the line through the semivariance, extrapolated to 0-2 km
+E1_REVERSAL = TABLES / "e1_rain_error_reversal.csv"       # (c) conditional means both ways
+E1_SPLIT = TABLES / "e1_rain_error_split.csv"             # (c) the unit-gain split of the log variances
+E1_SCALE = TABLES / "e1_rain_error_event_scale.csv"       # (d) per event: radar and gauge mm, log ratio
+E1_SHARED = TABLES / "e1_rain_error_shared_in_space.csv"  # (d) covariance of ln(radar / gauge) between sites
+E1_SYNTHESIS = TABLES / "e1_rain_error_synthesis.csv"     # (d) THE result: sigma_lo, sigma_hi, scale part, shared part
+E1_FIG_PAIRS = FIGURES / "e1_rain_error_gauge_pairs.png"
+E1_FIG_REVERSAL = FIGURES / "e1_rain_error_reversal.png"
+E1_REPORT = REPORTS / "e1_rain_error.md"

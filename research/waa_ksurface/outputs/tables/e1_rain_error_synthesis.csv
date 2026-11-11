@@ -1,0 +1,20 @@
+quantity,value,lo,hi
+"rho_lag1 of the 5 min ln(radar / gauge), event-centred",0.34933,,
+factor var(15 min mean) / var(5 min bin),0.51571,,
+est_TC: per-bin radar error sd at 5 min (from 15 min triple collocation),0.76043,0.60359,0.87182
+est_rev: per-bin radar error sd at 5 min (unit-gain split),0.5452,0.48064,0.60839
+"sigma_lo (per-bin part, 5 min, one pixel)",0.48064,,
+"sigma_hi (per-bin part, 5 min, one pixel)",0.87182,,
+"all-to-radar limit: sd of ln(radar / gauge) at 5 min, event-centred",0.7644,,
+gauge error sd at 5 min (unit-gain split),0.53579,,
+"sigma_s: scale part, sd over events of ln(sum radar / sum gauge)",0.69651,,
+median over events of ln(sum radar / sum gauge),-0.10156,,
+events in sigma_s,14.0,,
+sigma_s_res: scale part left after g_e (gauge's own event ratio minus the pooled one),0.42844,,
+"shared-in-space variance of the per-bin part (15 min, mean pair covariance)",0.13768,,
+variance of ln(radar / gauge) at 15 min on the same bins,0.40887,,
+gauge own error sd at 15 min (pair variogram at h = 0),0.31943,,
+point-vs-pixel representativeness sd at 15 min (pair variogram),0.17456,,
+g_e = 1 events: number,39.0,,
+g_e = 1 events: pooled radar mm per gauge,5.84716,,
+g_e = 1 events: pooled gauge mm per gauge,2.29,,

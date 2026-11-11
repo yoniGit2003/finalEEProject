@@ -29,3 +29,20 @@ a3:                                             # SUPERSEDED by the Detachment c
     seed: 311
     pass: {intercept_db: 0.15, slope_rel: 0.20}
   grid: {r_min: 0.01, r_max: 60.0, n: 400}      # the dense R grid of the curve product (plus R = 0)
+
+e1:                                             # the radar rain error (rules dated 2026-11-11 in decisions.md, step E1)
+  log_min_rain_mmh: 0.5                         # log statistics use bins where every sensor reads at least this
+  linear_min_any_mmh: 0.1                       # linear triple collocation: bins where any sensor reads at least this
+  class_edges_mmh: [0.1, 0.2, 0.5, 1, 2, 5, 10, 20]
+  boot_reps: 200
+  seed: 411
+  interval: [5, 95]
+  triplets:                                     # name: [radar pixels (gauge names), gauge a, gauge b]
+    T1: [[GbgA], Drakeg, GbgA]
+    T2: [[GbgA], Lbom, GbgA]
+    T3: [[Drakeg, Lbom], Drakeg, Lbom]
+    T4: [[Jarn, Askim], Jarn, Askim]
+  pairs_min_bins: 30                            # a pair statistic needs at least this many bins with rain at both gauges
+  pairs_fit_max_km: 8.0                         # the line through the semivariance uses the pairs up to this separation
+  pixel_mean_distance_km: 1.04                  # mean distance between two random points of a 2 km square (0.5214 x 2)
+  scale_min_gauge_mm: 1.0                       # an event (or a gauge in an event) enters the scale part with at least this much gauge rain
