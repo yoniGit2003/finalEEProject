@@ -83,3 +83,20 @@ def gauge_ratio_train(d=None):
     le_g = le[keep].reset_index(drop=True)
     n_cells = le_g.cml_id.map(d.links().set_index("cml_id").n_cells).to_numpy(float)
     return sid.subset(D1, keep), le_g, np.maximum(n_cells, 1.0)
+
+
+def gauge_links_train(d=None):
+    """(D, le, n_cells, g5, step_mm, dist_km): the branch TRAIN link-events (ALL TRAIN events) whose link has a City gauge within
+    the pairing distance of the data layer, with the gauge rate per 5 min bin (mean of 5 valid minutes), the gauge step (mm)
+    and the gauge-to-path distance (km) per link-event. Candidate (iv) reads this; it never uses the radar as a label."""
+    d = d or open_release()
+    _, D1, le, _ = branch_train(d)
+    keep = (le.gauge_id != "").to_numpy()
+    le_g = le[keep].reset_index(drop=True)
+    Dg = sid.subset(D1, keep)
+    n = Dg["le_n"]
+    g1 = np.concatenate([Dg["rain_gauge"][o + sid.PADM:o + sid.PADM + k] for o, k in zip(Dg["le_roff"], n)]).reshape(-1, 5)
+    g5 = np.where(np.isfinite(g1).all(axis=1), g1.mean(axis=1), np.nan)
+    gz = d.table("gauges").set_index("gauge_id")
+    n_cells = np.maximum(le_g.cml_id.map(d.links().set_index("cml_id").n_cells).to_numpy(float), 1.0)
+    return Dg, le_g, n_cells, g5, le_g.gauge_id.map(gz.quantization_mm).to_numpy(float), le_g.gauge_distance_m.to_numpy(float) / 1000.0

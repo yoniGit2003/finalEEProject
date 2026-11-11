@@ -89,3 +89,25 @@ t1:                                             # the conditional rain error (de
   interval: [5, 95]
   count_grid: [0.0, 0.05, 0.1, 0.2, 0.3, 0.48]  # (b) added per-bin error sd
   count_reps: 3
+
+t3:                                             # E2 rerun at the conditional error (decisions.md, steps T2 and T3)
+  sigma_c_lo: 0.18                              # T1: the link-independent window-level part, 5 % and 95 % of the event bootstrap
+  sigma_c_hi: 0.26
+  slow_error:
+    event_sd: 0.45                              # T1: per-event scale part (shared by all links of the event)
+    shared_share: 0.46                          # E1: share of the within-event error shared in space
+    window_corr: 0.9                            # the error is this correlated over the 30 min of a window
+  gauge:                                        # the fake world of candidate (iv), from E1
+    own_sd_15min: 0.32
+    variogram_slope_per_km: 0.0278              # 0.17^2 / 1.04 km
+    rho: 0.35
+    f15: 0.516
+    rep_factors: [1.0, 2.0]                     # normal and pessimistic (doubled) representativeness
+  min_reps_judged: 3
+  adopt: {min_valid_cells: 8, min_valid_below_2mmh: 3}
+
+e4:                                             # the per-link criterion (decisions.md, step E4, written before the run)
+  link_sd_threshold_db: 0.15                    # a per-link factor is needed if the between-link sd is at least this
+  p_threshold: 0.05                             # AND the permutation test gives p below this
+  permutations: 1000
+  seed: 811

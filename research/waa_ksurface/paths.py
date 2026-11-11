@@ -97,3 +97,11 @@ T1_WINDOWS = TABLES / "t1_conditional_error_windows.csv"       # (a) every used 
 T1_COUNTS = TABLES / "t1_conditional_error_counts.csv"         # (b) steady bins against the added per-bin error
 T1_RESULT = TABLES / "t1_conditional_error_result.csv"         # THE result: sigma_c_lo, sigma_c_hi and the parts (T3 reads it)
 T1_REPORT = REPORTS / "t1_conditional_error.md"
+
+# ---- T2 / T3: candidate (iv) and the rerun at the conditional error (t3_rerun.py) -------------------------------
+T2_REAL_CELLS = TABLES / "t3_rerun_gauge_real_cells.csv"       # candidate (iv) on real data: counts per cell, eligible
+T3_FAKE = TABLES / "t3_rerun_fake.csv"                         # every candidate, end and cell: truth, estimate, errors
+T3_CELLS = TABLES / "t3_rerun_valid_cells.csv"                 # per candidate and cell: inside at both ends -> valid
+T3_VERDICT = TABLES / "t3_rerun_verdict.csv"                   # per candidate: valid cells, of them below 2 mm/h, adopted
+T3_FIG = FIGURES / "t3_rerun_fake.png"
+T3_REPORT = REPORTS / "t3_rerun.md"

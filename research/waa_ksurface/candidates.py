@@ -113,3 +113,90 @@ def corrected(D, le, n_cells, sigma, rule, n_short, seed, scale_sd=None):
         m = (cells.band == k[0]) & (cells.cls == k[1])
         cells.loc[m, "I"], cells.loc[m, "s"] = v[0], v[1]
     return cells
+
+
+# =================================================================================================== step T3: the slow error model, candidate (iv)
+def gauge_binned(D, le, g5, step_mm, n_short, mult=None):
+    """(iv) The gauge-binned length test: bins that are steady by the link's own City gauge, labelled by the gauge window
+    mean; the line over the lengths of the gauge links. Returns (cells, draws)."""
+    t = ltest.gauge_values(D, le, LT, g5, step_mm, LT["rules"]["R2"]["q"])
+    return ltest.cell_fits(t, LT, n_short, mult, LT["interval"])
+
+
+def proxy_rain_slow(D, le, n_cells, sigma_c, S, shrink_min):
+    """The stand-in for the true rain under the slow error model of T3, shrunk at three levels:
+        x' = G + c (M - G) + b (m - M) + a (x - m) + v / 2
+    x = ln R of a wet bin, m = its link-event mean, M = the event mean of m, G = the mean of M over the events; a, b, c =
+    sqrt(1 - error variance / observed variance) at each level (floored), v = the total error variance."""
+    lo = shrink_min ** 2
+    n5 = D["le_n"] // 5
+    rep = np.repeat(np.arange(len(le)), n5)
+    r = D["r5"].astype(float)
+    wet = np.isfinite(r) & (r > 0)
+    x = np.log(np.where(wet, r, 1.0))
+    cnt = np.bincount(rep, weights=wet.astype(float), minlength=len(le))
+    use = cnt >= 3
+    m = np.bincount(rep, weights=np.where(wet, x, 0.0), minlength=len(le)) / np.maximum(cnt, 1.0)
+    ok = wet & use[rep]
+    v_in_obs = float(((x - m[rep])[ok] ** 2).sum() / max(ok.sum() - use.sum(), 1))
+    ev = fw.time_index(le)[1]
+    n_use = np.bincount(ev, weights=use.astype(float))
+    M_ev = np.bincount(ev, weights=np.where(use, m, 0.0)) / np.maximum(n_use, 1.0)
+    M = M_ev[ev]
+    v_le_obs = float((((m - M)[use]) ** 2).sum() / max(use.sum() - (n_use > 0).sum(), 1))
+    has = n_use > 0
+    G = float(M_ev[has].mean())
+    v_ev_obs = float(M_ev[has].var(ddof=1))
+    v_in, v_le, v_ev, v_tot = fw.slow_error_variances(n_cells, sigma_c, S, cnt)
+    a = np.sqrt(np.maximum(1.0 - v_in / v_in_obs, lo))
+    b = np.sqrt(np.maximum(1.0 - v_le / v_le_obs, lo))
+    c = np.sqrt(np.maximum(1.0 - v_ev / v_ev_obs, lo))
+    xp = G + c[rep] * (M - G)[rep] + b[rep] * (m - M)[rep] + a[rep] * (x - m[rep]) + 0.5 * v_tot[rep]
+    return np.where(ok, np.exp(xp), r)
+
+
+def corrected_slow(D, le, n_cells, sigma_c, rule, n_short, seed, T3):
+    """(iii) under the slow error model of T3: the plain cells, then the forward-bias correction (same loop as `corrected`,
+    with the T1 error model in the simulation). T3 = config section t3. Returns the cell table (plain values in I_plain, s_plain)."""
+    K = FK["correction"]
+    cells, _ = plain(D, le, rule, n_short)
+    cells = cells.assign(I_plain=cells.I, s_plain=cells.s)
+    rng = np.random.default_rng(seed)
+    proxy = proxy_rain_slow(D, le, n_cells, sigma_c, T3["slow_error"], K["shrink_min"])
+    n5 = D["le_n"] // 5
+    rep = np.repeat(np.arange(len(le)), n5)
+    band_bin = le.band_name.to_numpy()[rep]
+    L_bin = le.L_km.to_numpy(float)[rep]
+    el = cells[cells.eligible].sort_values(["band", "R_cell"])
+    obs = {(r.band, r.cls): np.array([r.I, r.s]) for r in el.itertuples()}
+    cur = {k: v.copy() for k, v in obs.items()}
+    base = dict(D)
+    base["le_c"] = np.zeros(len(le))
+    base["w5"] = ((D["w5"] > 0) & np.isfinite(proxy)).astype(float)
+    for _ in range(K["iterations"]):
+        y = np.zeros(len(proxy))
+        for band, g in el.groupby("band"):
+            if len(g) < 2:
+                continue
+            rc = g.R_cell.to_numpy()
+            f = ltest.monotone_curve(rc, [cur[(band, c)][0] for c in g.cls], np.ones(len(g)), "F")[0]
+            p = ltest.monotone_curve(rc, [cur[(band, c)][1] for c in g.cls], np.ones(len(g)), "P")[0]
+            mb = band_bin == band
+            pr = np.nan_to_num(proxy[mb])
+            y[mb] = f(pr) + L_bin[mb] * p(pr)
+        acc = {k: [] for k in obs}
+        for _s in range(K["sims"]):
+            sim = dict(base)
+            sim["y5"] = y
+            sim["r5"] = proxy * np.exp(fw.rain_error_slow(le, n_cells, sigma_c, T3["slow_error"], rng))
+            tab = plain(sim, le, rule, n_short)[0].set_index(["band", "cls"])
+            for k in obs:
+                if k in tab.index and np.isfinite(tab.loc[k, "I"]):
+                    acc[k].append([tab.loc[k, "I"], tab.loc[k, "s"]])
+        for k in obs:
+            if acc[k]:
+                cur[k] = cur[k] + (obs[k] - np.mean(acc[k], axis=0))
+    for k, v in cur.items():
+        m = (cells.band == k[0]) & (cells.cls == k[1])
+        cells.loc[m, "I"], cells.loc[m, "s"] = v[0], v[1]
+    return cells

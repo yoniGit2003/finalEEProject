@@ -189,3 +189,59 @@ def monotone_curve(r_cells, values, weights, kind):
         r = np.asarray(r, float)
         return f(np.clip(r, 0.0, x[-1])) + (np.maximum(r - x[-1], 0.0) * last_slope if kind == "P" else 0.0)
     return curve, v[1:]
+
+
+# =================================================================================================== bins selected by a gauge (candidate iv)
+@njit(cache=True)
+def _steady_gauge(g5, own_ok, boff, n5, edges, q, delta):
+    """Candidate (iv): the rain class of every bin that is steady by the GAUGE, -1 otherwise, and the window label.
+    Window = the 30 min before the bin plus the bin (7 bins of 5 min). Label = the mean gauge rate of the 7 bins.
+    Steady: the three 10 min means a, b, c of the 30 min before satisfy max - delta <= q * (min + delta), where delta
+    (per link-event) is one gauge step in a 10 min rate. A missing gauge value in the window fails."""
+    cls = np.full(len(g5), -1)
+    label = np.full(len(g5), np.nan)
+    nc = len(edges) - 1
+    for e in range(len(boff)):
+        o, n = boff[e], n5[e]
+        for t in range(6, n):
+            if not own_ok[o + t]:
+                continue
+            s, ok = 0.0, True
+            for j in range(7):
+                v = g5[o + t - j]
+                if not (v >= 0.0):                              # NaN fails
+                    ok = False
+                    break
+                s += v
+            if not ok:
+                continue
+            lab = s / 7.0
+            if not (lab >= edges[0] and lab < edges[nc]):
+                continue
+            a = 0.5 * (g5[o + t - 6] + g5[o + t - 5])
+            b = 0.5 * (g5[o + t - 4] + g5[o + t - 3])
+            c = 0.5 * (g5[o + t - 2] + g5[o + t - 1])
+            hi, lo = max(a, b, c), min(a, b, c)
+            if hi - delta[e] <= q * (lo + delta[e]):
+                k = 0
+                while lab >= edges[k + 1]:
+                    k += 1
+                cls[o + t] = k
+                label[o + t] = lab
+    return cls, label
+
+
+def gauge_values(D, le, cfg, g5, step_mm, q):
+    """One row per link-event and rain class for candidate (iv): the median of (A - c) and of the gauge window label over
+    the bins that are steady by the gauge. g5 = the gauge rate per 5 min bin, step_mm = the gauge step per link-event."""
+    edges = np.asarray(cfg["class_edges_mmh"], float)
+    own_ok = D["w5"] > 0
+    delta = np.asarray(step_mm, float) * 6.0                    # one step in a 10 min sum, as a rate (mm/h)
+    cls, label = _steady_gauge(np.asarray(g5, float), own_ok, D["le_boff5"], D["le_n"] // 5, edges, float(q), delta)
+    keep = cls >= 0
+    rep = np.repeat(np.arange(len(le)), D["le_n"] // 5)
+    b = pd.DataFrame({"le_idx": rep[keep], "cls": cls[keep], "y": (D["y5"] - D["le_c"][rep])[keep], "r": label[keep]})
+    t = b.groupby(["le_idx", "cls"]).agg(A_med=("y", "median"), R_med=("r", "median"), n_bins=("y", "size")).reset_index()
+    t = t.join(le[["event_id", "cml_id", "L_km", "band_name"]].reset_index(drop=True), on="le_idx")
+    t["ev"] = D["le_event"][t.le_idx.to_numpy()]
+    return t

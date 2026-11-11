@@ -815,3 +815,64 @@ Only the rain error changes, to the one T1 measured for steady windows:
   below 2 mm/h (classes 0.1–0.2, 0.2–0.5, 0.5–1, 1–2). Ties are broken by the narrower bootstrap intervals of F on real
   data. No mixing of candidates per cell. If no candidate qualifies: go to T4.**
 - If a candidate is adopted, F and P are taken only from its valid cells.
+
+**Result of T2 and T3 (2026-11-11).** Script `research/waa_ksurface/t3_rerun.py`, report `outputs/reports/t3_rerun.md`.
+Fake data only; real data read for the counts of (iv).
+
+- **T2, candidate (iv) on real data:** 2 425 TRAIN link-events of 50 links with a City gauge within 1 km (18 below 1 km), all
+  TRAIN events. 11 of 14 cells are eligible with the floor of 5 short links (28 GHz 0.1–0.2 mm/h has 4; the two 10–20 cells
+  are not fitted). Short links per eligible cell: 6 (28 GHz) and 6–12 (38 GHz). The floor did not need to be touched.
+- **T3, valid cells (inside tolerance at both ends):**
+
+| candidate | cells judged at both ends | valid cells | of them below 2 mm/h | largest intercept error | qualifies |
+|---|---|---|---|---|---|
+| (i) gauge-ratio events, plain | 12 | 4 | 2 | 0.42 dB | no |
+| (ii) instrument binning (area-mean radar) | 10 | **8** | **8** | 0.09 dB | **yes** |
+| (iii) forward-bias correction | 12 | 5 | 5 | 0.54 dB | no |
+| (iv) gauge-binned | 12 | 3 | 3 | 1.68 dB | no |
+
+  - (i): the intercept is too high by 0.25–0.42 dB from 0.2 to 2 mm/h in both bands. The per-event scale error (sd 0.45,
+    shared by all links) and the link's own slow error still move bins between classes.
+  - (ii): every intercept is inside 0.09 dB. The 8 cells from 0.1 to 2 mm/h are valid in both bands. The two 2–5 mm/h cells
+    fail on the slope (−0.05 to −0.14 dB/km, 28 GHz just at the limit), and no 5–10 mm/h cell can be judged.
+  - (iii): unstable (errors from −0.24 to +0.54 dB).
+  - (iv): the intercept is too high by 0.16–0.30 dB at 1–5 mm/h; several 38 GHz slopes are too low.
+- **Adopted by the written rule: candidate (ii), instrument binning.** 8 valid cells, all 8 below 2 mm/h. No tie.
+- **Consequence, recorded: F and P are measured only in the four classes 0.1–0.2, 0.2–0.5, 0.5–1 and 1–2 mm/h of each band.
+  Above about 1.5 mm/h nothing is measured.**
+
+**Verdict.** PASS: (ii) adopted. T4 is not run.
+
+## Step E4: F(R) and P(R) re-measured with candidate (ii) (2026-11-11, written before the run)
+
+**Question served.** Q1.
+
+**What.** On the real TRAIN data of the 14 events with a gauge ratio (28 and 38 GHz): bins selected by Z = the event's
+area-mean radar rain with rule R2; per link-event and class the median of (A − c) and the mean of the link's own rain; the
+Huber line over L per band and class; the cell sits at the mean of the links' own rain. Only the 8 cells that T3 found
+valid are used.
+
+**Intervals.**
+- Bootstrap: 200 event draws, 90 %.
+- Error range: the fake-world error of the cell at the two ends of the T1 range (σc_lo, σc_hi), taken as a possible bias of
+  the real value. Error-range interval = [value − max(e_lo, e_hi, 0), value − min(e_lo, e_hi, 0)]. The value itself is not
+  shifted. The combined interval is the bootstrap interval widened by this range.
+- Curves: per band a monotone cubic through (0, 0) and the 4 valid cells (made non-decreasing first if needed); intervals
+  from the bootstrap draws. Valid range = from the lowest to the highest valid R_cell; below it the curve is an
+  interpolation to zero, above it an extrapolation (F held, P with its last slope), both marked.
+
+**The per-link criterion (written 2026-11-11, before the spread is computed for it).**
+- Quantity: for the links below 1 km, the residual of every link-event value from its cell line (the 8 valid cells),
+  averaged per link and storm; then variance components over links: the between-link sd σ_link and the storm-to-storm sd.
+- **A per-link factor is needed if BOTH hold: (1) σ_link >= 0.15 dB (the tolerance to which F is held), and (2) the
+  between-link variance is significant: p < 0.05 in a permutation test (the link labels of the link-storm values shuffled
+  inside each band, 1 000 times, statistic = σ_link).** Otherwise it is not needed.
+- Disclosure: a number of this kind has already been seen. E3 measured, for sizing the fake world, a between-link sd of
+  0.24 dB on the short links with the plain test and rule R1 (all 14 cells). The criterion above is therefore not blind to
+  the likely outcome; its threshold is the tolerance used everywhere else in this branch, not a number tuned to it.
+- Report only (no criterion): whether a link's mean residual grows with the level of F (a factor) or not (an offset): the
+  correlation between its mean residual in the two lower classes and in the two upper classes.
+
+**Pass rule (2026-11-11).** E4 is a measurement. It passes if all 8 valid cells are eligible on real data and give F and P
+with both intervals. A valid cell that is not eligible on real data is dropped and reported; with fewer than 2 cells in a
+band there is no curve for that band. Then STOP for review; A4 is not started.

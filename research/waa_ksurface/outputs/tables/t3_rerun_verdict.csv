@@ -1,0 +1,5 @@
+candidate,cells_judged_at_both_ends,valid_cells,valid_below_2mmh,largest_I_err_db,qualifies,adopted
+i,12,4,2,0.42178,False,False
+ii,10,8,8,0.08592,True,True
+iii,12,5,5,0.53688,False,False
+iv,12,3,3,1.67699,False,False

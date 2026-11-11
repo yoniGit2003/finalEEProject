@@ -190,3 +190,66 @@ def judge(cell_tables, cfg, min_reps=None, l_med=None):
     out["s_ok"] = (out.s_err_rel.abs() <= cfg["pass"]["slope_rel"]) if l_med is None else (out.s_err_abs.abs() <= cfg["pass"]["intercept_db"] / l_med)
     n_fail = int((~(out.I_ok & out.s_ok)).sum())
     return out, n_fail, bool(len(out) > 0 and n_fail <= cfg["pass"]["cells_may_fail"])
+
+
+# =================================================================================================== the T3 error models
+def rain_error_slow(le, n_cells, sigma_c, S, rng):
+    """ln(R_obs / R_true) of the T1 model for steady windows: E_event (one value per event) + c_t (shared by all links of the
+    event at one time) + e (the link own part, sd sigma_c / sqrt(n_cells)); c and e are slow AR(1) series; mean of exp = 1.
+    S = config t3.slow_error."""
+    rho = S["window_corr"] ** (1.0 / 6.0)                       # the correlation over the 30 min of a window is window_corr
+    sd_sh = np.sqrt(S["shared_share"] / (1 - S["shared_share"])) * sigma_c
+    n5 = le.n_bins.to_numpy()
+    rep = np.repeat(np.arange(len(le)), n5)
+    tb, ev = time_index(le)
+    ev_bin = ev[rep]
+    c = np.empty(len(tb))
+    for e_ in np.unique(ev):
+        m = ev_bin == e_
+        lo = tb[m].min()
+        c[m] = _ar1(rng.standard_normal(tb[m].max() - lo + 1), rho)[tb[m] - lo]
+    own = np.empty(len(tb))
+    z = rng.standard_normal(len(tb))
+    boff = np.r_[0, np.cumsum(n5)[:-1]]
+    for i in range(len(le)):
+        own[boff[i]:boff[i] + n5[i]] = _ar1(z[boff[i]:boff[i] + n5[i]], rho)
+    sd_own = sigma_c / np.sqrt(n_cells)
+    E = rng.normal(0, S["event_sd"], ev.max() + 1)[ev]
+    var_tot = S["event_sd"] ** 2 + sd_sh ** 2 + sd_own ** 2
+    return (E - 0.5 * var_tot)[rep] + sd_sh * c + sd_own[rep] * own
+
+
+def slow_error_variances(n_cells, sigma_c, S, n_wet):
+    """What the slow error adds to the variance of ln R, per link-event with n_wet wet bins: (inside the link-event, of the
+    link-event mean about its event mean, of the event mean, total). mean_corr = the mean correlation between two of its bins."""
+    rho = S["window_corr"] ** (1.0 / 6.0)
+    n = np.maximum(n_wet, 1.0)
+    mean_corr = np.clip((1 + rho) / ((1 - rho) * n) - 2 * rho * (1 - rho ** n) / (n ** 2 * (1 - rho) ** 2), 0.0, 1.0)
+    v_sh = S["shared_share"] / (1 - S["shared_share"]) * sigma_c ** 2
+    v_own = sigma_c ** 2 / n_cells
+    return (v_sh + v_own) * (1 - mean_corr), v_own * mean_corr, S["event_sd"] ** 2 + v_sh * mean_corr, S["event_sd"] ** 2 + v_sh + v_own
+
+
+def fake_gauge(r_true, D, le, step_mm, dist_km, G, rng, rep_factor=1.0):
+    """The fake 5 min gauge rate of every bin: the true path rain x exp(own error + representativeness), in whole gauge steps.
+    own error: white per bin, sd such that a 15 min mean has G.own_sd_15min; representativeness: AR(1), variance at 15 min =
+    slope * (d + L / 3) (d = gauge-to-path distance, L / 3 = mean distance between two points of the path). G = config t3.gauge."""
+    n5 = D["le_n"] // 5
+    rep = np.repeat(np.arange(len(le)), n5)
+    sd_own = G["own_sd_15min"] * np.sqrt(3.0)
+    sd_rep = rep_factor * np.sqrt(G["variogram_slope_per_km"] * (np.asarray(dist_km, float) + le.L_km.to_numpy(float) / 3.0)) / np.sqrt(G["f15"])
+    z = rng.standard_normal(len(r_true))
+    e_rep = np.empty(len(r_true))
+    for i in range(len(le)):
+        o = D["le_boff5"][i]
+        e_rep[o:o + n5[i]] = _ar1(z[o:o + n5[i]], G["rho"])
+    err = sd_own * rng.standard_normal(len(r_true)) + sd_rep[rep] * e_rep - 0.5 * (sd_own ** 2 + sd_rep[rep] ** 2)
+    rate = np.nan_to_num(r_true) * np.exp(err)
+    out = np.empty(len(rate))
+    start = rng.uniform(0, 1, len(le))                          # where inside a step the running total starts
+    for i in range(len(le)):
+        o = D["le_boff5"][i]
+        cum = start[i] * step_mm[i] + np.cumsum(rate[o:o + n5[i]] / 12.0)        # mm
+        steps = np.floor(cum / step_mm[i])
+        out[o:o + n5[i]] = np.diff(np.r_[np.floor(start[i]), steps]) * step_mm[i] * 12.0
+    return np.where(np.isfinite(r_true), out, np.nan)
