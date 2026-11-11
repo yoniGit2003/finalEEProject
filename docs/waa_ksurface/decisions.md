@@ -680,3 +680,53 @@ patched.
 measured in E1, the length test of this branch cannot return F(R) to 0.15 dB. This holds for the plain test, for area-mean
 binning and for the forward correction as designed here. The A3a intercepts (superseded) and the E3 real cells carry this
 error and its size is not known cell by cell.
+
+---
+
+# The conditional rain error (2026-11-11, unattended): steps T1–T4
+
+**Why this block.** E2 failed with the UNCONDITIONAL rain error of E1 (every 5 min bin, sd 0.48–0.87). The length test uses
+only steady windows, and labels a window by a median. The error that matters is the error of that label in such windows,
+and for the line against L only the part that is independent between links tilts it. That error was not measured in E1.
+
+## Step T1: the conditional rain error (2026-11-11, written before the run)
+
+**Question served.** Q1 (can F and P be trusted?).
+
+**(a) Primary: radar label against gauge rain in steady windows (rain data only).**
+- Where and when: the 10 City gauges, inside the 14 TRAIN events with a gauge ratio. Radar = the pixel over the gauge
+  (`radar_at_gauges_5min`, `R_pixel`) divided by the event's g_e, i.e. the rain input of the length test (inherited data
+  layer). Gauge = the 1 min City series.
+- A window = a 5 min bin that passes the adopted steadiness rule on the radar series (R inside 0.1–20 mm/h and every bin of
+  the 30 min before it within [R / 1.5, 1.5·R]) together with those 30 min: 35 min. Label = the median of the 7 radar values.
+  Gauge rain = the mean gauge rate over the same 35 min, all minutes valid.
+- Used windows: label >= 1 mm/h and gauge rain > 0. Reason: below 1 mm/h a 35 min window holds under 0.6 mm, a handful of
+  0.1 mm (weighing) or 0.2 mm (tipping) steps, so the gauge cannot serve as a reference there. The windows dropped for a
+  zero gauge are counted and reported. **Consequence, stated now: the conditional error is not measured below 1 mm/h; the
+  number found is applied to all classes.**
+- d = ln(label / gauge). Reported: the sd of d; the split by variance components (method of moments, events as groups) into
+  the per-event scale part σ_ev (between events) and the within-event part σ_w.
+- **σ_cond = √0.54 · σ_w** : the link-independent, window-level part, with the E1 estimate that 46 % of the per-bin radar
+  error is shared in space. The shared part is √0.46 · σ_w. The gauge's own error and the point-vs-pixel difference are NOT
+  subtracted (conservative: σ_cond is an upper estimate of the radar's part).
+- **[σc_lo, σc_hi] = the 5 % and 95 % points of σ_cond over 200 event-bootstrap draws.**
+- Reference, same windows without the steadiness rule (every 35 min window with label >= 1 mm/h): the sd of d, to show what
+  the conditioning changes.
+
+**(b) Secondary: the steady-window count (TRAIN link-events of the gauge-ratio events).**
+- As instructed: fake replicates whose true rain is the observed radar, with a per-bin error added on a grid
+  (sd 0, 0.05, 0.1, 0.2, 0.3, 0.48; E1 structure: 46 % shared at one time, lag-1 correlation 0.35), and the count of steady
+  bins per event compared with the real count. **Caveat, verbatim: the σ that matches the real count is an EFFECTIVE bound,
+  biased low because the fake truth (the observed radar) already carries error.** Known before the run: with the observed
+  radar as the truth the count at added error 0 IS the real count, so the match can only be at 0; what the grid shows is
+  how fast the count falls with added error.
+- A second reading that can give a number, added here: the share of rainy bins that are steady in the real data, compared
+  with the same share for a truth that is perfectly constant in time plus a per-bin error (lag-1 correlation 0.35). The σ at
+  which a constant truth gives the real share is an UPPER bound on the fast per-bin error of a link's own label: any real
+  change of the rain uses up part of the allowed unsteadiness.
+
+**(c) Fallback.** If (a) cannot be computed (fewer than 30 used windows or fewer than 5 events), σc_hi = the upper bound of
+the second reading of (b), with its caveat, and σc_lo = 0.
+
+**Pass rule (2026-11-11).** T1 is a measurement. It passes if (a) returns [σc_lo, σc_hi] from at least 30 windows in at least
+5 events, or the fallback (c) is used and said so.
