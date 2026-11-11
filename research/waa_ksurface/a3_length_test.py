@@ -1,4 +1,7 @@
-"""Step A3 of the k-surface branch: F(R) (steady WAA) and P(R) (path loss per km) from the model-free length test.
+"""SUPERSEDED (Detachment correction, 2026-11-11): this step used Part 1 definitions (steady rain, classes, eligible cell) and a
+fake truth made of Part 1 closed forms; its check (d) failed. Its outputs are superseded by the rescue steps E1-E4.
+
+Step A3 of the k-surface branch: F(R) (steady WAA) and P(R) (path loss per km) from the model-free length test.
 
     python -m research.waa_ksurface.a3_length_test
 

@@ -1,22 +1,61 @@
 # WAA k-surface branch: plan and standing rules
 
-## THE CORE IDEA (re-read before every step; added 2026-11-11, Block A step A0)
+## THE CORE IDEA (re-read before every step; rewritten 2026-11-11 by the Detachment correction, Deviation 2)
 
-1. The target F(R) (steady WAA) and the path loss P(R) are MEASURED, model-free, from how the attenuation depends on link
+1. The steady WAA F(R) and the path loss per km P(R) are MEASURED, model-free, from how the attenuation depends on link
    length.
-2. The dynamics are dW/dt = k(R, W)·(a_link·F(R) − W), k > 0. This is a rewrite of any one-state law with steady state F,
-   not an assumed form. k is learned from data, separately for wetting (W below target) and drying (W above target).
-3. The learned k is written as an equation and compared with Schleiss on held-out storms.
+2. The dynamics are dW/dt = k(R, W)·(F(R) − W), k > 0, with k learned from data separately for wetting (W below F) and
+   drying (W above F).
+3. At the end, the equation is compared with the existing models on held-out storms.
 
 Only three questions exist:
 
 - **Q1** Can F and P be trusted?
 - **Q2** What is k?
-- **Q3** Does the equation beat Schleiss?
+- **Q3** Does the equation beat the existing models in the final comparison?
 
 Before each step, one sentence in `decisions.md` says which question the step serves. An analysis that serves none of them
 is not run: it is logged as "side question, not pursued". After a failed check, at most ONE diagnostic to locate the cause,
 then stop.
+
+## THE DETACHMENT RULE (2026-11-11, Deviation 2; it overrides every earlier rule that conflicts with it)
+
+This branch is a FRESH research effort. It inherits nothing from Part 1 (the `research/wet_antenna` work: its models,
+parameters, thresholds, definitions, closed forms or findings) except the whitelist below. Part 1 is treated like a published
+paper by another group: it is a benchmark at the end, never a foundation. No number is copied from it and no definition is
+adopted silently.
+
+Whitelist:
+
+- **W1. The data layer and its quality rules:** the OpenMRG release tables, the baseline and the offset c, the event and link
+  splits, the link-event selection rules, and the rain input R = R_radar / g_e. Each use is logged as "inherited data layer".
+- **W2. The 0.3 dB RSL quantization step,** as an instrument property.
+- **W3. Part 1's stored frozen fits, ONLY as competitors in the final Block B comparison.** The no-WAA and no-memory
+  baselines are not Part 1 property: they are defined by recipe in this branch and fitted on TRAIN at Block B time.
+- **W4. Part 1's documented warnings, as things to TEST, not to assume:** the 5-min input distorts fast dynamics; some events
+  hold unseen water after rain (waiting / rising tails); dew.
+
+Everything else is out, in particular: a_link and its prior (a per-link factor may enter only if this branch's own
+measurements demand it); Part 1's time constants, stores, closed forms, lags, rain classes, steadiness definition,
+cell-eligibility rule, noise models and tolerances. Where a rule copied such a thing, it is redefined from this branch's
+needs and justified from the physics, the instrument, or this branch's own data.
+
+**Amendments to the frozen rules below (the frozen text is kept as written on 2026-11-11; these amendments override it):**
+
+| rule | inherited item | amendment |
+|---|---|---|
+| core idea, A3f, A5, B6 | a_link scaling the target | removed. The model is dW/dt = k(R, W)·(F(R) − W). A per-link factor enters only if step E4's pre-registered test of the per-link residual spread demands it. |
+| A1b | reproduction of the Part 1 length test as a gate | stands as a one-off data-loading sanity check, diagnostic only. It is not a foundation of any later number. |
+| A3a, A1e | "the Part 1 classes", "the Part 1 eligibility rule", the Part 1 steady-rain rule | re-derived in step E3 (rain classes, steady rain, eligible cell), each with its reason, and tested on fake data. The 32 GHz exclusion is re-decided with the new eligibility rule. |
+| A3d | fake truth = the Part 1 closed forms, a_link spread 0.19 | replaced in E2 / E3 by a generic truth with round numbers and by this branch's own measured noise and link spread. |
+| A5 | "A − c = W + L·P(R(t − 1 min))": the 1 min lag | the lag is not inherited. It is measured from this branch's own data before A5 (or set to 0 if it cannot be resolved at 5 min). |
+| A5 | "Loss as in Part 1: Huber 0.3 dB ..., weak prior on ln a_link" | Huber loss on the 5-min residuals with the threshold 0.3 dB justified by the instrument (W2: one RSL quantization step); no a_link, no prior. |
+| A5 | CV "stratified by the Part 1 intensity classes" | stratified by the `intensity_class` column of the event table (inherited data layer, W1). |
+| A5 | unit test against "the Part 1 time constants" and "the Part 1 reference implementation's fast store" | unit test against the closed-form solution of dW/dt = k·(F − W) for a constant k and a step in R, with round-number constants, within 1e-6 dB. |
+| A6 | "Part 1 noise" | the noise is measured in this branch from the dry minutes of the TRAIN link-events. |
+| A6 | truth (a) "constant k (2.6 and 10.3 min)"; truth (d) "the full Part 1 two-store equation"; truth (e) "as in research-log Section 8" | (a) a constant k with round-number time constants; (d) a generic two-store truth with round-number constants; (e) stays, as a W4 warning to test, with the unseen water defined in this branch. |
+| B2 | "the events flagged for rising tails and the dew-risk link-events" | the rising-tail flag is defined by this branch's own criterion before use (W4: tested, not assumed); the dew-risk hours come from the baseline module (inherited data layer, W1). |
+| B6 | "no memory and no WAA (their stored TRAIN fits)" | defined by recipe in this branch and fitted on TRAIN at Block B time (W3). Part 1's stored fits of its equation, Schleiss (b) and Pastorek (b) are competitors only. |
 
 Branch `waa-ksurface`, created 2026-11-11 from `main` at `fde431c`. This branch is a side study of the WAA research. Part 1 (the
 two-store WAA equation, `research/wet_antenna/FINAL.md`) is frozen, and its TEST set has already been read once. This branch
@@ -65,7 +104,8 @@ F(R) (steady WAA) and P(R) (path loss per km) come from the model-free length te
 - Part 1 code, outputs, the frozen equation (`research/wet_antenna/outputs/products/waa_equation_final.json`) and its hashes
   (`fit_sha256` in that file, `research/wet_antenna/outputs/products/test_s8_freeze.json`) are read-only.
 - Reuse the existing baseline (v2), offset c, rain input R = R_radar / g_e, link selection and event split (TRAIN / VAL / TEST
-  events, TRAIN / TEST links). The list of these files and their paths is in `decisions.md`, Step 0.
+  events, TRAIN / TEST links). This is whitelist item W1 of the Detachment rule ("inherited data layer"). The list of these files
+  and their paths is in `decisions.md`, Step 0.
 - If anything must change, copy it into a branch folder and record in `decisions.md` what was copied and why.
 
 ### Justification
@@ -99,6 +139,9 @@ Open questions for us:
 ---
 
 # Block A and Block B rules (frozen 2026-11-11, step A0, before any analysis)
+
+**Read with the Detachment rule at the top of this file (2026-11-11, Deviation 2): where a rule below conflicts with it,
+the amendment table there overrides the text below. The text is kept as it was frozen.**
 
 General rules of Block A: it runs unattended. Where a rule below decides, it is followed. Where no rule decides, or a rule
 says STOP, the run stops and the report is written. A failed check is never patched to continue. Part 1 files are read-only.
@@ -206,3 +249,46 @@ Rules:
 At the end of Block A, or at the first STOP, a CHECK REPORT: BLOCK A is written with the fields given in the Block A prompt
 (stop, rules commit, A1a–A1e, A2, A3a–A3e, A4, A5, A6, deviations, side questions, files changed outside the branch folders,
 VAL / TEST opened, commits).
+
+---
+
+# The A3 rescue: rules of steps E1–E4 (written 2026-11-11, after the STOP at A3d, before any rescue analysis)
+
+The A3d failure means the length test, as computed, is biased by rain-input error. The open question is the size of the real
+error. E1 measures it, E2 redesigns the test to survive it, E3 re-derives the bin definitions, E4 re-measures F and P. Rules
+and pass criteria are written in `decisions.md` before each run. A failed check is never patched to continue.
+
+## E1. Partition the rain error (TRAIN period, no attenuation data needed)
+a) Triple collocation: at locations where radar, a City gauge and the SMHI gauge (or two City gauges) overlap, estimate each
+   sensor's error variance without assuming any of them is truth. Matched 15-min or event accumulations; the matching rules
+   are logged.
+b) Gauge-pair analysis: correlation and scatter of City gauge pairs against their separation, extrapolated to 0–2 km, to size
+   the point-vs-area representativeness part.
+c) The binning-reversal signature: bin radar by gauge and gauge by radar; the asymmetry constrains the split.
+d) Output: an interval [σ_lo, σ_hi] for the radar's own error at the 5-min, per-link scale, split into a common-per-event scale
+   part and an independent per-bin part, and one paragraph on what the g_e = 1 intercept collapse (A3c) says about the scale
+   part. If the data cannot constrain the split, this is said and the conservative range is given.
+
+## E2. A length test that survives the measured error
+Pre-register, implement and compare at least these candidates on fake data:
+ (i) Gauge-ratio events only, with the A3d check rerun at σ_lo and σ_hi.
+ (ii) Instrument binning: the bin is selected by a rain estimate whose error is shared by all links in the cell (event-gauge
+      rain, or radar averaged over a wide common area), so the selection error does not depend on L; each link's own L stays
+      in the regression.
+ (iii) Forward-bias correction: simulate the bias at the measured error sizes and correct the intercepts, propagating
+      [σ_lo, σ_hi] into the F interval.
+The fake data use the E1 error model (common scale part per event + independent part), not all-noise-to-radar. PASS rule per
+candidate: intercept within 0.15 dB and slope within 20 % in at least 13 of 14 cells, at BOTH σ_lo and σ_hi. The simplest
+passing candidate is adopted; if several pass, the one with the narrowest F intervals on real data; if none passes, STOP and
+report which cells fail and why.
+
+## E3. Re-derive the bin definitions from scratch, each with its reason
+What "steady rain" must mean so that the intercept measures F (W near its steady value, and no systematic drying into the
+bin); the minimum links and lengths for a cell to be fitted; both tested in the E2 fake world (a bin rule that passes with a
+known W(t) that has realistic memory: a generic one-store truth with round-number time constants).
+
+## E4. Re-measure F(R) and P(R)
+With the adopted method and definitions, per band, with event-bootstrap intervals AND the E1 error range propagated; monotone
+interpolation, F(0) = P(0) = 0; the valid R range is stated, and that below the lowest measured class the curve is
+interpolation. The per-link residual spread across storms is reported (the fresh test of whether a per-link factor is needed,
+with its pre-registered criterion). Then STOP for review before A4. A4–A6 are not started.

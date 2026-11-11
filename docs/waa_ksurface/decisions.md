@@ -285,3 +285,45 @@ on the basis of this diagnostic; Block A stops after it.
 
 **Side observation, not pursued (report only, rule A3c).** The intercepts on the g_e = 1 events are far below those on the
 gauge-ratio events (for example 28 GHz 2–5 mm/h: 0.36 dB against 2.04 dB), with few short links in the g_e = 1 cells (0 to 17).
+
+---
+
+# The A3 rescue (2026-11-11, unattended)
+
+## Deviation 2: Detachment correction (2026-11-11)
+
+**What changed.** This branch is redefined as a fresh research effort that inherits nothing from Part 1 except a whitelist
+(W1 the data layer and its quality rules; W2 the 0.3 dB quantization step; W3 Part 1's stored fits as competitors only;
+W4 Part 1's warnings as things to test). The full rule is at the top of `plan.md`.
+
+**Reason.** The Block A rules copied Part 1 definitions and numbers into what was meant to be an independent measurement.
+An independent result cannot rest on the definitions of the work it is later compared with.
+
+**Audit: violations found and what replaces them.**
+
+| file | inherited item | replacement and justification |
+|---|---|---|
+| `plan.md` core idea | a_link in the dynamics; "compared with Schleiss" | rewritten: dW/dt = k(R, W)·(F(R) − W); "compared with the existing models". A per-link factor only if E4's own test demands it. |
+| `plan.md` rule A1b | reproduction of the Part 1 length test as a gate | kept as a one-off data-loading sanity check, diagnostic only. |
+| `plan.md` rules A3a, A1e | Part 1 rain classes, steady-rain rule, eligibility rule | re-derived in E3 from this branch's needs, tested on fake data. The 32 GHz exclusion is re-decided there. |
+| `plan.md` rule A3d (as run) | fake truth = Part 1 closed forms; a_link spread 0.19 | E2 / E3 use a generic round-number truth and this branch's own measured noise and link spread. |
+| `plan.md` rules A3f, A5 | a_link scaling F; weak prior on ln a_link | removed. |
+| `plan.md` rule A5 | the 1 min lag | not inherited: measured before A5, 0 until then. |
+| `plan.md` rule A5 | "loss as in Part 1" | Huber threshold 0.3 dB justified by the instrument (one RSL quantization step, W2). |
+| `plan.md` rule A5 | unit test against the Part 1 store and constants | unit test against the closed-form step response with round-number constants. |
+| `plan.md` rule A6 | Part 1 noise; truths with 2.6 / 10.3 min and the Part 1 two-store equation | noise measured in this branch; round-number constant k; a generic two-store truth. |
+| `plan.md` rule B2 | Part 1 rising-tail flags | the flag is defined in this branch before use; dew-risk hours come from the baseline module (W1). |
+| `plan.md` rule B6 | stored no-WAA and no-memory fits | defined by recipe here and fitted on TRAIN at Block B time. |
+| `theory.md` §1, §5–§10 | the 1 min lag; a_link; the Part 1 fast store and two-store model with their numbers; "wet for 20 min, stable for 15 min" | lag d measured, 0 until then; no per-link parameter; a generic first-order store and a generic two-store argument without numbers; steadiness to be derived in E3. |
+| `research/waa_ksurface/lt.py` | Part 1 length-test settings (`data.LT`: classes, 0.3 mm/h wet threshold, 20 / 15 min windows, min 10 link-events, min 8 short links, Huber settings) and the Part 1 `huber_fit` code | superseded. New library `ltest.py` with its own Huber line and its settings in `research/waa_ksurface/config.yaml`, each justified in E3. |
+| `research/waa_ksurface/a3_length_test.py`, `a3_eiv_diagnostic.py` | the above, and the Part 1 closed forms as fake truth | superseded; kept for the record. |
+| `research/waa_ksurface/config.yaml`, section `a3` | Part 1 numbers (2.57, 2.77, 0.542, 0.105, 0.194, 0.19) | section marked superseded; not read by the rescue code. |
+| `research/waa_ksurface/data.py` | `system_id.build_dataset`, `merged_bands`, `rescaled`, the g_e table | **kept, logged as inherited data layer (W1):** the link-event selection rules, the offset c, the nominal frequency bands of the radios, and R = R_radar / g_e. `data.LT` stays only for the A1b diagnostic. |
+
+**A3 outputs that depended on a violation: all of them.** They are listed in `research/waa_ksurface/outputs/SUPERSEDED.md`.
+The A3a intercepts are kept only for the comparison asked for in the rescue report. The A1b reproduction stands as a
+diagnostic.
+
+**Inherited data layer, logged once for the rescue (W1):** the release tables and time series (radar along links, radar at
+gauges, City and SMHI gauges, link state), the baseline v2 and the offset c, the event split and link split, the link-event
+selection rules of `system_id.build_dataset`, the frequency bands, the g_e table and R = R_radar / g_e.

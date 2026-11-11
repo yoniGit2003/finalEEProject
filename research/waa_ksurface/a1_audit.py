@@ -1,4 +1,7 @@
-"""Step A1 of the k-surface branch: data audit and reproduction gate (TRAIN only).
+"""STATUS (Detachment correction, 2026-11-11): part (b), the reproduction of the Part 1 length test, stands as a one-off
+data-loading sanity check, diagnostic only. Nothing later builds on it.
+
+Step A1 of the k-surface branch: data audit and reproduction gate (TRAIN only).
 
     python -m research.waa_ksurface.a1_audit
 

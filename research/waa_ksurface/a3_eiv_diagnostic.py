@@ -1,4 +1,6 @@
-"""The one diagnostic after the failed errors-in-variables check of step A3d (nothing is patched with it).
+"""SUPERSEDED (Detachment correction, 2026-11-11): the diagnostic of the superseded step A3d. Kept for the record.
+
+The one diagnostic after the failed errors-in-variables check of step A3d (nothing is patched with it).
 
     python -m research.waa_ksurface.a3_eiv_diagnostic
 

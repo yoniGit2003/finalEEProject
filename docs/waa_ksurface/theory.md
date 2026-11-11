@@ -1,4 +1,8 @@
-# Theory note of the k-surface branch (step A2, 2026-11-11)
+# Theory note of the k-surface branch (step A2, 2026-11-11; revised the same day by the Detachment correction)
+
+Revision note: the first version took three things from Part 1: a per-link factor a_link, the 1 min lag, and a section that
+used the Part 1 store and its numbers as the reference case. They are removed (Deviation 2 in `decisions.md`). The mathematics
+of sections 2–5 is unchanged.
 
 This note fixes, before any fit, what the model of this branch assumes, when its form is an exact rewrite, and what it
 cannot represent. Notation as in the proposal: A(t) = TSL − RSL − baseline, c = the offset of the link-event, R = the rain
@@ -8,7 +12,8 @@ input (radar path mean / g_e, mm/h), L = the link length (km), W = the wet-anten
 
     A(t) − c = W(t) + L·P(R(t − d))
 
-P(R) is the path loss per km (dB/km) and d = 1 min is the Part 1 lag between the rain input and the link. W does not depend
+P(R) is the path loss per km (dB/km). d is a possible lag between the rain input and the link; it is not taken from
+anywhere: it is measured from this branch's own data before the model is built, and it is 0 until then. W does not depend
 on L; the path term grows with L. This is what the length test uses: at a fixed steady rain, the line of (A − c) against L
 has the intercept W and the slope P.
 
@@ -79,86 +84,82 @@ its zero. We therefore learn two functions:
     k = k_dry(R, W)   if W > target      (drying)
 
 A jump of k at the target does no harm to equation (5): at the target the factor (F − W) is zero, so dW/dt is continuous
-there (it is 0 from both sides), and the solution is unique as long as k is bounded. The Part 1 fast store is exactly such a
-case (2.6 min while rising, 10.3 min while falling).
+there (it is 0 from both sides), and the solution is unique as long as k is bounded. A store that fills
+faster than it empties is exactly such a case.
 
 After the rain R = 0 and F = 0, so (5) becomes dW/dt = −k_dry(0, W)·W: a drying tail measures k_dry(0, W) directly. A
 constant k gives an exponential tail; k ∝ Wⁿ⁻¹ gives the power-law drying dW/dt = −c·Wⁿ.
 
-## 6. Where a_link enters
+## 6. Differences between links
 
-Links differ in their antennas (radome, size, age). As in Part 1, one positive factor per link scales the target:
+The model has no per-link parameter: every link of a band has the same F(R), P(R) and k.
 
-    dW/dt = k(R, W)·(a_link·F(R) − W)                                        (6)
+    dW/dt = k(R, W)·(F(R) − W)                                               (6)
 
-- F(R) is the steady WAA of the typical link (the length-test intercept, which pools the links); a_link·F(R) is the steady
-  WAA of one link. The median of a_link is near 1; it has a weak prior on ln a_link (as in Part 1).
-- a_link does **not** multiply P: the path loss per km does not depend on the antenna.
-- k is evaluated at the link's own W in dB, not at W / a_link. This is a choice (rule A5), and it matters only when k depends
-  on W: with K0 and K2 the two readings are identical. The alternative "the whole state scales with the link", which gives
-  k(R, W / a_link), is not assumed and not tested in Block A.
-- Wetting / drying is decided against the link's own target: wetting if W < a_link·F(R).
+Links may differ in reality (radome, antenna size, age). Whether they differ enough to matter is a question for this branch's
+own data: step E4 measures the spread of the per-link residuals of the length test across storms, with a criterion written
+before the measurement. Only if that criterion is met does a per-link factor enter, and then its form (a factor on F, or
+something else) is chosen from what the residuals show.
 
 ## 7. The numerical step
 
 The model runs once per minute with R held constant over the minute, and k frozen at its value at the start of the minute:
 
-    v = a_link·F(R),   W ← v + (W − v)·exp(−k·Δt),   Δt = 1 min              (7)
+    v = F(R),   W ← v + (W − v)·exp(−k·Δt),   Δt = 1 min                     (7)
 
 For a constant k this is the exact solution of (6) over the minute. For a k that depends on W it is a first-order step
 (k changes little within one minute if 1 / k is several minutes). The step never crosses the target, because exp(−k·Δt) lies
 between 0 and 1. So W cannot switch between wetting and drying inside a step, and the step is stable for every k > 0. W = 0
 before the event.
 
-## 8. Constant k and Part 1
+## 8. What one state can and cannot represent
 
-**A constant k is the Part 1 FAST store.** Part 1 has
+**A constant k is the simplest member.** With k_wet and k_dry constant, (6) is a first-order store with one time constant
+for wetting (1 / k_wet) and one for drying (1 / k_dry), and the step (7) is its exact solution over a minute. This is the
+rung K0 of the ladder. Its unit test is the closed-form answer to a step in R: W(t) = F·(1 − exp(−k_wet·t)).
 
-    dW_f/dt = (φ·u − W_f) / τ_f,   τ_f = 2.6 min while W_f rises, 10.3 min while it falls,   u = a_link·A_band·(R / 5)^b
+**A model with two stores is NOT a special case.** Suppose the antenna held water in two places with different time
+constants, W = W_1 + W_2, each relaxing to its share of the target:
 
-"Rises" means W_f < φ·u, which is "below the target". So this is (6) with F(R) = φ·A_band·(R / 5)^b, k_wet = 1 / 2.6 per
-min, k_dry = 1 / 10.3 per min, and the Part 1 code uses the same one-minute step (7). The ladder rung K0 with these numbers
-and this F must reproduce the Part 1 fast store exactly (unit test of step A5).
-
-**The full Part 1 two-store model is NOT a special case.** It has two states, W = W_f + W_s, with
-
-    dW/dt = (φ·u − W_f) / τ_f + ((1 − φ)·u − W_s) / 240 min
+    dW/dt = (φ·F − W_1) / τ_1 + ((1 − φ)·F − W_2) / τ_2
 
 The right-hand side depends on how W is split between the two stores, not on W alone. Two moments with the same R and the
 same W can have different dW/dt: after a long rain most of W sits in the slow store and decays slowly; after a short shower
 the same W sits in the fast store and decays fast. No function G(R, W) can do this, so no k(R, W) can.
 
-What a one-state fit returns if the truth has two stores (this is why fake truth (d) of A6 exists):
+What a one-state fit returns if the truth has two stores (this is why the fake truth (d) of A6 exists):
 
 - its k_dry looks as if it **rises with W** (large W right after rain is mostly fast water; the small W left later is slow
   water), although neither store has a W-dependent rate;
 - its residual after rain depends on the **preceding rain amount** at the same W. This is the signature that rule B3 tests
   before a second state is added.
 
-The steady state is the same in both models: for a constant R, W_f + W_s → u. So F is comparable between them; only the
+The steady state is the same in both pictures: for a constant R, W_1 + W_2 → F. So F is comparable between them; only the
 dynamics differ.
 
 ## 9. What "steady" means for the measured F
 
-The length test measures the intercept of (A − c) against L in "steady rain" (wet for 20 min, stable for 15 min). This
-equals F(R) only if W has reached its target within that time. With time constants of a few minutes it has; a component
-with a time constant of hours has not. Step A3b checks this with the intercept against the rain duration. In the one-state
+The length test measures the intercept of (A − c) against L in "steady rain". This
+equals F(R) only if W has reached its target within that time: a fast process has, a process with a time constant of hours
+has not. How long "steady" must last is therefore a definition this branch has to derive and test (step E3), and the
+intercept against the rain duration is its check on real data. In the one-state
 view, the F we use is "the WAA level reached in steady rain of the duration the data offers".
 
 ## 10. What is assumed and what is not
 
 **Assumed**
 
-1. The measurement equation: A − c = W + L·P(R(t − 1 min)); W does not depend on L, the path term is linear in L.
+1. The measurement equation: A − c = W + L·P(R(t − d)); W does not depend on L, the path term is linear in L.
 2. One state: dW/dt depends on R now and W now only (1).
 3. One stable steady state F(R) for each R (3), with F(0) = 0.
 4. Wetting and drying may have different k; which one applies is decided by the sign of (target − W).
-5. A link differs from the typical link only by a_link, which scales the target and nothing else; k is a function of the
-   link's own W.
+5. All links of a band share F, P and k (no per-link parameter), unless the pre-registered test of step E4 shows that the
+   data demand one.
 6. F(R) and P(R) are the same for all links of a band, rise with R (monotone interpolation between the measured classes),
    and are zero at R = 0.
 7. R is constant within a minute, and k is frozen within a minute (7).
-8. The rain input (radar path mean / g_e, or a 1 min gauge) is the rain the antenna sees, up to the lag of 1 min.
+8. The rain input (radar path mean / g_e, or a 1 min gauge) is the rain the antenna sees, up to a lag d and up to the rain
+   error measured in step E1.
 
 **Not assumed**
 
@@ -170,3 +171,5 @@ view, the F we use is "the WAA level reached in steady rain of the duration the 
 5. No second (slow) store. If the data need one, the one-state model is wrong, and rule B3 is the test for it.
 6. No dependence of W on the link length.
 7. Nothing about temperature, wind, humidity or dew: they are outside this model.
+8. Nothing from Part 1: no per-link factor, no time constant, no store, no closed form, no lag, no rain class, no
+   steadiness rule (the Detachment rule in `plan.md`).

@@ -8,7 +8,7 @@ a1:
   rainy_mmh: 0.3                                # a "rainy" 5 min bin: R >= this (the Part 1 wet threshold of the length test)
   extra_classes_mmh: [[0.1, 0.25], [0.25, 0.5]] # the two classes A3a may add
 
-a3:                                             # F(R) and P(R) from the length test (choices dated 2026-11-11 in decisions.md)
+a3:                                             # SUPERSEDED by the Detachment correction (2026-11-11): read only by the superseded a3 scripts
   classes_mmh: [[0.1, 0.25], [0.25, 0.5], [0.5, 1], [1, 2], [2, 5], [5, 10], [10, 20]]
   boot_reps: 200                                # event-bootstrap draws (rule A3a)
   seed: 95                                      # the Part 1 seed of the length test

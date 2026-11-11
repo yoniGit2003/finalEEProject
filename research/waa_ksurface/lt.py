@@ -1,4 +1,7 @@
-"""Library of step A3: the model-free length test with options, and the curves F(R), P(R) built from it.
+"""SUPERSEDED (Detachment correction, 2026-11-11): this library used the Part 1 steady-rain rule, rain classes, eligibility rule
+and Huber code. It is kept only so that the superseded A3 outputs can be reproduced. The current library is `ltest.py`.
+
+Library of step A3: the model-free length test with options, and the curves F(R), P(R) built from it.
 
 The steady-rain rule and the Huber line are those of Part 1 (`research.wet_antenna.length_test`, read only). This library
 adds what Part 1 does not have: the same-class duration of every steady bin, a bootstrap that keeps its draws (so that two
