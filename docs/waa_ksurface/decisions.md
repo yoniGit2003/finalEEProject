@@ -876,3 +876,40 @@ valid are used.
 **Pass rule (2026-11-11).** E4 is a measurement. It passes if all 8 valid cells are eligible on real data and give F and P
 with both intervals. A valid cell that is not eligible on real data is dropped and reported; with fewer than 2 cells in a
 band there is no curve for that band. Then STOP for review; A4 is not started.
+
+**Result of E4 (2026-11-11).** Script `research/waa_ksurface/e4_remeasure.py`, report `outputs/reports/e4_remeasure.md`.
+TRAIN, 4 563 link-events of 187 links in the 14 events with a gauge ratio. All 8 valid cells are eligible on real data.
+
+| band | class (mm/h) | R_cell | F (dB) [bootstrap 90 %] [error range] | P (dB/km) [bootstrap 90 %] [error range] | short links | events |
+|---|---|---|---|---|---|---|
+| 28 GHz | 0.1–0.2 | 0.14 | 0.375 [0.198, 0.574] [0.369, 0.375] | 0.045 [0.020, 0.078] [0.042, 0.046] | 17 | 11 |
+| 28 GHz | 0.2–0.5 | 0.37 | 0.525 [0.211, 0.928] [0.488, 0.526] | 0.062 [0.001, 0.094] [0.057, 0.067] | 17 | 7 |
+| 28 GHz | 0.5–1 | 0.64 | 0.725 [0.619, 0.826] [0.725, 0.808] | 0.093 [0.058, 0.140] [0.093, 0.119] | 17 | 9 |
+| 28 GHz | 1–2 | 1.44 | 1.406 [1.189, 1.624] [1.321, 1.406] | 0.098 [0.015, 0.172] [0.098, 0.144] | 17 | 8 |
+| 38 GHz | 0.1–0.2 | 0.13 | 0.350 [0.212, 0.501] [0.327, 0.350] | 0.075 [0.041, 0.126] [0.074, 0.076] | 24 | 11 |
+| 38 GHz | 0.2–0.5 | 0.29 | 0.619 [0.272, 1.196] [0.577, 0.619] | 0.096 [−0.007, 0.142] [0.092, 0.100] | 24 | 7 |
+| 38 GHz | 0.5–1 | 0.65 | 0.863 [0.716, 0.966] [0.863, 0.936] | 0.122 [0.047, 0.222] [0.122, 0.163] | 24 | 9 |
+| 38 GHz | 1–2 | 1.41 | 1.660 [1.189, 2.101] [1.587, 1.660] | 0.179 [−0.019, 0.388] [0.179, 0.245] | 24 | 8 |
+
+- **Valid range: 28 GHz 0.14–1.44 mm/h, 38 GHz 0.13–1.41 mm/h.** Below it the curves are an interpolation to zero; above it
+  nothing is measured (F held, P with its last slope, marked as extrapolation). Curves: `outputs/tables/e4_remeasure_curves.csv`.
+- **The statistical interval is the wide one.** The bootstrap intervals (7 to 11 events per cell) are 0.2–0.9 dB wide for F;
+  the error range from the fake world is under 0.09 dB.
+- F rises with R in every band; the monotone step changes nothing. P at 0.2–0.5 and 1–2 mm/h has intervals that reach zero.
+- Against the superseded A3a curve at the same R: shifts from −0.21 dB (28 GHz, 0.5–1 mm/h) to +0.08 dB.
+
+**The per-link criterion (as written above, 2026-11-11): verdict NOT NEEDED.** 41 short links, 533 link-storm values.
+Between-link sd 0.088 dB (threshold 0.15 dB); storm-to-storm sd inside a link 0.557 dB; permutation p = 0.098 (null: median
+0.016 dB, 95 % point 0.102 dB). Both conditions fail. Note: with the plain test in E3 the same quantity was 0.24 dB; with
+instrument binning it is 0.09 dB. Report only: the mean residual in the two upper classes against the two lower classes has
+correlation 0.68 over the 41 links.
+
+**Verdict.** PASS (a measurement). F and P exist for 0.13–1.44 mm/h. **STOP for review; A4 is not started.**
+
+**What the review should know.**
+1. The measured range ends at about 1.4 mm/h. Most of the WAA dynamics of interest (heavier showers) lie above it.
+2. The method was adopted on a fake world whose rain error model rests on T1: 172 windows in 8 events, nothing below
+   1 mm/h, and a slow-error form (0.9 correlated over 30 min) that is a modelling choice.
+3. The cell sits at the MEAN of the links' own rain, and the bins are chosen by the area mean; inside one bin the links have
+   different rain. The fake test covers this with the real rain fields, but only for the generic truth used there.
+4. The per-link result (no factor needed) holds for 0.13–1.44 mm/h and the short links only.

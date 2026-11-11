@@ -1,0 +1,2 @@
+sigma_link_db,storm_sd_db,short_links,link_storm_values,permutation_p,null_median_db,null_95_db,threshold_db,per_link_factor_needed,links_low_high,corr_low_high,slope_high_on_low
+0.08804,0.55663,41,533,0.0979,0.01585,0.10248,0.15,False,41,0.68258,1.04282
