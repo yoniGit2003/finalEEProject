@@ -990,3 +990,56 @@ No 5–10 or 10–20 mm/h cell of (ii) was judged in T3, so none can be valid fo
   that is not P-valid (0.29 dB/km at 3.2 mm/h). The continuation of P is not a measurement; A4 treats it accordingly.
 
 **Verdict.** PASS.
+
+## Step A4: coverage of the (R, W) plane and the learning domain (2026-11-12, written before the run)
+
+**Question served.** Q2 (what is k?): k(R, W) can only be learned and judged where the data visit the (R, W) plane.
+
+**What.** On the TRAIN links below 1 km (28 and 38 GHz), per minute: Ŵ = (A − c) − L·P̂(R). The number of minutes in every
+cell of the (R, W) plane, wetting and drying apart, per band and pooled. The learning domain = the cells with enough
+minutes from enough events. **Ŵ is used for this map only. It is never a target of a fit.**
+
+**Definitions, each with its reason (fixed before the run).**
+
+1. **Events: the 14 TRAIN events with a gauge ratio.** Reason: F and P were measured on these events only, and E1 found the
+   radar at about 2.5 times the gauges in the g_e = 1 events, an uncorrected one-sided scale error of the rain input. A
+   model that reads its target F(R) and its path term P(R) from R meets the same error as the length test did. The same
+   data-quality rule therefore applies to learning k (inherited from this branch's own "g_e = 1 exclusion"). The g_e = 1
+   events are counted and reported, not mapped into the domain. **This fixes the learning set of A5–A7: flagged for the
+   review.**
+2. **A minute counts** if its 1 min A is valid and its 5 min radar value is valid (data layer, W1). R of the minute = the
+   radar value of its 5 min bin divided by g_e.
+3. **P̂ (map only).** Inside P's valid range: the measured E4 curve. Below the lowest cell: its interpolation to zero. Above
+   the valid range P is not measured, and a continuation must be assumed. Two linear continuations are computed:
+   (L1) the E4 rule, the slope of the last measured segment; (L2) the line through the origin and the last P-valid cell
+   (P proportional to R). Reason for two: the result of Deviation 4 showed that the last-segment slope is a difference of
+   two cells with overlapping intervals (at 28 GHz it is nearly zero). The map is drawn with L2 (the larger path term at
+   high R, so the smaller Ŵ). **A cell enters the domain only if it passes the floors under BOTH continuations**, so no
+   domain cell depends on which continuation is assumed.
+4. **Wetting / drying.** A minute is "wetting" if Ŵ < F̂(R) and "drying" if Ŵ >= F̂(R), F̂ = the measured E4 curve of the
+   band (10 F-valid cells). Above F's measured range F̂ is held at its last value: there the label is an assumption, and
+   those cells are marked in the table and hatched in the figure.
+5. **The grid.** R: one column "below 0.1 mm/h" (not wet by the data layer; this is where drying happens) and the seven
+   rain classes of step E3 (0.1–0.2–0.5–1–2–5–10–20 mm/h). W: bins of 0.3 dB from −0.3 dB upward. Reason for 0.3 dB: one
+   RSL quantization step (W2); a single reading does not place W more finely. Minutes with Ŵ < −0.3 dB or R >= 20 mm/h
+   are outside the plane and counted.
+6. **Floor on events: 5.** Reason (the event bootstrap): intervals come from resampling the N = 14 events. A cell fed by
+   n events is empty in a bootstrap draw with probability (1 − n / N)^N: 0.9 % for n = 4 (1.8 of 200 draws), 0.2 % for
+   n = 5 (0.4 of 200 draws). 5 is the smallest number of events for which fewer than one of the 200 draws is expected to
+   leave the cell without data. It is also the floor of a fitted length-test cell (E3, rule 5).
+7. **Floor on minutes: n_min = 5 · ceil((σ_1 / δ)²)**, with
+   - σ_1 = the sd of a single 1 min value of A − c on dry minutes (the median over the short-link link-events of the sd
+     inside the offset window; it contains the 0.3 dB quantization), not smaller than 0.3 / √12 = 0.087 dB;
+   - δ = 0.0375 dB. Reason: k in a cell is a rate divided by the distance F − W. The smallest distance the instrument
+     resolves is one step, 0.3 dB. For k to be within 25 % there (the tolerance of A6), the mean Ŵ of the cell must be
+     known to 25 % of 0.3 dB = 0.075 dB at two standard deviations, so to 0.0375 dB at one;
+   - the factor 5: the 5 minutes of a radar bin share one R, so they count as one value.
+   **The formula is fixed now; σ_1 is computed by the script.** The number of A4 in `plan.md` (200 link-minutes) is not
+   used: it was not derived.
+8. **Domain edges for A5.** The R edge of the domain = the upper edge of the highest rain class that holds a domain cell
+   (either regime); the W edge = the upper edge of the highest domain W bin.
+9. **Reported besides:** the same counts for the gauge-input set (short links with a City gauge within 1 km); the share
+   of the rainy minutes (R >= 0.1 mm/h) with R above F's measured range, and above P's; the minutes of the g_e = 1 events.
+
+**Pass rule (2026-11-12).** A4 is a measurement. It passes if the domain holds at least one cell in each regime and the
+frozen table is written. The domain is frozen by this run: `outputs/tables/a4_coverage_domain.csv`.
