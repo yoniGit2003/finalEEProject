@@ -1171,3 +1171,64 @@ report `outputs/reports/a5_build.md`. No real attenuation was fitted.
   minimisation, no parameter chosen from it). Nothing was fitted to real attenuation.
 
 **Verdict.** PASS.
+
+## Step A6: fake-data recovery, the gates for A7 (2026-11-12, written before any A6 run)
+
+**Question served.** Q2 (what is k?): which statements about k may A7 make. No real attenuation is used as a target.
+
+### The fake world of A6
+
+- **Links, events, rain:** the learning set (4 563 TRAIN link-events of 187 links, 14 events with a gauge ratio). The true
+  5 min rain of a link-event is its real rain input.
+- **True rain per minute.** The attenuation is made from 1 min rain: the 5 min values joined by straight lines between bin
+  centres, multiplied by a lognormal AR(1) fluctuation (sd 0.3, correlation 0.7 from one minute to the next), then every
+  bin rescaled so that its mean is the 5 min value. The two numbers are generic and round: the variability of rain inside
+  5 min cannot be measured here (a gauge resolves 6–12 mm/h in one minute).
+- **F and P of the fake world** (generic, as in E3): F_true = 3·R / (R + 2) dB, P_true = 0.1·R (28 GHz) and 0.2·R (38 GHz)
+  dB/km. They are handed to the model the way the real ones will be: as "measured" cells at the R of the real F-valid and
+  P-valid cells, with the extension knots above. The truth of the fake world IS that curve (cells + knots at the true
+  values), so "F known" is exact. The fit uses the measured part as fixed, as in A7.
+- **Noise:** an offset error per link-event (sd 0.136 dB, E3); a level shift per link, sd 0.088 dB (E4), added to the
+  target F while it rains (never below zero); white noise per 1 min value, sd 0.072 dB (A4); then every 1 min value is
+  rounded to the 0.3 dB grid with a random phase per link-event. The 5 min value is the mean of its 5 minutes; the real
+  pattern of missing values is kept. (σ_1 already holds the quantization, so the rounding on top is the conservative side.)
+- **What the fit sees.** Radar input: the true 5 min rain × the T1 error at its high end (per event sd 0.45; inside an
+  event shared part and the link's own part with σ_c = 0.26, 0.9 correlated over 30 min), held over the 5 minutes.
+  Gauge input (gauge-input set): the true 1 min path rain × exp(own error + representativeness) with the T2 model at its
+  normal end (own error white per 5 min bin, sd 0.55; representativeness variance 0.028·(d + L / 3) at 15 min), turned
+  into whole gauge steps (0.1 or 0.2 mm) per minute.
+- **d:** the truth has d = 0 and the fit uses d = 0, except in the lag run below.
+- **One replicate per truth** (seeds in the config). Stated limit: every verdict below rests on one draw of the noise.
+
+### The truths (round numbers), the fit and the PASS rules
+
+The fit is the A5 procedure: stage 1 (gauge-input set, gauge rain, wetting rung selected with drying at K1), stage 2 (all
+links, radar rain, k_wet held, drying rung selected), λ and rung by the 5-fold event CV and rule B1. "Within 25 %" for a
+surface = |k_fit / k_true − 1| <= 0.25 at the centre of a cell; "on the domain" = the cells of the frozen A4 domain of that
+regime, each weighted by the minutes the fake world's true state spends in it (short links; R as the fit sees it). A
+constant is judged as a number.
+
+| truth | k | F, P above the measured range | PASS rule | if not |
+|---|---|---|---|---|
+| (a) | k_wet = 1/5, k_dry = 1/15 per min | known (held at the truth) | K0 selected in both regimes AND both k within 25 % | **STOP** |
+| (a-lag) | as (a), truth with d = 2 min | known | report: the d the rule returns per input, and k with it | report |
+| (b) | as (a) | truth as above; the fit STARTS from F held and P at half its true increments, extension free | "identified" if every F knot value is within 25 % of the truth, no increment sits at its upper bound or at 0 where the truth is above 0.05, and both k within 25 % | restriction: A7 may claim k only inside F's measured range, plus drying |
+| (c) | k_wet = 1/5; k_dry = (1 + W) / 30 | known | drying K1 and wetting K0 selected; k within 25 % on at least 80 % of the domain weight in each regime | **STOP** |
+| (d) | k_wet = 0.1·(1 + R / 2); k_dry = 0.1 / (1 + R / 2) | known | K2 selected in both regimes; within 25 % on at least 80 % of the domain weight in each | **STOP** |
+| (e) | two stores, each half of F: fast 1/5 (wetting), 1/10 (drying); slow 1/60 | known | report only: the rungs the one-state ladder returns, its k, and the residual in the 30 min after rain by preceding rain (highest minus lowest third, at matched W ±0.15 dB), next to the same number for (a) | report |
+| (f) | as (a); in 3 of the 14 events (20 %) the rain goes on at 1 mm/h for 30 min after the link's last wet bin, unseen by the rain input | known | "spurious" if drying is not K0 or k_dry is outside 25 %. Then the flagged events are excluded and the fit repeated: "restored" if K0 and within 25 % | restriction recorded |
+| (g) | as (a); level shift per link sd 0.24 dB (E3) instead of 0.088 | known | "corrupted" if either regime is not K0 or a k is outside 25 % | the per-link question reopens, with this as the reason |
+
+- **The flag of (f), defined here before use (W4: tested, not assumed; model-free).** For a link-event of a short link:
+  a0 = the mean of A − c from 5 min before to 5 min after the end of its last wet bin; a1 = the mean from 10 to 20 min
+  after it. It qualifies if a0 >= 0.6 dB (two quantization steps). Its tail "waits or rises" if a1 >= a0 − 0.15 dB. An
+  event is flagged if it has at least 5 qualifying link-events and at least half of them wait or rise. The exclusion uses
+  the FLAG, not the knowledge of which events were changed; how well the flag finds them is reported.
+- **Rungs allowed in A7 (the frozen rule A6: the ladder holds only recovered rungs).** A rung is allowed for a regime only
+  if a truth with that rung was recovered for that regime here. Truths exist for: wetting K0 (a), K2 (d); drying K0 (a),
+  K1 (c), K2 (d). **Wetting K1 and K3 in either regime are given no truth in this block, so they are not allowed in A7
+  until tested.** Stated now, flagged for the review.
+- **Claims domain for A7** = the A4 domain, cut by the restrictions that (b), (f) and (g) produce.
+- (c)–(g) hold the extension at the truth so that each question is tested alone; only (b) frees it. Stated limit: A7 frees
+  the extension in every rung, which (c) and (d) do not test.
+- Any FAIL on (a), (c) or (d) is a STOP: reported, not patched. After the report: STOP for review. A7 is not run.
