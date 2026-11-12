@@ -116,3 +116,8 @@ A4_INFO = TABLES / "a4_coverage_data.csv"                      # the learning se
 A4_EDGES = TABLES / "a4_coverage_edges.csv"                    # sigma_1, the floors, the R and W edge of the domain (A5 reads it)
 A4_FIG = FIGURES / "a4_coverage_map.png"
 A4_REPORT = REPORTS / "a4_coverage.md"
+
+# ---- A5: the model (a5_build.py; library ksurf.py) ---------------------------------------------------------------
+A5_TESTS = TABLES / "a5_build_unit_tests.csv"                  # the three unit tests: number, tolerance, pass
+A5_GRADIENT = TABLES / "a5_build_gradient.csv"                 # test 1: exact gradient and finite difference per parameter
+A5_REPORT = REPORTS / "a5_build.md"

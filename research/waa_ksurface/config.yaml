@@ -119,3 +119,24 @@ a4:                                             # coverage of the (R, W) plane (
   w_max_db: 9.0                                 # the plane ends here; minutes above are counted as outside
   min_events: 5                                 # event bootstrap: fewer than one of 200 draws leaves the cell empty
   delta_db: 0.0375                              # the mean W_hat of a cell known to 25 % of one step at two sd
+
+a5:                                             # the model (decisions.md, step A5, written before the code was run)
+  huber_delta_db: 0.3                           # one RSL quantization step (W2)
+  r_knots_mmh: [0, 0.5, 2, 5, 20]               # ln k is linear in ln(1 + R) between these
+  w_knots_wet_db: [0, 0.5, 1, 2]                # the A4 wetting domain ends at 2.1 dB
+  w_knots_dry_db: [0, 0.5, 1, 2, 4, 9]          # the A4 drying domain ends at 9.0 dB
+  f_knots_mmh: [5, 10, 20]                      # the extension of F above its valid range (3.2 mm/h), to the R edge of the domain
+  p_knots_mmh: [2, 5, 10, 20]                   # the extension of P above its valid range (1.4 mm/h)
+  tau_min_min: 0.3333333                        # 1 / k not below 20 s (one third of the 1 min step)
+  tau_max_min: 600                              # nor above 10 h
+  h_bound: 4.0                                  # |h(W)| <= this (a factor exp(4) on k)
+  f_inc_max_db: 3.0                             # an F increment between two knots: 0 .. 3 dB
+  p_inc_max_db_km: 6.0                          # a P increment between two knots: 0 .. 6 dB/km
+  k_start_min: 10.0                             # starting value of 1 / k
+  f_inc_start_db: 0.01                          # starting F extension: almost held
+  maxiter: 300
+  lambdas: [0.0001, 0.001, 0.01]                # smoothness penalty grid (chosen by CV)
+  folds: 5                                      # grouped by event
+  lag_grid_min: [0, 1, 2, 3, 4, 5]              # the rule for d
+  select: {interval: [5, 95], boot_reps: 1000, seed: 905}
+  tests: {grad_tol: 1.0e-5, step_tol: 1.0e-9, ext_tol: 1.0e-9, n_link_events: 40, seed: 77}

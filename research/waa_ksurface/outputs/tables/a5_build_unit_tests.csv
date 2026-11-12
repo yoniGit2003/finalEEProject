@@ -1,0 +1,4 @@
+test,number,tolerance,pass
+1 gradient vs finite differences,4.1938327698685946e-10,1e-05,True
+2 constant-k step response (dB),4.440892098500626e-16,1e-09,True
+3 extension = measured curve at measured knot values,4.440892098500626e-16,1e-09,True

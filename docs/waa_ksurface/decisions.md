@@ -1149,3 +1149,25 @@ stages; the final extension is that of stage 2.
    1e-9.
 
 Rule A5's reference to the amendment table ("within 1e-6 dB") is met by the stricter 1e-9 of test 2.
+
+**Result of A5 (2026-11-12).** Library `research/waa_ksurface/ksurf.py`, script `research/waa_ksurface/a5_build.py`,
+report `outputs/reports/a5_build.md`. No real attenuation was fitted.
+
+| unit test | number | tolerance | verdict |
+|---|---|---|---|
+| 1 gradient against finite differences (K3 / K3, extension free, 32 parameters, 40 real link-events, 68 185 minutes, d = 2) | 4.2e-10 (relative) | 1e-5 | PASS |
+| 2 constant-k step response (0 → 4 mm/h for 120 min → 0; 1 / k = 5 min wetting, 20 min drying) | 4.4e-16 dB | 1e-9 dB | PASS |
+| 3 extension with its knots at the measured values against the E4 curve (2 000 values of R to 30 mm/h) | 4.4e-16 | 1e-9 | PASS |
+
+- **A bug found by test 2 and fixed (recorded, not hidden):** on the first run test 2 failed by 1.06 dB. Cause: with a
+  constant rung (K0, K1) the code read the knot value at the R-knot index of the minute instead of the single constant.
+  Test 1 had not seen it because it uses K3. The line was corrected and all three tests rerun. This is a correction of
+  new code that its own unit test caught, before any fit; no pass rule was changed. Beyond the written test 1, the
+  gradient is now also checked for K0 / K0, K1 / K2 and K2 / K1 (relative differences 2e-10 to 6e-10).
+- Extension knots: F at 5, 10, 20 mm/h; P at 2, 5, 10, 20 mm/h (per band). Parameters of k: 2 (K0 / K0) to 22 (K3 / K3);
+  extension: 14 (two bands).
+- Speed: one loss with its gradient on the whole learning set (4 563 link-events, 6.8 million minutes) takes 0.07–0.11 s.
+- Disclosure: for that timing the loss was EVALUATED once on the real learning set at the starting values (no
+  minimisation, no parameter chosen from it). Nothing was fitted to real attenuation.
+
+**Verdict.** PASS.
