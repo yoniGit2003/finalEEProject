@@ -915,3 +915,44 @@ correlation 0.68 over the 41 links.
 3. The cell sits at the MEAN of the links' own rain, and the bins are chosen by the area mean; inside one bin the links have
    different rain. The fake test covers this with the real rain fields, but only for the generic truth used there.
 4. The per-link result (no factor needed) holds for 0.13–1.44 mm/h and the short links only.
+
+---
+
+# After the E4 review (2026-11-12, unattended): Deviation 4, then A4, A5, A6
+
+The review accepted E4. This block logs one deviation, then runs A4 (coverage), A5 (the model, no real fit) and A6 (fake-data
+recovery). **The real fit (A7) is not run.**
+
+## Deviation 4: per-cell validity is split by quantity (2026-11-12, logged before anything else)
+
+**What changes.** In T3 a cell of the adopted candidate (ii) was valid only if BOTH its fake-world intercept error and its
+slope error were inside tolerance at both ends of [σc_lo, σc_hi]. From now on validity attaches to the quantity taken from
+the cell:
+
+- a cell is **F-valid** if it is judged at both ends and its fake-world INTERCEPT error is within 0.15 dB at both ends;
+- a cell is **P-valid** if it is judged at both ends and its fake-world SLOPE error is within 0.0710 dB/km at both ends.
+
+F(R) is taken from all F-valid cells, P(R) from all P-valid cells. Nothing else changes: the candidate (ii), the adoption,
+the bin rule R2, the tolerances, the intervals machinery of E4 (bootstrap, error range), the curve construction.
+
+**Reason (given by the review).** Validity must attach to the quantity that is extracted. A cell whose slope fails the fake
+test says nothing against its intercept, and the other way round. The committed T3 fake results already hold both errors
+per cell, so no new fit is needed.
+
+**This is post hoc**, which is why it is a deviation. It was decided by the review before the stored numbers were re-read,
+and it is applied mechanically: the script reads `outputs/tables/t3_rerun_valid_cells.csv` (committed, candidate (ii)) and
+applies the two inequalities; no cell is judged by hand. Disclosure: the T3 report with these numbers was open in the
+working session of 2026-11-12 (it was read to restate the previous check report) before this entry was written. The rule
+itself was not written by that session.
+
+**What is done.** (1) List every judged cell of candidate (ii) with its intercept and slope error at both ends and its
+F- and P-validity (`e4_remeasure_validity.csv`). (2) Rerun `e4_remeasure.py` with F from the F-valid cells and P from the
+P-valid cells. No fake fit is rerun. (3) Report the valid R range of F and of P separately.
+
+**What is kept as it was.** The per-link criterion of E4 was written for the 8 cells that are valid in both quantities, and
+the review accepted its verdict. It is still computed on those 8 cells (the cells whose whole line is trusted), so that the
+accepted verdict is not re-opened by this deviation.
+
+**Pass rule (2026-11-12).** The rerun passes if (a) the 8 cells of the accepted E4 table keep their values (same data, same
+seeds: every number equal), (b) every F-valid or P-valid cell that is eligible on real data gets its value with both
+intervals. A newly valid cell that is not eligible on real data is dropped and reported.
