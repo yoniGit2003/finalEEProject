@@ -131,3 +131,5 @@ A6_FLAGS = TABLES / "a6_recovery_flags.csv"                    # (f): the tail f
 A6_LAG = TABLES / "a6_recovery_lag.csv"                        # (a-lag): the loss per d and the d the rule returns
 A6_FIG = FIGURES / "a6_recovery_surfaces.png"
 A6_REPORT = REPORTS / "a6_recovery.md"
+A6_DIAG = TABLES / "a6_diagnostic.csv"                         # the one diagnostic: truth (a) with the ingredients switched
+A6_DIAG_REPORT = REPORTS / "a6_diagnostic.md"

@@ -1271,3 +1271,43 @@ the gauge input, and on all links with the radar input, both regimes free).
 the noise and the quantization (D1), the error of the gauge input (D2), the error of the radar input (D3). The plain K0
 fit shows whether the constant itself is still recovered when no richer rung is offered. Nothing is changed on the basis
 of this diagnostic; the block stops after it.
+
+**Result of the diagnostic (2026-11-12).** `outputs/reports/a6_diagnostic.md`. Truth (a), same seed, one replicate per row.
+
+| run | gauge input | radar input | noise | wetting rung | drying rung | wetting: weight within 25 % | drying: weight within 25 % |
+|---|---|---|---|---|---|---|---|
+| D0 | exact | exact | off | K0 | K1 | 100 % | 100 % |
+| D1 | exact | exact | on | K3 | K1 | 69 % | 100 % |
+| D2 | with error | exact | on | K3 | K3 | 10 % | 18 % |
+| D3 | exact | with error | on | K3 | K0 | 70 % | 100 % |
+| A6 run | with error | with error | on | K3 | K1 | 14 % | 12 % |
+
+A plain K0 / K0 fit, 1 / k in minutes (truth 5 and 15):
+
+| run | gauge-input set, gauge rain: wetting / drying | all links, radar rain: wetting / drying |
+|---|---|---|
+| D0 | 5.0 / 15.0 | 5.1 / 14.8 |
+| D1 | 5.5 / 14.4 | 5.2 / 14.8 |
+| D2 | 3.8 / 20.8 | 5.2 / 14.8 |
+| D3 | 5.5 / 14.4 | 9.9 / 14.5 |
+| A6 run | 3.8 / 20.8 | 9.9 / 14.5 |
+
+What it locates:
+1. **The code and the model are not the cause.** With exact inputs and no noise (D0) the constants come back exactly
+   (5.0 and 15.0 min) and wetting returns K0.
+2. **The selection rule B1 is one cause.** It has no smallest effect: in D1 (exact inputs, only noise and quantization)
+   K3 beats K0 by 0.2 % of the held-out loss (0.010903 against 0.010924), the gain has the same sign in most events, the
+   paired interval excludes zero, and K3 is returned. In D0 drying returns K1 on a difference in the fifth decimal (the
+   5 min radar input against the 1 min truth), although its k is within 25 % everywhere. A rule that asks only "is the
+   difference distinguishable from zero" selects structure whenever the data are many.
+3. **The error of the gauge input is the other cause, and the larger one.** With it (D2, A6 run) the returned k_wet is
+   within 25 % on only 10–14 % of the domain weight, and even the plain constant moves (3.8 min for 5, and 20.8 min for
+   15 in drying). The gauge resolves 6–12 mm/h per minute, so its 1 min series is spikes; the fit bends k(R, W) to absorb
+   them. A wrong k_wet, held, then spoils stage 2.
+4. **What survives:** the constant k_dry from all links with the radar input is 14.5–14.8 min in every run (truth 15),
+   also with the full radar error. The constant k_wet from the radar input is right with an exact radar (5.2) and wrong
+   with the radar error (9.9).
+
+**The block stops here (2026-11-12).** Truths (a-lag), (b)–(g) were not run; the restrictions of (b), (f), (g), the rungs
+allowed in A7 and the claims domain for A7 are not decided. Nothing was patched. Decisions for the review: whether B1 gets
+a smallest effect (and which), and whether k_wet can be learned from the 1 min gauge input at all.

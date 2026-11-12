@@ -150,9 +150,12 @@ def gauge_seen(D, le, r1, step_mm, dist_km, rng):
 
 
 # =================================================================================================== a fake dataset
-def make(D, le, n_cells, spec, curves, inc_F, inc_P, seed, step_mm, dist_km):
+def make(D, le, n_cells, spec, curves, inc_F, inc_P, seed, step_mm, dist_km, noise=True, exact_gauge=False, exact_radar=False):
     """A fake dataset for one truth. Returns (Dk, extra): Dk = the dataset as the fit reads it (y5 = fake A - c, rain = the
-    radar input, rain_gauge = the gauge input); extra = the truth behind it (true rain, true W, changed events)."""
+    radar input, rain_gauge = the gauge input); extra = the truth behind it (true rain, true W, changed events).
+    The three switches are for the diagnostic only: noise = False removes the offset error, the link shift, the white noise
+    and the rounding; exact_gauge / exact_radar hand the fit the true rain instead of the input with its error. The random
+    numbers are drawn in the same order whatever the switches, so the truth is the same in every variant."""
     N = A6["noise"]
     rng = np.random.default_rng(seed)
     n, rep = D["le_n"], np.repeat(np.arange(len(le)), D["le_n"])
@@ -175,16 +178,21 @@ def make(D, le, n_cells, spec, curves, inc_F, inc_P, seed, step_mm, dist_km):
         m = band[rep] == b
         v[m] = ksurf.full_curve(c, "F", inc_F[b], r1[m])
         p[m] = ksurf.full_curve(c, "P", inc_P[b], r1_pad[idx[m] - d_true])
-    link_shift = rng.normal(0, spec.get("link_sd_db", N["link_sd_db"]), D["nl"])[D["le_link"]]
+    link_shift = rng.normal(0, spec.get("link_sd_db", N["link_sd_db"]), D["nl"])[D["le_link"]] * float(noise)
     v = np.where(r1 > 0, np.maximum(v + link_shift[rep], 0.0), 0.0)        # the level of a link while it rains
     W = _truth(KIND[spec["kind"]], _params(spec), v, r1, n.astype(np.int64), D["le_boff1"].astype(np.int64))
-    y = W + D["le_L"][rep] * p + rng.normal(0, N["offset_sd_db"], len(le))[rep] + N["white_1min_sd_db"] * rng.standard_normal(len(W))
+    y = W + D["le_L"][rep] * p + float(noise) * (rng.normal(0, N["offset_sd_db"], len(le))[rep] + N["white_1min_sd_db"] * rng.standard_normal(len(W)))
     q, phase = N["quant_step_db"], rng.uniform(0, N["quant_step_db"], len(le))[rep]
-    y = q * np.round((y + phase) / q) - phase                   # the 0.3 dB grid of the instrument
+    if noise:
+        y = q * np.round((y + phase) / q) - phase               # the 0.3 dB grid of the instrument
     Dk = dict(D)
     Dk["y1"], Dk["y5"] = y, y.reshape(-1, 5).mean(axis=1)
     Dk["le_c"] = np.zeros(len(le))
     Dk["w5"] = (D["w5"] > 0).astype(float)
     Dk["rain"] = radar_seen(D, le, n_cells, rng)
     Dk["rain_gauge"] = gauge_seen(D, le, r1_pad, step_mm, dist_km, rng)
+    if exact_radar:
+        Dk["rain"] = np.asarray(D["rain"], float).copy()        # the true 5 min rain
+    if exact_gauge:
+        Dk["rain_gauge"] = np.where(np.isfinite(Dk["rain_gauge"]), r1_pad, np.nan)      # the true 1 min rain
     return Dk, {"r1_true": r1, "W_true": W, "v_true": v, "ghost_events": ghost_events, "band_idx": band}

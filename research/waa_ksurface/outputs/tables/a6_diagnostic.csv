@@ -1,0 +1,6 @@
+run,gauge_input,radar_input,noise,wetting_rung,drying_rung,wet_cv_K0,wet_cv_best,dry_cv_K0,dry_cv_best,share_wet_within_25pct,share_dry_within_25pct,K0_gauge_tau_wet,K0_gauge_tau_dry,K0_radar_tau_wet,K0_radar_tau_dry
+D0,exact,exact,off,K0,K1,0.0,0.0,5e-05,5e-05,1.0,1.0,4.99997,14.99997,5.05752,14.78857
+D1,exact,exact,on,K3,K1,0.01092,0.0109,0.01142,0.01142,0.68845,1.0,5.46582,14.40146,5.1703,14.76207
+D2,with error,exact,on,K3,K3,0.02914,0.02853,0.01351,0.01331,0.0961,0.1807,3.79007,20.82449,5.1703,14.76207
+D3,exact,with error,on,K3,K0,0.01092,0.0109,0.0362,0.03554,0.70241,1.0,5.46582,14.40146,9.90813,14.45759
+A6 run,with error,with error,on,K3,K1,0.02914,0.02853,0.0376,0.03655,0.13852,0.12105,3.79007,20.82449,9.90813,14.45759
