@@ -85,6 +85,7 @@ E4_CELLS = TABLES / "e4_remeasure_cells.csv"              # per band and class: 
 E4_CURVES = TABLES / "e4_remeasure_curves.csv"            # F and P per band on a dense R grid (THE product, after review)
 E4_LINKS = TABLES / "e4_remeasure_link_residuals.csv"     # per link: mean residual, number of storms
 E4_LINK_TEST = TABLES / "e4_remeasure_link_test.csv"      # the per-link factor criterion
+E4_VALIDITY = TABLES / "e4_remeasure_validity.csv"      # Deviation 4: fake-world errors per cell, F-valid and P-valid
 E4_VS_A3 = TABLES / "e4_remeasure_vs_a3.csv"              # the new F against the superseded A3a values
 E4_FIG = FIGURES / "e4_remeasure_F_P.png"
 E4_FIG_LINKS = FIGURES / "e4_remeasure_link_residuals.png"

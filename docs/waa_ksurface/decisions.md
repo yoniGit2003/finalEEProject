@@ -956,3 +956,37 @@ accepted verdict is not re-opened by this deviation.
 **Pass rule (2026-11-12).** The rerun passes if (a) the 8 cells of the accepted E4 table keep their values (same data, same
 seeds: every number equal), (b) every F-valid or P-valid cell that is eligible on real data gets its value with both
 intervals. A newly valid cell that is not eligible on real data is dropped and reported.
+
+**Result of Deviation 4 (2026-11-12).** `research/waa_ksurface/e4_remeasure.py` rerun; report
+`outputs/reports/e4_remeasure.md`; the re-read table `outputs/tables/e4_remeasure_validity.csv`. No fake fit was rerun.
+
+Candidate (ii), fake-world errors at the two ends (σc_lo / σc_hi), tolerances 0.15 dB and 0.0710 dB/km:
+
+| band | class (mm/h) | intercept error (dB) | slope error (dB/km) | F-valid | P-valid |
+|---|---|---|---|---|---|
+| 28 GHz | 0.1–0.2 | +0.006 / +0.004 | −0.001 / +0.003 | yes | yes |
+| 28 GHz | 0.2–0.5 | −0.002 / +0.036 | +0.005 / −0.005 | yes | yes |
+| 28 GHz | 0.5–1 | −0.083 / −0.010 | −0.026 / −0.026 | yes | yes |
+| 28 GHz | 1–2 | +0.063 / +0.086 | −0.044 / −0.046 | yes | yes |
+| 28 GHz | 2–5 | +0.079 / +0.026 | −0.0714 / −0.053 | **yes** | no (0.0714 > 0.0710 at the low end) |
+| 38 GHz | 0.1–0.2 | +0.012 / +0.023 | +0.000 / −0.001 | yes | yes |
+| 38 GHz | 0.2–0.5 | +0.021 / +0.042 | +0.004 / −0.005 | yes | yes |
+| 38 GHz | 0.5–1 | −0.072 / −0.053 | −0.041 / −0.031 | yes | yes |
+| 38 GHz | 1–2 | +0.043 / +0.073 | −0.052 / −0.065 | yes | yes |
+| 38 GHz | 2–5 | +0.065 / −0.029 | −0.138 / −0.111 | **yes** | no |
+
+No 5–10 or 10–20 mm/h cell of (ii) was judged in T3, so none can be valid for anything.
+
+- **F-valid: 10 cells (was 8). P-valid: 8 cells (unchanged).** The two 2–5 mm/h cells are added to F only.
+- New F cells on real data: 28 GHz 2–5 mm/h, R_cell 3.20, F = 1.962 dB [bootstrap 1.589, 2.288] [error range 1.882, 1.962];
+  38 GHz 2–5 mm/h, R_cell 3.28, F = 2.029 dB [1.653, 2.407] [1.964, 2.059]. Both eligible (17 and 24 short links, 8 events).
+- **Valid R range of F: 28 GHz 0.14–3.20 mm/h, 38 GHz 0.13–3.28 mm/h. Valid R range of P: 28 GHz 0.14–1.44 mm/h, 38 GHz
+  0.13–1.41 mm/h (unchanged).**
+- Pass rule (a): the 8 cells of the accepted table are equal in every column (largest difference 0); the per-link test is
+  equal (σ_link 0.088 dB, p = 0.098, not needed). Pass rule (b): both new cells have their values and both intervals.
+- The curves product has now one measured-range column per quantity (`F_measured`, `P_measured`).
+- Seen and recorded, not acted on: above its valid range the E4 rule continues P with the slope of its last segment. At
+  28 GHz that slope is 0.006 dB/km per mm/h (the cells 0.093 and 0.098 dB/km), far below the slope of the 2–5 mm/h cell
+  that is not P-valid (0.29 dB/km at 3.2 mm/h). The continuation of P is not a measurement; A4 treats it accordingly.
+
+**Verdict.** PASS.
