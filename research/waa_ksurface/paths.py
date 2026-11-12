@@ -135,3 +135,6 @@ A6_FIG = FIGURES / "a6_recovery_surfaces.png"
 A6_REPORT = REPORTS / "a6_recovery.md"
 A6_DIAG = TABLES / "a6_diagnostic.csv"                         # the one diagnostic: truth (a) with the ingredients switched
 A6_DIAG_REPORT = REPORTS / "a6_diagnostic.md"
+A6_DIAG2 = TABLES / "a6_diagnostic2.csv"                       # the diagnostic after the rerun: 1 / k_dry against the held k_wet, extension held / free
+A6_DIAG2_KNOTS = TABLES / "a6_diagnostic2_knots.csv"           # the extension knots of the free fits
+A6_DIAG2_REPORT = REPORTS / "a6_diagnostic2.md"

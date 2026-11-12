@@ -1440,3 +1440,33 @@ Per fit: 1 / k_dry, the grouped-CV error (dB), and for the free fits the fitted 
 erratic); (ii) whether the free extension absorbs the error of k_wet (which would explain why the gate saw less
 sensitivity than truth (a)), and at what cost to the F knots. Nothing is changed on the basis of this diagnostic; the
 block stops after it.
+
+**Result of the diagnostic (2026-11-12).** `outputs/reports/a6_diagnostic2.md`. Truth (a), the fake data of the A6 run,
+all links, radar input, K0 in both regimes. 1 / k_dry in minutes (truth 15; within 25 % = 12.0 to 20.0):
+
+| 1 / k_wet held (min) | extension held at the truth: 1 / k_dry | CV error (dB) | extension free: 1 / k_dry | CV error (dB) | free F knots, fitted / true |
+|---|---|---|---|---|---|
+| 2.5 | 10.9 (outside) | 0.2779 | 12.5 | 0.2438 | 0.77–0.89 |
+| 3.73 (the gauge-input estimate) | **11.6 (outside)** | 0.2733 | 13.2 | 0.2412 | 0.77–0.92 |
+| 5.0 (the truth) | 12.3 | 0.2700 | 13.9 | 0.2400 | 0.78–0.92 |
+| 7.5 | 13.5 | 0.2667 | 15.1 | 0.2406 | 0.75–0.93 |
+| 9.91 (the radar-input estimate) | 14.5 | 0.2659 | 16.2 | 0.2429 | 0.73–0.92 |
+
+What it locates:
+1. **1 / k_dry depends on the held k_wet smoothly and in one direction** (about +0.45 min per minute of 1 / k_wet), with
+   or without a free extension. k_wet is a nuisance that shifts k_dry by a known, bounded amount; it is not harmless.
+2. **The failure comes from holding the extension at the truth.** With the "true" F and P above the measured range, the
+   drying constant is 18 % too fast even at the TRUE k_wet (12.3 min), and the CV error is 0.03 dB worse than with a free
+   extension. The rain the fit sees carries the radar error, and F evaluated at a noisy R is not the F the data follow on
+   average: the free extension settles 8–27 % below the true knots and the fit is better for it. So "F known everywhere"
+   is not the easy case it was written as in truth (a): it is a harder case than the one A7 will run.
+3. **With the extension free (the A7 configuration), 1 / k_dry is 13.2 min at the gauge-input end and 16.2 min at the
+   radar-input end of the k_wet interval: inside 25 % at both.** This is a diagnostic, not a pass: the pre-registered
+   truth (a) holds the extension, and it failed.
+4. The free F knots are 8–27 % below the truth at every k_wet. This is what truth (b) was written to judge; it was not
+   run, but these numbers say that a knot above the measured range of F will not be recovered to 25 % at every knot.
+
+**The block stops here (2026-11-12).** Not run: (a-lag), (b)–(g), the detectability sweep, the optional step 5. Not
+decided: the rungs allowed in A7, the claims domain. Nothing was patched. Decision for the review: whether the gating
+truths (a), (c), (d) should free the extension (as A7 does), given that holding it at the truth is biased by the rain
+error; and whether the bias of the F knots is then a stated restriction (no claim on F above its measured range).

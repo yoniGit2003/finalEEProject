@@ -1,0 +1,11 @@
+extension,tau_wet_held_min,tau_dry_fit_min,k_dry_over_truth,within_25pct,cv_error_db,train_loss,F_knots_fitted_over_true_min,F_knots_fitted_over_true_max
+held at the truth,2.5,10.9377,1.3714,False,0.27794,0.03719,,
+held at the truth,3.73,11.60202,1.29288,False,0.27325,0.03612,,
+held at the truth,5.0,12.28094,1.22141,True,0.26997,0.03542,,
+held at the truth,7.5,13.47242,1.11339,True,0.26669,0.0348,,
+held at the truth,9.91,14.45833,1.03746,True,0.26593,0.03477,,
+free,2.5,12.54728,1.19548,True,0.24383,0.02811,0.7732,0.89473
+free,3.73,13.18968,1.13725,True,0.24117,0.02753,0.77188,0.91786
+free,5.0,13.88221,1.08052,True,0.24002,0.0273,0.77666,0.9245
+free,7.5,15.13912,0.99081,True,0.24055,0.02747,0.75328,0.92585
+free,9.91,16.20729,0.92551,True,0.24285,0.02801,0.72927,0.92065
