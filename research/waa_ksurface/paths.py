@@ -121,3 +121,13 @@ A4_REPORT = REPORTS / "a4_coverage.md"
 A5_TESTS = TABLES / "a5_build_unit_tests.csv"                  # the three unit tests: number, tolerance, pass
 A5_GRADIENT = TABLES / "a5_build_gradient.csv"                 # test 1: exact gradient and finite difference per parameter
 A5_REPORT = REPORTS / "a5_build.md"
+
+# ---- A6: fake-data recovery (a6_recovery.py; libraries fake6.py, ladder.py) --------------------------------------
+A6_VERDICTS = TABLES / "a6_recovery_verdicts.csv"              # truth, regime, true rung, rung returned, k within 25 %, verdict
+A6_CV = TABLES / "a6_recovery_cv.csv"                          # every truth, rung and lambda: train loss, held-out loss, selected
+A6_CELLS = TABLES / "a6_recovery_cells.csv"                    # every truth and domain cell: true k, fitted k, weight
+A6_EXTENSION = TABLES / "a6_recovery_extension.csv"            # (b): the extension knots, true / start / fitted
+A6_FLAGS = TABLES / "a6_recovery_flags.csv"                    # (f): the tail flag per event
+A6_LAG = TABLES / "a6_recovery_lag.csv"                        # (a-lag): the loss per d and the d the rule returns
+A6_FIG = FIGURES / "a6_recovery_surfaces.png"
+A6_REPORT = REPORTS / "a6_recovery.md"

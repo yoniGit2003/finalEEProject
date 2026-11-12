@@ -1232,3 +1232,42 @@ constant is judged as a number.
 - (c)–(g) hold the extension at the truth so that each question is tested alone; only (b) frees it. Stated limit: A7 frees
   the extension in every rung, which (c) and (d) do not test.
 - Any FAIL on (a), (c) or (d) is a STOP: reported, not patched. After the report: STOP for review. A7 is not run.
+
+**Result of A6 (2026-11-12).** Script `research/waa_ksurface/a6_recovery.py` (libraries `fake6.py`, `ladder.py`), report
+`outputs/reports/a6_recovery.md`. Fake data only.
+
+**Truth (a) FAILS. By the rule this is a STOP; truths (a-lag) to (g) were not run.**
+
+| regime | true rung | rung returned (lowest held-out loss) | 1 / k at R = 0, W = 0 | share of the domain weight within 25 % |
+|---|---|---|---|---|
+| wetting (stage 1, gauge input) | K0 | **K3** (K3) | 45.5 min (truth 5.0) | 14 % |
+| drying (stage 2, radar input, k_wet held) | K0 | **K1** (K3) | 23.0 min (truth 15.0) | 12 % |
+
+- Stage 1, held-out loss: K0 0.02914, K1 0.02890, K2 0.02881, K3 0.02853. The gains are small (2 % of the loss) but the
+  paired event-bootstrap intervals of every simpler rung against K3 exclude zero, so rule B1 returns K3. λ is at the
+  lowest value of the grid in every rung.
+- Stage 2 inherits the wrong k_wet and then also prefers a rung above K0 (K0 0.03760, K1 0.03667, K3 0.03655).
+- So on a constant-k truth, with the measured input errors, the procedure "finds" a dependence of k on R and W that is
+  not there. By rule B5 this would have been reported as new dynamics.
+
+**Verdict.** FAIL on (a): **STOP.** Nothing is patched. (b)–(g) and the rungs allowed in A7 are not decided.
+
+### The one diagnostic allowed after the failed check (2026-11-12, written before it is run)
+
+**What.** Truth (a) again, same seed, with the ingredients of the fake world switched (`a6_diagnostic.py`):
+
+| run | gauge input | radar input | noise and quantization |
+|---|---|---|---|
+| D0 | exact (the true 1 min rain) | exact (the true 5 min rain) | off |
+| D1 | exact | exact | on |
+| D2 | with its error (as in A6) | exact | on |
+| D3 | exact | with its error (as in A6) | on |
+| (A6 run) | with its error | with its error | on |
+
+For every run: the rungs the two stages return, and what a plain K0 / K0 fit gives for 1 / k (on the gauge-input set with
+the gauge input, and on all links with the radar input, both regimes free).
+
+**Why.** To locate the cause: the procedure or code itself (D0 must return K0 and the true k, else the fault is there),
+the noise and the quantization (D1), the error of the gauge input (D2), the error of the radar input (D3). The plain K0
+fit shows whether the constant itself is still recovered when no richer rung is offered. Nothing is changed on the basis
+of this diagnostic; the block stops after it.

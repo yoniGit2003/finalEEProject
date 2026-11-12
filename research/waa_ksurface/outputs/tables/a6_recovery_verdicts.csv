@@ -1,0 +1,3 @@
+truth,regime,true rung,rung returned,k within 25 %,verdict
+(a),wetting,K0,K3,1/k 45.5 min (truth 5.0): no,FAIL
+(a),drying,K0,K1,1/k 23.0 min (truth 15.0): no,FAIL

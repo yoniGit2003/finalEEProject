@@ -140,3 +140,23 @@ a5:                                             # the model (decisions.md, step 
   lag_grid_min: [0, 1, 2, 3, 4, 5]              # the rule for d
   select: {interval: [5, 95], boot_reps: 1000, seed: 905}
   tests: {grad_tol: 1.0e-5, step_tol: 1.0e-9, ext_tol: 1.0e-9, n_link_events: 40, seed: 77}
+  maxiter_fold: 150                             # a fold refit starts from the fit on all events
+
+a6:                                             # fake-data recovery (decisions.md, step A6, written before any run)
+  rain_1min: {sd: 0.3, rho: 0.7}                # lognormal AR(1) fluctuation of the true rain inside 5 min (generic)
+  noise: {offset_sd_db: 0.136, link_sd_db: 0.088, white_1min_sd_db: 0.072, quant_step_db: 0.3}
+  sigma_c: 0.26                                 # T1, the high end
+  seed: 1200
+  truths:
+    a:     {kind: const, k_wet: 0.2, k_dry: 0.0666666667}
+    a_lag: {kind: const, k_wet: 0.2, k_dry: 0.0666666667, d_true: 2}
+    b:     {kind: const, k_wet: 0.2, k_dry: 0.0666666667, free_extension: true}
+    c:     {kind: dry_w, k_wet: 0.2, k_dry0: 0.0333333333, w_scale_db: 1.0}          # k_dry = (1 + W) / 30
+    d:     {kind: both_r, k0: 0.1, r_scale_mmh: 2.0}                                  # k_wet = 0.1 (1 + R/2), k_dry = 0.1 / (1 + R/2)
+    e:     {kind: two_store, phi: 0.5, k_fast_wet: 0.2, k_fast_dry: 0.1, k_slow: 0.0166666667}
+    f:     {kind: const, k_wet: 0.2, k_dry: 0.0666666667, ghost: {events: 3, rain_mmh: 1.0, minutes: 30}}
+    g:     {kind: const, k_wet: 0.2, k_dry: 0.0666666667, link_sd_db: 0.24}
+  judge: {within: 0.25, min_share: 0.8}
+  extension: {f_start_inc_db: 0.01, p_start_share: 0.5, at_zero_truth_above: 0.05}
+  flag: {a0_min_db: 0.6, fall_db: 0.15, min_link_events: 5, share: 0.5}
+  after_rain: {minutes: 30, match_db: 0.15}
