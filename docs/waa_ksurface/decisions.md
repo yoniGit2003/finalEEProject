@@ -1079,3 +1079,73 @@ report `outputs/reports/a4_coverage.md`, figure `outputs/figures/a4_coverage_map
    that a different floor can be applied without a rerun.
 
 **Verdict.** PASS (a measurement). The domain is frozen.
+
+## Step A5: build the model (2026-11-12, written before the code is run; no real attenuation is fitted)
+
+**Question served.** Q2 (what is k?): the model in which k is learned, and the proof that its code computes what is written.
+
+**The model (per link-event, one step per minute, W = 0 at the start of the window).**
+
+    v      = F_full(R(t))                                  the steady WAA at the rain of this minute (per band)
+    regime = wetting if v > W, else drying
+    k      = exp( g_regime(R(t)) + h_regime(W) )           per minute, always positive
+    W      <- v + (W − v)·exp(−k·1 min)                    one exact exponential step
+    A − c  = W + L·P_full(R(t − d))                        the model output of the minute
+
+The fit compares the 5 min mean of the model output with the 5 min mean of the measured A − c (the measured signal is
+never differentiated). No per-link factor (E4 verdict). Learning set: the 14 TRAIN events with a gauge ratio (A4, rule 1).
+
+**F_full and P_full.** Inside the valid range of the quantity: the measured E4 curve, fixed. Above it: a free extension,
+continuous at the end of the valid range, monotone (non-decreasing), linear in R between fixed knots:
+
+- **F knots at R = 5, 10, 20 mm/h; P knots at R = 2, 5, 10, 20 mm/h** (per band). Reason: the rain-class edges of step E3
+  that lie above the valid range (F to 3.2 mm/h, P to 1.4 mm/h), up to the R edge of the A4 domain (20 mm/h).
+- The parameters are the INCREMENTS from one knot to the next, each >= 0 (bounds [0, 3] dB for F, [0, 6] dB/km for P), so
+  the curve cannot fall. Above 20 mm/h F is held and P continues with its last slope.
+- **The extension parameters are fitted together with k, never alone.** A fit with every k parameter held is not allowed
+  to move them.
+
+**The ladder for k (wetting and drying apart).** ln k is piecewise linear between knots, held outside them:
+- K0: a constant. K1: a function of W. K2: a function of R. K3: (function of R)·(function of W), i.e. ln k = g(R) + h(W).
+- R knots: 0, 0.5, 2, 5, 20 mm/h, linear in ln(1 + R). W knots: 0, 0.5, 1, 2 dB for wetting (the A4 wetting domain ends at
+  2.1 dB), 0, 0.5, 1, 2, 4, 9 dB for drying (the A4 drying domain ends at 9.0 dB).
+- Bounds: 1 / k between 20 s and 10 h (faster than the 1 min step cannot be told from "at once"; slower than the 3 h of
+  data after the rain cannot be seen).
+- Smoothness: penalty λ·Σ (second differences of the knot values)², λ from the grid 1e-4, 1e-3, 1e-2 by the CV below.
+- **K4 (a free surface) of rule A5 is not built**: the instructions of this block give the ladder as constant → W → R →
+  both, and K3 is "both". Recorded as a narrowing of the frozen rule.
+
+**Loss.** The mean over the valid 5 min values of all link-events of Huber(residual; 0.3 dB), plus the smoothness penalty.
+0.3 dB = one RSL quantization step (W2). Whole events; minimised with L-BFGS-B and an exact gradient (reverse pass).
+
+**CV and selection (rule B1, inside TRAIN).** 5 folds, grouped by event: the 14 events sorted by start time and dealt
+round-robin. (The rule asks for stratification by `intensity_class`; all 14 learning events are "heavy", so there is
+nothing to stratify.) CV error = the mean Huber loss of the held-out 5 min values. λ per rung = the one with the smallest
+CV error. Selected rung = the simplest (order K0, K1, K2, K3) whose CV error differs from the best rung's by a paired
+90 % interval that contains zero (1 000 event-bootstrap draws of the per-event held-out losses).
+
+**Rain timing (rule A5).** Stage 1: the gauge-input set (links with a City gauge within 1 km, all lengths), rain = the
+1 min gauge rate; the wetting rung is selected with drying at K1 (a nuisance there); k_wet is kept. A 5 min value with a
+missing gauge minute is left out of the loss, and the rain of a missing minute is the radar value. Stage 2: all links,
+rain = the radar (5 min, held over its 5 minutes); k_wet held; the drying rung is selected. The extension is free in both
+stages; the final extension is that of stage 2.
+
+**The rule for d (written 2026-11-12, before any fit):**
+
+> d is a whole number of minutes from 0 to 5: the path term reads the rain of d minutes earlier (5 min is one radar bin;
+> a longer lag cannot be placed with this input). d is chosen once per rain input (radar; gauge), with the K0 model
+> (constant k_wet and k_dry, extension free) on the TRAIN learning set: the d with the smallest loss. If the paired 90 %
+> event-bootstrap interval of loss(d = 0) − loss(d_best) contains zero, the lag is not resolved and d = 0. d is then
+> held for every rung, fold and refit. It is never chosen per link or per event.
+
+**Unit tests (pass rule, 2026-11-12). A5 passes if all three pass:**
+1. **Gradient.** On a small set of real link-events with a fake target, rung K3 in both regimes and a free extension:
+   the exact gradient against central finite differences, every parameter. PASS if the largest relative difference
+   (relative to the largest gradient entry) is below 1e-5.
+2. **Step response.** Constant k, R stepping from 0 to a constant and back to 0, round numbers: W(t) against the analytic
+   F·(1 − e^(−k_wet·t)) and then W_0·e^(−k_dry·t). PASS if the largest difference is below 1e-9 dB.
+3. **Extension.** With the extension knots set to the values of the measured E4 curve (F held, P with its last slope),
+   F_full and P_full against the E4 curve on a dense grid of R from 0 to 30 mm/h. PASS if the largest difference is below
+   1e-9.
+
+Rule A5's reference to the amendment table ("within 1e-6 dB") is met by the stricter 1e-9 of test 2.
