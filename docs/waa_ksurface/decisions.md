@@ -819,8 +819,10 @@ Only the rain error changes, to the one T1 measured for steady windows:
 **Result of T2 and T3 (2026-11-11).** Script `research/waa_ksurface/t3_rerun.py`, report `outputs/reports/t3_rerun.md`.
 Fake data only; real data read for the counts of (iv).
 
-- **T2, candidate (iv) on real data:** 2 425 TRAIN link-events of 50 links with a City gauge within 1 km (18 below 1 km), all
-  TRAIN events. 11 of 14 cells are eligible with the floor of 5 short links (28 GHz 0.1–0.2 mm/h has 4; the two 10–20 cells
+- **T2, candidate (iv) on real data:** 1 983 TRAIN link-events of 41 links of 28 and 38 GHz with a City gauge within 1 km
+  (18 below 1 km), in 43 events (all TRAIN events). (Corrected 2026-11-12: this line first gave 2 425 link-events of 50
+  links, which is the A1 gauge-input set over all bands; the numbers of the T3 report are the right ones. No result
+  changes.) 11 of 14 cells are eligible with the floor of 5 short links (28 GHz 0.1–0.2 mm/h has 4; the two 10–20 cells
   are not fitted). Short links per eligible cell: 6 (28 GHz) and 6–12 (38 GHz). The floor did not need to be touched.
 - **T3, valid cells (inside tolerance at both ends):**
 
