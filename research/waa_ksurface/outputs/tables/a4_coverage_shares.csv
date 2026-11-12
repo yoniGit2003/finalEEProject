@@ -1,0 +1,4 @@
+band,rainy_minutes,share_above_F_range,share_above_P_range,F_max_mmh,P_max_mmh
+28 GHz,172583,0.1841,0.3376,3.20409,1.43607
+38 GHz,204578,0.17091,0.34483,3.27662,1.40542
+pooled,377161,0.17694,0.34152,,

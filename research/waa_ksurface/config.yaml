@@ -111,3 +111,11 @@ e4:                                             # the per-link criterion (decisi
   p_threshold: 0.05                             # AND the permutation test gives p below this
   permutations: 1000
   seed: 811
+
+a4:                                             # coverage of the (R, W) plane (decisions.md, step A4, written before the run)
+  quant_step_db: 0.3                            # one RSL quantization step (W2)
+  w_step_db: 0.3                                # W bins of one quantization step
+  w_min_db: -0.3
+  w_max_db: 9.0                                 # the plane ends here; minutes above are counted as outside
+  min_events: 5                                 # event bootstrap: fewer than one of 200 draws leaves the cell empty
+  delta_db: 0.0375                              # the mean W_hat of a cell known to 25 % of one step at two sd

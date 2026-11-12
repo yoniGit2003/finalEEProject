@@ -106,3 +106,13 @@ T3_CELLS = TABLES / "t3_rerun_valid_cells.csv"                 # per candidate a
 T3_VERDICT = TABLES / "t3_rerun_verdict.csv"                   # per candidate: valid cells, of them below 2 mm/h, adopted
 T3_FIG = FIGURES / "t3_rerun_fake.png"
 T3_REPORT = REPORTS / "t3_rerun.md"
+
+# ---- A4: coverage of the (R, W) plane (a4_coverage.py; library fp.py = the measured curves) ----------------------
+A4_DOMAIN = TABLES / "a4_coverage_domain.csv"                  # THE frozen learning domain: per band / pooled, regime, cell: minutes, events, in_domain
+A4_DOMAIN_GAUGE = TABLES / "a4_coverage_domain_gauge_set.csv"  # the same for the gauge-input set
+A4_SUMMARY = TABLES / "a4_coverage_summary.csv"                # per band and regime: domain cells, R and W range
+A4_SHARES = TABLES / "a4_coverage_shares.csv"                  # share of the rainy minutes above the measured range of F and of P
+A4_INFO = TABLES / "a4_coverage_data.csv"                      # the learning set, the g_e = 1 events, the gauge-input set: counts
+A4_EDGES = TABLES / "a4_coverage_edges.csv"                    # sigma_1, the floors, the R and W edge of the domain (A5 reads it)
+A4_FIG = FIGURES / "a4_coverage_map.png"
+A4_REPORT = REPORTS / "a4_coverage.md"

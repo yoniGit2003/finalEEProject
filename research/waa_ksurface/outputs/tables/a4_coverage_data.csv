@@ -1,0 +1,4 @@
+set,events,short_links,link_events,valid_minutes,rainy_minutes
+events with a gauge ratio (the learning set),14,41,926,1497827,377161
+g_e = 1 events (not used),28,41,792,337981,43570
+gauge-input set inside the learning set,14,18,377,616121,154832

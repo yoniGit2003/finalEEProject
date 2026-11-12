@@ -1,0 +1,7 @@
+band,regime,domain_cells,minutes_in_domain_L2,R_classes,R_edge_mmh,W_lo_db,W_hi_db,cells_with_R_above_F_range
+28 GHz,drying,132,484766,< 0.1 .. 10-20,20.0,0.0,7.5,35
+28 GHz,wetting,41,183480,< 0.1 .. 10-20,20.0,-0.3,2.1,13
+38 GHz,drying,150,559101,< 0.1 .. 10-20,20.0,0.0,8.1,39
+38 GHz,wetting,46,228659,< 0.1 .. 10-20,20.0,-0.3,2.1,16
+pooled,drying,174,1045175,< 0.1 .. 10-20,20.0,0.0,9.0,47
+pooled,wetting,46,412386,< 0.1 .. 10-20,20.0,-0.3,2.1,16

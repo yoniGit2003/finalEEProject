@@ -1,0 +1,13 @@
+quantity,value
+sigma_1_db,0.0724834527804446
+sigma_1_used_db,0.08660254037844387
+sigma_1_link_events,870.0
+delta_db,0.0375
+min_minutes,30.0
+min_events,5.0
+domain_R_edge_mmh,20.0
+domain_W_edge_db,9.0
+domain_cells_wetting,46.0
+domain_cells_drying,174.0
+minutes_outside_plane_L1,38527.0
+minutes_outside_plane_L2,39678.0

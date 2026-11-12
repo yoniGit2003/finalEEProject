@@ -1043,3 +1043,39 @@ minutes from enough events. **Ŵ is used for this map only. It is never a target
 
 **Pass rule (2026-11-12).** A4 is a measurement. It passes if the domain holds at least one cell in each regime and the
 frozen table is written. The domain is frozen by this run: `outputs/tables/a4_coverage_domain.csv`.
+
+**Result of A4 (2026-11-12).** Script `research/waa_ksurface/a4_coverage.py` (library `fp.py` = the measured curves),
+report `outputs/reports/a4_coverage.md`, figure `outputs/figures/a4_coverage_map.png`.
+
+- **Data.** Learning set: 14 events, 41 links below 1 km, 926 link-events, 1 497 827 valid minutes, 377 161 of them rainy
+  (R >= 0.1 mm/h). The g_e = 1 events (not used): 28 events, 792 link-events, 337 981 valid minutes, 43 570 rainy: **the
+  exclusion costs 10 % of the rainy minutes of the short links.** Gauge-input set inside the learning set: 18 links, 377
+  link-events, 616 121 minutes, 154 832 rainy.
+- **Floors.** σ_1 = 0.072 dB (870 link-events), below the quantization limit, so σ_1 = 0.087 dB is used:
+  n_min = 5·ceil((0.087 / 0.0375)²) = **30 minutes**; events floor **5**.
+- **The frozen domain (pooled bands): 46 wetting cells and 174 drying cells** (`outputs/tables/a4_coverage_domain.csv`,
+  column `in_domain`). Two cells pass under one continuation of P only and are left out.
+  - Wetting: every R column, from "below 0.1" to 10–20 mm/h; W from −0.3 dB up to F (0.6 dB at 0.1–0.2 mm/h, 2.1 dB from
+    2 mm/h on). 412 386 minutes.
+  - Drying: every R column; W from F up to 5.4–9.0 dB. 1 045 175 minutes, of which 849 739 in the column below 0.1 mm/h.
+  - **R edge of the domain: 20 mm/h. W edge: 9.0 dB** (the top of the plane; drying only. Wetting ends at 2.1 dB.)
+- **Rain above the measured ranges (rainy minutes of the short links): 17.7 % have R above F's measured range (18.4 % at
+  28 GHz, 17.1 % at 38 GHz); 34.2 % have R above P's.**
+- Gauge-input set, same floors: 41 wetting cells and 135 drying cells (pooled), R up to 20 mm/h, W up to 7.8 dB.
+
+**What the map does not say (recorded for the review).**
+1. In the columns above 3.2 mm/h (hatched) F̂ is held at its last value (about 2.0 dB). "Wetting" there means Ŵ below
+   2.0–2.1 dB and "drying" above it; both labels are an assumption. 63 of the 220 domain cells lie in the classes 5–10 and
+   10–20 mm/h.
+2. Above 1.4 mm/h Ŵ depends on the assumed continuation of P. On links below 1 km the two continuations differ by less
+   than L·ΔP; the domain keeps only cells that pass under both, but the POSITION of the minutes inside the domain above
+   1.4 mm/h is not a measurement.
+3. The drying column below 0.1 mm/h holds minutes with Ŵ of 3–8.7 dB (about 15 000 minutes above 3 dB). A wet antenna
+   level of that size with no radar rain is rain the radar did not see, or a signal disturbance, more likely than WAA. It
+   is the kind of data warning W4 names (unseen water). Not pursued here (side question); A6 truth (f) tests what it does
+   to k_dry.
+4. The floor of 30 minutes is low compared with the 200 of the frozen rule A4. It is what the pre-written formula gives
+   once σ_1 is measured. A stricter floor would remove the thin cells at high W; the frozen table keeps the counts so
+   that a different floor can be applied without a rerun.
+
+**Verdict.** PASS (a measurement). The domain is frozen.
