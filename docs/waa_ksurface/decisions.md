@@ -1311,3 +1311,89 @@ What it locates:
 **The block stops here (2026-11-12).** Truths (a-lag), (b)–(g) were not run; the restrictions of (b), (f), (g), the rungs
 allowed in A7 and the claims domain for A7 are not decided. Nothing was patched. Decisions for the review: whether B1 gets
 a smallest effect (and which), and whether k_wet can be learned from the 1 min gauge input at all.
+
+---
+
+# The A6 rescue (2026-11-12, unattended): Deviations 5 and 6, then A6 again
+
+The review read the A6 stop and its diagnostic. This block logs two deviations, reruns truth (a), and if it passes runs
+(a-lag) and (b)–(g). **A7 (the real fit) is not run.**
+
+## Deviation 5: the selection rule B1 gains a smallest effect (2026-11-12, logged before any run)
+
+**What changes.** A richer rung is selected only if its grouped-CV error improves on the simpler rung by MORE than
+**0.005 dB** AND the paired 90 % event-bootstrap interval of the difference excludes zero.
+
+**Reason (given by the review).** With about 1.5 million minutes, negligible improvements are significant (diagnostic D0,
+D1: K3 selected for 0.2 % of the loss). 0.005 dB is the materiality margin already frozen in rule B4, so one standard
+governs both structure (B1) and closed forms (B4).
+
+**How it is computed (fixed now, where the rule leaves room).**
+- **The CV error in dB.** The loss of the fit is a mean Huber loss (dB², not dB). The CV error is
+  e = √(2 · mean held-out Huber loss): it equals the RMS residual when the residuals are below the Huber threshold, and it
+  keeps the Huber protection against the large path-term residuals of long links. The 0.005 dB margin and the paired
+  interval are both taken on e (the interval: 1 000 event-bootstrap draws of e_simpler − e_richer).
+- **"The simpler rung."** The ladder is walked once from K0: the selection starts at K0; each rung K1, K2, K3 in turn
+  replaces the current selection only if it beats the CURRENT selection by more than the margin with an interval that
+  excludes zero. (K1 and K2 are not nested; each is compared with what is selected when its turn comes.)
+- λ per rung stays the one with the lowest held-out loss.
+
+**This is a choice made after seeing a result** (the A6 run and its diagnostic). Disclosure: on the numbers already seen,
+the stage-1 gain of K3 over K0 in the A6 run is 0.0025 dB on this scale (0.2414 against 0.2389 dB), and in D1 0.0001 dB;
+so it is known in advance that the wetting ladder of those two runs returns K0 under the new rule. The conversion to dB
+was not tuned to that: it is the plain reading of "dB" for a squared-error loss.
+
+## Deviation 6: k_wet is handled by a sensitivity gate (2026-11-12, logged before any run)
+
+**What changes.** The diagnostic showed that a constant k_wet is not recovered to 25 % from either input (3.8 min from the
+gauge input, 9.9 min from the radar input, truth 5). Instead of a claim on k_wet, a gate decides whether k_wet matters:
+
+- **(a) The gate, on truth (a)** (the A6 fake world, same seed): all links, radar input, K0 in both regimes, 1 / k_wet HELD
+  at 2.5, 5 and 10 min (half the truth, the truth, twice the truth); k_dry and the F / P extension free (the extension
+  started as in truth (b): F held, P at half its true increments). Reported per value: the grouped-CV error (dB), and
+  1 / k_dry.
+- **(b) PASS = "bounded nuisance"** if the CV error changes by less than 0.005 dB across the three values (largest minus
+  smallest) AND 1 / k_dry is within 25 % of the truth at all three. Then, on real data, **k_wet is reported as the
+  interval between its gauge-input estimate and its radar-input estimate, carried through every refit (k_dry is fitted at
+  both ends), and never claimed as a discovery.** This is recorded as a claims restriction.
+- **(c) FAIL** (k_wet matters): STOP and report. The rescue (an input-error-aware fit, or a simulation-based bias
+  correction with its own fake check) is a decision for the review.
+
+**How the procedure changes if the gate passes (fixed now).**
+- Stage 1 (gauge-input set, gauge rain) still walks the wetting ladder, now under Deviation 5.
+- If stage 1 returns K0: k_wet,gauge = its constant; k_wet,radar = the constant of a plain K0 / K0 fit on all links with
+  the radar input. Stage 2 walks the drying ladder with k_wet held at k_wet,gauge, and the selected drying rung is refitted
+  with k_wet held at k_wet,radar. **k_dry must be within 25 % at BOTH ends** to count as recovered.
+- If stage 1 returns a rung above K0, that rung is held in stage 2 as before (no interval), and it is judged as a surface.
+- In the PASS rules of A6, "k_wet within 25 %" for a truth whose wetting rung is K0 becomes "k_wet within 25 %, or governed
+  by the gate" (the rung must still be K0).
+
+**Reason.** A quantity that cannot be measured must not be claimed; but if the result of interest (k_dry) does not depend
+on it inside the range it can lie in, it can be carried as a bounded nuisance.
+
+**This is a choice made after seeing a result.** Disclosure: the diagnostic already showed 1 / k_dry of 14.5 min from the
+radar input with 1 / k_wet at 9.9 min (a K0 fit, extension held), so one point of the gate is roughly known.
+
+## A6 again under Deviations 5 and 6 (2026-11-12, written before any run)
+
+**Question served.** Q2.
+
+- **Order.** The gate; truth (a); then, only if (a) passes, (a-lag) and (b)–(g) exactly as written in the A6 entry (same
+  fake world, same seeds, same truths, same flag, same extension start), with the selection of Deviation 5 and the k_wet
+  handling of Deviation 6.
+- **PASS of (a):** K0 returned in both regimes; 1 / k_dry within 25 % (at both ends of the k_wet interval); k_wet within
+  25 % or governed by the gate. Else STOP, with one diagnostic.
+- **(c), (d):** as written, with the rung now having to beat the margin. FAIL at the written size is a STOP. For (c) the
+  wetting side passes with K0 and "within 25 % or governed by the gate". For (d) wetting is a surface (K2) and is judged
+  as one.
+- **Detectability (asked by the review; report only, fixed now).** The size of the dependence is scaled by a factor a, a = 1
+  being the written truth:
+  - k(W), drying: k_dry = (1/15)·(1 + a·W) / (1 + a), so that 1 / k_dry is 15 min at W = 1 dB for every a (a = 1 is truth
+    (c)). Grid a = 0.1, 0.25, 0.5. k_wet = 1/5.
+  - k(R), both regimes: k_wet = 0.1·(1 + a·R / 2), k_dry = 0.1 / (1 + a·R / 2) (a = 1 is truth (d)). Grid a = 0.1, 0.25, 0.5.
+  "Detected" = the ladder returns the true rung for that regime. Reported: the smallest a detected per regime, with the
+  ratio of k across the domain that it stands for (k(W = 2 dB) / k(W = 0); k(R = 5 mm/h) / k(R = 0)). One replicate per
+  point; a gap in the grid (detected at a small a but not at a larger one) is reported as such.
+- **The outputs of the first A6 run and of its diagnostic are superseded** (they were made with the old selection rule);
+  they stay in the history at commits `e0e7b4d` and `28f15d9` and are listed in `outputs/SUPERSEDED.md`.
+- Then STOP for review. A7 is not started.
