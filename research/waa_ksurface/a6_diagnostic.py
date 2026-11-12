@@ -43,7 +43,7 @@ def main():
                             noise=noise, exact_gauge=exact_gauge, exact_radar=exact_radar)
         bi = ex["band_idx"]
         res = ladder.two_stage(Dk, S["le"], bi, S["curves"], S["gauge"], inc_F=S["iF"], inc_P=S["iP"], hold_ext=True, log=a6.log, tag=f"({name}) ")
-        j = a6.judge(S, spec, res, a6.state_density(S, Dk, ex))[0].set_index("regime")
+        j = a6.judge(S, spec, res, a6.state_density(S, Dk, ex), False)[0].set_index("regime")
         gw, gd, gl = plain_k0(Dk, S, bi, True)
         rw, rd, rl = plain_k0(Dk, S, bi, False)
         cv = {s: res[s]["table"][res[s]["table"].best_lambda].set_index("rung").cv_loss for s in ("wet", "dry")}

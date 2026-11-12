@@ -1397,3 +1397,46 @@ radar input with 1 / k_wet at 9.9 min (a K0 fit, extension held), so one point o
 - **The outputs of the first A6 run and of its diagnostic are superseded** (they were made with the old selection rule);
   they stay in the history at commits `e0e7b4d` and `28f15d9` and are listed in `outputs/SUPERSEDED.md`.
 - Then STOP for review. A7 is not started.
+
+**Result of the gate and of truth (a) under Deviations 5 and 6 (2026-11-12).** Script `a6_recovery.py`, report
+`outputs/reports/a6_recovery.md`. Fake data only.
+
+**The k_wet gate: PASS (k_wet is a bounded nuisance), but narrowly.**
+
+| 1 / k_wet held (min) | CV error (dB) | 1 / k_dry (min, truth 15) | within 25 % |
+|---|---|---|---|
+| 2.5 | 0.24383 | 12.55 | yes |
+| 5.0 | 0.24002 | 13.88 | yes |
+| 10.0 | 0.24296 | 16.24 | yes |
+
+CV error changes by 0.0038 dB across the three values (margin 0.005). 1 / k_dry moves from 12.5 to 16.2 min: it is NOT
+independent of k_wet, it stays inside 25 % (the limits are 12.0 and 20.0 min).
+
+**Truth (a): FAIL.**
+
+| regime | rung returned (lowest CV) | gain of the best richer rung over K0 | 1 / k (min) | verdict |
+|---|---|---|---|---|
+| wetting | **K0** (K3) | 0.0026 dB (K3), under the margin | 3.7 (gauge input) / 9.9 (radar input), truth 5: governed by the gate | ok |
+| drying | **K0** (K3) | 0.0028 dB (K3), under the margin | **11.6** with k_wet at its gauge estimate / 14.5 at its radar estimate, truth 15 | **11.6 is outside 25 %** (limit 12.0) |
+
+- Deviation 5 does what it was written for: both ladders return K0 (no richer rung gains more than 0.0028 dB).
+- The failure is the second half of the rule of Deviation 6: k_dry must be within 25 % at BOTH ends of the k_wet interval.
+  With k_wet held at the gauge-input estimate (3.7 min) the drying constant is 11.6 min, 23 % too fast in time, 29 % too
+  large in k.
+- Noted, not explained yet: in the gate, k_wet held at 2.5 min (further from the truth) gave 12.5 min. The gate fits the
+  F / P extension; truth (a) holds it at the truth.
+
+**Verdict.** FAIL on (a): **STOP.** (a-lag), (b)–(g), the detectability sweep and the optional step 5 were not run.
+Nothing is patched.
+
+### The one diagnostic allowed after the failed check (2026-11-12, written before it is run)
+
+**What.** On the same fake data of truth (a): all links, radar input, K0 in both regimes, 1 / k_wet HELD at 2.5, 3.73, 5,
+7.5, 9.91 min, each once with the F / P extension held at the truth and once with it free (started as in truth (b)).
+Per fit: 1 / k_dry, the grouped-CV error (dB), and for the free fits the fitted F knot values against the truth
+(`a6_diagnostic2.py`).
+
+**Why.** To locate the cause of the 11.6 min: (i) how 1 / k_dry depends on the held k_wet (smooth and one-sided, or
+erratic); (ii) whether the free extension absorbs the error of k_wet (which would explain why the gate saw less
+sensitivity than truth (a)), and at what cost to the F knots. Nothing is changed on the basis of this diagnostic; the
+block stops after it.

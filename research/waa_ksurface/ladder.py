@@ -4,8 +4,11 @@
     stage 2   all links, rain = the radar: k_wet held, the DRYING rung is selected
 
 In each stage every rung K0..K3 is fitted with every smoothness weight lambda; a 5-fold cross-validation grouped by event
-gives the held-out loss; lambda per rung = the smallest held-out loss; the selected rung = the simplest one whose held-out
-loss differs from the best rung's by a paired 90 % event-bootstrap interval that contains zero (rule B1).
+gives the held-out loss; lambda per rung = the smallest held-out loss. Selection (rule B1 with Deviation 5): the ladder is
+walked from K0, and a richer rung replaces the current one only if its CV error is lower by MORE than 0.005 dB and the
+paired 90 % event-bootstrap interval of the difference excludes zero. CV error (dB) = sqrt(2 x mean held-out Huber loss).
+k_wet (Deviation 6): if the wetting ladder returns K0, k_wet is a bounded nuisance: the drying fit is made with k_wet at
+its gauge-input estimate and again at its radar-input estimate.
 
     f = folds(le, use)                               the fold of every link-event (events dealt round-robin by start time)
     s = stage(prob, le, use, "wetting", ...)         one stage: table of all rungs, the selected rung, its fit
@@ -32,13 +35,18 @@ def _event_sums(ls, cnt, ev, n_ev, mask):
     return np.bincount(ev[mask], weights=ls[mask], minlength=n_ev), np.bincount(ev[mask], weights=cnt[mask], minlength=n_ev)
 
 
+def cv_db(S, N):
+    """The CV error in dB: sqrt(2 x mean held-out Huber loss) (the RMS residual where the residuals are below the threshold)."""
+    return float(np.sqrt(2.0 * S.sum() / N.sum()))
+
+
 def paired_interval(Sa, Sb, N, reps, seed, interval):
-    """The event-bootstrap interval of (mean loss a - mean loss b) from per-event loss sums Sa, Sb and counts N."""
+    """The event-bootstrap interval of (CV error a - CV error b), in dB, from per-event loss sums Sa, Sb and counts N."""
     rng = np.random.default_rng(seed)
     idx = np.nonzero(N > 0)[0]
     draws = rng.integers(0, len(idx), (reps, len(idx)))
-    num = (Sa[idx] - Sb[idx])[draws].sum(axis=1)
-    return np.percentile(num / N[idx][draws].sum(axis=1), interval)
+    n = N[idx][draws].sum(axis=1)
+    return np.percentile(np.sqrt(2.0 * Sa[idx][draws].sum(axis=1) / n) - np.sqrt(2.0 * Sb[idx][draws].sum(axis=1) / n), interval)
 
 
 def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=None, hold_ext=False, lambdas=None, log=print, tag=""):
@@ -83,26 +91,41 @@ def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=Non
                 best[rung] = {"cv": cv, "lam": lam, "x": x, "model": m, "S": S, "N": N}
         prev = (best[rung]["model"], best[rung]["x"])
     tab = pd.DataFrame(rows)
+    tab["cv_db"] = np.sqrt(2.0 * tab.cv_loss)
     top = min(best, key=lambda r: best[r]["cv"])
     S_ = C["select"]
-    chosen, iv = None, {}
-    for rung in ksurf.ORDER:
-        iv[rung] = paired_interval(best[rung]["S"], best[top]["S"], best[top]["N"], S_["boot_reps"], S_["seed"], S_["interval"]) if rung != top else (0.0, 0.0)
-        if chosen is None and iv[rung][0] <= 0.0 <= iv[rung][1]:
+    chosen, steps = "K0", {}
+    for rung in ksurf.ORDER[1:]:                                # walk the ladder: a richer rung must beat the current one by more than the margin
+        gain = cv_db(best[chosen]["S"], best[chosen]["N"]) - cv_db(best[rung]["S"], best[rung]["N"])
+        lo, hi = paired_interval(best[chosen]["S"], best[rung]["S"], best[rung]["N"], S_["boot_reps"], S_["seed"], S_["interval"])
+        take = bool(gain > S_["margin_db"] and not (lo <= 0.0 <= hi))
+        steps[rung] = (chosen, gain, lo, hi, take)
+        if take:
             chosen = rung
     tab["best_lambda"] = [best[r]["lam"] == l for r, l in zip(tab.rung, tab["lambda"])]
-    tab["minus_best_lo"] = [iv[r][0] if b else np.nan for r, b in zip(tab.rung, tab.best_lambda)]
-    tab["minus_best_hi"] = [iv[r][1] if b else np.nan for r, b in zip(tab.rung, tab.best_lambda)]
+    for k, name in enumerate(("compared_with", "gain_db", "gain_lo", "gain_hi", "replaces")):
+        tab[name] = [steps[r][k] if (b and r in steps) else None for r, b in zip(tab.rung, tab.best_lambda)]
     tab["lowest_cv"] = tab.rung == top
     tab["selected"] = (tab.rung == chosen) & tab.best_lambda
     b = best[chosen]
     log(f"   {tag}{select}: lowest cv {top}, selected {chosen} (lambda {b['lam']:g})")
-    return {"table": tab, "rung": chosen, "lam": b["lam"], "x": b["x"], "model": b["model"], "lowest_cv": top}
+    return {"table": tab, "rung": chosen, "lam": b["lam"], "x": b["x"], "model": b["model"], "lowest_cv": top, "S": b["S"], "N": b["N"]}
+
+
+def plain_k0(prob, use, inc_F, inc_P, hold_ext):
+    """A K0 / K0 fit with both regimes free: (1 / k_wet, 1 / k_dry, model, x)."""
+    m = ksurf.Model(prob, "K0", "K0")
+    if hold_ext:
+        m.hold("F", "P")
+    x = m.fit(m.start(inc_F, inc_P), use)
+    return float(1 / m.k(x, "wetting", 0, 0)), float(1 / m.k(x, "drying", 0, 0)), m, x
 
 
 def two_stage(D, le, band_idx, curves, gauge_mask, d_radar=0, d_gauge=0, inc_F=None, inc_P=None, hold_ext=False, use=None, log=print, tag=""):
     """The whole procedure. gauge_mask = the link-events of the gauge-input set; use = link-events to leave out get 0.
-    Returns {"wet": stage 1, "dry": stage 2, "x": the final parameters, "model": the final model}."""
+    Returns {"wet": stage 1, "dry": stage 2, "x": the final parameters, "model": the final model}; if the wetting ladder
+    returned K0 (Deviation 6) also "tau_wet" = {"gauge", "radar"} (1 / k_wet from each input, min) and "x_alt" = the selected
+    drying rung refitted with k_wet at the radar-input estimate."""
     use = np.ones(len(le)) if use is None else np.asarray(use, float)
     rain_g, ok5 = gauge_input(D)
     prob_g = ksurf.prepare(D, band_idx, curves, rain_g, d_gauge)
@@ -113,7 +136,16 @@ def two_stage(D, le, band_idx, curves, gauge_mask, d_radar=0, d_gauge=0, inc_F=N
     ext = m1.parts(x1)[4:]
     prob_r = ksurf.prepare(D, band_idx, curves, D["rain"], d_radar)
     s2 = stage(prob_r, le, use, "drying", s1["rung"], wet, [e.copy() for e in ext[0]], [e.copy() for e in ext[1]], hold_ext, log=log, tag=tag)
-    return {"wet": s1, "dry": s2, "x": s2["x"], "model": s2["model"]}
+    out = {"wet": s1, "dry": s2, "x": s2["x"], "model": s2["model"]}
+    if s1["rung"] == "K0":                                      # Deviation 6: k_wet is a bounded nuisance, carried at both its estimates
+        tau_r = plain_k0(prob_r, use, inc_F, inc_P, hold_ext)[0]
+        m2 = s2["model"]
+        x0 = s2["x"].copy()
+        x0[m2.sl["gw"]] = np.log(1.0 / tau_r)
+        out["x_alt"] = m2.fit(x0, use)                          # gw is held in this model, so it stays at the radar-input estimate
+        out["tau_wet"] = {"gauge": float(1 / m1.k(x1, "wetting", 0, 0)), "radar": tau_r}
+        log(f"   {tag}1 / k_wet: gauge input {out['tau_wet']['gauge']:.2f} min, radar input {tau_r:.2f} min")
+    return out
 
 
 def gauge_input(D):

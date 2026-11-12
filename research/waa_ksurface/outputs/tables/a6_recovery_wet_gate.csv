@@ -1,0 +1,4 @@
+tau_wet_held_min,cv_error_db,train_loss,tau_dry_fit_min,tau_dry_true_min,k_dry_within_25pct
+2.5,0.243829,0.028106,12.54728,15.0,True
+5.0,0.240024,0.027301,13.882212,15.0,True
+10.0,0.242956,0.02803,16.244824,15.0,True

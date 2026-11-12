@@ -138,7 +138,7 @@ a5:                                             # the model (decisions.md, step 
   lambdas: [0.0001, 0.001, 0.01]                # smoothness penalty grid (chosen by CV)
   folds: 5                                      # grouped by event
   lag_grid_min: [0, 1, 2, 3, 4, 5]              # the rule for d
-  select: {interval: [5, 95], boot_reps: 1000, seed: 905}
+  select: {interval: [5, 95], boot_reps: 1000, seed: 905, margin_db: 0.005}   # margin: Deviation 5 (the B4 materiality margin)
   tests: {grad_tol: 1.0e-5, step_tol: 1.0e-9, ext_tol: 1.0e-9, n_link_events: 40, seed: 77}
   maxiter_fold: 150                             # a fold refit starts from the fit on all events
 
@@ -160,3 +160,5 @@ a6:                                             # fake-data recovery (decisions.
   extension: {f_start_inc_db: 0.01, p_start_share: 0.5, at_zero_truth_above: 0.05}
   flag: {a0_min_db: 0.6, fall_db: 0.15, min_link_events: 5, share: 0.5}
   after_rain: {minutes: 30, match_db: 0.15}
+  gate: {tau_wet_min: [2.5, 5.0, 10.0], margin_db: 0.005}   # Deviation 6: 1 / k_wet held at half / the truth / twice the truth
+  detect: {grid: [0.1, 0.25, 0.5], seed_offset: 100}       # detectability: the dependence of truths (c) and (d) scaled by a

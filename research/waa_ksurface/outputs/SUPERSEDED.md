@@ -16,3 +16,10 @@ used. The rescue steps E1-E4 replace them (files starting with `e1_`, `e2_`, `e4
 
 Diagnostic only (not superseded, not a foundation): `tables/a1_audit_length_test_vs_part1.csv` (the one-off check that the
 rebuilt dataset loads like the Part 1 dataset).
+
+## The first A6 run and its diagnostic (superseded 2026-11-12 by Deviations 5 and 6)
+
+| output | why |
+|---|---|
+| `reports/a6_recovery.md`, `tables/a6_recovery_*.csv` as committed at `e0e7b4d` | made with the selection rule B1 without a smallest effect; truth (a) FAILED. The files of the same name now hold the rerun under Deviations 5 and 6. |
+| `reports/a6_diagnostic.md`, `tables/a6_diagnostic.csv` (commit `28f15d9`) | the one diagnostic of that failed check, made with the old selection rule. Kept as the record that motivated Deviations 5 and 6; rerunning `a6_diagnostic.py` today would apply the new rule. |
