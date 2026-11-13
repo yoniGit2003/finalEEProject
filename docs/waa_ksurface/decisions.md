@@ -1542,3 +1542,46 @@ extension, and its verdict is not tied to the failed run's held extension).
 - **Rungs allowed in A7:** a rung is allowed for a regime if its truth passed here: wetting K0 (a), K2 (d); drying K0 (a),
   K1 (c), K2 (d). Wetting K1 and K3 in either regime have no truth and stay not allowed.
 - FAIL on (c) or (d) is a STOP. (b), (f), (g), (d-high) give restrictions. Then STOP for review; A7 is not started.
+
+**Result of A6 final (2026-11-13).** Script `a6_recovery.py`, report `outputs/reports/a6_recovery.md`. Fake data only,
+fresh seeds (base 2200), extension free in every truth.
+
+| truth | regime | true rung | rung returned | recovery | verdict |
+|---|---|---|---|---|---|
+| (a) | wetting | K0 | K0 (best richer rung +0.0013 dB) | 1 / k_wet 3.3 (gauge) / 3.1 (radar) min, truth 5: governed by the gate | PASS |
+| (a) | drying | K0 | K0 (best richer rung +0.0013 dB) | 1 / k_dry 17.2 / 17.0 min at the two ends, truth 15 | PASS |
+| (a-lag) | | | | the rule returns d = 2 for the radar input and d = 2 for the gauge input (truth 2) | report: the rule works |
+| (b) | wetting | K0 | K0 | 1 / k_wet 3.3 / 3.3 min: governed by the gate | k_dry recovered |
+| (b) | drying | K0 | K0 | 1 / k_dry 16.7 / 16.7 min, truth 15 | k_dry recovered |
+| (c) | wetting | K0 | K0 | 1 / k_wet 3.5 / 3.7 min: governed by the gate | ok |
+| (c) | drying | K1 | **K0** | 18 % of the domain weight within 25 % (needs 80 %) | **FAIL** |
+
+- **Truth (a) PASSES on fresh data**, and (b), the same procedure on another draw, agrees: K0 in both regimes, 1 / k_dry
+  11–15 % too long (17.2 and 16.7 min for 15), the same at both ends of the k_wet interval.
+- k_wet: both inputs give 3.1–3.7 min for a true 5 in three draws. In these draws the two estimates agree with each other
+  and are both about 30 % too fast: **the interval between them does not contain the truth.** (In the first fake set
+  they were 3.7 and 9.9.) Recorded as a fact about the nuisance interval, not acted on.
+- (a-lag): the loss has its minimum at d = 2 for both inputs and the paired interval of loss(0) − loss(2) excludes zero.
+- (b), extension knots: listed in the report and in `a6_recovery_extension.csv` (information for R1).
+- **Truth (c) FAILS.** The true rung K1 has the lowest held-out error, and its gain over K0 has an interval that excludes
+  zero (0.0002 to 0.0036 dB), but the gain is **0.0019 dB, below the 0.005 dB margin** of Deviation 5. So the ladder
+  returns K0, and a constant (16.8 min) is within 25 % of the true k_dry on only 18 % of the domain weight. The written
+  dependence is not small: k_dry triples from W = 0 to W = 2 dB.
+
+**Verdict.** FAIL on (c): **STOP.** Not run: (d), (d-high), (e), (f), (g), the detectability study, the optional step.
+Nothing is patched. One finding already follows without a further run: **at the 0.005 dB margin the ladder cannot return
+a k_dry that triples across the drying domain**, so the smallest detectable k_dry(W) ratio is above 3.
+
+### The one diagnostic allowed after the failed check (2026-11-13, written before it is run)
+
+**What.** On the fake data of truth (c): all links, radar input, k_wet held at its gauge-input estimate, extension free;
+drying K0 and drying K1 (λ = 1e-4, the one the CV chose) fitted on all events (`a6_diagnostic3.py`). Reported:
+(i) the fitted K1 curve against the true k_dry(W) at the W knots, and the share of the domain weight within 25 % that K1
+WOULD have had; (ii) the error √(2·mean Huber loss) of both fits, in sample, on: all 5 min values; the links below 1 km;
+the links below 1 km in the 60 min after the last wet bin; and the same three sets with the rainy part of the event left
+out.
+
+**Why.** To locate why a threefold change of k_dry is worth only 0.002 dB: is the K1 fit itself good (then the margin is
+simply larger than the footprint of the dependence in the loss), and is the footprint diluted by where the loss is
+measured (all links and all minutes, most of them unaffected by k_dry)? Nothing is changed on the basis of this
+diagnostic; the block stops after it.

@@ -8,8 +8,9 @@
 Fake attenuation on the real links and the real rain (library `fake6.py`), fitted with the procedure of A5 (library
 `ladder.py`): stage 1 learns k_wet from the gauge-input set, stage 2 learns k_dry from all links. Truths, PASS rules and
 what a failure means: decisions.md, step A6 and "A6 again under Deviations 5 and 6" (written before any run).
-Order: the k_wet sensitivity gate (Deviation 6), truth (a), then (a-lag), (b)-(g), then the detectability sweep. A failed
-gate, or a FAIL on (a), (c) or (d), is a STOP: the script writes the report and exits with code 1.
+Final form (Deviation 7): every truth frees the F / P extension, as the real fit will, and is drawn with a fresh seed.
+Order: truth (a), then (a-lag), (b), (c), (d), (d-high), (e), (f), (g), then the detectability study (5 replicates per size).
+A FAIL on (a), (c) or (d) is a STOP: the script writes the report and exits with code 1.
 No real attenuation is used as a target.
 """
 import pickle
@@ -31,8 +32,8 @@ from research.waa_ksurface import paths as P
 A5, A6 = ksurf.config(), data.branch_config()["a6"]
 LT = ltest.config()
 EDGES = np.asarray(LT["class_edges_mmh"], float)
-ORDER = ["a", "a_lag", "b", "c", "d", "e", "f", "g"]
-DET = [f"{t}_{a:g}" for t in ("c", "d") for a in A6["detect"]["grid"]]      # the detectability sweep: truth form and size a
+ORDER = ["a", "a_lag", "b", "c", "d", "d_high", "e", "f", "g"]
+FORMS = {"cw": ("drying",), "kr": ("wetting", "drying")}        # detectability forms: k_dry(W); k(R) inside the measured range
 GATES = ["a", "c", "d"]                                         # a FAIL here is a STOP
 J = A6["judge"]
 
@@ -73,15 +74,25 @@ def state_density(S, Dk, ex):
     return g
 
 
+R2_LAST_COL = 5                                                 # the R column of the class 2-5 mm/h: the last one inside F's measured range (R2)
+
+
+def _share(v):
+    return float(v.minutes[(v.ratio - 1).abs() <= J["within"]].sum() / v.minutes.sum()) if len(v) and np.isfinite(v.ratio).all() else np.nan
+
+
 def compare(m, x, spec, regime, dens):
-    """The learned k of one regime against the truth: (cells, share of the domain weight within 25 %, 1 / k at R = 0, W = 0)."""
+    """The learned k of one regime against the truth: (cells, share of the domain weight within 25 %, 1 / k at R = 0, W = 0,
+    the same share on the whole domain). For a truth in which k depends on R the share is taken inside F's measured range
+    (restriction R2); for the others the two shares are the same."""
     g = dens[dens.regime == regime].copy()
     g["k_fit"] = m.k(x, regime, g.R.to_numpy(), g.W.to_numpy())
     g["k_true"] = fake6.k_true(spec, regime, g.R.to_numpy(), g.W.to_numpy())
     g["ratio"] = g.k_fit / g.k_true
     v = g[g.minutes > 0]
-    share = float(v.minutes[(v.ratio - 1).abs() <= J["within"]].sum() / v.minutes.sum()) if len(v) and np.isfinite(v.ratio).all() else np.nan
-    return g, share, float(1 / m.k(x, regime, 0.0, 0.0))
+    whole = _share(v)
+    share = _share(v[v.rcol <= R2_LAST_COL]) if spec["kind"] == "both_r" else whole
+    return g, share, float(1 / m.k(x, regime, 0.0, 0.0)), whole
 
 
 def judge(S, spec, res, dens, gate_ok):
@@ -92,10 +103,10 @@ def judge(S, spec, res, dens, gate_ok):
     rows, cells = [], []
     for regime, key in (("wetting", "wet"), ("drying", "dry")):
         tr = fake6.true_rung(spec, regime)
-        g, share, tau = compare(m, x, spec, regime, dens)
+        g, share, tau, whole = compare(m, x, spec, regime, dens)
         tau_true = float(1 / fake6.k_true(spec, regime, 0.0, 0.0)) if tr != "none" else np.nan
         row = {"regime": regime, "true_rung": tr, "selected_rung": res[key]["rung"], "lowest_cv_rung": res[key]["lowest_cv"], "lambda": res[key]["lam"],
-               "rung_ok": res[key]["rung"] == tr, "tau_fit_min": tau, "tau_true_min": tau_true, "share_within_25pct": share,
+               "rung_ok": res[key]["rung"] == tr, "tau_fit_min": tau, "tau_true_min": tau_true, "share_within_25pct": share, "share_whole_domain": whole,
                "domain_cells_visited": int((g.minutes > 0).sum()), "tau_fit_alt_min": np.nan, "share_alt": np.nan, "k_note": ""}
         ok = (abs(tau_true / tau - 1) <= J["within"]) if tr == "K0" else (share >= J["min_share"] if tr != "none" else None)
         if regime == "wetting" and "tau_wet" in res:            # the wetting ladder returned K0: k_wet is the nuisance interval
@@ -103,7 +114,7 @@ def judge(S, spec, res, dens, gate_ok):
             if tr == "K0" and not ok and gate_ok:
                 ok, row["k_note"] = True, "governed by the gate"
         if regime == "drying" and "x_alt" in res:
-            g2, share2, tau2 = compare(m, res["x_alt"], spec, regime, dens)
+            g2, share2, tau2, _ = compare(m, res["x_alt"], spec, regime, dens)
             row["tau_fit_alt_min"], row["share_alt"] = tau2, share2
             g["k_fit_alt"] = g2.k_fit
             if tr != "none":
@@ -164,42 +175,6 @@ def tail_flags(S, Dk):
     return t
 
 
-# =================================================================================================== the k_wet gate (Deviation 6)
-def wet_gate(S):
-    """Truth (a), all links, radar input, K0 / K0 with 1 / k_wet HELD at half the truth, the truth, twice the truth; k_dry and
-    the extension free. Per value: the grouped-CV error (dB) and 1 / k_dry."""
-    spec, G = A6["truths"]["a"], A6["gate"]
-    le = S["le"]
-    Dk, ex = fake6.make(S["D"], le, S["n_cells"], spec, S["curves"], S["iF"], S["iP"], A6["seed"] + ORDER.index("a"), S["step"], S["dist"])
-    prob = ksurf.prepare(Dk, ex["band_idx"], S["curves"], Dk["rain"], 0)
-    E = A6["extension"]
-    start_F, start_P = [np.full(len(i), E["f_start_inc_db"]) for i in S["iF"]], [E["p_start_share"] * i for i in S["iP"]]
-    use = np.ones(len(le))
-    fold = ladder.folds(le, use)
-    ev, n_ev = prob["event"], int(prob["event"].max()) + 1
-    rows = []
-    for tau in G["tau_wet_min"]:
-        m = ksurf.Model(prob, "K0", "K0")
-        x0 = m.start(start_F, start_P)
-        x0[m.sl["gw"]] = np.log(1.0 / tau)
-        m.hold("gw")
-        x = m.fit(x0, use)
-        Ssum, N = np.zeros(n_ev), np.zeros(n_ev)
-        for f in range(fold.max() + 1):
-            xf = m.fit(x, use * (fold != f), maxiter=A5["maxiter_fold"])
-            ls, cnt = m.per_link_event(xf)
-            Ssum += np.bincount(ev[fold == f], weights=ls[fold == f], minlength=n_ev)
-            N += np.bincount(ev[fold == f], weights=cnt[fold == f], minlength=n_ev)
-        tau_d = float(1 / m.k(x, "drying", 0, 0))
-        rows.append({"tau_wet_held_min": tau, "cv_error_db": ladder.cv_db(Ssum, N), "train_loss": m.last["loss"], "tau_dry_fit_min": tau_d,
-                     "tau_dry_true_min": 1 / spec["k_dry"], "k_dry_within_25pct": bool(abs((1 / spec["k_dry"]) / tau_d - 1) <= J["within"])})
-        log(f"   gate: 1/k_wet held at {tau:g} min: cv {rows[-1]['cv_error_db']:.5f} dB, 1/k_dry {tau_d:.2f} min")
-    t = pd.DataFrame(rows)
-    change = float(t.cv_error_db.max() - t.cv_error_db.min())
-    ok = bool(change < G["margin_db"] and t.k_dry_within_25pct.all())
-    return {"table": t, "cv_change_db": change, "pass": ok}
-
-
 # =================================================================================================== one truth
 def extension_table(S, m, x, start_F, start_P):
     iF_fit, iP_fit = m.parts(x)[4:]
@@ -216,52 +191,56 @@ def extension_table(S, m, x, start_F, start_P):
     return pd.DataFrame(rows)
 
 
+def det_name(form, a, rep):
+    return f"{form}_{a:g}_r{rep}"
+
+
 def spec_of(name):
-    """The truth of a name: one of the written truths, or a point of the detectability sweep ("c_0.25": form (c), size a)."""
+    """(truth, seed) of a name: a written truth, or a replicate of the detectability study ("cw_0.5_r2": form, size a, replicate)."""
+    base = A6["seed_final"]
     if name in A6["truths"]:
-        return A6["truths"][name], A6["seed"] + ORDER.index(name)
-    form, a = name.split("_")
-    a = float(a)
-    seed = A6["seed"] + A6["detect"]["seed_offset"] + DET.index(name)
-    if form == "c":                                             # k_dry = (1/15) (1 + a W) / (1 + a): 15 min at W = 1 dB for every a
+        return A6["truths"][name], base + ORDER.index(name)
+    form, a, rep = name.split("_")
+    a, rep = float(a), int(rep[1:])
+    seed = base + 100 + 1000 * list(FORMS).index(form) + 10 * A6["detect"]["sizes"].index(a) + rep
+    if form == "cw":                                            # k_dry = (1/15) (1 + a W) / (1 + a): 15 min at W = 1 dB for every a
         return {"kind": "dry_w", "k_wet": 0.2, "k_dry0": (1 / 15) / (1 + a), "w_scale_db": 1 / a, "size_a": a}, seed
-    return {"kind": "both_r", "k0": 0.1, "r_scale_mmh": 2.0 / a, "size_a": a}, seed
+    return {"kind": "both_r", "k0": 0.1, "r_scale_mmh": 2.0 / a, "r_cap_mmh": A6["detect"]["r_cap_mmh"], "size_a": a}, seed
 
 
-def run_truth(name, S, gate_ok):
+def run_truth(name, S, gate_ok=True):
+    """One truth, fitted exactly as A7 will fit: extension free (Deviation 7), started from F held and P at half its increments."""
     spec, seed = spec_of(name)
     D, le = S["D"], S["le"]
     t0 = time.time()
     Dk, ex = fake6.make(D, le, S["n_cells"], spec, S["curves"], S["iF"], S["iP"], seed, S["step"], S["dist"])
     bi = ex["band_idx"]
     out = {"name": name, "spec": spec, "seed": seed}
-    free = bool(spec.get("free_extension", False))
     E = A6["extension"]
-    start_F = [np.full(len(i), E["f_start_inc_db"]) for i in S["iF"]] if free else S["iF"]
-    start_P = [E["p_start_share"] * i for i in S["iP"]] if free else S["iP"]
+    start_F = [np.full(len(i), E["f_start_inc_db"]) for i in S["iF"]]
+    start_P = [E["p_start_share"] * i for i in S["iP"]]
     tag = f"({name}) "
     if name == "a_lag":                                         # the rule for d on a truth with d = 2
-        d_r, tab_r = ladder.lag_rule(Dk, le, bi, S["curves"], False, np.ones(len(le)), S["iF"], S["iP"], True, log, tag + "radar ")
-        d_g, tab_g = ladder.lag_rule(Dk, le, bi, S["curves"], True, S["gauge"], S["iF"], S["iP"], True, log, tag + "gauge ")
+        d_r, tab_r = ladder.lag_rule(Dk, le, bi, S["curves"], False, np.ones(len(le)), start_F, start_P, False, log, tag + "radar ")
+        d_g, tab_g = ladder.lag_rule(Dk, le, bi, S["curves"], True, S["gauge"], start_F, start_P, False, log, tag + "gauge ")
         out.update({"lag": pd.concat([tab_r.assign(input="radar"), tab_g.assign(input="gauge")], ignore_index=True), "d_radar": d_r, "d_gauge": d_g})
         out["minutes"] = (time.time() - t0) / 60
         return out
-    res = ladder.two_stage(Dk, le, bi, S["curves"], S["gauge"], inc_F=start_F, inc_P=start_P, hold_ext=not free, log=log, tag=tag)
+    res = ladder.two_stage(Dk, le, bi, S["curves"], S["gauge"], inc_F=start_F, inc_P=start_P, hold_ext=False, log=log, tag=tag)
     dens = state_density(S, Dk, ex)
     out["cv"] = pd.concat([res["wet"]["table"], res["dry"]["table"]], ignore_index=True)
     out["tau_wet"] = res.get("tau_wet")
     out["after_rain"] = after_rain(S, Dk, res)
     out["judge"], out["cells"] = judge(S, spec, res, dens, gate_ok)
-    if free:
-        out["extension"] = extension_table(S, res["model"], res["x"], start_F, start_P)
-        if "x_alt" in res:
-            out["extension_alt"] = extension_table(S, res["model"], res["x_alt"], start_F, start_P)
+    out["extension"] = extension_table(S, res["model"], res["x"], start_F, start_P)
+    if "x_alt" in res:
+        out["extension_alt"] = extension_table(S, res["model"], res["x_alt"], start_F, start_P)
     if "ghost" in spec:                                         # exclude the flagged events and fit again
         fl = tail_flags(S, Dk)
         fl["changed_in_truth"] = fl.event_id.isin(ex["ghost_events"])
         out["flags"] = fl
         use = (~le.event_id.isin(set(fl.event_id[fl.flagged]))).to_numpy().astype(float)
-        res2 = ladder.two_stage(Dk, le, bi, S["curves"], S["gauge"], inc_F=start_F, inc_P=start_P, hold_ext=True, use=use, log=log, tag=tag + "excl. ")
+        res2 = ladder.two_stage(Dk, le, bi, S["curves"], S["gauge"], inc_F=start_F, inc_P=start_P, hold_ext=False, use=use, log=log, tag=tag + "excl. ")
         out["judge_excluded"], out["cells_excluded"] = judge(S, spec, res2, dens, gate_ok)
         out["cv_excluded"] = pd.concat([res2["wet"]["table"], res2["dry"]["table"]], ignore_index=True)
     out["minutes"] = (time.time() - t0) / 60
@@ -269,7 +248,7 @@ def run_truth(name, S, gate_ok):
 
 
 def verdict(name, r):
-    """The verdict of one truth by the rules of decisions.md (step A6, and A6 again under Deviations 5 and 6)."""
+    """The verdict of one truth by the rules of decisions.md ("A6 final: the truths, amended")."""
     if name in ("a_lag", "e"):
         return "report"
     j = r["judge"]
@@ -277,12 +256,10 @@ def verdict(name, r):
     if name in GATES:
         return "PASS" if ok else "FAIL"
     if name == "b":
-        ident = True
-        for key in ("extension", "extension_alt"):
-            if key in r:
-                f = r[key][r[key].quantity == "F"]
-                ident &= bool(f.within_25pct.all() and not f.at_bound.any())
-        return "identified" if (ident and bool(j.k_ok.all())) else "NOT identified"
+        return "k_dry recovered" if ok else "k_dry NOT recovered"
+    if name == "d_high":
+        w, d = (j[j.regime == r_].iloc[0].selected_rung for r_ in ("wetting", "drying"))
+        return f"dependence above 3.2 mm/h: wetting {'detected' if w != 'K0' else 'not detected'}, drying {'detected' if d != 'K0' else 'not detected'}"
     if name == "f":
         d1 = j[j.regime == "drying"].iloc[0]
         d2 = r["judge_excluded"][r["judge_excluded"].regime == "drying"].iloc[0]
@@ -293,6 +270,54 @@ def verdict(name, r):
     return "detectability"
 
 
+def detect_study(S, cache, R, only_report):
+    """The detectability study: per form and size (from the largest) up to 5 replicates; detected in a regime = the true rung
+    is returned in at least 4 of 5. Replicates stop when every regime is decided; a form stops at the first size at which
+    no regime is detected. Returns the table of every replicate run."""
+    Dt = A6["detect"]
+    rows = []
+    for form, regimes in FORMS.items():
+        for a in Dt["sizes"]:
+            hits = {r: 0 for r in regimes}
+            n = 0
+            for rep in range(Dt["replicates"]):
+                name = det_name(form, a, rep)
+                f = cache / f"{name}.pkl"
+                if f.exists():
+                    R[name] = pickle.loads(f.read_bytes())
+                elif only_report:
+                    break
+                else:
+                    log(f"=== detectability {name} ===")
+                    R[name] = run_truth(name, S)
+                    f.write_bytes(pickle.dumps(R[name]))
+                n += 1
+                j = R[name]["judge"].set_index("regime")
+                for r in regimes:
+                    hits[r] += int(j.rung_ok[r])
+                    rows.append({"form": form, "size_a": a, "replicate": rep, "regime": r, "true_rung": j.true_rung[r], "rung_returned": j.selected_rung[r],
+                                 "hit": bool(j.rung_ok[r]), "gain_db_of_true_rung": gain_of(R[name]["cv"], r, j.true_rung[r]), "share_within_25pct": j.share_within_25pct[r]})
+                need = Dt["replicates"] - 1
+                if all(hits[r] >= need or (n - hits[r]) >= 2 for r in regimes):
+                    break                                       # decided for every regime
+            if not any(hits[r] >= Dt["replicates"] - 1 for r in regimes):
+                break                                           # nothing detected at this size: smaller sizes are not tried
+    return pd.DataFrame(rows)
+
+
+def detect_summary(t):
+    """Per form, regime and size: hits / replicates run, detected (at least 4 hits), the ratio of k at the domain ends."""
+    if not len(t):
+        return t
+    Dt = A6["detect"]
+    g = t.groupby(["form", "regime", "size_a"]).agg(replicates_run=("hit", "size"), hits=("hit", "sum"), median_gain_db=("gain_db_of_true_rung", "median")).reset_index()
+    g["detected"] = g.hits >= Dt["replicates"] - 1
+    g["k_ratio_at_domain_ends"] = [round(1 + 2 * a, 3) if f == "cw" else round((1 + Dt["r_cap_mmh"] / 2 * a) ** (1 if r == "wetting" else -1), 3)
+                                   for f, r, a in zip(g.form, g.regime, g.size_a)]
+    g["form"] = g.form.map({"cw": "k_dry(W)", "kr": "k(R) inside the measured range"})
+    return g.sort_values(["form", "regime", "size_a"], ascending=[True, True, False]).reset_index(drop=True)
+
+
 # =================================================================================================== report
 def k_text(r):
     if r.true_rung == "none":
@@ -301,7 +326,8 @@ def k_text(r):
     if r.true_rung == "K0":
         return f"1/k {r.tau_fit_min:.1f}{alt} min (truth {r.tau_true_min:.1f})" + (f": {r.k_note}" if r.k_note else (": yes" if r.k_ok else ": no"))
     sh = f"{100 * r.share_within_25pct:.0f} %" + (f" / {100 * r.share_alt:.0f} %" if np.isfinite(r.share_alt) else "")
-    return f"{sh} of the domain weight" + (": yes" if r.k_ok else ": no")
+    whole = f" (whole domain {100 * r.share_whole_domain:.0f} %)" if abs(r.share_whole_domain - r.share_within_25pct) > 1e-9 else ""
+    return f"{sh} of the domain weight{whole}" + (": yes" if r.k_ok else ": no")
 
 
 def fig_surfaces(R):
@@ -343,26 +369,8 @@ def gain_of(cv, regime, rung):
     return round(float(g.gain_db.iloc[0]), 5) if len(g) and g.gain_db.iloc[0] is not None else np.nan
 
 
-def detect_table(R):
-    rows = []
-    for n in DET + ["c", "d"]:
-        if n not in R:
-            continue
-        form = n.split("_")[0]
-        a = R[n]["spec"].get("size_a", 1.0)
-        j = R[n]["judge"].set_index("regime")
-        for regime in (("drying",) if form == "c" else ("wetting", "drying")):
-            ratio = (1 + 2 * a) if form == "c" else ((1 + 2.5 * a) if regime == "wetting" else 1 / (1 + 2.5 * a))
-            rows.append({"form": "k_dry(W), truth (c)" if form == "c" else f"k(R), truth (d), {regime}", "size_a": a,
-                         "k_ratio_across_domain": round(ratio, 3), "true_rung": j.true_rung[regime], "rung_returned": j.selected_rung[regime],
-                         "detected": bool(j.rung_ok[regime]), "gain_db_of_true_rung": gain_of(R[n]["cv"], regime, j.true_rung[regime])})
-    return pd.DataFrame(rows).sort_values(["form", "size_a"]).reset_index(drop=True) if rows else pd.DataFrame()
-
-
-def report(R, gate):
+def report(R, det):
     rows, stop = [], None
-    if gate is not None and not gate["pass"]:
-        stop = "the k_wet gate"
     for n in ORDER:
         if n not in R:
             continue
@@ -379,38 +387,36 @@ def report(R, gate):
             stop = f"truth ({n})"
     table = pd.DataFrame(rows)
     save(table, P.A6_VERDICTS, index=False)
-    parts = [R[n]["cv"].assign(truth=n) for n in ORDER + DET if n in R and "cv" in R[n]] + ([R["f"]["cv_excluded"].assign(truth="f_excluded")] if "f" in R else [])
-    if parts:
-        save(pd.concat(parts, ignore_index=True), P.A6_CV, index=False)
-        save(pd.concat([R[n]["cells"].assign(truth=n) for n in ORDER + DET if n in R and "cells" in R[n]], ignore_index=True).round(5), P.A6_CELLS, index=False)
+    names = [n for n in R if "cv" in R[n]]
+    if names:
+        save(pd.concat([R[n]["cv"].assign(truth=n) for n in names] + ([R["f"]["cv_excluded"].assign(truth="f_excluded")] if "f" in R else []), ignore_index=True), P.A6_CV, index=False)
+        save(pd.concat([R[n]["cells"].assign(truth=n) for n in names if n in ORDER], ignore_index=True).round(5), P.A6_CELLS, index=False)
+        ext = pd.concat([R[n][k].assign(truth=n, k_wet_at=w) for n in names if n in ORDER for k, w in (("extension", "gauge estimate"), ("extension_alt", "radar estimate")) if k in R[n]], ignore_index=True)
+        save(ext.round(5), P.A6_EXTENSION, index=False)
     fig = fig_surfaces(R)
     if fig is not None:
         save(fig, P.A6_FIG, dpi=120)
         plt.close(fig)
-    a = ["# A6: fake-data recovery (the gates for the real fit), under Deviations 5 and 6\n",
+    a = ["# A6, final form: fake-data recovery with the procedure of the real fit\n",
          "Written by `research/waa_ksurface/a6_recovery.py` (libraries `fake6.py`, `ladder.py`, `ksurf.py`). Fake attenuation on the 4 563 TRAIN link-events of the learning set "
          "(real links, real rain), 0.3 dB quantization, the measured noise, the T1 rain error at its high end for the radar input and the T2 gauge model for the gauge input. "
-         "One replicate per truth. Selection: a richer rung must lower the CV error by more than 0.005 dB with a paired 90 % interval that excludes zero (Deviation 5). "
-         "k_wet: a bounded nuisance if the gate passes (Deviation 6); where two numbers are given as `x / y`, the first is with k_wet at its gauge-input estimate, the second "
-         "at its radar-input estimate. No real attenuation is used as a target. VAL and TEST were not opened.\n"]
-    if gate is not None:
-        save(gate["table"].round(6), P.A6_GATE, index=False)
-        a += ["## The k_wet sensitivity gate (Deviation 6)\n",
-              "Truth (a): 1 / k_wet = 5 min, 1 / k_dry = 15 min. All links, radar input, K0 in both regimes, 1 / k_wet HELD; k_dry and the F / P extension free.\n",
-              md_table(gate["table"].round(5)),
-              f"\nCV error changes by **{gate['cv_change_db']:.5f} dB** across the three values (margin {A6['gate']['margin_db']} dB). "
-              f"**Gate: {'PASS: k_wet is a bounded nuisance' if gate['pass'] else 'FAIL: k_wet matters. STOP'}.** (`{rel(P.A6_GATE)}`)\n"]
-    a += ["## The table\n", md_table(table) if len(table) else "no truth was run",
-          f"\n(`{rel(P.A6_VERDICTS)}`; every rung and lambda: `{rel(P.A6_CV)}`; every domain cell: `{rel(P.A6_CELLS)}`" + (f"; figure `{rel(P.A6_FIG)}`" if fig is not None else "") + ")\n"]
+         "**Every truth frees the F / P extension, as the real fit will (Deviation 7), and is drawn with a fresh seed.** One replicate per truth (five per size in the detectability study). "
+         "Selection: a richer rung must lower the CV error by more than 0.005 dB with a paired 90 % interval that excludes zero (Deviation 5). k_wet is a bounded nuisance "
+         "(Deviation 6): where two numbers are given as `x / y`, the first is with k_wet at its gauge-input estimate, the second at its radar-input estimate. "
+         "For the truths in which k depends on R the share is taken inside F's measured range (restriction R2). No real attenuation is used as a target. VAL and TEST were not opened.\n",
+         "## The table\n", md_table(table) if len(table) else "no truth was run",
+         f"\n(`{rel(P.A6_VERDICTS)}`; every rung and lambda: `{rel(P.A6_CV)}`; every domain cell: `{rel(P.A6_CELLS)}`; every extension knot: `{rel(P.A6_EXTENSION)}`"
+         + (f"; figure `{rel(P.A6_FIG)}`" if fig is not None else "") + ")\n"]
     if stop:
         a.append(f"**STOP: {stop} FAILS its rule. What comes after it was not run. Nothing was patched.**\n")
-    det = detect_table(R)
-    if len(det):
-        save(det, P.A6_DETECT, index=False)
+    if det is not None and len(det):
+        save(det, P.A6_DETECT_RUNS, index=False)
+        summ = detect_summary(det)
+        save(summ, P.A6_DETECT, index=False)
         a += ["## Detectability: the smallest dependence the ladder returns at the 0.005 dB margin\n",
-              "The dependence of truths (c) and (d) scaled by a (a = 1 is the written truth). `k_ratio_across_domain` = k(W = 2 dB) / k(W = 0) for k_dry(W), "
-              "k(R = 5 mm/h) / k(R = 0) for k(R). `gain_db_of_true_rung` = how much the true rung lowered the CV error against the rung selected before it.\n",
-              md_table(det), f"\n(`{rel(P.A6_DETECT)}`)\n"]
+              "Detected = the true rung is returned in at least 4 of 5 replicates. Sizes are tried from the largest; the replicates of a size stop once the outcome is decided, "
+              "and a form stops at the first size at which nothing is detected. `k_ratio_at_domain_ends` = k(W = 2 dB) / k(W = 0) for k_dry(W); k(3.2 mm/h) / k(0) for k(R).\n",
+              md_table(summ.round(5)), f"\n(`{rel(P.A6_DETECT)}`; every replicate: `{rel(P.A6_DETECT_RUNS)}`)\n"]
     for n in ORDER:
         if n not in R or n == "a_lag":
             continue
@@ -423,14 +429,13 @@ def report(R, gate):
         ar = R[n]["after_rain"]
         a.append(f"\nResidual in the 30 min after rain on the short links ({ar['link_events']} link-events): mean {ar['mean_resid_db']:+.3f} dB; highest minus lowest third of preceding rain "
                  f"{ar['high_minus_low_db']:+.3f} dB, at matched model W {ar['matched_high_minus_low_db']:+.3f} dB ({ar['matched_bins']} W bins).\n")
-        if "extension" in R[n]:
-            ext = R[n]["extension"].assign(k_wet_at="gauge estimate")
+        if n in ("b", "d_high"):
+            e = R[n]["extension"].assign(k_wet_at="gauge estimate")
             if "extension_alt" in R[n]:
-                ext = pd.concat([ext, R[n]["extension_alt"].assign(k_wet_at="radar estimate")], ignore_index=True)
-            save(ext.round(5), P.A6_EXTENSION, index=False)
-            a.append("The extension (fitted with k; started from F held and P at half its true increments):\n")
-            a.append(md_table(ext.round(3)))
-            a.append(f"\n(`{rel(P.A6_EXTENSION)}`)\n")
+                e = pd.concat([e, R[n]["extension_alt"].assign(k_wet_at="radar estimate")], ignore_index=True)
+            a.append("The extension knots (fitted with k; started from F held and P at half its true increments):\n")
+            a.append(md_table(e[["band", "quantity", "knot_mmh", "true", "start", "fitted", "fitted_over_true", "within_25pct", "at_bound", "k_wet_at"]].round(3)))
+            a.append("")
         if "flags" in R[n]:
             save(R[n]["flags"], P.A6_FLAGS, index=False)
             a.append("The tail flag per event (`changed_in_truth` = the events that were given unseen rain):\n")
@@ -446,7 +451,7 @@ def report(R, gate):
         a.append(md_table(R["a_lag"]["lag"].round(5)))
         a.append(f"\nChosen: radar d = {R['a_lag']['d_radar']}, gauge d = {R['a_lag']['d_gauge']}. (`{rel(P.A6_LAG)}`)\n")
     a.append("## Run times\n")
-    a.append(md_table(pd.DataFrame([{"truth": n, "minutes": round(R[n]["minutes"], 1)} for n in ORDER + DET if n in R])))
+    a.append(md_table(pd.DataFrame([{"truth": n, "minutes": round(R[n]["minutes"], 1)} for n in R])))
     save("\n".join(a) + "\n", P.A6_REPORT)
     log(f"report: {rel(P.A6_REPORT)}")
     return stop
@@ -455,33 +460,28 @@ def report(R, gate):
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     force, only_report = "--force" in sys.argv, "--report" in sys.argv
-    cache = P.CACHE / "a6_recovery_dev56"
+    cache = P.CACHE / "a6_recovery_final"
     cache.mkdir(parents=True, exist_ok=True)
-    R, S, gate = {}, None, None
-    fg = cache / "gate.pkl"
-    if fg.exists() and not (force and not args):
-        gate = pickle.loads(fg.read_bytes())
-    elif not only_report:
-        S = setting()
-        log("=== the k_wet gate ===")
-        gate = wet_gate(S)
-        fg.write_bytes(pickle.dumps(gate))
-        log(f"=== gate: {'PASS' if gate['pass'] else 'FAIL'} (cv change {gate['cv_change_db']:.5f} dB) ===")
-    if gate is not None and gate["pass"]:
-        for n in ORDER + DET:
-            f = cache / f"{n}.pkl"
-            wanted = (not args) or (n in args)
-            if f.exists() and not (force and wanted):
-                R[n] = pickle.loads(f.read_bytes())
-            elif wanted and not only_report:
-                S = S or setting()
-                log(f"=== truth ({n}) ===")
-                R[n] = run_truth(n, S, gate["pass"])
-                f.write_bytes(pickle.dumps(R[n]))
-                log(f"=== truth ({n}): {verdict(n, R[n])} ({R[n]['minutes']:.1f} min) ===")
-            if n in R and n in GATES and verdict(n, R[n]) == "FAIL":
-                break                                           # the rule: a FAIL on a gate is a STOP
-    stop = report(R, gate)
+    R, S, det, failed = {}, None, None, False
+    for n in ORDER:
+        f = cache / f"{n}.pkl"
+        wanted = (not args) or (n in args)
+        if f.exists() and not (force and wanted):
+            R[n] = pickle.loads(f.read_bytes())
+        elif wanted and not only_report:
+            S = S or setting()
+            log(f"=== truth ({n}) ===")
+            R[n] = run_truth(n, S)
+            f.write_bytes(pickle.dumps(R[n]))
+            log(f"=== truth ({n}): {verdict(n, R[n])} ({R[n]['minutes']:.1f} min) ===")
+        if n in R and n in GATES and verdict(n, R[n]) == "FAIL":
+            failed = True
+            break                                               # the rule: a FAIL on a gate is a STOP
+    if not failed and all(n in R for n in ORDER) and not args:
+        S = S or (None if only_report else setting())
+        det = detect_study(S, cache, R, only_report)
+        R = {n: R[n] for n in R}
+    stop = report({n: R[n] for n in ORDER if n in R}, det)
     if stop:
         sys.exit(1)
 

@@ -153,6 +153,7 @@ a6:                                             # fake-data recovery (decisions.
     b:     {kind: const, k_wet: 0.2, k_dry: 0.0666666667, free_extension: true}
     c:     {kind: dry_w, k_wet: 0.2, k_dry0: 0.0333333333, w_scale_db: 1.0}          # k_dry = (1 + W) / 30
     d:     {kind: both_r, k0: 0.1, r_scale_mmh: 2.0}                                  # k_wet = 0.1 (1 + R/2), k_dry = 0.1 / (1 + R/2)
+    d_high: {kind: both_r, k0: 0.1, r_scale_mmh: 2.0, r0_mmh: 3.2, true_rung: K0}   # k depends on R only above 3.2 mm/h (tests R2)
     e:     {kind: two_store, phi: 0.5, k_fast_wet: 0.2, k_fast_dry: 0.1, k_slow: 0.0166666667}
     f:     {kind: const, k_wet: 0.2, k_dry: 0.0666666667, ghost: {events: 3, rain_mmh: 1.0, minutes: 30}}
     g:     {kind: const, k_wet: 0.2, k_dry: 0.0666666667, link_sd_db: 0.24}
@@ -161,4 +162,5 @@ a6:                                             # fake-data recovery (decisions.
   flag: {a0_min_db: 0.6, fall_db: 0.15, min_link_events: 5, share: 0.5}
   after_rain: {minutes: 30, match_db: 0.15}
   gate: {tau_wet_min: [2.5, 5.0, 10.0], margin_db: 0.005}   # Deviation 6: 1 / k_wet held at half / the truth / twice the truth
-  detect: {grid: [0.1, 0.25, 0.5], seed_offset: 100}       # detectability: the dependence of truths (c) and (d) scaled by a
+  detect: {sizes: [1.0, 0.5, 0.25, 0.1], replicates: 5, r_cap_mmh: 3.2}   # detectability (A6 final): sizes from the largest; detected = 4 of 5
+  seed_final: 2200                              # Deviation 7: fresh fake data for every verdict

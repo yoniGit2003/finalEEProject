@@ -47,12 +47,15 @@ def k_true(spec, regime, R, W):
         return np.full(R.shape, spec["k_wet"] if regime == "wetting" else spec["k_dry"])
     if kind == "dry_w":
         return np.full(R.shape, spec["k_wet"]) if regime == "wetting" else spec["k_dry0"] * (1 + W / spec["w_scale_db"])
-    if kind == "both_r":
-        return spec["k0"] * (1 + R / spec["r_scale_mmh"]) if regime == "wetting" else spec["k0"] / (1 + R / spec["r_scale_mmh"])
+    if kind == "both_r":                                        # the dependence acts between r0 and r_cap (default: everywhere)
+        Re = np.clip(R, spec.get("r0_mmh", 0.0), spec.get("r_cap_mmh", 1e9)) - spec.get("r0_mmh", 0.0)
+        return spec["k0"] * (1 + Re / spec["r_scale_mmh"]) if regime == "wetting" else spec["k0"] / (1 + Re / spec["r_scale_mmh"])
     return np.full(R.shape, np.nan)
 
 
 def true_rung(spec, regime):
+    if spec.get("true_rung"):                                   # a truth may name its rung itself (d-high: constant inside the measured range)
+        return spec["true_rung"]
     return {"const": "K0", "dry_w": "K0" if regime == "wetting" else "K1", "both_r": "K2", "two_store": "none"}[spec["kind"]]
 
 
@@ -76,7 +79,8 @@ def _truth(kind, par, v, r, le_n, boff1):
             elif kind == 1:
                 k = par[0] if wet else par[1] * (1.0 + w / par[2])
             else:
-                k = par[0] * (1.0 + r[q] / par[1]) if wet else par[0] / (1.0 + r[q] / par[1])
+                re = min(max(r[q], par[2]), par[3]) - par[2]
+                k = par[0] * (1.0 + re / par[1]) if wet else par[0] / (1.0 + re / par[1])
             w = v[q] + (w - v[q]) * np.exp(-k)
             out[q] = w
     return out
@@ -89,7 +93,7 @@ def _params(spec):
     if k == "dry_w":
         return np.array([spec["k_wet"], spec["k_dry0"], spec["w_scale_db"]])
     if k == "both_r":
-        return np.array([spec["k0"], spec["r_scale_mmh"]])
+        return np.array([spec["k0"], spec["r_scale_mmh"], spec.get("r0_mmh", 0.0), spec.get("r_cap_mmh", 1e9)])
     return np.array([spec["phi"], spec["k_fast_wet"], spec["k_fast_dry"], spec["k_slow"]])
 
 

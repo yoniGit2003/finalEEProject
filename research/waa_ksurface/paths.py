@@ -130,6 +130,7 @@ A6_EXTENSION = TABLES / "a6_recovery_extension.csv"            # (b): the extens
 A6_FLAGS = TABLES / "a6_recovery_flags.csv"                    # (f): the tail flag per event
 A6_LAG = TABLES / "a6_recovery_lag.csv"                        # (a-lag): the loss per d and the d the rule returns
 A6_GATE = TABLES / "a6_recovery_wet_gate.csv"                  # Deviation 6: CV error and k_dry with 1 / k_wet held at half / the truth / twice the truth
+A6_DETECT_RUNS = TABLES / "a6_recovery_detectability_runs.csv"  # every replicate of the detectability study
 A6_DETECT = TABLES / "a6_recovery_detectability.csv"           # the smallest dependence the ladder returns at the margin
 A6_FIG = FIGURES / "a6_recovery_surfaces.png"
 A6_REPORT = REPORTS / "a6_recovery.md"

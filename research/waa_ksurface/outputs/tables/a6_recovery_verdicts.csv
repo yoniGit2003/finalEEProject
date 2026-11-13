@@ -1,3 +1,8 @@
 truth,regime,true rung,rung returned,recovery,verdict
-(a),wetting,K0,K0,1/k 3.7 / 9.9 min (truth 5.0): governed by the gate,FAIL
-(a),drying,K0,K0,1/k 11.6 / 14.5 min (truth 15.0): no,FAIL
+(a),wetting,K0,K0,1/k 3.3 / 3.1 min (truth 5.0): governed by the gate,PASS
+(a),drying,K0,K0,1/k 17.2 / 17.0 min (truth 15.0): yes,PASS
+(a-lag),,K0,,"d by the rule: radar 2, gauge 2 (truth 2)",report
+(b),wetting,K0,K0,1/k 3.3 / 3.3 min (truth 5.0): governed by the gate,k_dry recovered
+(b),drying,K0,K0,1/k 16.7 / 16.7 min (truth 15.0): yes,k_dry recovered
+(c),wetting,K0,K0,1/k 3.5 / 3.7 min (truth 5.0): governed by the gate,FAIL
+(c),drying,K1,K0,18 % / 18 % of the domain weight: no,FAIL
