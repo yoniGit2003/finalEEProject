@@ -1470,3 +1470,75 @@ What it locates:
 decided: the rungs allowed in A7, the claims domain. Nothing was patched. Decision for the review: whether the gating
 truths (a), (c), (d) should free the extension (as A7 does), given that holding it at the truth is biased by the rain
 error; and whether the bias of the F knots is then a stated restriction (no claim on F above its measured range).
+
+---
+
+# A6, final form (2026-11-13, unattended): Deviation 7, then the truths on fresh seeds
+
+The review read the stop at truth (a) and diagnostic 2. **A7 (the real fit) is not run in this block.**
+
+## Deviation 7: every gating truth runs the procedure exactly as A7 will (2026-11-13, logged before any run)
+
+**What changes.** In every truth of A6 the F and P extensions above their measured ranges are FREE and fitted jointly with
+k (started as written for truth (b): F held, P at half its true increments). No truth holds the extension at the truth.
+
+**Reason (given by the review).** A fake check validates the procedure that will be applied. Holding the extension at the
+truth is a different procedure, and diagnostic 2 showed it is also the harder and biased one (F evaluated at a rain that
+carries the radar error).
+
+**Disclosure.** The free-extension result on the fake data of the failed run is already known (diagnostic 2: 1 / k_dry of
+13.2 and 16.2 min at the two ends of the k_wet interval, truth 15; F knots 8–27 % below the truth). So this deviation is
+made knowing that it turns that failure into a pass on those data. For that reason **the old fake data are not used for
+any verdict**: every truth below is drawn with a fresh seed (base 2200 instead of 1200).
+
+**Consequences, recorded as claims restrictions for A7:**
+
+- **R1.** F and P above their measured ranges are EFFECTIVE quantities for this rain input; no physical claim is made on
+  them.
+- **R2.** A dependence of k on R is claimed only inside F's measured range (up to about 3.2 mm/h); above it, k(R) and the
+  free extension are not separable.
+- **R3.** k_dry is reported with an interval that includes its spread across the k_wet interval (from the gauge-estimate
+  end to the radar-estimate end), on top of the bootstrap.
+
+**This is a choice made after seeing a result**, hence a deviation.
+
+## A6 final: the truths, amended (2026-11-13, written before any run)
+
+**Question served.** Q2.
+
+Everything not named here stays as written in the entries "Step A6", "Deviation 5" and "Deviation 6": the fake world, the
+truths and their numbers, the two stages, the selection with the 0.005 dB margin, k_wet as an interval when the wetting
+ladder returns K0, the tail flag, one replicate per truth. The k_wet gate is not repeated (it passed, with a free
+extension, and its verdict is not tied to the failed run's held extension).
+
+- **Seeds.** Base 2200; every truth and every replicate has its own seed.
+- **(a)** PASS: K0 in both regimes AND 1 / k_dry within 25 % at both ends of the k_wet interval (k_wet: governed by the
+  gate). Else STOP, with one diagnostic.
+- **(a-lag)** as written (truth with d = 2 min), extension free. Report.
+- **(b)** (amended by the review): its criterion is now the rung and the recovery of k_dry, not the extension: "k_dry
+  recovered" if K0 / K0 and 1 / k_dry within 25 % at both ends. The error of every extension knot is reported as
+  information; it feeds R1. With Deviation 7, (b) is the same procedure as (a) on another draw: it is a second replicate
+  of (a) that also prints the knots.
+- **(c)** PASS: drying K1, wetting K0, k_dry within 25 % on at least 80 % of the domain weight at both ends of the k_wet
+  interval. FAIL is a STOP.
+- **(d)** PASS: K2 in both regimes, each within 25 % on at least 80 % of the domain weight. **Amendment, written now and
+  following from R2:** the weight is taken over the domain cells inside F's measured range (the R columns up to the class
+  2–5 mm/h, whose centre 3.16 mm/h is inside 3.2). Above it k(R) is not claimed, so it is not judged. The share on the
+  whole domain is reported next to it. FAIL is a STOP.
+- **(d-high)** (new, asked by the review; tests R2): k depends on R only ABOVE 3.2 mm/h, with the form of (d):
+  k_wet = 0.1·(1 + max(R − 3.2, 0) / 2), k_dry = 0.1 / (1 + max(R − 3.2, 0) / 2). Report only: the rung each ladder returns
+  (K2 = the dependence is detected; K0 = it is not), the recovery of k inside the measured range (where the truth is the
+  constant 0.1), and the extension knots (does the extension absorb the dependence).
+- **(e), (f), (g)** as written, extension free (also in the refit of (f) without the flagged events).
+- **Detectability (asked by the review; replaces the sweep of the previous block).** Two forms, size a:
+  - k_dry(W): k_dry = (1/15)·(1 + a·W) / (1 + a), k_wet = 1/5. Ratio of k at the domain ends: k(W = 2 dB) / k(W = 0) = 1 + 2a.
+  - k(R) inside the measured range: k_wet = 0.1·(1 + a·min(R, 3.2) / 2), k_dry = 0.1 / (1 + a·min(R, 3.2) / 2) (constant
+    above 3.2 mm/h). Ratio: k(3.2) / k(0) = 1 + 1.6a for wetting, its inverse for drying.
+  - Sizes a = 1, 0.5, 0.25, 0.1, tried from the largest; 5 replicates per size. "Detected" at a size = the ladder returns
+    the true rung (K1 for k_dry(W); K2 for k(R), wetting and drying counted apart) in at least 4 of the 5 replicates.
+    To save time, written now: the replicates of a size stop as soon as the outcome is decided for every regime of the form
+    (4 hits or 2 misses), and a form's sweep ends at the first size at which no regime is detected. The answer per regime =
+    the smallest size detected, given as the ratio of k.
+- **Rungs allowed in A7:** a rung is allowed for a regime if its truth passed here: wetting K0 (a), K2 (d); drying K0 (a),
+  K1 (c), K2 (d). Wetting K1 and K3 in either regime have no truth and stay not allowed.
+- FAIL on (c) or (d) is a STOP. (b), (f), (g), (d-high) give restrictions. Then STOP for review; A7 is not started.
