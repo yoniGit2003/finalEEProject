@@ -1719,3 +1719,54 @@ variant are released when no longer needed; the peak memory of every replicate i
 free memory is checked and, if it is below 2 GB or below the largest peak seen, the run stops cleanly with what is cached.
 Check that no number moved: the "current" gains of (a) replicate 3 printed by the interrupted run (L-all +0.00004, L-dry
 +0.00017, L-dryhigh +0.00291 dB; 1 / k_dry 13.9 min) must come back the same.
+
+**Result of S1 (2026-11-14).** Script `s1_separability.py`, report `outputs/reports/s1_separability.md`. Fake data only.
+The run was finished in a terminal by the students after two stops by the machine; checked afterwards: the code and the
+config are identical to commit `8a6fa71`, 60 rows (2 truths × 5 replicates × 2 variants × 3 losses), seeds 3200–3204 for
+(a) and 3210–3214 for (c). Peak memory per replicate 2.20 GB (logged from (a) replicate 3 on).
+
+Held-out gain of drying K1 over K0 (dB), smallest to largest of 5 replicates:
+
+| loss | variant | (c) gains | (a) gains | ratio | separable |
+|---|---|---|---|---|---|
+| L-all | current | −0.00015 to 0.00144 | −0.00011 to 0.00014 | below 0 | no (4 of 5) |
+| L-dry | current | 0.00076 to 0.00311 | −0.00027 to 0.00017 | 4.56 | yes |
+| L-dryhigh | current | 0.01327 to 0.01904 | 0.00050 to 0.00291 | 4.55 | yes |
+| L-all | extended | 0.00056 to 0.00175 | −0.00012 to 0.00012 | 4.65 | yes |
+| L-dry | extended | −0.00063 to 0.00079 | −0.00061 to 0.00000 | below 0 | no (3 of 5) |
+| **L-dryhigh** | **extended** | **0.01337 to 0.01785** | **0.00046 to 0.00195** | **6.86** | **yes** |
+
+- **Fake check of the extension (radar of the added events 2.5 times too high): PASS.** 1 / k_dry of the K0 fit on (a):
+  15.4, 16.9, 14.5, 13.7, 15.0 min (truth 15), 5 of 5 within 25 %; 0.2–0.3 min below the current variant on the same data.
+- **Coverage gain at a level of at least 1 dB is small:** L-dryhigh has 101 link-events of 10 events (2 207 values) in the
+  current variant and 106 of 13 events (2 322 values) in the extended one (fake world, mean of the (c) replicates). L-dry
+  itself doubles (88 611 → 189 039 values, 14 → 51 events). The added events hold little water at the end of their rain in
+  the fake world, because their true rain is the radar / 2.5.
+- On L-dryhigh the gains on (c) are about ten times those on L-all, but so is the noise floor: on a constant truth K1
+  always gains there (0.0005–0.0029 dB), the effect of choosing the segments on a noisy reading that is also scored.
+- Stated limits: the adopted combination is ahead of three others (ratios 4.55–4.65) by a margin that rests on the largest
+  of five (a) gains; and L-dryhigh rests on about 100 link-events of 10–13 events.
+
+**Verdict by the rule written before the run: ADOPTED, L-dryhigh in the extended variant. Deviation 9 is in force:
+margin = 0.00195 dB.**
+
+## Step 3 under Deviation 9: what is fixed before the code is written (2026-11-14)
+
+**Question served.** Q2. Everything is as written in "A6 final" and in the S1 entry; the points below settle what those
+texts leave open now that the learning set of stage 2 is the extended one.
+
+- **Fake world.** All TRAIN events of the branch (51), as in S1: the radar of the 37 added events reads 2.5 times the
+  true rain. Seeds: base 3300 (+ position of the truth; detectability as in A6 final with this base).
+- **Stage 1 (wetting):** unchanged, gauge-input set of the 14 learning events, selection of Deviation 5 (0.005 dB on the
+  whole-series loss).
+- **Stage 2 (drying):** all links, radar input, the learning set plus the L-dry values of the added events (training
+  loss as in S1). Every rung and λ gets its held-out error on L-dryhigh (5 folds over all events); λ per rung = the
+  lowest of these; the ladder is walked from K0 with margin 0.00195 dB on L-dryhigh and the paired 90 % event-bootstrap
+  interval excluding zero. k_wet as an interval as before (the selected rung is refitted with k_wet at its radar-input
+  estimate, which is a plain K0 / K0 fit on the same stage-2 data).
+- **Judging stays on the learning set:** the domain weight (minutes of the true state, short links), the after-rain
+  residual of (e) and the tail flag of (f) use the link-events of the 14 learning events, as written.
+- **(f):** the 3 events with unseen rain are drawn among the 14 learning events (20 %, as written). Reported: the gain of
+  the best richer drying rung on L-dryhigh against the margin. STOP if the verdict is "spurious k_dry" (drying not K0, or
+  1 / k_dry outside 25 %).
+- **Execution:** one process per truth or replicate, cached, peak memory logged, clean stop on low memory (as in S1).
