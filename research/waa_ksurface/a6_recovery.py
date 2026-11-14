@@ -369,7 +369,17 @@ def gain_of(cv, regime, rung):
     return round(float(g.gain_db.iloc[0]), 5) if len(g) and g.gain_db.iloc[0] is not None else np.nan
 
 
-def report(R, det):
+A6_INTRO = ("Written by `research/waa_ksurface/a6_recovery.py` (libraries `fake6.py`, `ladder.py`, `ksurf.py`). Fake attenuation on the 4 563 TRAIN link-events of the learning set "
+         "(real links, real rain), 0.3 dB quantization, the measured noise, the T1 rain error at its high end for the radar input and the T2 gauge model for the gauge input. "
+         "**Every truth frees the F / P extension, as the real fit will (Deviation 7), and is drawn with a fresh seed.** One replicate per truth (five per size in the detectability study). "
+         "Selection: a richer rung must lower the CV error by more than 0.005 dB with a paired 90 % interval that excludes zero (Deviation 5). k_wet is a bounded nuisance "
+         "(Deviation 6): where two numbers are given as `x / y`, the first is with k_wet at its gauge-input estimate, the second at its radar-input estimate. "
+         "For the truths in which k depends on R the share is taken inside F's measured range (restriction R2). No real attenuation is used as a target. VAL and TEST were not opened.\n")
+
+
+def report(R, det, P=P, title=None, intro=None, stop_on=None):
+    """Tables, figure and report of the truths in R. P = where they are written (default: the A6 files); title, intro =
+    the head of the report; stop_on(name, verdict) = an extra STOP rule."""
     rows, stop = [], None
     for n in ORDER:
         if n not in R:
@@ -383,7 +393,7 @@ def report(R, det):
         if n == "f":
             for r in R[n]["judge_excluded"].itertuples():
                 rows.append({"truth": "(f), flagged events excluded", "regime": r.regime, "true rung": r.true_rung, "rung returned": r.selected_rung, "recovery": k_text(r), "verdict": v})
-        if n in GATES and v == "FAIL" and stop is None:
+        if ((n in GATES and v == "FAIL") or (stop_on is not None and stop_on(n, v))) and stop is None:
             stop = f"truth ({n})"
     table = pd.DataFrame(rows)
     save(table, P.A6_VERDICTS, index=False)
@@ -397,13 +407,7 @@ def report(R, det):
     if fig is not None:
         save(fig, P.A6_FIG, dpi=120)
         plt.close(fig)
-    a = ["# A6, final form: fake-data recovery with the procedure of the real fit\n",
-         "Written by `research/waa_ksurface/a6_recovery.py` (libraries `fake6.py`, `ladder.py`, `ksurf.py`). Fake attenuation on the 4 563 TRAIN link-events of the learning set "
-         "(real links, real rain), 0.3 dB quantization, the measured noise, the T1 rain error at its high end for the radar input and the T2 gauge model for the gauge input. "
-         "**Every truth frees the F / P extension, as the real fit will (Deviation 7), and is drawn with a fresh seed.** One replicate per truth (five per size in the detectability study). "
-         "Selection: a richer rung must lower the CV error by more than 0.005 dB with a paired 90 % interval that excludes zero (Deviation 5). k_wet is a bounded nuisance "
-         "(Deviation 6): where two numbers are given as `x / y`, the first is with k_wet at its gauge-input estimate, the second at its radar-input estimate. "
-         "For the truths in which k depends on R the share is taken inside F's measured range (restriction R2). No real attenuation is used as a target. VAL and TEST were not opened.\n",
+    a = [title or "# A6, final form: fake-data recovery with the procedure of the real fit\n", intro or A6_INTRO,
          "## The table\n", md_table(table) if len(table) else "no truth was run",
          f"\n(`{rel(P.A6_VERDICTS)}`; every rung and lambda: `{rel(P.A6_CV)}`; every domain cell: `{rel(P.A6_CELLS)}`; every extension knot: `{rel(P.A6_EXTENSION)}`"
          + (f"; figure `{rel(P.A6_FIG)}`" if fig is not None else "") + ")\n"]

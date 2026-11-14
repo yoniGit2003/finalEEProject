@@ -154,7 +154,7 @@ def gauge_seen(D, le, r1, step_mm, dist_km, rng):
 
 
 # =================================================================================================== a fake dataset
-def make(D, le, n_cells, spec, curves, inc_F, inc_P, seed, step_mm, dist_km, noise=True, exact_gauge=False, exact_radar=False):
+def make(D, le, n_cells, spec, curves, inc_F, inc_P, seed, step_mm, dist_km, noise=True, exact_gauge=False, exact_radar=False, ghost_pool=None):
     """A fake dataset for one truth. Returns (Dk, extra): Dk = the dataset as the fit reads it (y5 = fake A - c, rain = the
     radar input, rain_gauge = the gauge input); extra = the truth behind it (true rain, true W, changed events).
     The three switches are for the diagnostic only: noise = False removes the offset error, the link shift, the white noise
@@ -167,7 +167,7 @@ def make(D, le, n_cells, spec, curves, inc_F, inc_P, seed, step_mm, dist_km, noi
     ghost_events = []
     if "ghost" in spec:                                         # rain that goes on after the last wet bin, unseen by the input
         g = spec["ghost"]
-        ev_names = np.sort(le.event_id.unique())
+        ev_names = np.sort(le.event_id.unique() if ghost_pool is None else np.asarray(ghost_pool))      # ghost_pool: the events it may be
         ghost_events = list(rng.choice(ev_names, g["events"], replace=False))
         for i in np.nonzero(le.event_id.isin(ghost_events).to_numpy())[0]:
             a = D["le_roff"][i] + PADM + (D["le_last"][i] + 1) * 5

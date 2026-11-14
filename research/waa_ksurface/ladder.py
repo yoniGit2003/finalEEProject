@@ -49,11 +49,19 @@ def paired_interval(Sa, Sb, N, reps, seed, interval):
     return np.percentile(np.sqrt(2.0 * Sa[idx][draws].sum(axis=1) / n) - np.sqrt(2.0 * Sb[idx][draws].sum(axis=1) / n), interval)
 
 
-def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=None, hold_ext=False, lambdas=None, log=print, tag=""):
+def _huber(r, delta):
+    a = np.abs(r)
+    return np.where(a <= delta, 0.5 * r * r, delta * (a - 0.5 * delta))
+
+
+def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=None, hold_ext=False, lambdas=None, log=print, tag="", score=None, margin_db=None):
     """One stage. select = the regime whose rung is selected ("wetting" or "drying"); the other regime has the rung
     `other_rung`: free if other_x is None, else held at the values (g, h) = other_x. inc_F, inc_P = the starting extension
-    (held if hold_ext). Returns a dict: table (every rung and lambda), rung, lam, x, model, per-rung held-out sums."""
+    (held if hold_ext). Returns a dict: table (every rung and lambda), rung, lam, x, model, per-rung held-out sums.
+    Deviation 9: score = a boolean per 5 min value; if given, the held-out error is taken on these values only (the fits
+    are still trained on every counted value). margin_db = the margin of the selection (default: config, Deviation 5)."""
     lambdas = lambdas or C["lambdas"]
+    bin_le = np.repeat(np.arange(len(prob["le_n"])), prob["le_n"] // 5)
     use = np.asarray(use, float)
     fold = folds(le, use)
     ev = prob["event"]
@@ -79,8 +87,13 @@ def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=Non
             for f in range(fold.max() + 1):
                 out = (fold == f) & (use > 0)
                 xf = m.fit(x, use * (fold != f), maxiter=C["maxiter_fold"])
-                ls, cnt = m.per_link_event(xf)
-                s_, n_ = _event_sums(ls * use, cnt * use, ev, n_ev, out)
+                if score is None:
+                    ls, cnt = m.per_link_event(xf)
+                    s_, n_ = _event_sums(ls * use, cnt * use, ev, n_ev, out)
+                else:                                           # only the scored values of the held-out link-events
+                    b = out[bin_le] & score
+                    h = _huber(m.simulate(xf)[1][b] - prob["target"][b], m.cfg["huber_delta_db"])
+                    s_, n_ = np.bincount(ev[bin_le[b]], weights=h, minlength=n_ev), np.bincount(ev[bin_le[b]], minlength=n_ev).astype(float)
                 S += s_
                 N += n_
             cv = float(S.sum() / N.sum())
@@ -98,7 +111,7 @@ def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=Non
     for rung in ksurf.ORDER[1:]:                                # walk the ladder: a richer rung must beat the current one by more than the margin
         gain = cv_db(best[chosen]["S"], best[chosen]["N"]) - cv_db(best[rung]["S"], best[rung]["N"])
         lo, hi = paired_interval(best[chosen]["S"], best[rung]["S"], best[rung]["N"], S_["boot_reps"], S_["seed"], S_["interval"])
-        take = bool(gain > S_["margin_db"] and not (lo <= 0.0 <= hi))
+        take = bool(gain > (S_["margin_db"] if margin_db is None else margin_db) and not (lo <= 0.0 <= hi))
         steps[rung] = (chosen, gain, lo, hi, take)
         if take:
             chosen = rung
@@ -121,11 +134,13 @@ def plain_k0(prob, use, inc_F, inc_P, hold_ext):
     return float(1 / m.k(x, "wetting", 0, 0)), float(1 / m.k(x, "drying", 0, 0)), m, x
 
 
-def two_stage(D, le, band_idx, curves, gauge_mask, d_radar=0, d_gauge=0, inc_F=None, inc_P=None, hold_ext=False, use=None, log=print, tag=""):
+def two_stage(D, le, band_idx, curves, gauge_mask, d_radar=0, d_gauge=0, inc_F=None, inc_P=None, hold_ext=False, use=None, log=print, tag="", stage2=None):
     """The whole procedure. gauge_mask = the link-events of the gauge-input set; use = link-events to leave out get 0.
     Returns {"wet": stage 1, "dry": stage 2, "x": the final parameters, "model": the final model}; if the wetting ladder
     returned K0 (Deviation 6) also "tau_wet" = {"gauge", "radar"} (1 / k_wet from each input, min) and "x_alt" = the selected
-    drying rung refitted with k_wet at the radar-input estimate."""
+    drying rung refitted with k_wet at the radar-input estimate.
+    stage2 (Deviation 9) = {"w5": the 5 min values that count in stage 2, "score": the values the drying rungs are scored
+    on, "margin_db": the margin of the drying selection}; None = the rule of Deviation 5 on every counted value."""
     use = np.ones(len(le)) if use is None else np.asarray(use, float)
     rain_g, ok5 = gauge_input(D)
     prob_g = ksurf.prepare(D, band_idx, curves, rain_g, d_gauge)
@@ -135,7 +150,11 @@ def two_stage(D, le, band_idx, curves, gauge_mask, d_radar=0, d_gauge=0, inc_F=N
     wet = (x1[m1.sl["gw"]].copy(), x1[m1.sl["hw"]].copy())
     ext = m1.parts(x1)[4:]
     prob_r = ksurf.prepare(D, band_idx, curves, D["rain"], d_radar)
-    s2 = stage(prob_r, le, use, "drying", s1["rung"], wet, [e.copy() for e in ext[0]], [e.copy() for e in ext[1]], hold_ext, log=log, tag=tag)
+    extra = {}
+    if stage2 is not None:
+        prob_r["w5"] = np.asarray(stage2["w5"], float)
+        extra = {"score": np.asarray(stage2["score"], bool), "margin_db": stage2["margin_db"]}
+    s2 = stage(prob_r, le, use, "drying", s1["rung"], wet, [e.copy() for e in ext[0]], [e.copy() for e in ext[1]], hold_ext, log=log, tag=tag, **extra)
     out = {"wet": s1, "dry": s2, "x": s2["x"], "model": s2["model"]}
     if s1["rung"] == "K0":                                      # Deviation 6: k_wet is a bounded nuisance, carried at both its estimates
         tau_r = plain_k0(prob_r, use, inc_F, inc_P, hold_ext)[0]
