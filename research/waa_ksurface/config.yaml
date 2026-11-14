@@ -164,3 +164,12 @@ a6:                                             # fake-data recovery (decisions.
   gate: {tau_wet_min: [2.5, 5.0, 10.0], margin_db: 0.005}   # Deviation 6: 1 / k_wet held at half / the truth / twice the truth
   detect: {sizes: [1.0, 0.5, 0.25, 0.1], replicates: 5, r_cap_mmh: 3.2}   # detectability (A6 final): sizes from the largest; detected = 4 of 5
   seed_final: 2200                              # Deviation 7: fresh fake data for every verdict
+
+s1:                                             # signal against spurious gain under targeted losses (decisions.md, S1, written before any run)
+  seed: 3200                                    # fresh fake data: seed + 10 x (position of the truth) + replicate
+  truths: [a, c, c_r5, c_r10]                   # c_r5, c_r10: the k_dry(W) family at k(W = 2 dB) / k(W = 0) = 5 and 10 (only if nothing separates)
+  replicates: 5
+  dry_bins: 24                                  # L-dry: up to 120 min after the last wet bin
+  dry_below_mmh: 0.1                            # the path is dry: radar input below the wet threshold of the data layer
+  high_db: 1.0                                  # L-dryhigh: measured A - c of the first dry bin at least this
+  radar_scale_added: 2.5                        # the radar of the g_e = 1 events against the gauges (E1)
