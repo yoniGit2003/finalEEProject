@@ -139,3 +139,6 @@ A6_DIAG_REPORT = REPORTS / "a6_diagnostic.md"
 A6_DIAG2 = TABLES / "a6_diagnostic2.csv"                       # the diagnostic after the rerun: 1 / k_dry against the held k_wet, extension held / free
 A6_DIAG2_KNOTS = TABLES / "a6_diagnostic2_knots.csv"           # the extension knots of the free fits
 A6_DIAG2_REPORT = REPORTS / "a6_diagnostic2.md"
+A6_DIAG3 = TABLES / "a6_diagnostic3.csv"                       # the diagnostic after truth (c) failed: the error of drying K0 and K1 on parts of the data
+A6_DIAG3_CURVE = TABLES / "a6_diagnostic3_curve.csv"           # the fitted K1 curve against the true k_dry(W) at the W knots
+A6_DIAG3_REPORT = REPORTS / "a6_diagnostic3.md"

@@ -1585,3 +1585,40 @@ out.
 simply larger than the footprint of the dependence in the loss), and is the footprint diluted by where the loss is
 measured (all links and all minutes, most of them unaffected by k_dry)? Nothing is changed on the basis of this
 diagnostic; the block stops after it.
+
+**Result of the diagnostic (2026-11-14).** Script `a6_diagnostic3.py`, report `outputs/reports/a6_diagnostic3.md`. Fake
+data only. The stage 1 fit was repeated and gives the 1 / k_wet of the A6 final run (3.5387 min), so these are the fits
+of that run.
+
+| W (dB) | true 1 / k_dry (min) | K1 fit (min) | K0 fit (min) | share of the domain minutes from this knot to the next |
+|---|---|---|---|---|
+| 0 | 30 | 34.3 | 16.8 | 86 % |
+| 0.5 | 20 | 21.5 | 16.8 | 4 % |
+| 1 | 15 | 14.3 | 16.8 | 8 % |
+| 2 | 10 | 7.8 | 16.8 | 1 % |
+
+| in-sample error √(2·mean Huber loss) | share of all values | K0 (dB) | K1 (dB) | gain (dB) | share of the total loss drop |
+|---|---|---|---|---|---|
+| all 5 min values | 100 % | 0.2344 | 0.2319 | 0.0025 | 100 % |
+| links below 1 km | 22 % | 0.2111 | 0.2073 | 0.0038 | 30 % |
+| links below 1 km, 60 min after the last wet bin | 0.8 % | 0.1679 | 0.1614 | 0.0065 | 1.4 % |
+| all, after the last wet bin | 9.8 % | 0.1514 | 0.1491 | 0.0023 | 5.9 % |
+| links below 1 km, after the last wet bin | 2.3 % | 0.1534 | 0.1508 | 0.0027 | 1.6 % |
+
+(The sixth set of the written plan, the 60 min tail with the rainy part left out, is the third set again by construction.)
+
+- **The K1 fit itself is good.** It follows the true k_dry(W) within 25 % up to W = 1 dB and would have had **97 %** of the
+  domain weight within 25 % (the rule needs 80 %); K0 has 18 %. The failure is in the selection, not in the fit.
+- **The footprint of the dependence in the loss is small everywhere, not only diluted.** Even on the most favourable
+  part, the short links in the 60 min after rain, K1 gains 0.0065 dB in sample; on all values 0.0025 dB in sample and
+  0.0019 dB held out. The margin of 0.005 dB is larger than what a threefold k_dry(W) is worth on the whole-event loss.
+- **Most of the drop is inside the rain, not in the tails:** 94 % of the loss drop comes from the bins up to the last wet
+  bin, 6 % from the bins after it. The tails after the last wet bin are 10 % of the values.
+- 86 % of the true drying minutes of the domain lie below W = 0.5 dB, where a constant fitted to everything (16.8 min)
+  is about twice too fast against the true 30 min.
+
+**STOP for review.** Nothing was changed on the basis of this diagnostic: the margin, the loss and the rule for (c) stand
+as written. Not run: (d), (d-high), (e), (f), (g), the detectability study, the optional step. A7 is not started.
+One code correction, with no effect on any number already reported: `a6_recovery.gain_of` read the column `select` as
+`cv.select`, which in pandas 3.1 is a DataFrame method; it now reads `cv["select"]`. The function is only used by the
+detectability study, which has not run.

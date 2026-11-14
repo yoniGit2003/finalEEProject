@@ -365,7 +365,7 @@ def cv_show(c):
 
 
 def gain_of(cv, regime, rung):
-    g = cv[(cv.select == regime) & (cv.rung == rung) & cv.best_lambda]
+    g = cv[(cv["select"] == regime) & (cv.rung == rung) & cv.best_lambda]
     return round(float(g.gain_db.iloc[0]), 5) if len(g) and g.gain_db.iloc[0] is not None else np.nan
 
 

@@ -1,0 +1,7 @@
+set,values,share_of_all_values,error_K0_db,error_K1_db,gain_db,share_of_the_total_loss_drop
+all 5 min values,1354791,1.0,0.23439,0.23188,0.00251,1.0
+links below 1 km,299593,0.22114,0.21111,0.20731,0.0038,0.29998
+"links below 1 km, 60 min after the last wet bin",10287,0.00759,0.16788,0.16138,0.00651,0.0139
+"all, rainy part left out",132677,0.09793,0.15138,0.14905,0.00233,0.05856
+"links below 1 km, rainy part left out",30588,0.02258,0.15345,0.15079,0.00265,0.01556
+"links below 1 km, 60 min after the last wet bin, rainy part left out",10287,0.00759,0.16788,0.16138,0.00651,0.0139
