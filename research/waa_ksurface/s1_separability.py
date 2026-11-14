@@ -2,6 +2,11 @@
 
     python -m research.waa_ksurface.s1_separability             run what is missing (finished replicates are read from the cache)
     python -m research.waa_ksurface.s1_separability --report    write the report from the cache
+    python -m research.waa_ksurface.s1_separability --one c 2   one replicate only (used by the main run, see below)
+
+Memory: the main run starts every replicate as its own process, one at a time, so all arrays of a replicate are freed when
+it has saved its numbers; the peak memory of each is logged. Before a replicate starts the free memory of the machine is
+checked: if it is short the run stops cleanly (what is cached stays) and says so. None of this changes a number.
 
 Fake data only (the fake world of A6, library `fake6.py`), fresh seeds. Truth (a) has a constant k_dry, truth (c) a k_dry
 that triples from W = 0 to 2 dB. On five replicates of each, drying K0 and drying K1 are fitted as in stage 2 of
@@ -19,12 +24,15 @@ and in two variants of the learning set:
 A (loss, variant) is separable if the smallest gain on (c) is above the largest gain on (a). If none is, truth (c) is run
 at k ratios 5 and 10: the detection limit. Definitions and the adoption rule: decisions.md, "S1" (written before this code).
 """
+import gc
 import pickle
+import subprocess
 import sys
 import time
 
 import numpy as np
 import pandas as pd
+import psutil
 
 from research.common.report import md_table, rel
 from research.common.save import save
@@ -35,6 +43,7 @@ from research.wet_antenna.system_id import PADM
 A5, A6, S1 = ksurf.config(), data.branch_config()["a6"], data.branch_config()["s1"]
 LOSSES = ["L-all", "L-dry", "L-dryhigh"]
 VARIANTS = ["current", "extended"]
+MIN_FREE_GB = 2.0                                               # a replicate is not started with less free memory than this (or than the last peak)
 
 
 def log(msg):
@@ -134,6 +143,9 @@ def one(S, truth, rep):
     x1 = m1.fit(m1.start(start_F, start_P), S["gauge"].astype(float))
     ext = m1.parts(x1)[4:]
     tau_wet = float(1 / m1.k(x1, "wetting", 0, 0))
+    gw_held = x1[m1.sl["gw"]].copy()
+    del prob_g, m1, rain_g, ok5                                 # the arrays of stage 1 are not needed again
+    gc.collect()
     counted, dry, high, level = score_sets(S, Dk)
     rows = []
     for variant in VARIANTS:
@@ -150,7 +162,7 @@ def one(S, truth, rep):
             for lam in lams:
                 m = ksurf.Model(prob, "K0", rung, lam)
                 x0 = m.start([e.copy() for e in ext[0]], [e.copy() for e in ext[1]]) if prev is None else m.carry(*prev)
-                x0[m.sl["gw"]] = x1[m1.sl["gw"]]
+                x0[m.sl["gw"]] = gw_held
                 m.hold("gw", "hw")
                 x = m.fit(x0, use)
                 H[(rung, lam)] = held_out(m, x, use, fold, prob["target"], A5["huber_delta_db"])
@@ -168,6 +180,8 @@ def one(S, truth, rep):
                          "events": int(le.event_id.iloc[seg].nunique()), "error_K0_db": e0, "error_K1_db": e1[lam], "lambda_K1": lam, "gain_db": e0 - e1[lam],
                          "tau_wet_min": tau_wet, "tau_dry_K0_min": float(1 / m0.k(x0_, "drying", 0, 0)),
                          **{f"tau_dry_K1_W{w:g}_min": float(1 / mk.k(xk, "drying", 0, w)) for w in (0, 1, 2)}})
+        del prob, H, info, prev, m, m0, mk                          # the arrays of this variant
+        gc.collect()
         log(f"   {truth} r{rep} {variant}: " + ", ".join(f"{r['loss']} {r['gain_db']:+.5f}" for r in rows[-3:]) + f"; 1/k_dry K0 {rows[-1]['tau_dry_K0_min']:.1f} min")
     log(f"   {truth} r{rep}: {(time.time() - t0) / 60:.1f} min")
     return pd.DataFrame(rows)
@@ -208,24 +222,42 @@ def main():
     only_report = "--report" in sys.argv
     cache = P.CACHE / "s1_separability"
     cache.mkdir(parents=True, exist_ok=True)
-    S = None
-    got = {}
+    if "--one" in sys.argv:                                     # one replicate in this process: save its numbers and its peak memory
+        truth, rep = sys.argv[sys.argv.index("--one") + 1], int(sys.argv[sys.argv.index("--one") + 2])
+        t = one(setting(), truth, rep)
+        peak = psutil.Process().memory_info().peak_wset / 2 ** 30
+        (cache / f"{truth}_r{rep}.pkl").write_bytes(pickle.dumps(t))
+        (cache / f"{truth}_r{rep}.peak_gb.txt").write_text(f"{peak:.3f}")
+        log(f"   {truth} r{rep}: peak memory {peak:.2f} GB")
+        return
+    got, peaks, stopped = {}, {}, ""
 
     def run(truths):
-        nonlocal S
+        """Every replicate of these truths: read from the cache, or made in its own process (one at a time)."""
+        nonlocal stopped
         for truth in truths:
             for rep in range(S1["replicates"]):
                 f = cache / f"{truth}_r{rep}.pkl"
-                if not f.exists():
-                    if only_report:
-                        continue
-                    S = S or setting()
-                    log(f"=== truth ({truth}), replicate {rep} ===")
-                    f.write_bytes(pickle.dumps(one(S, truth, rep)))
-                got[(truth, rep)] = pickle.loads(f.read_bytes())
+                if not f.exists() and not only_report and not stopped:
+                    free = psutil.virtual_memory().available / 2 ** 30
+                    need = max(MIN_FREE_GB, max(peaks.values(), default=0.0))
+                    if free < need:
+                        stopped = f"free memory {free:.1f} GB is below the {need:.1f} GB a replicate needs: stopped before truth ({truth}), replicate {rep}"
+                        log("=== " + stopped + " ===")
+                    else:
+                        log(f"=== truth ({truth}), replicate {rep} (free memory {free:.1f} GB) ===")
+                        subprocess.run([sys.executable, "-m", "research.waa_ksurface.s1_separability", "--one", truth, str(rep)], check=True)
+                if f.exists():
+                    got[(truth, rep)] = pickle.loads(f.read_bytes())
+                    mem = cache / f"{truth}_r{rep}.peak_gb.txt"
+                    if mem.exists():
+                        peaks[(truth, rep)] = float(mem.read_text())
         return pd.concat(got.values(), ignore_index=True) if got else pd.DataFrame()
 
     runs = run(["a", "c"])
+    if stopped or not len(runs):
+        log("S1 is not complete: no table, no verdict. Run again to go on from the cache.")
+        sys.exit(2)
     summ = summary(runs, "c")
     chk = extension_check(runs)
     eligible = bool(chk.extended_within_25pct.all()) and len(chk) == S1["replicates"]
@@ -233,6 +265,9 @@ def main():
     limit = None
     if best is None and len(summ):                              # nothing is separable: the detection limit
         runs = run(["a", "c", "c_r5", "c_r10"])
+        if stopped:
+            log("S1 is not complete (the detection limit): run again to go on from the cache.")
+            sys.exit(2)
         limit = pd.concat([summary(runs, t) for t in ("c_r5", "c_r10")], ignore_index=True)
     save(runs.round(6), P.S1_RUNS, index=False)
     save(summ.round(6), P.S1_TABLE, index=False)

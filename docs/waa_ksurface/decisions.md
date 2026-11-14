@@ -1710,3 +1710,12 @@ at its gauge-input estimate and at its radar-input estimate as before, both must
 and the detectability study as written in A6 final, with the drying selection of Deviation 9. For (f) the spurious gain
 on the adopted loss is reported against the margin. FAIL on (c), (d) or (f) (spurious k_dry) at the written sizes is a
 STOP. Then STOP for review before A7.
+
+**S1, interruption and resume (2026-11-14, written before the resume).** The first S1 run was stopped by the machine
+(low memory) after truth (a), replicates 0–2 were cached; replicate 3 was cut off and is made again from scratch. The
+resume changes only how the run is executed, no seed, setting, loss or rule: every replicate runs in its own process, one
+at a time, so its arrays are freed when its numbers are saved; inside a replicate the arrays of stage 1 and of each
+variant are released when no longer needed; the peak memory of every replicate is logged; before a replicate starts the
+free memory is checked and, if it is below 2 GB or below the largest peak seen, the run stops cleanly with what is cached.
+Check that no number moved: the "current" gains of (a) replicate 3 printed by the interrupted run (L-all +0.00004, L-dry
++0.00017, L-dryhigh +0.00291 dB; 1 / k_dry 13.9 min) must come back the same.
