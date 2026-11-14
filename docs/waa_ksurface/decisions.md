@@ -1622,3 +1622,91 @@ as written. Not run: (d), (d-high), (e), (f), (g), the detectability study, the 
 One code correction, with no effect on any number already reported: `a6_recovery.gain_of` read the column `select` as
 `cv.select`, which in pandas 3.1 is a DataFrame method; it now reads `cv["select"]`. The function is only used by the
 detectability study, which has not run.
+
+---
+
+# S1: signal against spurious gain under targeted losses (2026-11-14, unattended)
+
+The review read the stop at truth (c) and diagnostic 3. **A7 (the real fit) is not run in this block.**
+
+## Review note on the failure of truth (c) (2026-11-14, logged before any run)
+
+The failure of (c) is accepted as diagnosed. The whole-series loss cannot separate a k_dry(W) that triples (held-out gain
+0.0019 dB) from the gains that noise alone makes on a constant truth (0.0026–0.0028 dB in the first fake set, 0.0013 dB
+in the fresh one). Nothing is changed retroactively: the verdicts of A6 final stand as written.
+
+## Deviation 8: R3 revised, k_wet is not identified (2026-11-14, logged before any run)
+
+**What changes.** In the fresh draws of A6 final both estimators of 1 / k_wet gave 3.1–3.7 min for a true 5: the interval
+between the gauge-input and the radar-input estimate did not contain the truth. So that interval is not a bound.
+**R3 (revised):** k_wet is NOT IDENTIFIED. k_dry is reported as a function of an ASSUMED 1 / k_wet over 2.5–10 min (the
+range over which the gate of Deviation 6 showed the CV error to be insensitive), plus the bootstrap. No claim is made on
+k_wet. **This is a choice made after seeing a result**, hence a deviation.
+
+## S1: definitions and the adoption rule (2026-11-14, written before any code is run)
+
+**Question served.** Q2 (what is k?): is there a held-out loss on which a real dependence of k_dry on W gains more than
+noise does?
+
+**Fake world.** That of A6 (fake6.py), fresh seeds (base 3200; every truth and replicate its own). Truth (a): k_wet = 1/5,
+k_dry = 1/15. Truth (c): k_wet = 1/5, k_dry = (1 + W) / 30. Five replicates each. Extension free (Deviation 7).
+
+**The fits (the same for every loss; only the held-out SCORE differs).** Per replicate:
+- k_wet: one fit on the gauge-input set of the learning set with the gauge input, wetting K0, drying K1, λ = 1e-4,
+  started as in A6 final (the fit the wetting ladder returned in every A6 final truth). 1 / k_wet is held at this estimate;
+  the extension of this fit is the start of the next ones. The wetting ladder is not walked (it is not the question).
+- Drying K0, and drying K1 at λ = 1e-4, 1e-3, 1e-2 (K1 started from the K0 fit): all links, radar input, trained on the
+  loss of A5 (Huber 0.3 dB on the counted 5 min values), 5 folds grouped by event (events sorted by start, dealt
+  round-robin), fold refits started from the fit on all events. Exactly the steps of stage 2 of `ladder.py`.
+- Error on a set of held-out 5 min values = √(2 · mean Huber loss) in dB. **Gain = error(K0) − error(K1)**, K1 at the λ
+  with the lowest held-out error ON THAT SAME SET (as the ladder chooses λ).
+
+**The three losses (sets of held-out 5 min values).**
+- **L-all:** every counted held-out 5 min value (the current rule).
+- **L-dry:** the counted held-out 5 min values of a link-event from the bin after its last wet bin (`last_bin` of the
+  data layer) to 120 min after it (24 bins), in which the path is dry by the rain reference: the radar input of the
+  link-event, as the fit sees it, is below 0.1 mm/h in that bin (the wet threshold of the data layer, A4 rule 5). All
+  links (with a dry path the length does not enter).
+- **L-dryhigh:** L-dry restricted to the segments (one per link-event) whose level at the end of the rain is at least
+  1 dB. W is not observed, so the level is defined model-free: the measured A − c of the first 5 min bin after the last
+  wet bin (the path is dry there, so A − c = W + noise); that bin must be counted and radar-dry, else the segment is left
+  out. Stated limit: the segments are chosen on a noisy reading that is also one of the scored values; both rungs are
+  scored on the same values, and what this does to a constant truth is exactly what the (a) replicates measure.
+
+**The two variants.**
+- **current:** the learning set (the 14 TRAIN events with a gauge ratio).
+- **extended:** the learning set plus the dry-path windows of the other TRAIN events (g_e = 1; the branch dataset holds 51
+  of the 53 TRAIN events: 14 + 37). Of an added link-event only the L-dry values count in the training loss and in every
+  score; the model is still run through its rain with the radar input, to arrive at a level at the end of the rain.
+  Folds: all events, dealt the same way. Stage 1 (k_wet) does not use the added events.
+  **In the fake world the radar of an added event reads 2.5 times the true rain** (E1; on top of the T1 error): the true
+  rain of an added link-event is its radar value / 2.5, and the fit sees the radar value.
+- **The fake check of the extension (its own rule):** on the 5 replicates of truth (a), extended variant, the drying
+  constant of the K0 fit must be within 25 % of the truth (1 / k_dry in 12.0–20.0 min) in 5 of 5. If not, the extended
+  variant is NOT ELIGIBLE for adoption, whatever its ratio. Reported besides: 1 / k_dry of the current variant on the same
+  data, and the coverage gain = the number of L-dryhigh segments and values, extended against current (fake world, mean of
+  the (c) replicates; real attenuation is not opened for this).
+
+**Separability and adoption (the rule, written now).** For each of the 6 combinations (loss, variant):
+min_c = the smallest of the 5 gains on (c); max_a = the largest of the 5 gains on (a). **Separable if min_c > max_a**
+(so all 5 of 5 (c) gains exceed every (a) gain). Ratio = min_c / max_a (if max_a <= 0 and min_c > 0: ratio = infinite,
+ties broken by the larger min_c; if min_c <= 0: not separable). **Adopted: the eligible combination with the largest
+ratio, if that ratio is above 1.** Nothing else decides.
+
+**Deviation 9 (comes into force ONLY if a combination is adopted).** The drying rung selection uses the adopted loss (and
+the adopted variant as the learning set of stage 2): a richer drying rung replaces the current one only if its gain on
+the adopted loss is above **margin = max_a on that loss** (not below 0; a measured noise floor, not a chosen number) and
+the paired 90 % event-bootstrap interval of the gain excludes zero. The same margin serves every step of the drying
+ladder (measured for K1 over K0 only: a stated limit). Wetting keeps the rule of Deviation 5.
+
+**If nothing is separable.** Truth (c) is run at larger sizes in the family of the detectability study,
+k_dry = (1/15)·(1 + a·W) / (1 + a): ratio k(W = 2 dB) / k(W = 0) = 5 (a = 2) and 10 (a = 4.5), 5 fresh replicates each,
+against the same (a) gains. Reported: the smallest ratio that separates on the best loss (the combination with the
+largest ratio at that size, eligible ones only). Then STOP: that is the detection limit and the answer to Q2.
+
+**If adopted (step 3, fresh seeds, base 3300).** (c) again under Deviation 9 (PASS as written in A6 final: drying K1,
+wetting K0, k_dry within 25 % on at least 80 % of the domain weight; with Deviation 8 the drying fit is judged with k_wet
+at its gauge-input estimate and at its radar-input estimate as before, both must hold); then (d), (d-high), (e), (f), (g)
+and the detectability study as written in A6 final, with the drying selection of Deviation 9. For (f) the spurious gain
+on the adopted loss is reported against the margin. FAIL on (c), (d) or (f) (spurious k_dry) at the written sizes is a
+STOP. Then STOP for review before A7.
