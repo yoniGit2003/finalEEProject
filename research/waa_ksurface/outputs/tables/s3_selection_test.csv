@@ -1,0 +1,11 @@
+case,expected rung,returned rung,expected attribution,returned attribution,K3 tried,pass
+1 neither beats K0,K0,K0,no dependence,no dependence,False,True
+"2 K1 ahead of K2 (truth (c): gains 0.0135, 0.0059, K3 0.0136)",K1,K1,W,W,True,True
+2 mirror: K2 ahead of K1,K2,K2,R,R,True,True
+"3 both beat K0, closer than the margin",K1,K1,"dependence detected, attribution W vs R not resolved","dependence detected, attribution W vs R not resolved",True,True
+3 mirror: K2 slightly better,K2,K2,"dependence detected, attribution W vs R not resolved","dependence detected, attribution W vs R not resolved",True,True
+4 K3 beats the selected rung,K3,K3,W and R,W and R,True,True
+4 K3 after an unresolved pair,K3,K3,W and R,W and R,True,True
+edge: K1 above the margin but its interval holds zero,K0,K0,no dependence,no dependence,False,True
+"edge: only K2 beats K0 (K1's interval holds zero), close gains",K2,K2,R,R,True,True
+edge: K3 far below K0 but not below the selected K1,K1,K1,W,W,True,True

@@ -54,12 +54,14 @@ def _huber(r, delta):
     return np.where(a <= delta, 0.5 * r * r, delta * (a - 0.5 * delta))
 
 
-def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=None, hold_ext=False, lambdas=None, log=print, tag="", score=None, margin_db=None):
+def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=None, hold_ext=False, lambdas=None, log=print, tag="", score=None, margin_db=None, selector=None):
     """One stage. select = the regime whose rung is selected ("wetting" or "drying"); the other regime has the rung
     `other_rung`: free if other_x is None, else held at the values (g, h) = other_x. inc_F, inc_P = the starting extension
     (held if hold_ext). Returns a dict: table (every rung and lambda), rung, lam, x, model, per-rung held-out sums.
     Deviation 9: score = a boolean per 5 min value; if given, the held-out error is taken on these values only (the fits
-    are still trained on every counted value). margin_db = the margin of the selection (default: config, Deviation 5)."""
+    are still trained on every counted value). margin_db = the margin of the selection (default: config, Deviation 5).
+    Deviation 10: selector(compare, margin) -> (rung, attribution, steps) replaces the walk from K0; compare(richer, simpler)
+    = (gain in dB, lower and upper end of its paired interval). The result then also holds "attribution"."""
     lambdas = lambdas or C["lambdas"]
     bin_le = np.repeat(np.arange(len(prob["le_n"])), prob["le_n"] // 5)
     use = np.asarray(use, float)
@@ -107,14 +109,23 @@ def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=Non
     tab["cv_db"] = np.sqrt(2.0 * tab.cv_loss)
     top = min(best, key=lambda r: best[r]["cv"])
     S_ = C["select"]
-    chosen, steps = "K0", {}
-    for rung in ksurf.ORDER[1:]:                                # walk the ladder: a richer rung must beat the current one by more than the margin
-        gain = cv_db(best[chosen]["S"], best[chosen]["N"]) - cv_db(best[rung]["S"], best[rung]["N"])
-        lo, hi = paired_interval(best[chosen]["S"], best[rung]["S"], best[rung]["N"], S_["boot_reps"], S_["seed"], S_["interval"])
-        take = bool(gain > (S_["margin_db"] if margin_db is None else margin_db) and not (lo <= 0.0 <= hi))
-        steps[rung] = (chosen, gain, lo, hi, take)
-        if take:
-            chosen = rung
+    margin = S_["margin_db"] if margin_db is None else margin_db
+    chosen, steps, attribution = "K0", {}, None
+
+    def compare(richer, simpler):
+        gain = cv_db(best[simpler]["S"], best[simpler]["N"]) - cv_db(best[richer]["S"], best[richer]["N"])
+        lo, hi = paired_interval(best[simpler]["S"], best[richer]["S"], best[richer]["N"], S_["boot_reps"], S_["seed"], S_["interval"])
+        return gain, lo, hi
+
+    if selector is not None:                                    # Deviation 10: K1 and K2 are each compared with K0
+        chosen, attribution, steps = selector(compare, margin)
+    else:
+        for rung in ksurf.ORDER[1:]:                            # walk the ladder: a richer rung must beat the current one by more than the margin
+            gain, lo, hi = compare(rung, chosen)
+            take = bool(gain > margin and not (lo <= 0.0 <= hi))
+            steps[rung] = (chosen, gain, lo, hi, take)
+            if take:
+                chosen = rung
     tab["best_lambda"] = [best[r]["lam"] == l for r, l in zip(tab.rung, tab["lambda"])]
     for k, name in enumerate(("compared_with", "gain_db", "gain_lo", "gain_hi", "replaces")):
         tab[name] = [steps[r][k] if (b and r in steps) else None for r, b in zip(tab.rung, tab.best_lambda)]
@@ -122,7 +133,7 @@ def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=Non
     tab["selected"] = (tab.rung == chosen) & tab.best_lambda
     b = best[chosen]
     log(f"   {tag}{select}: lowest cv {top}, selected {chosen} (lambda {b['lam']:g})")
-    return {"table": tab, "rung": chosen, "lam": b["lam"], "x": b["x"], "model": b["model"], "lowest_cv": top, "S": b["S"], "N": b["N"]}
+    return {"table": tab, "rung": chosen, "lam": b["lam"], "x": b["x"], "model": b["model"], "lowest_cv": top, "S": b["S"], "N": b["N"], "attribution": attribution}
 
 
 def plain_k0(prob, use, inc_F, inc_P, hold_ext):
@@ -140,7 +151,8 @@ def two_stage(D, le, band_idx, curves, gauge_mask, d_radar=0, d_gauge=0, inc_F=N
     returned K0 (Deviation 6) also "tau_wet" = {"gauge", "radar"} (1 / k_wet from each input, min) and "x_alt" = the selected
     drying rung refitted with k_wet at the radar-input estimate.
     stage2 (Deviation 9) = {"w5": the 5 min values that count in stage 2, "score": the values the drying rungs are scored
-    on, "margin_db": the margin of the drying selection}; None = the rule of Deviation 5 on every counted value."""
+    on, "margin_db": the margin of the drying selection, "selector": the selection rule (Deviation 10; optional)};
+    None = the rule of Deviation 5 on every counted value."""
     use = np.ones(len(le)) if use is None else np.asarray(use, float)
     rain_g, ok5 = gauge_input(D)
     prob_g = ksurf.prepare(D, band_idx, curves, rain_g, d_gauge)
@@ -153,7 +165,7 @@ def two_stage(D, le, band_idx, curves, gauge_mask, d_radar=0, d_gauge=0, inc_F=N
     extra = {}
     if stage2 is not None:
         prob_r["w5"] = np.asarray(stage2["w5"], float)
-        extra = {"score": np.asarray(stage2["score"], bool), "margin_db": stage2["margin_db"]}
+        extra = {"score": np.asarray(stage2["score"], bool), "margin_db": stage2["margin_db"], "selector": stage2.get("selector")}
     s2 = stage(prob_r, le, use, "drying", s1["rung"], wet, [e.copy() for e in ext[0]], [e.copy() for e in ext[1]], hold_ext, log=log, tag=tag, **extra)
     out = {"wet": s1, "dry": s2, "x": s2["x"], "model": s2["model"]}
     if s1["rung"] == "K0":                                      # Deviation 6: k_wet is a bounded nuisance, carried at both its estimates

@@ -156,3 +156,4 @@ S3_DETECT_RUNS = TABLES / "s3_recovery_detectability_runs.csv"
 S3_DETECT = TABLES / "s3_recovery_detectability.csv"
 S3_FIG = FIGURES / "s3_recovery_surfaces.png"
 S3_REPORT = REPORTS / "s3_recovery.md"
+S3_SELECTION_TESTS = TABLES / "s3_selection_test.csv"            # Deviation 10: the toy cases of the drying selection, expected against returned

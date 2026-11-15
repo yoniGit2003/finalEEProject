@@ -1770,3 +1770,40 @@ texts leave open now that the learning set of stage 2 is the extended one.
   the best richer drying rung on L-dryhigh against the margin. STOP if the verdict is "spurious k_dry" (drying not K0, or
   1 / k_dry outside 25 %).
 - **Execution:** one process per truth or replicate, cached, peak memory logged, clean stop on low memory (as in S1).
+
+**Step 3, first attempt (2026-11-14).** The run was stopped by the machine (low memory) inside truth (c), before its
+selection and judging; nothing of step 3 is cached and there is no verdict. Its log shows the drying ladder of (c) on
+L-dryhigh up to the second λ of K3: gain over K0 of K1 0.0135 dB, K2 0.0059 dB, K3 0.0136 dB (margin 0.00195 dB); the
+wetting ladder returned K0. Also recorded: the interpreter of the `cmlpipe` environment must be started with the
+environment activated (its `Library\bin` on PATH), otherwise numpy's BLAS calls crash; this concerns execution only.
+
+## Deviation 10: non-nested rungs (2026-11-15, logged before step 3 is run)
+
+**What changes (text of the review).** "Non-nested rungs. K1 and K2 are each compared with K0 on the adopted loss. If
+neither beats K0 by the margin, K0. If one or both do, take the one with the larger gain. If both beat K0 and differ from
+each other by less than the margin, the result is 'dependence detected, attribution W vs R not resolved', and K3 is tried
+against the better one. K3 is selected only if it beats the selected rung by the margin."
+
+**Reason (given by the review).** The sequential walk tries K1 before K2, so a true R-dependence could be absorbed by K1
+(in (c), K2 gained 3 times the margin on a truth without R-dependence).
+
+**Disclosure.** This deviation is made after seeing the partial log of truth (c) of the stopped step 3 run (seed 3300):
+K1 gain 0.0135 dB, K2 gain 0.0059 dB, K3 0.0136 dB on L-dryhigh. It does not change the outcome of (c) on those numbers:
+K1 − K2 = 0.0076 dB, above the margin, and K3 gains 0.0001 dB over K1. Truth (c) of step 3 keeps its seed: it never
+produced a verdict, and the rule is not tuned to make it pass. **A choice made after seeing a result**, hence a deviation.
+
+**How it is computed (fixed now, where the text leaves room; the reading is this log's, flagged for the review).**
+- It applies to the DRYING ladder of step 3 and A7 (the ladder selected on the adopted loss). Wetting keeps the walk of
+  Deviation 5.
+- "Beats by the margin" is the test of Deviation 9: gain on L-dryhigh above 0.00195 dB AND the paired 90 %
+  event-bootstrap interval of the gain excludes zero.
+- "Differ from each other by less than the margin": |gain(K1) − gain(K2)| < 0.00195 dB (no interval).
+- K3 is tried against the selected rung whenever K1 or K2 was selected (resolved or not); it is not tried if K0 stays.
+- The four outcomes, reported in a new column `attribution` next to the rung:
+  1. neither beats K0 → **K0**, "no dependence";
+  2. one is selected and the attribution is resolved → **K1** "W" or **K2** "R";
+  3. both beat K0 and are closer than the margin → the better one is returned as the rung, with **"dependence detected,
+     attribution W vs R not resolved"**. For the PASS rules of (c) and (d) the returned rung must still be the true one,
+     and an unresolved attribution is reported next to the verdict;
+  4. K3 beats the selected rung → **K3**, "W and R".
+- Unit test, written with the code: one toy case per outcome (`s3_selection_test.py`).

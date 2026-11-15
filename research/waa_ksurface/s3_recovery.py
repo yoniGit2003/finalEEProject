@@ -10,7 +10,8 @@ What differs from `a6_recovery.py` (decisions.md, "S1" and "Step 3 under Deviati
     stage 1      unchanged: wetting ladder on the gauge-input set of the 14 learning events, margin 0.005 dB (Deviation 5)
     stage 2      the learning set plus the L-dry values of the other events; every drying rung is scored on L-dryhigh
                  (the dry 120 min after the rain of the link-events whose first dry 5 min value is at least 1 dB);
-                 a richer rung needs a gain above the margin measured in S1 (the largest gain on a constant truth)
+                 a richer rung needs a gain above the margin measured in S1 (the largest gain on a constant truth);
+                 K1 and K2 are each compared with K0, K3 with the one selected (Deviation 10, `select_nonnested`)
     judging      on the learning set, as in A6
 
 Order: (c), (d), (d-high), (e), (f), (g), then the detectability study. A FAIL on (c) or (d), or a spurious k_dry in (f),
@@ -52,6 +53,37 @@ def margin():
     return max(float(r.a_gain_max_db), 0.0)
 
 
+UNRESOLVED = "dependence detected, attribution W vs R not resolved"
+
+
+def select_nonnested(compare, margin):
+    """The drying selection of Deviation 10. compare(richer, simpler) = (gain in dB, lower end, upper end of its paired
+    interval); a rung "beats" another if its gain is above the margin and the interval excludes zero.
+
+        neither K1 nor K2 beats K0             -> K0, "no dependence" (K3 is not tried)
+        one or both beat K0                    -> the one with the larger gain: K1 "W" or K2 "R"
+        both beat K0, gains closer than margin -> the better one, "dependence detected, attribution W vs R not resolved"
+        K3 beats the rung selected so far      -> K3, "W and R"
+
+    Returns (rung, attribution, steps); steps[rung] = (compared with, gain, lower, upper, selected) for the table."""
+    def beats(c):
+        return bool(c[0] > margin and not (c[1] <= 0.0 <= c[2]))
+
+    c = {"K1": compare("K1", "K0"), "K2": compare("K2", "K0")}
+    won = [r for r in ("K1", "K2") if beats(c[r])]
+    steps = {r: ("K0", *c[r], False) for r in ("K1", "K2")}
+    if not won:
+        return "K0", "no dependence", steps
+    rung = max(won, key=lambda r: c[r][0])                      # the larger gain (K1 if they are equal)
+    resolved = len(won) == 1 or abs(c["K1"][0] - c["K2"][0]) >= margin
+    c3 = compare("K3", rung)
+    steps["K3"] = (rung, *c3, beats(c3))
+    if beats(c3):
+        return "K3", "W and R", steps
+    steps[rung] = ("K0", *c[rung], True)
+    return rung, ({"K1": "W", "K2": "R"}[rung] if resolved else UNRESOLVED), steps
+
+
 def setting():
     """The S1 setting (all TRAIN events) with what the judging of A6 reads: short links and the gauge-input set, both of
     the learning events only, and the frozen A4 domain."""
@@ -83,7 +115,7 @@ def run_truth(name, S):
     bi = ex["band_idx"]
     counted, dry, high, _ = s1.score_sets(S, Dk)
     w5 = np.where(learn[S["bin_le"]], counted, dry)             # stage 2: of an added link-event only its L-dry values count
-    stage2 = {"w5": w5, "score": high, "margin_db": margin()}
+    stage2 = {"w5": w5, "score": high, "margin_db": margin(), "selector": select_nonnested}
     E = A6["extension"]
     start_F = [np.full(len(i), E["f_start_inc_db"]) for i in S["iF"]]
     start_P = [E["p_start_share"] * i for i in S["iP"]]
@@ -93,6 +125,7 @@ def run_truth(name, S):
     dens = a6.state_density(S, Dk, ex)
     out["cv"] = pd.concat([res["wet"]["table"], res["dry"]["table"]], ignore_index=True)
     out["tau_wet"] = res.get("tau_wet")
+    out["attribution"] = res["dry"]["attribution"]
     out["after_rain"] = a6.after_rain(S, Dk, res)
     out["judge"], out["cells"] = a6.judge(S, spec, res, dens, True)
     out["extension"] = a6.extension_table(S, res["model"], res["x"], start_F, start_P)
@@ -108,6 +141,7 @@ def run_truth(name, S):
                                 stage2={**stage2, "score": high & used})
         out["judge_excluded"], out["cells_excluded"] = a6.judge(S, spec, res2, dens, True)
         out["cv_excluded"] = pd.concat([res2["wet"]["table"], res2["dry"]["table"]], ignore_index=True)
+        out["attribution_excluded"] = res2["dry"]["attribution"]
     out["minutes"] = (time.time() - t0) / 60
     return out
 
@@ -195,7 +229,9 @@ def main():
              f"TRAIN link-events of the branch (real links, real rain; the radar of the events without a gauge ratio reads {S1['radar_scale_added']} times the true rain), the noise and "
              "the input errors of A6, extension free (Deviation 7), fresh seeds. **Drying selection (Deviation 9): every drying rung is scored on L-dryhigh (held-out 5 min values of "
              "the dry 120 min after the rain, link-events whose first dry value is at least 1 dB), learning set = the 14 events with a gauge ratio plus the dry-path values of the "
-             f"other events; a richer rung needs a gain above {m:.5f} dB (the largest gain on a constant truth in S1) with a paired 90 % interval that excludes zero.** In the tables "
+             f"other events; a richer rung needs a gain above {m:.5f} dB (the largest gain on a constant truth in S1) with a paired 90 % interval that excludes zero; K1 and K2 are each compared with K0 and the larger "
+             "gain wins, K3 is tried against the winner, and if K1 and K2 both win and are closer than the margin the attribution W against R is reported as not resolved "
+             "(Deviation 10).** In the tables "
              "`cv_db` of a drying rung is its error on L-dryhigh. Wetting: Deviation 5 (0.005 dB on every counted value of the gauge-input set). Where two numbers are given as "
              "`x / y`, the first is with k_wet at its gauge-input estimate, the second at its radar-input estimate. Judged on the learning set as in A6. "
              "No real attenuation is used as a target. VAL and TEST were not opened.\n")
@@ -206,7 +242,7 @@ def main():
         extra += ["\n## (f): the spurious gain on the adopted loss against the margin\n",
                   f"Largest gain of a richer drying rung on L-dryhigh: {rung}, {g:+.5f} dB (interval {lo:+.5f} to {hi:+.5f}); margin {m:.5f} dB. "
                   f"Verdict of (f): {a6.verdict('f', R['f'])}.\n"]
-    rows = [{"truth": n, "drying rung": R[n]["judge"].set_index("regime").selected_rung["drying"], "best richer drying rung": best_richer(R[n]["cv"])[0],
+    rows = [{"truth": n, "drying rung": R[n]["judge"].set_index("regime").selected_rung["drying"], "attribution (Deviation 10)": R[n]["attribution"], "best richer drying rung": best_richer(R[n]["cv"])[0],
              "its gain on L-dryhigh (dB)": round(best_richer(R[n]["cv"])[1], 5), "margin (dB)": round(m, 5), "scored values": R[n]["scored_values"],
              "scored link-events": R[n]["scored_link_events"], "peak memory (GB)": round(R[n].get("peak_gb", np.nan), 2), "minutes": round(R[n]["minutes"], 1)} for n in R]
     extra += ["\n## Every run: the drying gain against the margin, the size of the scored set, peak memory\n", md_table(pd.DataFrame(rows)), ""]
