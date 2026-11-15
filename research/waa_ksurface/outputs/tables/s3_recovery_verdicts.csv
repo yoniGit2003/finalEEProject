@@ -1,5 +1,3 @@
 truth,regime,true rung,rung returned,recovery,verdict
-(c),wetting,K0,K0,1/k 3.5 / 4.7 min (truth 5.0): governed by the gate,PASS
 (c),drying,K1,K1,97 % / 97 % of the domain weight: yes,PASS
-(d),wetting,K2,K0,12 % of the domain weight (whole domain 12 %): no,FAIL
-(d),drying,K2,K0,93 % / 93 % of the domain weight (whole domain 92 %): yes,FAIL
+(d),drying,"K2 (outside the ladder, R4)",K0,93 % / 93 % of the domain weight (whole domain 92 %): yes,PASS

@@ -334,10 +334,11 @@ def fig_surfaces(R):
     names = [n for n in ("c", "d") if n in R]
     if not names:
         return None
-    fig, axes = plt.subplots(len(names), 2, figsize=(11, 4 * len(names)), squeeze=False)
+    regimes = [r for r in ("wetting", "drying") if r in set(R[names[0]]["judge"].regime)]      # the regimes that are judged (both in A6)
+    fig, axes = plt.subplots(len(names), len(regimes), figsize=(5.5 * len(regimes), 4 * len(names)), squeeze=False)
     for i, n in enumerate(names):
         c = R[n]["cells"]
-        for j, regime in enumerate(("wetting", "drying")):
+        for j, regime in enumerate(regimes):
             ax = axes[i, j]
             g = c[(c.regime == regime) & (c.minutes > 0)].sort_values(["R", "W"])
             xs, lab = (g.W, "W (dB)") if n == "c" else (g.R, "R (mm/h)")
@@ -377,9 +378,10 @@ A6_INTRO = ("Written by `research/waa_ksurface/a6_recovery.py` (libraries `fake6
          "For the truths in which k depends on R the share is taken inside F's measured range (restriction R2). No real attenuation is used as a target. VAL and TEST were not opened.\n")
 
 
-def report(R, det, P=P, title=None, intro=None, stop_on=None):
+def report(R, det, P=P, title=None, intro=None, stop_on=None, verdict=None):
     """Tables, figure and report of the truths in R. P = where they are written (default: the A6 files); title, intro =
-    the head of the report; stop_on(name, verdict) = an extra STOP rule."""
+    the head of the report; stop_on(name, verdict) = an extra STOP rule; verdict = another verdict function."""
+    verdict = verdict or globals()["verdict"]
     rows, stop = [], None
     for n in ORDER:
         if n not in R:

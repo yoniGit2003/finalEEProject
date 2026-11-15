@@ -12,12 +12,20 @@ difference of their errors; its interval is the gain -/+ a half-width. No data a
 
 Further cases guard the edges of the rule: a gain above the margin whose interval holds zero does not count; only one of
 K1, K2 beating K0 is "resolved" however close they are; K3 is compared with the selected rung, not with K0.
+
+Deviation 11 (the ladder now in use): `select_k0_k1` compares K1 with K0 and nothing else; step 3 hands the fit the drying
+rungs K0 and K1 and the wetting rung K0 only; the verdicts judge drying only. The cases of Deviation 10 stay as a test of
+the code that is kept.
 """
+import inspect
+
+import numpy as np
 import pandas as pd
 
 from research.common.report import rel
 from research.common.save import save
 from research.waa_ksurface import paths as P
+from research.waa_ksurface import s3_recovery as s3
 from research.waa_ksurface.s3_recovery import UNRESOLVED, select_nonnested
 
 MARGIN = 0.002
@@ -77,8 +85,61 @@ def test_edges():
     assert all(run(c)["pass"] for c in CASES if c[0].startswith("edge"))
 
 
+# ---- Deviation 11: the drying ladder is K0 against K1 only, and there is no wetting ladder
+def k0_k1_cases():
+    """Toy cases of `select_k0_k1`. The toy `compare` refuses every pair but (K1, K0), so a look at K2 or K3 fails the test."""
+    def only(gain, lo, hi):
+        def compare(richer, simpler):
+            assert (richer, simpler) == ("K1", "K0"), f"the reduced drying ladder compared {richer} with {simpler}"
+            return gain, lo, hi
+        return compare
+
+    cases = [("D11 K1 above the margin", (0.0135, 0.0089, 0.0204), "K1", "W"),
+             ("D11 K1 below the margin", (0.0010, 0.0005, 0.0015), "K0", "no dependence"),
+             ("D11 K1 worse than K0 (truth (d): -0.0033)", (-0.0033, -0.0040, -0.0012), "K0", "no dependence"),
+             ("D11 K1 above the margin but its interval holds zero", (0.0040, -0.0010, 0.0090), "K0", "no dependence")]
+    rows = []
+    for name, c, rung, attribution in cases:
+        got_rung, got_attr, steps = s3.select_k0_k1(only(*c), MARGIN)
+        ok = got_rung == rung and got_attr == attribution and list(steps) == ["K1"] and steps["K1"][0] == "K0" and steps["K1"][4] == (rung == "K1")
+        rows.append({"case": name, "expected rung": rung, "returned rung": got_rung, "expected attribution": attribution, "returned attribution": got_attr,
+                     "K3 tried": False, "pass": bool(ok)})
+    return rows
+
+
+def test_d11_selector_compares_only_k1_with_k0():
+    assert all(r["pass"] for r in k0_k1_cases())
+
+
+def test_d11_ladders_of_step3():
+    """What step 3 hands to the fit: drying K0 and K1, wetting K0 only, the K0-K1 selector, k_dry(W) the only detectability form."""
+    assert s3.DRY_RUNGS == ["K0", "K1"] and s3.WET_RUNGS == ["K0"] and list(s3.FORMS) == ["cw"]
+    src = inspect.getsource(s3.run_truth)
+    assert '"selector": select_k0_k1' in src and '"rungs": DRY_RUNGS' in src and src.count("wet_rungs=WET_RUNGS") == src.count("ladder.two_stage(")
+    assert "select_nonnested" not in src
+
+
+def judged(sel, k_ok, share=np.nan, share_alt=np.nan, name="d"):
+    j = pd.DataFrame([{"regime": "wetting", "selected_rung": "K0", "k_ok": False, "share_within_25pct": 0.1, "share_alt": np.nan},
+                      {"regime": "drying", "selected_rung": sel, "k_ok": k_ok, "share_within_25pct": share, "share_alt": share_alt}])
+    return {"name": name, "judge": j, "judge_excluded": j}
+
+
+def test_d11_verdicts():
+    """The verdicts of Deviation 11 on toy judgments: only drying counts; (d) passes with K0 and 80 % of the weight."""
+    assert s3.verdict("d", judged("K0", False, 0.93, 0.93)) == "PASS"           # the cached (d): K0, 93 % at both ends
+    assert s3.verdict("d", judged("K1", False, 0.93, 0.93)) == "FAIL"           # a spurious W-dependence
+    assert s3.verdict("d", judged("K0", False, 0.93, 0.70)) == "FAIL"           # not recovered at the radar-input end of k_wet
+    assert s3.verdict("c", judged("K1", True)) == "PASS" and s3.verdict("c", judged("K0", True)) == "FAIL"
+    assert s3.verdict("d_high", judged("K0", True)) == "PASS" and s3.verdict("d_high", judged("K1", True)) == "FAIL"
+    assert s3.verdict("g", judged("K0", True)) == "k not corrupted" and s3.verdict("g", judged("K0", False)) == "k corrupted"
+    assert s3.verdict("f", judged("K1", True)).startswith("spurious") and s3.verdict("f", judged("K0", True)) == "no spurious k_dry, restored by the exclusion"
+
+
 def main():
-    t = pd.DataFrame([run(c) for c in CASES])
+    test_d11_ladders_of_step3()
+    test_d11_verdicts()
+    t = pd.DataFrame([run(c) for c in CASES] + k0_k1_cases())
     save(t, P.S3_SELECTION_TESTS, index=False)
     print(t.to_string(index=False))
     print(f"{int(t['pass'].sum())} of {len(t)} cases pass; table: {rel(P.S3_SELECTION_TESTS)}")

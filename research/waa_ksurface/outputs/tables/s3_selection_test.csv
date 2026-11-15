@@ -9,3 +9,7 @@ case,expected rung,returned rung,expected attribution,returned attribution,K3 tr
 edge: K1 above the margin but its interval holds zero,K0,K0,no dependence,no dependence,False,True
 "edge: only K2 beats K0 (K1's interval holds zero), close gains",K2,K2,R,R,True,True
 edge: K3 far below K0 but not below the selected K1,K1,K1,W,W,True,True
+D11 K1 above the margin,K1,K1,W,W,False,True
+D11 K1 below the margin,K0,K0,no dependence,no dependence,False,True
+D11 K1 worse than K0 (truth (d): -0.0033),K0,K0,no dependence,no dependence,False,True
+D11 K1 above the margin but its interval holds zero,K0,K0,no dependence,no dependence,False,True

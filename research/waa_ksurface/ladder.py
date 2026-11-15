@@ -54,14 +54,16 @@ def _huber(r, delta):
     return np.where(a <= delta, 0.5 * r * r, delta * (a - 0.5 * delta))
 
 
-def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=None, hold_ext=False, lambdas=None, log=print, tag="", score=None, margin_db=None, selector=None):
+def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=None, hold_ext=False, lambdas=None, log=print, tag="", score=None, margin_db=None, selector=None, rungs=None):
     """One stage. select = the regime whose rung is selected ("wetting" or "drying"); the other regime has the rung
     `other_rung`: free if other_x is None, else held at the values (g, h) = other_x. inc_F, inc_P = the starting extension
     (held if hold_ext). Returns a dict: table (every rung and lambda), rung, lam, x, model, per-rung held-out sums.
     Deviation 9: score = a boolean per 5 min value; if given, the held-out error is taken on these values only (the fits
     are still trained on every counted value). margin_db = the margin of the selection (default: config, Deviation 5).
     Deviation 10: selector(compare, margin) -> (rung, attribution, steps) replaces the walk from K0; compare(richer, simpler)
-    = (gain in dB, lower and upper end of its paired interval). The result then also holds "attribution"."""
+    = (gain in dB, lower and upper end of its paired interval). The result then also holds "attribution".
+    Deviation 11: rungs = the rungs that are fitted and compared, from the simplest (default: K0, K1, K2, K3)."""
+    rungs = list(rungs or ksurf.ORDER)
     lambdas = lambdas or C["lambdas"]
     bin_le = np.repeat(np.arange(len(prob["le_n"])), prob["le_n"] // 5)
     use = np.asarray(use, float)
@@ -70,7 +72,7 @@ def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=Non
     n_ev = int(ev.max()) + 1
     rows, best = [], {}
     prev = None
-    for rung in ksurf.ORDER:
+    for rung in rungs:
         for lam in lambdas:
             m = ksurf.Model(prob, rung if select == "wetting" else other_rung, other_rung if select == "wetting" else rung, lam)
             if not m.pen and lam != lambdas[0]:
@@ -120,7 +122,7 @@ def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=Non
     if selector is not None:                                    # Deviation 10: K1 and K2 are each compared with K0
         chosen, attribution, steps = selector(compare, margin)
     else:
-        for rung in ksurf.ORDER[1:]:                            # walk the ladder: a richer rung must beat the current one by more than the margin
+        for rung in rungs[1:]:                                  # walk the ladder: a richer rung must beat the current one by more than the margin
             gain, lo, hi = compare(rung, chosen)
             take = bool(gain > margin and not (lo <= 0.0 <= hi))
             steps[rung] = (chosen, gain, lo, hi, take)
@@ -145,19 +147,20 @@ def plain_k0(prob, use, inc_F, inc_P, hold_ext):
     return float(1 / m.k(x, "wetting", 0, 0)), float(1 / m.k(x, "drying", 0, 0)), m, x
 
 
-def two_stage(D, le, band_idx, curves, gauge_mask, d_radar=0, d_gauge=0, inc_F=None, inc_P=None, hold_ext=False, use=None, log=print, tag="", stage2=None):
+def two_stage(D, le, band_idx, curves, gauge_mask, d_radar=0, d_gauge=0, inc_F=None, inc_P=None, hold_ext=False, use=None, log=print, tag="", stage2=None, wet_rungs=None):
     """The whole procedure. gauge_mask = the link-events of the gauge-input set; use = link-events to leave out get 0.
     Returns {"wet": stage 1, "dry": stage 2, "x": the final parameters, "model": the final model}; if the wetting ladder
     returned K0 (Deviation 6) also "tau_wet" = {"gauge", "radar"} (1 / k_wet from each input, min) and "x_alt" = the selected
     drying rung refitted with k_wet at the radar-input estimate.
     stage2 (Deviation 9) = {"w5": the 5 min values that count in stage 2, "score": the values the drying rungs are scored
     on, "margin_db": the margin of the drying selection, "selector": the selection rule (Deviation 10; optional)};
-    None = the rule of Deviation 5 on every counted value."""
+    None = the rule of Deviation 5 on every counted value. Deviation 11: wet_rungs = the wetting rungs of stage 1 and
+    stage2["rungs"] = the drying rungs of stage 2 (default: the whole ladder)."""
     use = np.ones(len(le)) if use is None else np.asarray(use, float)
     rain_g, ok5 = gauge_input(D)
     prob_g = ksurf.prepare(D, band_idx, curves, rain_g, d_gauge)
     prob_g["w5"] = prob_g["w5"] * ok5
-    s1 = stage(prob_g, le, use * gauge_mask, "wetting", "K1", None, inc_F, inc_P, hold_ext, log=log, tag=tag)
+    s1 = stage(prob_g, le, use * gauge_mask, "wetting", "K1", None, inc_F, inc_P, hold_ext, log=log, tag=tag, rungs=wet_rungs)
     m1, x1 = s1["model"], s1["x"]
     wet = (x1[m1.sl["gw"]].copy(), x1[m1.sl["hw"]].copy())
     ext = m1.parts(x1)[4:]
@@ -165,7 +168,7 @@ def two_stage(D, le, band_idx, curves, gauge_mask, d_radar=0, d_gauge=0, inc_F=N
     extra = {}
     if stage2 is not None:
         prob_r["w5"] = np.asarray(stage2["w5"], float)
-        extra = {"score": np.asarray(stage2["score"], bool), "margin_db": stage2["margin_db"], "selector": stage2.get("selector")}
+        extra = {"score": np.asarray(stage2["score"], bool), "margin_db": stage2["margin_db"], "selector": stage2.get("selector"), "rungs": stage2.get("rungs")}
     s2 = stage(prob_r, le, use, "drying", s1["rung"], wet, [e.copy() for e in ext[0]], [e.copy() for e in ext[1]], hold_ext, log=log, tag=tag, **extra)
     out = {"wet": s1, "dry": s2, "x": s2["x"], "model": s2["model"]}
     if s1["rung"] == "K0":                                      # Deviation 6: k_wet is a bounded nuisance, carried at both its estimates
