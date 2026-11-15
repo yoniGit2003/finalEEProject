@@ -1807,3 +1807,25 @@ produced a verdict, and the rule is not tuned to make it pass. **A choice made a
      and an unresolved attribution is reported next to the verdict;
   4. K3 beats the selected rung → **K3**, "W and R".
 - Unit test, written with the code: one toy case per outcome (`s3_selection_test.py`).
+
+**Result of step 3 so far (run 2026-11-15 from a terminal; logged 2026-11-15).** Script `s3_recovery.py`, report
+`outputs/reports/s3_recovery.md`. Fake data only, seeds 3300 (c) and 3301 (d), code as committed in `9e5b274`
+(Deviations 9 and 10). One process per truth; peak memory 2.84 and 2.86 GB; 68 and 48 min.
+
+| truth | regime | true rung | rung returned | recovery | verdict |
+|---|---|---|---|---|---|
+| (c) | wetting | K0 | K0 (K3 +0.0014 dB, under 0.005) | 1 / k_wet 3.5 (gauge) / 4.7 (radar) min, truth 5: governed by the gate | PASS |
+| (c) | drying | K1 | **K1**, attribution "W" | 97 % / 97 % of the domain weight within 25 % | PASS |
+| (d) | wetting | K2 | **K0** | 12 % of the domain weight within 25 % | **FAIL** |
+| (d) | drying | K2 | **K0**, "no dependence" | 93 % / 93 % of the domain weight (whole domain 92 %) | **FAIL** (the rung) |
+
+- **(c) PASSES.** On L-dryhigh (2 409 values of 109 link-events) K1 gains 0.01348 dB over K0 (interval 0.0089–0.0204;
+  margin 0.00195), K2 gains 0.00597 dB, K3 adds 0.00011 dB to K1. K1 − K2 = 0.0075 dB, above the margin: resolved, "W".
+  The fitted K1 is within 25 % of the true k_dry(W) on 97 % of the domain weight at both ends of the k_wet interval.
+- **(d) FAILS on both rungs.** Drying: on L-dryhigh (1 728 values of 82 link-events) K1 and K2 are both WORSE than K0
+  (−0.0033 dB each), so K0 is returned; the constant (9.5 / 10.1 min for a true 10 at R = 0) is within 25 % of the true
+  k_dry on 93 % of the domain weight. Wetting: the true K2 gains 0.0016 dB on the whole-series loss of the gauge-input
+  set (K3 0.0032 dB), under the 0.005 dB margin of Deviation 5, and the constant K0 is within 25 % on 12 % of the weight.
+
+**Verdict.** FAIL on (d): **STOP** (the script stopped by the rule; not run: (d-high), (e), (f), (g), detectability).
+Nothing was patched.
