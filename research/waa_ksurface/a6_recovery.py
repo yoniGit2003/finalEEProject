@@ -417,7 +417,7 @@ def report(R, det, P=P, title=None, intro=None, stop_on=None):
         save(det, P.A6_DETECT_RUNS, index=False)
         summ = detect_summary(det)
         save(summ, P.A6_DETECT, index=False)
-        a += ["## Detectability: the smallest dependence the ladder returns at the 0.005 dB margin\n",
+        a += ["## Detectability: the smallest dependence the ladder returns at the margin of its selection\n",
               "Detected = the true rung is returned in at least 4 of 5 replicates. Sizes are tried from the largest; the replicates of a size stop once the outcome is decided, "
               "and a form stops at the first size at which nothing is detected. `k_ratio_at_domain_ends` = k(W = 2 dB) / k(W = 0) for k_dry(W); k(3.2 mm/h) / k(0) for k(R).\n",
               md_table(summ.round(5)), f"\n(`{rel(P.A6_DETECT)}`; every replicate: `{rel(P.A6_DETECT_RUNS)}`)\n"]
