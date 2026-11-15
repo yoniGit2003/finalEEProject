@@ -1829,3 +1829,52 @@ produced a verdict, and the rule is not tuned to make it pass. **A choice made a
 
 **Verdict.** FAIL on (d): **STOP** (the script stopped by the rule; not run: (d-high), (e), (f), (g), detectability).
 Nothing was patched.
+
+## Deviation 11: scope narrowed after truth (d) (2026-11-15, logged before any further run)
+
+**Text of the review.** "Scope narrowed after truth (d). (d) cannot pass by construction under the adopted rules:
+(1) the adopted drying loss L-dryhigh scores only after-rain time (R < 0.1 mm/h), so an R-dependence of k_dry cannot
+appear on it; (2) k_wet is NOT IDENTIFIED (R3), so a wetting ladder that must detect R-dependence contradicts R3.
+Response: the claims are narrowed, no criterion is loosened.
+- Wetting: K0 only, reported over 1/k_wet = 2.5–10 min (R3). The wetting ladder is removed.
+- Drying: the ladder is K0 vs K1 only (k_dry as a function of W, after rain). K2 and K3 are removed.
+- New restriction R4: no dependence of k on R is claimed. k_dry is the drying law after rain (R = 0). A true k(R) of the
+  size in (d) goes undetected, and the drying constant is still recovered within 25 % on 93 % of the domain weight.
+- R2 is superseded by R4.
+- Truth (d) becomes a robustness check: PASS if the reduced procedure returns K0 for drying (no spurious W-dependence)
+  and k_dry within 25 % on at least 80 % of the domain weight. Re-judge the cached (d) result under this rule. Do not
+  refit it.
+- (d-high) is judged the same way: PASS if no spurious K1 appears."
+
+**Disclosure.** This deviation is made after seeing the results of (c) and (d) of step 3 (the entry above): (c) passed
+with K1; in (d) both ladders returned K0, the drying constant was within 25 % on 93 % of the domain weight and K1 was
+0.0033 dB WORSE than K0 on L-dryhigh. So it is known in advance that the cached (d) passes the new robustness rule.
+**A choice made after seeing a result**, hence a deviation. The stop rule's one diagnostic after the failed (d) is not
+used: the review located the cause by construction.
+
+**How it is computed (fixed now, where the text leaves room; this log's reading, flagged for the review).**
+- **Stage 1** fits wetting K0 only (drying K1 as a nuisance, λ by the CV as before): it gives the gauge-input estimate of
+  k_wet and the start of the extension. No wetting rung is compared. In the fake checks the drying fit is still made with
+  k_wet at its gauge-input estimate and refitted at its radar-input estimate, and both must hold (as in every truth so
+  far); the report over an assumed 1 / k_wet of 2.5–10 min is the form of the claim in A7 (R3).
+- **Stage 2** fits drying K0 and K1 only. K1 replaces K0 by the test of Deviation 9 (gain on L-dryhigh above 0.00195 dB
+  and the paired 90 % interval excludes zero). Deviation 10 has nothing left to decide (K2 and K3 are gone); its code and
+  test stay.
+- **The cached fits of (c) and (d) are kept**, not refitted: in both the wetting ladder had returned K0, and the K0 and K1
+  drying fits do not depend on the richer rungs that were also tried, so they ARE the fits of the reduced procedure.
+  (c) is re-judged: drying K1 and at least 80 % of the domain weight within 25 %. (d) is re-judged by the rule above. Their
+  tables keep the K2 and K3 rows of the run, which no longer take part.
+- **Wetting is not judged** in any truth (K0 by construction; k_wet not identified, R3).
+- **(d), (d-high):** PASS if drying returns K0 and k_dry is recovered. For (d): within 25 % on at least 80 % of the domain
+  weight, at both ends of the k_wet interval, with the share as it was computed in the cached run (the cells inside F's
+  measured range: 93 %; the whole domain, 92 %, is printed next to it). For (d-high) the truth is the constant 0.1 per min
+  inside the measured range, so k_dry is judged as a number (1 / k_dry within 25 % of 10 min at both ends).
+- **(e)** report only, as written. **(f)** "spurious" if drying is not K0 or 1 / k_dry is outside 25 %; "restored" if K0
+  and within 25 % with the flagged events excluded. **(g)** "corrupted" if drying is not K0 or 1 / k_dry is outside 25 %
+  (the wetting half of the old rule falls away with R3).
+- **Detectability:** only k_dry(W) (the k(R) form falls away with R4): the smallest ratio k(W = 2 dB) / k(W = 0)
+  detected (K1 returned) in at least 4 of 5 replicates, sizes and seeds as written.
+- **STOP rules:** FAIL on (c), (d) or (d-high), or a spurious k_dry in (f). (g) and (e) give restrictions or reports.
+- Unit test, written with the code: the drying ladder compares K1 with K0 and nothing else.
+- **Execution of the rest of step 3** (asked by the review): one detached process on this machine, output in
+  `outputs/reports/s3_terminal.log`, one process per truth inside it, from the cache.
