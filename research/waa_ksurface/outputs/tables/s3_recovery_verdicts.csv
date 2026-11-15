@@ -1,3 +1,7 @@
 truth,regime,true rung,rung returned,recovery,verdict
 (c),drying,K1,K1,97 % / 97 % of the domain weight: yes,PASS
 (d),drying,"K2 (outside the ladder, R4)",K0,93 % / 93 % of the domain weight (whole domain 92 %): yes,PASS
+(d_high),drying,K0,K0,1/k 8.9 / 9.9 min (truth 10.0): yes,PASS
+(e),drying,none,K1,"1/k 39.4 min at R = 0, W = 0",report
+(f),drying,K0,K1,1/k 16.6 / 17.3 min (truth 15.0): yes,"spurious k_dry, restored by the exclusion"
+"(f), flagged events excluded",drying,K0,K0,1/k 12.4 / 13.5 min (truth 15.0): yes,"spurious k_dry, restored by the exclusion"

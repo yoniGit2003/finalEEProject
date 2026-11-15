@@ -1883,3 +1883,44 @@ used: the review located the cause by construction.
 read and ACCEPTED by the review before the rest of step 3 was launched: k_wet in the fake checks (the drying fit judged
 with k_wet at its gauge-input and its radar-input estimate), (d-high) judged on 1 / k_dry as a number, (g) judged on
 drying only, and the STOP rules (FAIL on (c), (d) or (d-high), or a spurious k_dry in (f)).
+
+**Result of step 3 under Deviation 11 (2026-11-15).** Script `s3_recovery.py`, report `outputs/reports/s3_recovery.md`,
+run log `outputs/reports/s3_terminal.log`. Fake data only; seeds 3300–3304; code as committed in `0c8cd3f`. (c) and (d)
+are the cached fits, judged again and not refitted; (d-high), (e), (f) were run as one detached process (one child process
+per truth). Only drying is judged; margin 0.00195 dB on L-dryhigh.
+
+| truth | true drying rung | returned | K1 gain on L-dryhigh (dB) | recovery of k_dry (k_wet at gauge / radar estimate) | verdict |
+|---|---|---|---|---|---|
+| (c) | K1 | K1 | +0.01348 | 97 % / 97 % of the domain weight within 25 % | PASS |
+| (d) | K2, outside the ladder (R4) | K0 | −0.00332 | 93 % / 93 % of the domain weight (whole domain 92 %) | PASS (robustness) |
+| (d-high) | K0 inside the measured range | K0 | −0.00003 | 1 / k_dry 8.9 / 9.9 min, truth 10 | PASS |
+| (e) two stores | none | **K1** | +0.01554 | 1 / k_dry 39.4 / 43.4 min at W = 0 | report |
+| (f) unseen rain in 3 events | K0 | **K1** | **+0.00309** (interval 0.00280–0.00345) | 1 / k_dry 16.6 / 17.3 min at W = 0, truth 15 | **spurious k_dry** |
+| (f), flagged events excluded | K0 | K0 | +0.00137 (0.00069–0.00364) | 1 / k_dry 12.4 / 13.5 min, truth 15 | restored by the exclusion |
+
+- **(d-high) PASSES:** no spurious K1 (871 scored values of 43 link-events; K1 gains nothing), the constant is recovered.
+- **(e), report:** on a two-store truth the one-state ladder returns K1 with a gain of 0.0155 dB, as large as the gain of
+  the true K1 in (c) (0.0135 dB). The residual in the 30 min after rain, highest minus lowest third of preceding rain at
+  matched W, is +0.014 dB (rule B3 asks for more than 0.10 dB). **So a returned K1 does not tell a k_dry that depends on W
+  from a second, slow store, and the after-rain residual does not tell them apart either at this size.** Reported, as the
+  rule says; proposed to the review as a restriction on what a K1 result may be called.
+- **(f): SPURIOUS.** With unseen rain of 1 mm/h for 30 min after the last wet bin in 3 of the 14 learning events, K1 gains
+  0.00309 dB on L-dryhigh, above the margin of 0.00195 dB, with an interval that excludes zero: K1 is returned on a
+  constant truth. The scored set swells to 6 733 values of 297 link-events (the unseen rain lifts the first dry reading
+  above 1 dB) and its error doubles (0.43 dB against about 0.2 dB). The fitted K1 is still within 25 % of the true constant
+  on 90 % / 95 % of the domain weight; the failure is the rung.
+- **The flag works and the exclusion restores K0:** the tail flag (defined before use, model-free) flags exactly the 3
+  changed events and no other (3 of 3, 0 of 10 false). Without them K1 gains 0.00137 dB, under the margin, K0 is
+  returned, and 1 / k_dry is 12.4 / 13.5 min for a true 15 (inside 25 %, the lower one narrowly: the limit is 12.0).
+- As the review expected, the targeted loss is where unseen water acts: the margin, measured on clean constant truths,
+  does not cover it.
+
+**Verdict.** Spurious k_dry in (f): **STOP** by the rule. Not run: (g), the detectability study. Nothing is patched.
+**The one diagnostic allowed after a failed check is not used:** (f) carries its own (the refit without the flagged
+events), and it locates the cause: the 3 events with unseen rain, found by the flag. Decisions for the review: whether
+the tail flag and the exclusion of flagged events become part of the procedure (then (f) is judged on the refit), and
+what a returned K1 may be called given (e).
+
+Execution: the detached process started 19:56:42 and exited 22:31:17 (exit code 1 = STOP by a rule), no restart. (f)
+took 147 min of wall time but about 13 min of processor time: the machine was asleep in between. Peak memory per truth
+2.93–3.16 GB. Free memory fell to 0.5 GB near the end (Chrome grew from 1.6 to 2.7 GB); the run was not affected.

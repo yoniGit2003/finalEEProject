@@ -1,0 +1,14 @@
+event_id,link_events,qualifying,waiting_or_rising,flagged,changed_in_truth
+E20150617_0705,55,18,0,False,False
+E20150618_0530,67,37,0,False,False
+E20150622_0930,67,2,0,False,False
+E20150705_1910,67,8,8,True,True
+E20150707_1235,67,9,0,False,False
+E20150725_0440,67,14,0,False,False
+E20150727_2140,67,16,16,True,True
+E20150804_1830,67,8,0,False,False
+E20150810_1545,67,8,0,False,False
+E20150815_1305,67,3,0,False,False
+E20150825_0145,67,10,10,True,True
+E20150826_0520,67,47,0,False,False
+E20150826_1620,67,4,0,False,False
