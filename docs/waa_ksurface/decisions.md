@@ -1878,3 +1878,8 @@ used: the review located the cause by construction.
 - Unit test, written with the code: the drying ladder compares K1 with K0 and nothing else.
 - **Execution of the rest of step 3** (asked by the review): one detached process on this machine, output in
   `outputs/reports/s3_terminal.log`, one process per truth inside it, from the cache.
+
+**Review of Deviation 11's readings (2026-11-15).** The four readings fixed above where the review's text left room were
+read and ACCEPTED by the review before the rest of step 3 was launched: k_wet in the fake checks (the drying fit judged
+with k_wet at its gauge-input and its radar-input estimate), (d-high) judged on 1 / k_dry as a number, (g) judged on
+drying only, and the STOP rules (FAIL on (c), (d) or (d-high), or a spurious k_dry in (f)).
