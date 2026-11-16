@@ -2002,3 +2002,49 @@ exclusion. When nothing is flagged, the fit is identical to the step 3 fit.
    wall time and the processor time are logged (a large gap = the machine slept).
 
 Script: `s3b_recovery.py` (new; reuses the functions of `s3_recovery.py`, `a6_recovery.py`, `s1_separability.py`).
+
+## Deviation 13: naming of a K1 result, and the history test B3' (2026-11-16, logged before any run of it)
+
+**Text of the review.** "Naming. A returned K1 is reported as 'non-exponential drying: the drying rate falls as the
+antenna dries'. It does not by itself distinguish a W-dependent rate from a second, slow store (shown by (e)). Then
+calibrate the history test (B3'): statistic = after-rain residual difference at matched W (±0.15 dB) between the lowest
+and highest third of preceding rain amount, from the K1 fit. Null: 5 fresh replicates of (c) (one state). Signal: 5 fresh
+replicates of (e) (two stores). Separable if min (e) > max (c) in 5 of 5. If separable: B3' replaces B3 in Block B, with
+threshold = max (c). If not: record the finding 'W-dependent rate vs second store not identifiable with this data', and P5
+becomes restriction R5. B3's old 0.10 dB threshold is retired either way (it was not measured)."
+
+**Disclosure.** Made after seeing (e) of step 3 (one draw, seed 3304): K1 returned with a gain of 0.0155 dB, and the
+after-rain residual at matched W, highest minus lowest third, was +0.014 dB, from the selected fit (K1). The (c) runs of
+step 3 stored the same statistic, but it was not read or reported for this purpose. Hence a deviation; fresh seeds.
+
+**Naming (in force from now on).** A returned drying K1 is reported as **"non-exponential drying: the drying rate falls as
+the antenna dries"**, never as "k_dry depends on W" alone. By itself it does not tell a W-dependent rate from a second,
+slow store.
+
+**B3', how it is computed (fixed now; this log's readings, flagged for the review).**
+- **Statistic** = `matched_high_minus_low_db` of `a6_recovery.after_rain`, computed with the **drying K1 fit** (its λ of
+  lowest held-out error; k_wet at its gauge-input estimate), whatever rung is selected: short-link link-events of the
+  learning events that are NOT flagged (Deviation 12: they are not training data); per link-event the mean residual
+  (fake A − c minus the model) over the 30 min after the last wet bin (5 min values that count, at least 3); preceding rain
+  = the input rain up to then (mm); thirds of preceding rain over these link-events; matched W = bins of 0.3 dB (±0.15) of
+  the fitted W at the end of the rain; statistic = Σ_bins min(n_high, n_low)·(mean_high − mean_low) / Σ_bins min(n_high,
+  n_low), high minus low (signed, dB). The same quantity from the selected fit (old B3) is printed next to it.
+- **Null:** 5 replicates of (c); **signal:** 5 replicates of (e). Replicate 0 of each is the (c), resp. (e), run of
+  Deviation 12 (same truth, same procedure, fresh seed); replicates 1–4 get seeds 3620–3623 ((c)) and 3630–3633 ((e)).
+- **Separable** if every one of the 5 (e) values is above the largest of the 5 (c) values (a missing value, no matched
+  bin, counts as not above). Then B3' replaces B3 in Block B: "a second state is added only if the B3' statistic of the
+  real K1 fit is above max (c)". Else the finding "W-dependent rate vs second store not identifiable with this data" is
+  recorded, and P5 becomes restriction R5.
+- **"P5"** is not defined in this branch's documents (plan.md, decisions.md). Reading: P5 = the claim that a Block B
+  second state would support, that a slow second store can be told apart from a W-dependent rate. **R5 (if adopted):** no
+  second store is claimed or excluded; a K1 result is reported only by the name above. Flagged for the review.
+- **B3's 0.10 dB threshold is retired** (it was not measured). These replicates are calibration runs: the STOP rules of
+  Deviation 12 do not apply to them, but each is judged and reported as its truth.
+
+**Then (g) and the detectability study under the updated procedure** (as written in A6 final and Deviation 11: k_dry =
+(1/15)·(1 + a·W) / (1 + a), k_wet = 1/5, ratio k(W = 2 dB) / k(W = 0) = 1 + 2a; detected = drying K1 returned in at least
+4 of 5 replicates; the replicates of a ratio stop when decided (4 hits or 2 misses); the sweep ends at the first ratio not
+detected). Ratios tried: **3, 2, 1.5** (a = 1, 0.5, 0.25). Reading: ratio 3 (a = 1) IS truth (c) (k_dry0 = 1/30,
+w_scale = 1 dB), so its 5 replicates are the 5 (c) runs of B3' (no extra runs). Ratios 2 and 1.5: seeds 3600 + 100 +
+10·(position of a in [1, 0.5, 0.25]) + replicate. (g): seed 3606, "k corrupted" if drying is not K0 or 1 / k_dry is
+outside 25 % at either end; if corrupted, the per-link question is reopened. Then STOP for review before A7.
