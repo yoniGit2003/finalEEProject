@@ -157,3 +157,12 @@ S3_DETECT = TABLES / "s3_recovery_detectability.csv"
 S3_FIG = FIGURES / "s3_recovery_surfaces.png"
 S3_REPORT = REPORTS / "s3_recovery.md"
 S3_SELECTION_TESTS = TABLES / "s3_selection_test.csv"            # Deviation 10: the toy cases of the drying selection, expected against returned
+
+# ---- step 3b: Deviations 12 (tail flag) and 13 (B3'), s3b_recovery.py --------------------------------------------
+S3B_RUNS = TABLES / "s3b_recovery_runs.csv"                    # every run: truth, seed, drying rung, K1 gain, recovery, events flagged, false removals, verdict
+S3B_CV = TABLES / "s3b_recovery_cv.csv"                        # every run, rung and lambda: train loss, held-out error
+S3B_FLAGS = TABLES / "s3b_recovery_flags.csv"                  # every run and event: the tail flag
+S3B_B3 = TABLES / "s3b_recovery_b3prime.csv"                   # B3': the statistic of every (c) and (e) replicate, from the K1 fit and from the selected fit
+S3B_DETECT = TABLES / "s3b_recovery_detectability.csv"         # per ratio: replicates run, hits, detected
+S3B_REPORT = REPORTS / "s3b_recovery.md"
+S3B_LOG = REPORTS / "s3b_terminal.log"                         # the terminal output of the detached run

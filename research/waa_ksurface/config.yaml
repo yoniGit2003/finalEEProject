@@ -178,3 +178,11 @@ s3:                                             # step 3 under Deviation 9 (deci
   seed: 3300                                    # fresh fake data: seed + position of the truth; detectability as in A6 final with this base
   loss: L-dryhigh                               # the adopted loss and variant of S1; the margin is read from the S1 table
   variant: extended
+
+s3b:                                            # step 3b: Deviations 12 (tail flag in the procedure) and 13 (B3'), decisions.md, written before the code
+  seed: 3600                                    # fresh: runs a, c, d, d_high, e, f, g = seed + position; B3' replicates 1-4 of c / e = seed + 20 / 30 + r
+  b3_replicates: 5                              # replicate 0 of c and of e = the run of Deviation 12
+  detect_sizes: [1.0, 0.5, 0.25]                # a: ratio k(W = 2 dB) / k(W = 0) = 1 + 2a = 3, 2, 1.5; a = 1 is truth (c) itself
+  min_free_start_gb: 4.0                        # the run does not start with less free memory
+  min_free_gb: 2.0                              # below this a child is not started (or the largest peak so far, if larger)
+  memory_log_minutes: 10

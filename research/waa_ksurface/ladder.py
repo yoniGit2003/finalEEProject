@@ -135,7 +135,8 @@ def stage(prob, le, use, select, other_rung, other_x=None, inc_F=None, inc_P=Non
     tab["selected"] = (tab.rung == chosen) & tab.best_lambda
     b = best[chosen]
     log(f"   {tag}{select}: lowest cv {top}, selected {chosen} (lambda {b['lam']:g})")
-    return {"table": tab, "rung": chosen, "lam": b["lam"], "x": b["x"], "model": b["model"], "lowest_cv": top, "S": b["S"], "N": b["N"], "attribution": attribution}
+    return {"table": tab, "rung": chosen, "lam": b["lam"], "x": b["x"], "model": b["model"], "lowest_cv": top, "S": b["S"], "N": b["N"], "attribution": attribution,
+            "fits": {r: (best[r]["model"], best[r]["x"]) for r in best}}           # Deviation 13: every rung's fit at its best lambda (B3' reads the K1 fit)
 
 
 def plain_k0(prob, use, inc_F, inc_P, hold_ext):
