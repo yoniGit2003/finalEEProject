@@ -26,7 +26,7 @@ def test_seeds_fresh_and_unique():
     assert len(seeds) == len(set(seeds))
     used = set(range(1200, 1300)) | set(range(2200, 2500)) | set(range(3200, 3215)) | set(range(3300, 3306)) | set(range(3400, 3435))
     assert not (set(seeds) & used)
-    assert s3b.spec_seed("a")[1] == 3600 and s3b.spec_seed("g")[1] == 3606
+    assert s3b.spec_seed("a")[1] == 3600 and s3b.spec_seed("g")[1] == 3606 and s3b.spec_seed("f_added")[1] == 3607
     assert [s3b.spec_seed(n)[1] for n in s3b.rep_names("c")[1:]] == [3620, 3621, 3622, 3623]
     assert [s3b.spec_seed(n)[1] for n in s3b.rep_names("e")[1:]] == [3630, 3631, 3632, 3633]
 
@@ -55,6 +55,10 @@ def test_verdicts_and_stops():
     assert v("e", toy("K1", "none", None)) == "report"
     assert v("f", toy("K1", "K0", True)) == "spurious k_dry" and v("f", toy("K0", "K0", True)) == "no spurious k_dry"
     assert v("g", toy("K0", "K0", False)) == "k corrupted"
+    caught, missed = {"flagged_with_unseen_water": 7, "unseen_water_events": 7}, {"flagged_with_unseen_water": 5, "unseen_water_events": 7}
+    assert v("f_added", {**toy("K0", "K0", True), **caught}) == "PASS"
+    assert v("f_added", {**toy("K0", "K0", True), **missed}) == "FAIL"
+    assert v("f_added", {**toy("K1", "K0", True), **caught}) == "FAIL, material"
     assert s3b.stops("a", "FAIL") and s3b.stops("f", "spurious k_dry") and not s3b.stops("e", "report") and not s3b.stops("c_r1", "FAIL")
 
 

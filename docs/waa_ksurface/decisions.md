@@ -2003,6 +2003,31 @@ exclusion. When nothing is flagged, the fit is identical to the step 3 fit.
 
 Script: `s3b_recovery.py` (new; reuses the functions of `s3_recovery.py`, `a6_recovery.py`, `s1_separability.py`).
 
+**Review of the readings (2026-11-16, before launch).** The five readings of Deviations 12 and 13 (both stages excluded;
+the flag's scope on the learning events only, as an open point; "P5" read as the second-store claim, R5 if not
+separable; replicate 0 of B3' = the Deviation 12 run, ratio 3 = truth (c); (a) a STOP gate, STOP rules on the Deviation 12
+truths only) were read and ACCEPTED by the review.
+
+**Addition to Deviation 12 (asked by the review, logged before launch): the flag's blind spot is tested.** One more (f)
+variant, `f_added`, run after the six truths (before the B3' replicates):
+- **Do the flag's inputs exist for the 37 added events? Yes:** the end of rain comes from the rain reference (the radar,
+  which every link-event has), and the attenuation and the other short links of the same event exist as for a learning
+  event. Measured on the branch data: the added events have 792 checkable short-link link-events (learning: 859), but only
+  **21 of the 37 added events have at least 5 of them** (learning: 13 of 14); since the flag needs 5 qualifying link-events,
+  the other 16 added events can never be flagged, whatever their tails do.
+- So the flag is **extended to all 51 events** (the same code, `S["short"]` = short links of every event) in this variant
+  only; the six truths and everything else run exactly as committed.
+- Unseen water as in (f) (1 mm/h for 30 min after the last wet bin, unseen by the input) in **7 of the 37 added events**
+  (20 %, rounded), drawn among all 37 (not only the 21 checkable ones: that is the gap being tested); seed 3607.
+- **PASS** if the extended flag catches every changed event (catch rate 7 of 7) AND drying returns K0 with 1 / k_dry within
+  25 % of 15 min at both ends of the k_wet interval. Reported: the catch rate over all changed events and over the changed
+  events that were checkable (at least 5 checkable short link-events), the false removals, the drying verdict, and whether
+  the contamination is **material** (drying not K0, or 1 / k_dry outside 25 %).
+- Not a STOP. **If it FAILS and the contamination is material**, the restriction proposed for A7 is the review's: the
+  extended variant may use added events only if the flag covers them; otherwise A7 falls back to the learning events, and
+  the S1 margin for that variant (the current variant, L-dryhigh: 0.00291 dB) applies. If it FAILS only on the catch rate
+  (not material), it is reported with no restriction proposed, flagged for the review.
+
 ## Deviation 13: naming of a K1 result, and the history test B3' (2026-11-16, logged before any run of it)
 
 **Text of the review.** "Naming. A returned K1 is reported as 'non-exponential drying: the drying rate falls as the

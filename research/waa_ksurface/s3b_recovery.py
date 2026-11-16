@@ -16,7 +16,7 @@ What differs from `s3_recovery.py` (decisions.md, Deviations 12 and 13, written 
     naming       a returned drying K1 is "non-exponential drying: the drying rate falls as the antenna dries".
 
 Order: (a), (c), (d), (d-high), (e), (f) [a FAIL on (a), (c), (d), (d-high) or a spurious k_dry in (f) is a STOP];
-then replicates 1-4 of (c) and (e) for B3'; then (g) and the detectability study at the ratios 3, 2, 1.5 (ratio 3 is
+then `f_added` (the flag's blind spot: unseen water in 7 of the 37 added events, flag extended to all 51; not a STOP); then replicates 1-4 of (c) and (e) for B3'; then (g) and the detectability study at the ratios 3, 2, 1.5 (ratio 3 is
 truth (c): its 5 replicates are those of B3'). One child process per run, one at a time; peak memory and processor time
 are logged; a clean stop if the machine is short of memory. The parent keeps Windows awake while it runs.
 Fake data only. No real attenuation is used as a target. VAL and TEST are not opened.
@@ -41,7 +41,8 @@ from research.wet_antenna.system_id import PADM
 
 A6, S1, B = a6.A6, s1.S1, data.branch_config()["s3b"]
 TRUTHS = ["a", "c", "d", "d_high", "e", "f"]                    # Deviation 12: every truth again, with the flag
-RUNS = TRUTHS + ["g"]                                           # seed = base + position in this list
+BLIND = "f_added"                                               # the flag's blind spot: unseen water in added events, flag on all events
+RUNS = TRUTHS + ["g", BLIND]                                    # seed = base + position in this list
 STOP_ON_FAIL = ["a", "c", "d", "d_high"]
 REP_OFFSET = {"c": 20, "e": 30}                                 # B3' replicates 1-4: seed = base + offset + r - 1
 K1_NAME = "non-exponential drying: the drying rate falls as the antenna dries"     # Deviation 13
@@ -71,7 +72,7 @@ def truth_of(name):
 def spec_seed(name):
     """(truth, seed) of a run (decisions.md, Deviation 12 reading 6 and Deviation 13)."""
     if name in RUNS:
-        return A6["truths"][name], B["seed"] + RUNS.index(name)
+        return A6["truths"]["f" if name == BLIND else name], B["seed"] + RUNS.index(name)     # f_added: truth (f), its events re-drawn in run_one
     if name.startswith("cw_"):
         _, a, rep = name.split("_")
         return a6.spec_of(name)[0], B["seed"] + 100 + 10 * B["detect_sizes"].index(float(a)) + int(rep[1:])
@@ -84,15 +85,20 @@ def run_one(name, S):
     """One run: fake data on all events, the flag, the two stages without the flagged events, judged as in step 3."""
     spec, seed = spec_seed(name)
     D, le, learn = S["D"], S["le"], S["learn"]
+    pool, S_flag = np.sort(le.event_id[learn].unique()), S
+    if name == BLIND:                                           # unseen water in 20 % of the added events; the flag looks at all 51 events
+        pool = np.sort(le.event_id[~learn].unique())
+        spec = {**spec, "ghost": {**spec["ghost"], "events": int(round(0.2 * len(pool)))}}
+        S_flag = dict(S, short=(le.L_km < a6.LT["short_km"]).to_numpy())
     t0, c0 = time.time(), time.process_time()
     sc = np.repeat(np.where(learn, 1.0, S1["radar_scale_added"]), D["le_n"] + 2 * PADM)
     Dt = dict(D)
     Dt["rain"] = np.asarray(D["rain"], float) / sc              # the true rain of an added event = its radar / 2.5
-    Dk, ex = fake6.make(Dt, le, S["n_cells"], spec, S["curves"], S["iF"], S["iP"], seed, S["step"], S["dist"], ghost_pool=np.sort(le.event_id[learn].unique()))
+    Dk, ex = fake6.make(Dt, le, S["n_cells"], spec, S["curves"], S["iF"], S["iP"], seed, S["step"], S["dist"], ghost_pool=pool)
     Dk["rain"] = Dk["rain"] * sc                                # the fit sees the radar value
     bi = ex["band_idx"]
 
-    fl = a6.tail_flags(S, Dk)                                   # Deviation 12: the flag, before any fit
+    fl = a6.tail_flags(S_flag, Dk)                              # Deviation 12: the flag, before any fit
     fl["unseen_water_in_truth"] = fl.event_id.isin(ex["ghost_events"])
     flagged = set(fl.event_id[fl.flagged])
     use = (~le.event_id.isin(flagged)).to_numpy().astype(float)
@@ -111,6 +117,7 @@ def run_one(name, S):
            "events_flagged": int(fl.flagged.sum()), "events_checked": int(len(fl)),
            "flagged_with_unseen_water": int((fl.flagged & fl.unseen_water_in_truth).sum()),
            "false_removals": int((fl.flagged & ~fl.unseen_water_in_truth).sum()), "unseen_water_events": len(ex["ghost_events"]),
+           "unseen_water_checkable": int((fl.unseen_water_in_truth & (fl.link_events >= A6["flag"]["min_link_events"])).sum()),
            "scored_values": int((high & used).sum()), "scored_link_events": int(len(np.unique(S["bin_le"][high & used])))}
     out["cv"] = pd.concat([res["wet"]["table"], res["dry"]["table"]], ignore_index=True)
     out["tau_wet"] = res.get("tau_wet")
@@ -144,6 +151,9 @@ def verdict(name, r):
     k0_ok = sel == "K0" and k_ok
     if t in ("a", "d_high"):
         return "PASS" if k0_ok else "FAIL"
+    if name == BLIND:
+        caught = r["flagged_with_unseen_water"] == r["unseen_water_events"]
+        return ("PASS" if (caught and k0_ok) else "FAIL") + ("" if k0_ok else ", material")
     if t == "f":
         return "no spurious k_dry" if k0_ok else "spurious k_dry"
     return "k not corrupted" if k0_ok else "k corrupted"        # (g)
@@ -252,7 +262,7 @@ def report(R, det, state, stopped):
          "link-events of the flagged events are left out of both stages and of the scored set.** Where two numbers are given as `x / y`, the first is with "
          "k_wet at its gauge-input estimate, the second at its radar-input estimate. A returned drying K1 is named: *" + K1_NAME + "* (Deviation 13). "
          "No real attenuation is used as a target. VAL and TEST were not opened.\n"]
-    main_rows = runs[runs.run.isin(TRUTHS + ["g"])]
+    main_rows = runs[runs.run.isin(RUNS)]
     L += ["## Every truth with the flag (Deviation 12)\n",
           md_table(main_rows[["run", "seed", "true rung", "drying rung", "K1 gain on L-dryhigh (dB)", "interval", "recovery (k_wet gauge / radar)",
                               "events flagged", "flagged with unseen water", "false removals", "scored values", "verdict"]]), ""]
@@ -283,6 +293,15 @@ def report(R, det, state, stopped):
                      "B3's 0.10 dB threshold is retired.\n")
         else:
             L.append(f"Not complete: {len(c_runs)} (c) and {len(e_runs)} (e) replicates.\n")
+    if BLIND in R:
+        r = R[BLIND]
+        v = verdict(BLIND, r)
+        L += ["\n## The flag's blind spot: unseen water in added events, flag extended to all 51 events\n",
+              f"Unseen water in {r['unseen_water_events']} of the added events ({r['unseen_water_checkable']} of them checkable: at least 5 checkable short "
+              f"link-events). Caught by the extended flag: {r['flagged_with_unseen_water']} of {r['unseen_water_events']} (of the checkable ones: "
+              f"{int((r['flags'].flagged & r['flags'].unseen_water_in_truth & (r['flags'].link_events >= A6['flag']['min_link_events'])).sum())} of {r['unseen_water_checkable']}); "
+              f"false removals {r['false_removals']}. Drying rung {drying(r).selected_rung}, {recovery_text(r)}. **{v}**; material: "
+              f"{'yes' if 'material' in v else 'no'}.\n"]
     if "g" in R:
         v = verdict("g", R["g"])
         L += ["\n## (g): a larger spread between links\n",
@@ -364,6 +383,7 @@ def main():
             break
     det = None
     if not stopped and all(n in R for n in TRUTHS):
+        get(BLIND)                                              # the flag's blind spot (not a STOP)
         for t in ("c", "e"):                                    # 2. B3' replicates
             for n in rep_names(t)[1:]:
                 if get(n) is None:
