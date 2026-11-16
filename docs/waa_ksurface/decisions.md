@@ -1924,3 +1924,81 @@ what a returned K1 may be called given (e).
 Execution: the detached process started 19:56:42 and exited 22:31:17 (exit code 1 = STOP by a rule), no restart. (f)
 took 147 min of wall time but about 13 min of processor time: the machine was asleep in between. Peak memory per truth
 2.93–3.16 GB. Free memory fell to 0.5 GB near the end (Chrome grew from 1.6 to 2.7 GB); the run was not affected.
+
+## Deviation 12: the tail flag becomes part of the procedure (2026-11-16, logged before any run of it)
+
+**Text of the review.** "The tail flag becomes part of the procedure. From now on the drying fit excludes flagged events.
+Because the procedure changed, every truth is rerun with the flag, on FRESH seeds: (a), (c), (d), (d-high), (e), (f),
+same pass rules as written. For each, report how many events the flag removes and whether any were removed in truths
+without unseen water (false removals). (c) must still return K1: the flag must not remove a real drying law."
+
+**Disclosure.** This deviation is made after seeing the refit of (f) without the flagged events (step 3 under Deviation
+11, entry above): the flag found exactly the 3 changed events (0 of 10 false), and without them K1 gained 0.00137 dB
+(under the margin), K0 was returned and 1 / k_dry was 12.4 / 13.5 min for a true 15. So it is known in advance that the
+exclusion restored K0 on that draw. **A choice made after seeing a result**, hence a deviation. For that reason no number
+of the earlier runs is used for a verdict: every truth is drawn again with a fresh seed (base 3600; seeds used so far:
+1200+, 2200+, 3200–3214, 3300–3305).
+
+**The flag, exactly as implemented** (`a6_recovery.tail_flags`, settings `a6.flag` in `config.yaml`; defined in step A6
+before its first use, unchanged since):
+
+```python
+def tail_flags(S, Dk):
+    """Per event: how many short-link link-events qualify, how many of them wait or rise, flagged or not (decisions.md, A6)."""
+    D, le, F = S["D"], S["le"], A6["flag"]
+    rows = []
+    for e in np.nonzero(S["short"])[0]:
+        o, n = D["le_boff1"][e], D["le_n"][e]
+        end = (D["le_last"][e] + 1) * 5
+        if end + 20 > n or end < 5:
+            continue
+        y = Dk["y1"][o:o + n]
+        a0, a1 = y[end - 5:end + 5].mean(), y[end + 10:end + 20].mean()
+        rows.append({"event_id": le.event_id.iloc[e], "qualifies": a0 >= F["a0_min_db"], "waits": (a0 >= F["a0_min_db"]) and (a1 >= a0 - F["fall_db"])})
+    t = pd.DataFrame(rows).groupby("event_id").agg(link_events=("qualifies", "size"), qualifying=("qualifies", "sum"), waiting_or_rising=("waits", "sum")).reset_index()
+    t["flagged"] = (t.qualifying >= F["min_link_events"]) & (t.waiting_or_rising >= F["share"] * t.qualifying)
+    return t
+```
+
+with `a0_min_db: 0.6, fall_db: 0.15, min_link_events: 5, share: 0.5`. In words: for every short-link (L < 1 km)
+link-event of a learning event, `end` = the end of the last wet 5 min bin of the rain reference; a0 = mean attenuation
+(1 min values) from 5 min before to 5 min after `end`, a1 = mean from 10 to 20 min after it. A link-event qualifies if
+a0 ≥ 0.6 dB; it "waits or rises" if it qualifies and a1 ≥ a0 − 0.15 dB. An EVENT is flagged if at least 5 of its
+short-link link-events qualify and at least half of the qualifying ones wait or rise. It is event-level, uses the rain
+reference (for `end`), the other links of the same event, and the measured attenuation only (no model). It is computed
+on the training data only (in step 3 `S["short"]` = short links of the 14 learning events); the final equation never uses
+it (it selects training data; it is not a term of the model).
+
+**The procedure from now on.** The flag is computed on the data before any fit. The link-events of the flagged events get
+use = 0 in both stages of `ladder.two_stage`, and their values are dropped from the scored set L-dryhigh. This is exactly
+the refit of (f) that was seen (`s3_recovery.run_truth`, branch `"ghost" in spec`); there is no longer a fit without the
+exclusion. When nothing is flagged, the fit is identical to the step 3 fit.
+
+**Readings, fixed now where the text leaves room (this log's, flagged for the review).**
+1. **Both stages.** The text says "the drying fit"; the exclusion seen in (f) also left the flagged events out of stage 1
+   (wetting K0 on the gauge-input set; they are learning events). It is kept as seen, so the disclosure is exact. Stage 1
+   gives only the nuisance k_wet and the start of the extension (nothing of it is judged, R3).
+2. **Scope of the flag.** As implemented it looks at the 14 learning events only; the 37 added events (which add L-dry
+   values to stage 2 and are scored on L-dryhigh) are never flagged. In (f) the unseen water is put in learning events
+   only, so the fake check does not test this gap. **Open point for A7:** on real data, unseen water in an added event
+   would not be removed. Not changed here (the text asks for the flag as implemented).
+3. **False removal** = an event flagged in a truth without unseen water ((a), (c), (d), (d-high), (e), (g) and every
+   replicate), or in (f) a flagged event that is not one of its 3 changed events. Reported per run.
+4. **Pass rules, as written, judged on the fit of the procedure** (Deviation 11's rules; only drying is judged):
+   (a) PASS if drying K0 and 1 / k_dry within 25 % of 15 min at both ends of the k_wet interval (A6 final); (c) PASS if
+   drying K1 and k_dry within 25 % on at least 80 % of the domain weight at both ends; (d) PASS if drying K0 and k_dry within
+   25 % on at least 80 % of the domain weight (cells inside F's measured range) at both ends; (d-high) PASS if drying K0 and
+   1 / k_dry within 25 % of 10 min at both ends; (e) report; (f) "no spurious k_dry" if drying K0 and 1 / k_dry within 25 %
+   of 15 min at both ends, else "spurious k_dry".
+5. **STOP rules:** FAIL on (a), (c), (d) or (d-high), or a spurious k_dry in (f). (a) was not in the STOP list of step 3
+   because it was not rerun there; A6 final makes it one. A STOP ends the run: nothing of Deviation 13, (g) or the
+   detectability study is run after it.
+6. **Seeds:** the runs [(a), (c), (d), (d-high), (e), (f), (g)] get 3600 + their position (3600–3606).
+7. **Execution:** one detached process (`run_s3b_detached.bat` in the cache folder), one child process per run, cached in
+   `research/.cache/waa_ksurface/s3b_recovery/`, log `outputs/reports/s3b_terminal.log`. The parent asks Windows to keep the
+   machine awake (`SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED)`, cleared at exit); it does not start if
+   less than 4 GB is free; before each child it stops cleanly if free memory is below max(2 GB, the largest peak so far);
+   every 10 min it logs the free memory, and below 2 GB it logs the programs that grew most since the start. Per run the
+   wall time and the processor time are logged (a large gap = the machine slept).
+
+Script: `s3b_recovery.py` (new; reuses the functions of `s3_recovery.py`, `a6_recovery.py`, `s1_separability.py`).
