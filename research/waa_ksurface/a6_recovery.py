@@ -167,8 +167,11 @@ def tail_flags(S, Dk):
         end = (D["le_last"][e] + 1) * 5
         if end + 20 > n or end < 5:
             continue
-        y = Dk["y1"][o:o + n]
-        a0, a1 = y[end - 5:end + 5].mean(), y[end + 10:end + 20].mean()
+        y = Dk["y1"][o:o + n] - Dk["le_c"][e]                  # A - c (Deviation 15 addendum; c = 0 on fake data)
+        w0, w1 = y[end - 5:end + 5], y[end + 10:end + 20]
+        if not (np.isfinite(w0).any() and np.isfinite(w1).any()):
+            continue                                            # no valid minute in a window (real data): not counted
+        a0, a1 = np.nanmean(w0), np.nanmean(w1)
         rows.append({"event_id": le.event_id.iloc[e], "qualifies": a0 >= F["a0_min_db"], "waits": (a0 >= F["a0_min_db"]) and (a1 >= a0 - F["fall_db"])})
     t = pd.DataFrame(rows).groupby("event_id").agg(link_events=("qualifies", "size"), qualifying=("qualifies", "sum"), waiting_or_rising=("waits", "sum")).reset_index()
     t["flagged"] = (t.qualifying >= F["min_link_events"]) & (t.waiting_or_rising >= F["share"] * t.qualifying)

@@ -79,6 +79,42 @@ def test_a7_reads_both_estimates(monkeypatch):
     assert a7.ESTIMATES == ("gauge", "radar")
 
 
+def flag_toy(y_rows, c):
+    """Six short link-events of one event, 40 minutes each, rain ending at minute 10 (le_last = 1)."""
+    n, k = 40, len(y_rows)
+    D = {"le_boff1": np.arange(k) * n, "le_n": np.full(k, n), "le_last": np.ones(k, int)}
+    S = {"D": D, "le": pd.DataFrame({"event_id": ["E1"] * k}), "short": np.ones(k, bool)}
+    return S, {"y1": np.concatenate(y_rows), "le_c": np.asarray(c, float)}
+
+
+def old_flag(S, Dk):
+    F, D, rows = a6.A6["flag"], S["D"], []
+    for e in range(len(S["le"])):
+        o, n, end = D["le_boff1"][e], D["le_n"][e], (D["le_last"][e] + 1) * 5
+        y = Dk["y1"][o:o + n]
+        a0, a1 = y[end - 5:end + 5].mean(), y[end + 10:end + 20].mean()
+        rows.append((a0 >= F["a0_min_db"], (a0 >= F["a0_min_db"]) and (a1 >= a0 - F["fall_db"])))
+    q, wt = sum(r[0] for r in rows), sum(r[1] for r in rows)
+    return q, wt, bool(q >= F["min_link_events"] and wt >= F["share"] * q)
+
+
+def test_flag_fake_unchanged_and_real_reading():
+    rng = np.random.default_rng(0)
+    for _ in range(20):                                         # fake data: c = 0, no NaN -> the old result
+        ys = [rng.uniform(0, 1.5) + rng.normal(0, 0.1, 40) for _ in range(6)]
+        S, Dk = flag_toy(ys, np.zeros(6))
+        t = a6.tail_flags(S, Dk).iloc[0]
+        assert (int(t.qualifying), int(t.waiting_or_rising), bool(t.flagged)) == old_flag(S, Dk)
+    ys = [np.full(40, 1.0) for _ in range(6)]                   # A = 1 dB flat (waits), c = 0.5 -> A - c = 0.5 < 0.6: none qualifies
+    S, Dk = flag_toy(ys, np.full(6, 0.5))
+    assert int(a6.tail_flags(S, Dk).iloc[0].qualifying) == 0
+    ys[0][:] = np.nan                                           # a link-event with no valid minute is not counted
+    ys[1][5:15] = np.nan
+    S, Dk = flag_toy(ys, np.zeros(6))
+    t = a6.tail_flags(S, Dk).iloc[0]
+    assert int(t.link_events) == 4 and int(t.qualifying) == 4
+
+
 if __name__ == "__main__":
     import pytest
     raise SystemExit(pytest.main([__file__, "-q"]))
