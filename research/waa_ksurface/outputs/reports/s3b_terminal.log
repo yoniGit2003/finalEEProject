@@ -1,0 +1,308 @@
+=== launcher started Mon 11/16/2026 14:27:09.86 === 
+=== step 3b started 2026-11-16 14:27:25; free memory 3.8 GB ===
+=== not started: free memory 3.8 GB is below 4.0 GB ===
+=== exit 3 at Mon 11/16/2026 14:27:26.46 === 
+=== launcher started Wed 11/18/2026  0:25:58.20 === 
+=== step 3b started 2026-11-18 00:26:19; free memory 4.0 GB ===
+=== keep-awake (ES_CONTINUOUS | ES_SYSTEM_REQUIRED): on ===
+=== (a) seed 3600 (free memory 4.0 GB) 00:26:19 ===
+   (a) wetting  K0 lambda 0.0001: train 0.02761  cv 0.02785  (84 it)
+=== memory watch 00:27: free 0.9 GB ===
+=== LOW MEMORY 00:27: free 0.95 GB; grew most since the start: python.exe 0.39 -> 2.44 GB (+2.05); chrome.exe 0.00 -> 1.48 GB (+1.48); msedge.exe 0.18 -> 0.53 GB (+0.35); claude.exe 2.22 -> 2.30 GB (+0.09); TiWorker.exe 0.00 -> 0.03 GB (+0.03) ===
+   (a) wetting  K0 lambda 0.001: train 0.02763  cv 0.02787  (61 it)
+   (a) wetting  K0 lambda 0.01: train 0.02764  cv 0.02788  (91 it)
+   (a) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (a) drying   K0 lambda 0.0001: train 0.02372  cv 0.01406  (48 it)
+   (a) drying   K1 lambda 0.0001: train 0.02371  cv 0.01399  (54 it)
+   (a) drying   K1 lambda 0.001: train 0.02372  cv 0.01394  (27 it)
+   (a) drying   K1 lambda 0.01: train 0.02372  cv 0.01393  (36 it)
+   (a) drying: lowest cv K1, selected K0 (lambda 0.0001)
+   (a) 1 / k_wet: gauge input 3.30 min, radar input 4.02 min
+=== (a): PASS; drying K0; flagged 0 of 13 (false 0); B3' -0.0664 dB; 4.9 min wall, 19.0 min processor; peak memory 2.93 GB ===
+=== (c) seed 3601 (free memory 5.3 GB) 00:31:23 ===
+   (c) wetting  K0 lambda 0.0001: train 0.02743  cv 0.02776  (80 it)
+   (c) wetting  K0 lambda 0.001: train 0.02751  cv 0.02784  (64 it)
+   (c) wetting  K0 lambda 0.01: train 0.02754  cv 0.02788  (87 it)
+   (c) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (c) drying   K0 lambda 0.0001: train 0.02905  cv 0.01966  (35 it)
+   (c) drying   K1 lambda 0.0001: train 0.02869  cv 0.01666  (57 it)
+   (c) drying   K1 lambda 0.001: train 0.02869  cv 0.01668  (41 it)
+   (c) drying   K1 lambda 0.01: train 0.02869  cv 0.01669  (68 it)
+   (c) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (c) 1 / k_wet: gauge input 3.47 min, radar input 3.55 min
+=== (c): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.0656 dB; 3.2 min wall, 15.0 min processor; peak memory 2.93 GB ===
+=== (d) seed 3602 (free memory 6.4 GB) 00:34:47 ===
+   (d) wetting  K0 lambda 0.0001: train 0.02890  cv 0.02922  (83 it)
+   (d) wetting  K0 lambda 0.001: train 0.02892  cv 0.02925  (67 it)
+   (d) wetting  K0 lambda 0.01: train 0.02893  cv 0.02925  (87 it)
+   (d) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (d) drying   K0 lambda 0.0001: train 0.02559  cv 0.01492  (54 it)
+   (d) drying   K1 lambda 0.0001: train 0.02555  cv 0.01527  (57 it)
+   (d) drying   K1 lambda 0.001: train 0.02555  cv 0.01527  (48 it)
+=== memory watch 00:37: free 4.7 GB ===
+   (d) drying   K1 lambda 0.01: train 0.02555  cv 0.01527  (52 it)
+   (d) drying: lowest cv K0, selected K0 (lambda 0.0001)
+   (d) 1 / k_wet: gauge input 3.42 min, radar input 3.85 min
+=== (d): PASS; drying K0; flagged 0 of 13 (false 0); B3' -0.0253 dB; 3.5 min wall, 16.4 min processor; peak memory 2.85 GB ===
+=== (d_high) seed 3603 (free memory 6.6 GB) 00:38:21 ===
+   (d_high) wetting  K0 lambda 0.0001: train 0.02705  cv 0.02735  (86 it)
+   (d_high) wetting  K0 lambda 0.001: train 0.02709  cv 0.02739  (63 it)
+   (d_high) wetting  K0 lambda 0.01: train 0.02710  cv 0.02740  (102 it)
+   (d_high) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (d_high) drying   K0 lambda 0.0001: train 0.02663  cv 0.02005  (67 it)
+   (d_high) drying   K1 lambda 0.0001: train 0.02661  cv 0.01985  (50 it)
+   (d_high) drying   K1 lambda 0.001: train 0.02661  cv 0.01986  (44 it)
+   (d_high) drying   K1 lambda 0.01: train 0.02661  cv 0.01986  (65 it)
+   (d_high) drying: lowest cv K1, selected K0 (lambda 0.0001)
+   (d_high) 1 / k_wet: gauge input 3.92 min, radar input 5.34 min
+=== (d_high): PASS; drying K0; flagged 0 of 13 (false 0); B3' -0.0312 dB; 3.9 min wall, 17.1 min processor; peak memory 2.93 GB ===
+=== (e) seed 3604 (free memory 6.1 GB) 00:42:18 ===
+   (e) wetting  K0 lambda 0.0001: train 0.02571  cv 0.02613  (81 it)
+   (e) wetting  K0 lambda 0.001: train 0.02577  cv 0.02619  (63 it)
+   (e) wetting  K0 lambda 0.01: train 0.02579  cv 0.02623  (96 it)
+   (e) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (e) drying   K0 lambda 0.0001: train 0.03249  cv 0.02552  (29 it)
+   (e) drying   K1 lambda 0.0001: train 0.03213  cv 0.02105  (47 it)
+   (e) drying   K1 lambda 0.001: train 0.03213  cv 0.02103  (26 it)
+   (e) drying   K1 lambda 0.01: train 0.03213  cv 0.02102  (44 it)
+   (e) drying: lowest cv K1, selected K1 (lambda 0.01)
+   (e) 1 / k_wet: gauge input 6.71 min, radar input 9.59 min
+=== (e): report; drying K1; flagged 0 of 13 (false 0); B3' -0.0028 dB; 3.2 min wall, 13.9 min processor; peak memory 2.93 GB ===
+=== (f) seed 3605 (free memory 6.1 GB) 00:45:40 ===
+   (f) wetting  K0 lambda 0.0001: train 0.02637  cv 0.02652  (77 it)
+   (f) wetting  K0 lambda 0.001: train 0.02640  cv 0.02656  (59 it)
+   (f) wetting  K0 lambda 0.01: train 0.02641  cv 0.02657  (98 it)
+   (f) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (f) drying   K0 lambda 0.0001: train 0.03378  cv 0.01556  (45 it)
+=== memory watch 00:47: free 3.8 GB ===
+   (f) drying   K1 lambda 0.0001: train 0.03377  cv 0.01552  (47 it)
+   (f) drying   K1 lambda 0.001: train 0.03378  cv 0.01551  (33 it)
+   (f) drying   K1 lambda 0.01: train 0.03378  cv 0.01551  (36 it)
+   (f) drying: lowest cv K1, selected K0 (lambda 0.0001)
+   (f) 1 / k_wet: gauge input 3.40 min, radar input 1.49 min
+=== (f): no spurious k_dry; drying K0; flagged 2 of 13 (false 0); B3' -0.0444 dB; 3.4 min wall, 14.0 min processor; peak memory 2.93 GB ===
+=== (f_added) seed 3607 (free memory 6.2 GB) 00:49:08 ===
+   (f_added) wetting  K0 lambda 0.0001: train 0.02904  cv 0.02932  (76 it)
+   (f_added) wetting  K0 lambda 0.001: train 0.02907  cv 0.02934  (64 it)
+   (f_added) wetting  K0 lambda 0.01: train 0.02908  cv 0.02935  (91 it)
+   (f_added) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (f_added) drying   K0 lambda 0.0001: train 0.02637  cv 0.07728  (48 it)
+   (f_added) drying   K1 lambda 0.0001: train 0.02627  cv 0.07600  (61 it)
+   (f_added) drying   K1 lambda 0.001: train 0.02627  cv 0.07593  (56 it)
+   (f_added) drying   K1 lambda 0.01: train 0.02627  cv 0.07592  (68 it)
+   (f_added) drying: lowest cv K1, selected K1 (lambda 0.01)
+   (f_added) 1 / k_wet: gauge input 3.29 min, radar input 6.48 min
+=== (f_added): FAIL, material; drying K1; flagged 1 of 41 (false 0); B3' -0.0710 dB; 3.6 min wall, 15.1 min processor; peak memory 2.93 GB ===
+=== (c_r1) seed 3620 (free memory 6.3 GB) 00:52:49 ===
+   (c_r1) wetting  K0 lambda 0.0001: train 0.02813  cv 0.02841  (86 it)
+   (c_r1) wetting  K0 lambda 0.001: train 0.02819  cv 0.02847  (59 it)
+   (c_r1) wetting  K0 lambda 0.01: train 0.02821  cv 0.02850  (88 it)
+   (c_r1) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (c_r1) drying   K0 lambda 0.0001: train 0.02839  cv 0.02088  (43 it)
+   (c_r1) drying   K1 lambda 0.0001: train 0.02801  cv 0.01744  (51 it)
+   (c_r1) drying   K1 lambda 0.001: train 0.02801  cv 0.01746  (49 it)
+   (c_r1) drying   K1 lambda 0.01: train 0.02801  cv 0.01746  (63 it)
+   (c_r1) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (c_r1) 1 / k_wet: gauge input 3.56 min, radar input 4.00 min
+=== (c_r1): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.0371 dB; 3.4 min wall, 14.6 min processor; peak memory 2.93 GB ===
+=== (c_r2) seed 3621 (free memory 6.2 GB) 00:56:21 ===
+   (c_r2) wetting  K0 lambda 0.0001: train 0.02808  cv 0.02827  (82 it)
+   (c_r2) wetting  K0 lambda 0.001: train 0.02815  cv 0.02835  (57 it)
+   (c_r2) wetting  K0 lambda 0.01: train 0.02817  cv 0.02837  (89 it)
+   (c_r2) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+=== memory watch 00:57: free 3.9 GB ===
+   (c_r2) drying   K0 lambda 0.0001: train 0.02400  cv 0.02069  (71 it)
+   (c_r2) drying   K1 lambda 0.0001: train 0.02363  cv 0.01818  (66 it)
+   (c_r2) drying   K1 lambda 0.001: train 0.02363  cv 0.01816  (73 it)
+   (c_r2) drying   K1 lambda 0.01: train 0.02363  cv 0.01816  (71 it)
+   (c_r2) drying: lowest cv K1, selected K1 (lambda 0.01)
+   (c_r2) 1 / k_wet: gauge input 3.46 min, radar input 2.74 min
+=== (c_r2): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.0499 dB; 4.0 min wall, 17.3 min processor; peak memory 2.93 GB ===
+=== (c_r3) seed 3622 (free memory 6.2 GB) 01:00:29 ===
+   (c_r3) wetting  K0 lambda 0.0001: train 0.02712  cv 0.02737  (89 it)
+   (c_r3) wetting  K0 lambda 0.001: train 0.02718  cv 0.02743  (65 it)
+   (c_r3) wetting  K0 lambda 0.01: train 0.02720  cv 0.02745  (93 it)
+   (c_r3) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (c_r3) drying   K0 lambda 0.0001: train 0.03010  cv 0.01883  (28 it)
+   (c_r3) drying   K1 lambda 0.0001: train 0.02971  cv 0.01614  (48 it)
+   (c_r3) drying   K1 lambda 0.001: train 0.02971  cv 0.01617  (41 it)
+   (c_r3) drying   K1 lambda 0.01: train 0.02971  cv 0.01617  (53 it)
+   (c_r3) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (c_r3) 1 / k_wet: gauge input 3.56 min, radar input 6.00 min
+=== (c_r3): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.0592 dB; 3.2 min wall, 13.7 min processor; peak memory 2.93 GB ===
+=== (c_r4) seed 3623 (free memory 6.3 GB) 01:03:48 ===
+   (c_r4) wetting  K0 lambda 0.0001: train 0.02751  cv 0.02775  (82 it)
+   (c_r4) wetting  K0 lambda 0.001: train 0.02758  cv 0.02783  (62 it)
+   (c_r4) wetting  K0 lambda 0.01: train 0.02760  cv 0.02786  (83 it)
+   (c_r4) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (c_r4) drying   K0 lambda 0.0001: train 0.03446  cv 0.02266  (31 it)
+   (c_r4) drying   K1 lambda 0.0001: train 0.03425  cv 0.01972  (39 it)
+   (c_r4) drying   K1 lambda 0.001: train 0.03426  cv 0.01975  (26 it)
+   (c_r4) drying   K1 lambda 0.01: train 0.03426  cv 0.01975  (29 it)
+   (c_r4) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (c_r4) 1 / k_wet: gauge input 3.56 min, radar input 3.25 min
+=== (c_r4): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.0013 dB; 2.9 min wall, 12.3 min processor; peak memory 2.93 GB ===
+=== (e_r1) seed 3630 (free memory 6.2 GB) 01:06:48 ===
+   (e_r1) wetting  K0 lambda 0.0001: train 0.02448  cv 0.02493  (74 it)
+   (e_r1) wetting  K0 lambda 0.001: train 0.02452  cv 0.02497  (58 it)
+=== memory watch 01:07: free 4.4 GB ===
+   (e_r1) wetting  K0 lambda 0.01: train 0.02453  cv 0.02500  (85 it)
+   (e_r1) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (e_r1) drying   K0 lambda 0.0001: train 0.02071  cv 0.02993  (40 it)
+   (e_r1) drying   K1 lambda 0.0001: train 0.02047  cv 0.02532  (42 it)
+   (e_r1) drying   K1 lambda 0.001: train 0.02049  cv 0.02540  (26 it)
+   (e_r1) drying   K1 lambda 0.01: train 0.02050  cv 0.02543  (34 it)
+   (e_r1) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (e_r1) 1 / k_wet: gauge input 6.85 min, radar input 12.50 min
+=== (e_r1): report; drying K1; flagged 0 of 13 (false 0); B3' +0.0237 dB; 3.3 min wall, 14.2 min processor; peak memory 2.93 GB ===
+=== (e_r2) seed 3631 (free memory 6.2 GB) 01:10:14 ===
+   (e_r2) wetting  K0 lambda 0.0001: train 0.02496  cv 0.02541  (75 it)
+   (e_r2) wetting  K0 lambda 0.001: train 0.02501  cv 0.02545  (62 it)
+   (e_r2) wetting  K0 lambda 0.01: train 0.02503  cv 0.02548  (93 it)
+   (e_r2) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (e_r2) drying   K0 lambda 0.0001: train 0.03188  cv 0.06266  (26 it)
+   (e_r2) drying   K1 lambda 0.0001: train 0.03139  cv 0.05331  (62 it)
+   (e_r2) drying   K1 lambda 0.001: train 0.03140  cv 0.05328  (29 it)
+   (e_r2) drying   K1 lambda 0.01: train 0.03140  cv 0.05327  (42 it)
+   (e_r2) drying: lowest cv K1, selected K1 (lambda 0.01)
+   (e_r2) 1 / k_wet: gauge input 6.68 min, radar input 13.41 min
+=== (e_r2): report; drying K1; flagged 0 of 13 (false 0); B3' +0.0009 dB; 3.0 min wall, 12.8 min processor; peak memory 2.93 GB ===
+=== (e_r3) seed 3632 (free memory 6.2 GB) 01:13:20 ===
+   (e_r3) wetting  K0 lambda 0.0001: train 0.02541  cv 0.02575  (74 it)
+   (e_r3) wetting  K0 lambda 0.001: train 0.02546  cv 0.02580  (60 it)
+   (e_r3) wetting  K0 lambda 0.01: train 0.02548  cv 0.02583  (95 it)
+   (e_r3) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (e_r3) drying   K0 lambda 0.0001: train 0.02700  cv 0.04941  (33 it)
+   (e_r3) drying   K1 lambda 0.0001: train 0.02664  cv 0.04186  (39 it)
+   (e_r3) drying   K1 lambda 0.001: train 0.02666  cv 0.04184  (30 it)
+   (e_r3) drying   K1 lambda 0.01: train 0.02666  cv 0.04184  (46 it)
+   (e_r3) drying: lowest cv K1, selected K1 (lambda 0.001)
+   (e_r3) 1 / k_wet: gauge input 6.33 min, radar input 15.51 min
+=== (e_r3): report; drying K1; flagged 0 of 13 (false 0); B3' +0.0247 dB; 3.5 min wall, 14.9 min processor; peak memory 2.93 GB ===
+=== (e_r4) seed 3633 (free memory 5.9 GB) 01:16:54 ===
+   (e_r4) wetting  K0 lambda 0.0001: train 0.02555  cv 0.02602  (72 it)
+=== memory watch 01:17: free 4.3 GB ===
+   (e_r4) wetting  K0 lambda 0.001: train 0.02561  cv 0.02608  (60 it)
+   (e_r4) wetting  K0 lambda 0.01: train 0.02563  cv 0.02612  (85 it)
+   (e_r4) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (e_r4) drying   K0 lambda 0.0001: train 0.02751  cv 0.03463  (35 it)
+   (e_r4) drying   K1 lambda 0.0001: train 0.02726  cv 0.02929  (46 it)
+   (e_r4) drying   K1 lambda 0.001: train 0.02729  cv 0.02939  (26 it)
+   (e_r4) drying   K1 lambda 0.01: train 0.02729  cv 0.02942  (40 it)
+   (e_r4) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (e_r4) 1 / k_wet: gauge input 6.55 min, radar input 18.49 min
+=== (e_r4): report; drying K1; flagged 0 of 13 (false 0); B3' +0.0163 dB; 3.4 min wall, 14.4 min processor; peak memory 2.93 GB ===
+=== (g) seed 3606 (free memory 6.1 GB) 01:20:26 ===
+   (g) wetting  K0 lambda 0.0001: train 0.03255  cv 0.03283  (69 it)
+   (g) wetting  K0 lambda 0.001: train 0.03257  cv 0.03285  (60 it)
+   (g) wetting  K0 lambda 0.01: train 0.03258  cv 0.03285  (84 it)
+   (g) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (g) drying   K0 lambda 0.0001: train 0.03450  cv 0.02326  (37 it)
+   (g) drying   K1 lambda 0.0001: train 0.03442  cv 0.02213  (59 it)
+   (g) drying   K1 lambda 0.001: train 0.03442  cv 0.02216  (37 it)
+   (g) drying   K1 lambda 0.01: train 0.03442  cv 0.02217  (65 it)
+   (g) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (g) 1 / k_wet: gauge input 3.50 min, radar input 3.86 min
+=== (g): k corrupted; drying K1; flagged 0 of 13 (false 0); B3' -0.0985 dB; 3.7 min wall, 15.8 min processor; peak memory 2.93 GB ===
+=== (cw_0.5_r0) seed 3710 (free memory 5.8 GB) 01:24:14 ===
+   (cw_0.5_r0) wetting  K0 lambda 0.0001: train 0.02859  cv 0.02882  (68 it)
+   (cw_0.5_r0) wetting  K0 lambda 0.001: train 0.02863  cv 0.02885  (59 it)
+   (cw_0.5_r0) wetting  K0 lambda 0.01: train 0.02864  cv 0.02887  (81 it)
+   (cw_0.5_r0) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.5_r0) drying   K0 lambda 0.0001: train 0.03028  cv 0.01923  (41 it)
+   (cw_0.5_r0) drying   K1 lambda 0.0001: train 0.03012  cv 0.01738  (65 it)
+   (cw_0.5_r0) drying   K1 lambda 0.001: train 0.03013  cv 0.01741  (64 it)
+=== memory watch 01:27: free 3.6 GB ===
+   (cw_0.5_r0) drying   K1 lambda 0.01: train 0.03013  cv 0.01741  (98 it)
+   (cw_0.5_r0) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_0.5_r0) 1 / k_wet: gauge input 3.44 min, radar input 2.29 min
+=== (cw_0.5_r0): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.0839 dB; 4.0 min wall, 17.4 min processor; peak memory 2.93 GB ===
+=== (cw_0.5_r1) seed 3711 (free memory 5.9 GB) 01:28:25 ===
+   (cw_0.5_r1) wetting  K0 lambda 0.0001: train 0.02778  cv 0.02802  (76 it)
+   (cw_0.5_r1) wetting  K0 lambda 0.001: train 0.02782  cv 0.02807  (55 it)
+   (cw_0.5_r1) wetting  K0 lambda 0.01: train 0.02784  cv 0.02808  (84 it)
+   (cw_0.5_r1) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.5_r1) drying   K0 lambda 0.0001: train 0.03556  cv 0.01642  (18 it)
+   (cw_0.5_r1) drying   K1 lambda 0.0001: train 0.03546  cv 0.01533  (96 it)
+   (cw_0.5_r1) drying   K1 lambda 0.001: train 0.03546  cv 0.01532  (37 it)
+   (cw_0.5_r1) drying   K1 lambda 0.01: train 0.03547  cv 0.01533  (53 it)
+   (cw_0.5_r1) drying: lowest cv K1, selected K1 (lambda 0.001)
+   (cw_0.5_r1) 1 / k_wet: gauge input 3.41 min, radar input 3.61 min
+=== (cw_0.5_r1): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.0114 dB; 3.4 min wall, 14.5 min processor; peak memory 2.93 GB ===
+=== (cw_0.5_r2) seed 3712 (free memory 6.0 GB) 01:31:53 ===
+   (cw_0.5_r2) wetting  K0 lambda 0.0001: train 0.02736  cv 0.02758  (82 it)
+   (cw_0.5_r2) wetting  K0 lambda 0.001: train 0.02740  cv 0.02762  (65 it)
+   (cw_0.5_r2) wetting  K0 lambda 0.01: train 0.02741  cv 0.02763  (89 it)
+   (cw_0.5_r2) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.5_r2) drying   K0 lambda 0.0001: train 0.03015  cv 0.01952  (56 it)
+   (cw_0.5_r2) drying   K1 lambda 0.0001: train 0.02987  cv 0.01630  (68 it)
+   (cw_0.5_r2) drying   K1 lambda 0.001: train 0.02987  cv 0.01632  (62 it)
+   (cw_0.5_r2) drying   K1 lambda 0.01: train 0.02987  cv 0.01632  (72 it)
+   (cw_0.5_r2) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_0.5_r2) 1 / k_wet: gauge input 3.53 min, radar input 5.17 min
+=== (cw_0.5_r2): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.0034 dB; 3.9 min wall, 17.0 min processor; peak memory 2.93 GB ===
+=== (cw_0.5_r3) seed 3713 (free memory 6.0 GB) 01:35:54 ===
+   (cw_0.5_r3) wetting  K0 lambda 0.0001: train 0.02836  cv 0.02860  (87 it)
+   (cw_0.5_r3) wetting  K0 lambda 0.001: train 0.02842  cv 0.02866  (66 it)
+   (cw_0.5_r3) wetting  K0 lambda 0.01: train 0.02843  cv 0.02867  (87 it)
+   (cw_0.5_r3) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.5_r3) drying   K0 lambda 0.0001: train 0.02873  cv 0.02054  (24 it)
+=== memory watch 01:37: free 3.7 GB ===
+   (cw_0.5_r3) drying   K1 lambda 0.0001: train 0.02845  cv 0.01895  (47 it)
+   (cw_0.5_r3) drying   K1 lambda 0.001: train 0.02845  cv 0.01898  (38 it)
+   (cw_0.5_r3) drying   K1 lambda 0.01: train 0.02845  cv 0.01898  (33 it)
+   (cw_0.5_r3) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_0.5_r3) 1 / k_wet: gauge input 3.39 min, radar input 5.69 min
+=== (cw_0.5_r3): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.0360 dB; 3.0 min wall, 12.7 min processor; peak memory 2.93 GB ===
+=== (cw_0.25_r0) seed 3720 (free memory 6.0 GB) 01:38:58 ===
+   (cw_0.25_r0) wetting  K0 lambda 0.0001: train 0.02701  cv 0.02726  (73 it)
+   (cw_0.25_r0) wetting  K0 lambda 0.001: train 0.02704  cv 0.02727  (57 it)
+   (cw_0.25_r0) wetting  K0 lambda 0.01: train 0.02705  cv 0.02727  (74 it)
+   (cw_0.25_r0) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.25_r0) drying   K0 lambda 0.0001: train 0.02472  cv 0.02117  (41 it)
+   (cw_0.25_r0) drying   K1 lambda 0.0001: train 0.02460  cv 0.01977  (49 it)
+   (cw_0.25_r0) drying   K1 lambda 0.001: train 0.02460  cv 0.01975  (28 it)
+   (cw_0.25_r0) drying   K1 lambda 0.01: train 0.02460  cv 0.01975  (40 it)
+   (cw_0.25_r0) drying: lowest cv K1, selected K1 (lambda 0.01)
+   (cw_0.25_r0) 1 / k_wet: gauge input 3.53 min, radar input 4.96 min
+=== (cw_0.25_r0): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.0144 dB; 3.5 min wall, 14.9 min processor; peak memory 2.93 GB ===
+=== (cw_0.25_r1) seed 3721 (free memory 6.0 GB) 01:42:34 ===
+   (cw_0.25_r1) wetting  K0 lambda 0.0001: train 0.02823  cv 0.02849  (72 it)
+   (cw_0.25_r1) wetting  K0 lambda 0.001: train 0.02827  cv 0.02852  (63 it)
+   (cw_0.25_r1) wetting  K0 lambda 0.01: train 0.02828  cv 0.02853  (82 it)
+   (cw_0.25_r1) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.25_r1) drying   K0 lambda 0.0001: train 0.02226  cv 0.01901  (53 it)
+   (cw_0.25_r1) drying   K1 lambda 0.0001: train 0.02213  cv 0.01766  (67 it)
+   (cw_0.25_r1) drying   K1 lambda 0.001: train 0.02213  cv 0.01766  (39 it)
+   (cw_0.25_r1) drying   K1 lambda 0.01: train 0.02213  cv 0.01767  (65 it)
+   (cw_0.25_r1) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_0.25_r1) 1 / k_wet: gauge input 3.43 min, radar input 4.43 min
+=== (cw_0.25_r1): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.0464 dB; 4.1 min wall, 17.8 min processor; peak memory 2.93 GB ===
+=== (cw_0.25_r2) seed 3722 (free memory 6.0 GB) 01:46:45 ===
+   (cw_0.25_r2) wetting  K0 lambda 0.0001: train 0.02804  cv 0.02828  (69 it)
+   (cw_0.25_r2) wetting  K0 lambda 0.001: train 0.02807  cv 0.02831  (69 it)
+=== memory watch 01:47: free 4.2 GB ===
+   (cw_0.25_r2) wetting  K0 lambda 0.01: train 0.02808  cv 0.02832  (78 it)
+   (cw_0.25_r2) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.25_r2) drying   K0 lambda 0.0001: train 0.02547  cv 0.02750  (47 it)
+   (cw_0.25_r2) drying   K1 lambda 0.0001: train 0.02537  cv 0.02558  (50 it)
+   (cw_0.25_r2) drying   K1 lambda 0.001: train 0.02537  cv 0.02558  (37 it)
+   (cw_0.25_r2) drying   K1 lambda 0.01: train 0.02537  cv 0.02558  (41 it)
+   (cw_0.25_r2) drying: lowest cv K1, selected K1 (lambda 0.001)
+   (cw_0.25_r2) 1 / k_wet: gauge input 3.38 min, radar input 3.52 min
+=== (cw_0.25_r2): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.0379 dB; 3.3 min wall, 14.0 min processor; peak memory 2.93 GB ===
+=== (cw_0.25_r3) seed 3723 (free memory 6.0 GB) 01:50:09 ===
+   (cw_0.25_r3) wetting  K0 lambda 0.0001: train 0.02785  cv 0.02814  (80 it)
+   (cw_0.25_r3) wetting  K0 lambda 0.001: train 0.02788  cv 0.02817  (70 it)
+   (cw_0.25_r3) wetting  K0 lambda 0.01: train 0.02789  cv 0.02818  (89 it)
+   (cw_0.25_r3) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.25_r3) drying   K0 lambda 0.0001: train 0.02320  cv 0.01784  (74 it)
+   (cw_0.25_r3) drying   K1 lambda 0.0001: train 0.02306  cv 0.01676  (59 it)
+   (cw_0.25_r3) drying   K1 lambda 0.001: train 0.02306  cv 0.01672  (65 it)
+   (cw_0.25_r3) drying   K1 lambda 0.01: train 0.02306  cv 0.01672  (70 it)
+   (cw_0.25_r3) drying: lowest cv K1, selected K1 (lambda 0.01)
+   (cw_0.25_r3) 1 / k_wet: gauge input 3.38 min, radar input 4.50 min
+=== (cw_0.25_r3): PASS; drying K1; flagged 0 of 13 (false 0); B3' -0.1304 dB; 4.3 min wall, 18.9 min processor; peak memory 2.88 GB ===
+report: research/waa_ksurface/outputs/reports/s3b_recovery.md
+=== step 3b ended 2026-11-18 01:54:35 ===
+=== exit 0 at Wed 11/18/2026  1:54:35.95 === 

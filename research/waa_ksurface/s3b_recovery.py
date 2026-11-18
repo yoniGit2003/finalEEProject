@@ -47,6 +47,7 @@ STOP_ON_FAIL = ["a", "c", "d", "d_high"]
 REP_OFFSET = {"c": 20, "e": 30}                                 # B3' replicates 1-4: seed = base + offset + r - 1
 K1_NAME = "non-exponential drying: the drying rate falls as the antenna dries"     # Deviation 13
 GB = 2 ** 30
+S1_MARGIN_TEXT = "the current variant: 0.00291 dB, s1_separability.md"   # the margin the restriction names (decisions.md, addition to Deviation 12)
 log = a6.log
 
 
@@ -301,7 +302,19 @@ def report(R, det, state, stopped):
               f"link-events). Caught by the extended flag: {r['flagged_with_unseen_water']} of {r['unseen_water_events']} (of the checkable ones: "
               f"{int((r['flags'].flagged & r['flags'].unseen_water_in_truth & (r['flags'].link_events >= A6['flag']['min_link_events'])).sum())} of {r['unseen_water_checkable']}); "
               f"false removals {r['false_removals']}. Drying rung {drying(r).selected_rung}, {recovery_text(r)}. **{v}**; material: "
-              f"{'yes' if 'material' in v else 'no'}.\n"]
+              f"{'yes' if 'material' in v else 'no'}.\n",
+              f"The flag's table holds {len(r['flags'])} of the 51 events: an event with no short-link link-event that has 20 bins after the end of its rain "
+              f"cannot be checked at all, so the other {51 - len(r['flags'])} are outside the flag whatever their tails do.\n"]
+        material = "material" in v
+        restriction = ("added events enter A7's extended variant only where the flag covers them; otherwise A7 falls back to the learning events, "
+                       f"with the S1 margin of that variant (L-dryhigh, {S1_MARGIN_TEXT})") if material else "none"
+        L += ["\n## Check-report line: the flag's blind spot\n",
+              md_table(pd.DataFrame([{"flag blind-spot variant": f"{BLIND} (seed {r['seed']})",
+                                      "flag extended?": f"yes: all 51 events, {len(r['flags'])} checkable at all",
+                                      "catch rate": f"{r['flagged_with_unseen_water']} of {r['unseen_water_events']}; false removals {r['false_removals']}",
+                                      "drying verdict": f"{drying(r).selected_rung} (truth K0); {recovery_text(r)}",
+                                      "material?": "yes" if material else "no",
+                                      "restriction or none": restriction}]))]
     if "g" in R:
         v = verdict("g", R["g"])
         L += ["\n## (g): a larger spread between links\n",

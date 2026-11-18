@@ -1,0 +1,25 @@
+run,truth,seed,drying rung,true rung,K1 gain on L-dryhigh (dB),interval,recovery (k_wet gauge / radar),events flagged,flagged with unseen water,false removals,scored values,verdict,"B3' (K1 fit, dB)","B3 (selected fit, dB)",minutes,cpu minutes,peak memory (GB)
+a,a,3600,K0,K0,0.00074,+0.00021 to +0.00212,"1 / k_dry 15.3 / 15.7 min, truth 15",0 of 13,0,0,2405,PASS,-0.0664,-0.0663,4.9,19.0,2.93
+c,c,3601,K1,K1,0.01575,+0.01283 to +0.02048,100 % / 100 % of the domain weight within 25 %,0 of 13,0,0,2062,PASS,-0.0656,-0.0656,3.2,15.0,2.93
+d,d,3602,K0,K2,-0.00205,-0.00405 to -0.00121,95 % / 95 % of the domain weight within 25 %,0 of 13,0,0,2233,PASS,-0.0253,-0.0259,3.5,16.4,2.85
+d_high,d_high,3603,K0,K0,0.00103,+0.00019 to +0.00231,"1 / k_dry 9.0 / 9.6 min, truth 10",0 of 13,0,0,552,PASS,-0.0312,-0.0323,3.9,17.1,2.93
+e,e,3604,K1,none,0.02087,+0.01203 to +0.02384,1 / k_dry 41.0 / 41.9 min (fit; no single truth),0 of 13,0,0,950,report,-0.0028,-0.0028,3.2,13.9,2.93
+f,f,3605,K0,K0,0.00026,-0.00056 to +0.00283,"1 / k_dry 18.1 / 16.7 min, truth 15",2 of 13,2,0,3050,no spurious k_dry,-0.0444,-0.045,3.4,14.0,2.93
+f_added,f_added,3607,K1,K0,0.00347,+0.00244 to +0.00440,"1 / k_dry 16.5 / 17.9 min, truth 15",1 of 41,1,0,5440,"FAIL, material",-0.071,-0.071,3.6,15.1,2.93
+c_r1,c,3620,K1,K1,0.0176,+0.01447 to +0.01948,100 % / 100 % of the domain weight within 25 %,0 of 13,0,0,2005,PASS,-0.0371,-0.0371,3.4,14.6,2.93
+c_r2,c,3621,K1,K1,0.01286,+0.01120 to +0.01843,100 % / 100 % of the domain weight within 25 %,0 of 13,0,0,2898,PASS,-0.0499,-0.0499,4.0,17.3,2.93
+c_r3,c,3622,K1,K1,0.01436,+0.01114 to +0.02143,100 % / 100 % of the domain weight within 25 %,0 of 13,0,0,2210,PASS,-0.0592,-0.0592,3.2,13.7,2.93
+c_r4,c,3623,K1,K1,0.0143,+0.01183 to +0.01649,99 % / 100 % of the domain weight within 25 %,0 of 13,0,0,2944,PASS,-0.0013,-0.0013,2.9,12.3,2.93
+e_r1,e,3630,K1,none,0.01964,+0.01482 to +0.02295,1 / k_dry 36.3 / 39.1 min (fit; no single truth),0 of 13,0,0,600,report,0.0237,0.0237,3.3,14.2,2.93
+e_r2,e,3631,K1,none,0.02759,+0.01972 to +0.02949,1 / k_dry 37.8 / 41.1 min (fit; no single truth),0 of 13,0,0,2556,report,0.0009,0.0009,3.0,12.8,2.93
+e_r3,e,3632,K1,none,0.02508,+0.02198 to +0.02840,1 / k_dry 33.0 / 36.4 min (fit; no single truth),0 of 13,0,0,736,report,0.0247,0.0247,3.5,14.9,2.93
+e_r4,e,3633,K1,none,0.02115,+0.01883 to +0.02567,1 / k_dry 34.3 / 39.3 min (fit; no single truth),0 of 13,0,0,883,report,0.0163,0.0163,3.4,14.4,2.93
+g,g,3606,K1,K0,0.00531,+0.00383 to +0.00819,"1 / k_dry 18.9 / 19.0 min, truth 15",0 of 13,0,0,4520,k corrupted,-0.0985,-0.0985,3.7,15.8,2.93
+cw_0.5_r0,cw,3710,K1,K1,0.00966,+0.00893 to +0.01251,100 % / 100 % of the domain weight within 25 %,0 of 13,0,0,2760,PASS,-0.0839,-0.0839,4.0,17.4,2.93
+cw_0.5_r1,cw,3711,K1,K1,0.00618,+0.00458 to +0.00918,100 % / 100 % of the domain weight within 25 %,0 of 13,0,0,2508,PASS,-0.0114,-0.0114,3.4,14.5,2.93
+cw_0.5_r2,cw,3712,K1,K1,0.01702,+0.01430 to +0.01919,100 % / 100 % of the domain weight within 25 %,0 of 13,0,0,2579,PASS,-0.0034,-0.0034,3.9,17.0,2.93
+cw_0.5_r3,cw,3713,K1,K1,0.00798,+0.00578 to +0.01253,91 % / 96 % of the domain weight within 25 %,0 of 13,0,0,2408,PASS,-0.036,-0.036,3.0,12.7,2.93
+cw_0.25_r0,cw,3720,K1,K1,0.00702,+0.00566 to +0.00929,100 % / 100 % of the domain weight within 25 %,0 of 13,0,0,2636,PASS,-0.0144,-0.0144,3.5,14.9,2.93
+cw_0.25_r1,cw,3721,K1,K1,0.00704,+0.00518 to +0.01097,100 % / 100 % of the domain weight within 25 %,0 of 13,0,0,2683,PASS,-0.0464,-0.0464,4.1,17.8,2.93
+cw_0.25_r2,cw,3722,K1,K1,0.00836,+0.00629 to +0.00886,100 % / 100 % of the domain weight within 25 %,0 of 13,0,0,3469,PASS,-0.0379,-0.0379,3.3,14.0,2.93
+cw_0.25_r3,cw,3723,K1,K1,0.00606,+0.00480 to +0.00884,100 % / 100 % of the domain weight within 25 %,0 of 13,0,0,2770,PASS,-0.1304,-0.1304,4.3,18.9,2.88

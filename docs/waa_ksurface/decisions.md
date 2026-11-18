@@ -2016,7 +2016,9 @@ variant, `f_added`, run after the six truths (before the B3' replicates):
   **21 of the 37 added events have at least 5 of them** (learning: 13 of 14); since the flag needs 5 qualifying link-events,
   the other 16 added events can never be flagged, whatever their tails do.
 - So the flag is **extended to all 51 events** (the same code, `S["short"]` = short links of every event) in this variant
-  only; the six truths and everything else run exactly as committed.
+  only; the six truths and everything else run exactly as committed. **Correction after the run (2026-11-18):** flag
+  extended to all 51 events; 41 checkable; 10 have no short-link link-event with rain (none with the 20 bins after the
+  end of its rain that the flag needs), so they cannot be flagged at all.
 - Unseen water as in (f) (1 mm/h for 30 min after the last wet bin, unseen by the input) in **7 of the 37 added events**
   (20 %, rounded), drawn among all 37 (not only the 21 checkable ones: that is the gap being tested); seed 3607.
 - **PASS** if the extended flag catches every changed event (catch rate 7 of 7) AND drying returns K0 with 1 / k_dry within
@@ -2073,3 +2075,21 @@ detected). Ratios tried: **3, 2, 1.5** (a = 1, 0.5, 0.25). Reading: ratio 3 (a =
 w_scale = 1 dB), so its 5 replicates are the 5 (c) runs of B3' (no extra runs). Ratios 2 and 1.5: seeds 3600 + 100 +
 10·(position of a in [1, 0.5, 0.25]) + replicate. (g): seed 3606, "k corrupted" if drying is not K0 or 1 / k_dry is
 outside 25 % at either end; if corrupted, the per-link question is reopened. Then STOP for review before A7.
+
+## Step 3b: result and disclosures (2026-11-18)
+
+Run detached 2026-11-18 00:26–01:54, exit 0, 24 runs, 1.4 h wall time (`outputs/reports/s3b_recovery.md`). (a), (c),
+(d), (d-high) PASS; (e) K1 (report); (f) no spurious k_dry (flag 2 of 13, both with unseen water); `f_added` FAIL,
+material (caught 1 of 7, drying K1); B3' not separable ((e) above max (c) in 4 of 5): finding "W-dependent rate vs second
+store not identifiable with this data", P5 becomes R5, B3's 0.10 dB threshold retired; (g) at link sd 0.24 dB: k corrupted
+(K1); detectability (extended variant): ratios 3, 2, 1.5 detected (5/5, 4/4, 4/4).
+
+**Disclosures.**
+- (a) The report was regenerated from the saved results (`s3b_recovery.py --report`, no refit) after the check-report
+  line and the 41-of-51 note were added to the script. The regeneration has no machine state, so the line "Keep-awake
+  request accepted by Windows: True; gaps of the memory watch above 3 min: 0 (none); lowest free memory seen 0.48 GB;
+  low-memory events: 1." was restored by hand, word for word as the run wrote it.
+- (b) The terminal log `outputs/reports/s3b_terminal.log` has one extra final line, "=== step 3b ended 2026-11-18
+  01:55:23 ===", written by that regeneration, after the real end of the run (01:54:35, exit 0). The log is not edited.
+- The first launch (2026-11-16 14:27) did not start: free memory 3.8 GB, below the 4.0 GB rule (logged in the same file).
+  During the run free memory fell to 0.48 GB once (other programs; they were closed); no run was affected.
