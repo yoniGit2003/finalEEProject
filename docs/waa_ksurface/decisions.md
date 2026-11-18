@@ -2222,3 +2222,27 @@ before any real attenuation is read for A7.
 machinery); A7 holds 1 / k_wet at 2.5, 5, 10 min as R3 (revised) says. The fake runs bracket the truth (5 min) between
 3.3 and 6.5 min, inside 2.5–10, but the three fixed values were not run on fake data. (ii) The rule for disagreeing rungs
 across k_wet (step 2, last item) is this log's reading.
+
+## Review of the A7 pre-registration (2026-11-18, logged before any run)
+
+- **Accepted:** the rule "rung not determined over the k_wet range" if the selected drying rung differs across 1 / k_wet =
+  2.5, 5, 10 min (reviewed and accepted). Whatever the outcome, the rung and 1 / k_dry are reported at all three values.
+- **Asked first: step 3d, closing the k_wet gap on fake data** (the fake runs judged k_wet at its estimates, A7 holds it
+  fixed; review point (i)).
+
+## Step 3d: the A7 procedure with 1 / k_wet FIXED, on fake data (2026-11-18, written before the code)
+
+Script `s3d_kwet_fixed.py` (new; the procedure of step 3c, `s3c_a7_variant.py`: flag before any fit, learning events
+only, drying K0 vs K1 on L-dryhigh, margin 0.00291 dB, extension free). **What changes:** stage 1 (gauge input, wetting K0)
+runs as before and gives the start of the extension; then stage 2 is run three times, with 1 / k_wet HELD at **2.5, 5 and
+10 min** (the wetting rate parameter set to ln(1 / τ) and held), as A7 will do. Judged as before (k_dry with that fit;
+no radar-estimate refit, since k_wet is no longer estimated).
+- **Truths:** (a) constant k (k_wet = 1/5, k_dry = 1/15); (c) k_dry = (1 + W) / 30 (ratio 3). **2 replicates each**,
+  fresh seeds: (a) 3840, 3841; (c) 3842, 3843. Each replicate is one fake dataset fitted at the three values.
+- **PASS** if (a) returns drying K0 with 1 / k_dry within 25 % of 15 min, and (c) returns drying K1, at all three values
+  in both replicates. **STOP** if the rung flips at any value (any (a) fit not K0 or any (c) fit not K1): the "rung not
+  determined" reading would then be expected on real data, and the review decides before A7. A (a) fit that is K0 with
+  1 / k_dry outside 25 % is a FAIL (reported, not a flip).
+- Execution: detached, one child per replicate, cache `research/.cache/waa_ksurface/s3d_kwet_fixed/`, log
+  `outputs/reports/s3d_terminal.log`, keep-awake, free-memory floor 1.5 GB (the execution setting of step 3c), memory log
+  every 10 min. Fake data only; VAL and TEST not opened.
