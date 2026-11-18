@@ -67,6 +67,22 @@ def truth_of(name):
     return "g" if name in SPREAD else "cw"
 
 
+# =================================================================================================== the procedure (also A7)
+def procedure(S, Dk, band_idx, curves, use, tag):
+    """The A7 procedure on attenuation Dk (fake here, real in A7, Deviation 15): the two stages on the unflagged learning
+    events (use), drying K0 vs K1 on L-dryhigh with the margin of the current variant. Returns (two_stage result, (high, used))."""
+    le = S["le"]
+    used = (use > 0)[S["bin_le"]]
+    counted, dry, high, _ = s1.score_sets(S, Dk)
+    stage2 = {"w5": counted & used, "score": high & used, "margin_db": margin(), "selector": s3.select_k0_k1, "rungs": s3.DRY_RUNGS}
+    E = A6["extension"]
+    start_F = [np.full(len(i), E["f_start_inc_db"]) for i in S["iF"]]
+    start_P = [E["p_start_share"] * i for i in S["iP"]]
+    res = ladder.two_stage(Dk, le, band_idx, curves, S["gauge"], inc_F=start_F, inc_P=start_P, hold_ext=False, use=use, log=log, tag=tag,
+                           stage2=stage2, wet_rungs=s3.WET_RUNGS)
+    return res, (high, used)
+
+
 # =================================================================================================== one run
 def run_one(name, S):
     """One run: fake data, the flag, the two stages on the unflagged learning events only, judged as in step 3b."""
@@ -86,13 +102,7 @@ def run_one(name, S):
     use = (learn & ~le.event_id.isin(flagged).to_numpy()).astype(float)     # Deviation 14: learning events only
     used = (use > 0)[S["bin_le"]]
 
-    counted, dry, high, _ = s1.score_sets(S, Dk)
-    stage2 = {"w5": counted & used, "score": high & used, "margin_db": margin(), "selector": s3.select_k0_k1, "rungs": s3.DRY_RUNGS}
-    E = A6["extension"]
-    start_F = [np.full(len(i), E["f_start_inc_db"]) for i in S["iF"]]
-    start_P = [E["p_start_share"] * i for i in S["iP"]]
-    res = ladder.two_stage(Dk, le, bi, S["curves"], S["gauge"], inc_F=start_F, inc_P=start_P, hold_ext=False, use=use, log=log, tag=f"({name}) ",
-                           stage2=stage2, wet_rungs=s3.WET_RUNGS)
+    res, (high, used) = procedure(S, Dk, bi, S["curves"], use, f"({name}) ")
     dens = a6.state_density(S, Dk, ex)
     out = {"name": name, "truth": truth_of(name), "spec": spec, "seed": seed, "flags": fl,
            "events_flagged": int(fl.flagged.sum()), "events_checked": int(len(fl)), "false_removals": int(fl.flagged.sum()),

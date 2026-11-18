@@ -184,7 +184,8 @@ S3D_LOG = REPORTS / "s3d_terminal.log"
 
 # ---- A7: the real fit, a7_real_fit.py --------------------------------------------------------------------------------------
 A7_FLAG = TABLES / "a7_real_fit_flag.csv"                       # the tail flag on the real learning events (step 1, before any fit)
-A7_FIT = TABLES / "a7_real_fit_fit.csv"                         # per 1 / k_wet: drying rung, K1 gain, 1 / k_dry at W with bootstrap interval
+A7_FIT = TABLES / "a7_real_fit_fit.csv"                         # per k_wet estimate (gauge / radar): 1 / k_dry at W with bootstrap interval
+A7_CV = TABLES / "a7_real_fit_cv.csv"                           # the stage tables (every rung and lambda: train and held-out loss)
 A7_EXT = TABLES / "a7_real_fit_extension.csv"                   # the extension knots (EFFECTIVE, R1)
 A7_REPORT = REPORTS / "a7_real_fit.md"
 A7_LOG = REPORTS / "a7_terminal.log"
