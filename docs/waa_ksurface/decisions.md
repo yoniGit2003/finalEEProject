@@ -2273,3 +2273,30 @@ margin with k_wet held (S1 on truths (a) and (c) at 2.5, 5, 10 min); (3) both.
 
 `a7_real_fit.py` was written before this result (flag first, then the fit at the three held values, then the bootstrap);
 it is committed unrun.
+
+## Deviation 15: A7 returns to the validated procedure, k_wet estimated (2026-11-18, logged before any run of it)
+
+**Disclosure:** this deviation is written AFTER the step 3d result was seen (truth (a) gave a false K1 at every held value).
+
+"The fixed-k_wet grid (2.5/5/10 min) is withdrawn as a procedure: on truth (a) it returns a false K1 at every value,
+including the true one, because a held k_wet leaves the input timing error to the K1 rung (step 3d). A7 uses the
+validated procedure of steps 3b/3c: k_wet estimated (gauge-input and radar-input), k_dry selected at each. R3 revised:
+k_wet is a nuisance estimate, not a physical wetting time; k_dry is reported at both estimates, plus the event bootstrap.
+If the rung differs between the two estimates, the result is 'rung not determined'. Finding kept for the write-up: fixing
+k_wet wrongly creates a spurious W-dependent drying law."
+
+**How the validated code path does it (stated now, before the run, for the review).** A7 calls the step 3c path itself
+(`s3c_a7_variant.procedure`, the code of `run_one` moved into a function without change; `ladder.two_stage` with the same
+arguments: stage 2 sets and margin 0.00291 dB, selector K0 vs K1, wetting K0, extension starts of A6, extension free).
+In that path the drying rung is **selected once**, with k_wet at its gauge-input estimate (stage 1 carried into stage 2);
+at the radar-input estimate the selected rung is **refitted** (`x_alt`), not selected again. A second selection at the
+radar estimate would be the held-k_wet procedure of step 3d at one value, which is not validated, so A7 does not run it.
+Consequences: (i) one drying rung is reported, valid at both estimates; the "rung not determined" rule cannot trigger in
+this path and is kept only as written; (ii) k_dry (1 / k_dry at W = 0, 0.5, 1, 2 dB) is reported at the gauge-input and
+at the radar-input estimate, each with a 200-draw event bootstrap (seed 3900, the same draws, the selected rung refitted
+with that k_wet held, extension free), and the reported interval is the union of the two. The k_wet estimates are
+reported labeled **nuisance**, no claim on them. Everything else of the pre-registration (bbb5d2f) stands: the flag
+count first; learning events only; the readings K0 / K1; claims R1, R3 (revised as above), R4, R5, R6, E20150831_0455.
+
+**The step 3d wording.** The wrong STOP line of `s3d_kwet_fixed.md` ("rung not determined would be expected") is
+corrected in this log (step 3d result, above); the report file itself is left as written by the run.
