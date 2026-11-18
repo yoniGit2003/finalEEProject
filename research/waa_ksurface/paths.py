@@ -181,3 +181,10 @@ S3D_RUNS = TABLES / "s3d_kwet_fixed_runs.csv"                  # every replicate
 S3D_CV = TABLES / "s3d_kwet_fixed_cv.csv"                      # every replicate, 1 / k_wet, rung and lambda: train loss, held-out error
 S3D_REPORT = REPORTS / "s3d_kwet_fixed.md"
 S3D_LOG = REPORTS / "s3d_terminal.log"
+
+# ---- A7: the real fit, a7_real_fit.py --------------------------------------------------------------------------------------
+A7_FLAG = TABLES / "a7_real_fit_flag.csv"                       # the tail flag on the real learning events (step 1, before any fit)
+A7_FIT = TABLES / "a7_real_fit_fit.csv"                         # per 1 / k_wet: drying rung, K1 gain, 1 / k_dry at W with bootstrap interval
+A7_EXT = TABLES / "a7_real_fit_extension.csv"                   # the extension knots (EFFECTIVE, R1)
+A7_REPORT = REPORTS / "a7_real_fit.md"
+A7_LOG = REPORTS / "a7_terminal.log"

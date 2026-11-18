@@ -202,3 +202,8 @@ s3d:                                            # step 3d: the A7 procedure with
   replicates: 2
   tau_wet_min: [2.5, 5.0, 10.0]                 # 1 / k_wet held at these values (R3 revised); A7 uses the same list
   min_free_gb: 1.5                              # execution setting of step 3c (user, 2026-11-18)
+
+a7:                                             # A7, the real fit (decisions.md, pre-registration, commit bbb5d2f)
+  boot_draws: 200                               # event-bootstrap draws (plan.md)
+  boot_seed: 3900                               # the same draws at every value of 1 / k_wet
+  w_report_db: [0.0, 0.5, 1.0, 2.0]             # 1 / k_dry reported at these W (dB)

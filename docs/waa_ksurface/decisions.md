@@ -2246,3 +2246,30 @@ no radar-estimate refit, since k_wet is no longer estimated).
 - Execution: detached, one child per replicate, cache `research/.cache/waa_ksurface/s3d_kwet_fixed/`, log
   `outputs/reports/s3d_terminal.log`, keep-awake, free-memory floor 1.5 GB (the execution setting of step 3c), memory log
   every 10 min. Fake data only; VAL and TEST not opened.
+
+## Step 3d: result — STOP (2026-11-18)
+
+Run detached 12:37–12:51, exit 1 (STOP by the rule after the first replicate; `outputs/reports/s3d_kwet_fixed.md`).
+Truth (a) (constant k, 1 / k_dry = 15 min), replicate `a_r0`, seed 3840, flag 0 of 13:
+
+| 1 / k_wet held | drying rung | K1 gain (dB), 90 % interval | 1 / k_dry (min) |
+|---|---|---|---|
+| 2.5 min | **K1** | +0.00328 (+0.00256 to +0.00509) | 18.2 |
+| 5 min | **K1** | +0.00296 (+0.00226 to +0.00478) | 19.3 |
+| 10 min | **K1** | +0.00566 (+0.00443 to +0.00870) | 23.4 (outside 25 %) |
+
+**Verdict: STOP.** Truth (a) gives a false K1 at every held value of 1 / k_wet, even at the true 5 min. This is not a flip
+ACROSS the k_wet values (the three agree), so the report's line "the 'rung not determined' reading would be expected" is
+the wrong wording for this case: the expected failure on real data is a **false K1 at every value**, read as
+"non-exponential drying". Replicates a_r1, c_r0, c_r1 were not run. **A7 is not run; the flag was not run on real data.**
+
+**For the review (a reading, not a test):** the margin 0.00291 dB was calibrated in S1 with k_wet ESTIMATED (stage 1),
+and step 3c (`g_088`, the same truth (a), k_wet estimated at 3.3 / 6.5 min) gave a gain of +0.00016 dB. With k_wet HELD
+the gain on the same kind of truth is 0.0030–0.0057 dB, at or above the margin. A likely reason (not tested): the stage-1
+estimate (3.3 min against a true 5) absorbs the timing error of the rain input; a held k_wet leaves that misfit, and the
+W-dependent drying rung takes part of it. So the margin is not calibrated for the fixed-k_wet procedure. Options for the
+review: (1) A7 with k_wet at its two estimates, the procedure that was calibrated (steps 3b, 3c); (2) recalibrate the
+margin with k_wet held (S1 on truths (a) and (c) at 2.5, 5, 10 min); (3) both.
+
+`a7_real_fit.py` was written before this result (flag first, then the fit at the three held values, then the bootstrap);
+it is committed unrun.

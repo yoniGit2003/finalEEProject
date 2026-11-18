@@ -1,0 +1,35 @@
+=== launcher started Wed 11/18/2026 12:37:10.24 === 
+=== step 3d started 2026-11-18 12:37:17; free memory 3.1 GB ===
+=== keep-awake (ES_CONTINUOUS | ES_SYSTEM_REQUIRED): on ===
+=== (a_r0) seed 3840 (free memory 3.1 GB) 12:37:17 ===
+   (a_r0) wetting  K0 lambda 0.0001: train 0.02789  cv 0.02815  (82 it)
+   (a_r0) wetting  K0 lambda 0.001: train 0.02792  cv 0.02817  (62 it)
+=== memory watch 12:38: free 1.7 GB ===
+=== LOW MEMORY 12:38: free 1.72 GB; grew most since the start: python.exe 0.39 -> 2.44 GB (+2.06); chrome.exe 1.87 -> 1.94 GB (+0.07); NVIDIA Share.exe 0.17 -> 0.18 GB (+0.01); claude.exe 2.25 -> 2.25 GB (+0.00); AvastSvc.exe 0.36 -> 0.36 GB (+0.00) ===
+   (a_r0) wetting  K0 lambda 0.01: train 0.02793  cv 0.02817  (74 it)
+   (a_r0) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (a_r0) stage 1: 1 / k_wet estimated 3.27 min (not used: it is held below)
+   (a_r0) [1/k_wet 2.5] drying   K0 lambda 0.0001: train 0.02496  cv 0.01723  (52 it)
+   (a_r0) [1/k_wet 2.5] drying   K1 lambda 0.0001: train 0.02492  cv 0.01668  (64 it)
+   (a_r0) [1/k_wet 2.5] drying   K1 lambda 0.001: train 0.02492  cv 0.01664  (48 it)
+   (a_r0) [1/k_wet 2.5] drying   K1 lambda 0.01: train 0.02492  cv 0.01663  (86 it)
+   (a_r0) [1/k_wet 2.5] drying: lowest cv K1, selected K1 (lambda 0.01)
+   (a_r0) [1/k_wet 5] drying   K0 lambda 0.0001: train 0.02498  cv 0.01691  (56 it)
+   (a_r0) [1/k_wet 5] drying   K1 lambda 0.0001: train 0.02494  cv 0.01637  (60 it)
+   (a_r0) [1/k_wet 5] drying   K1 lambda 0.001: train 0.02494  cv 0.01638  (38 it)
+   (a_r0) [1/k_wet 5] drying   K1 lambda 0.01: train 0.02494  cv 0.01637  (33 it)
+   (a_r0) [1/k_wet 5] drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (a_r0) [1/k_wet 10] drying   K0 lambda 0.0001: train 0.02695  cv 0.01771  (54 it)
+=== memory watch 12:48: free 1.3 GB ===
+=== LOW MEMORY 12:48: free 1.32 GB; grew most since the start: python.exe 0.39 -> 2.92 GB (+2.53); Photos.exe 0.00 -> 0.29 GB (+0.29); chrome.exe 1.87 -> 1.94 GB (+0.08); AvastSvc.exe 0.36 -> 0.38 GB (+0.02); dwm.exe 0.20 -> 0.21 GB (+0.01) ===
+   (a_r0) [1/k_wet 10] drying   K1 lambda 0.0001: train 0.02684  cv 0.01666  (70 it)
+   (a_r0) [1/k_wet 10] drying   K1 lambda 0.001: train 0.02686  cv 0.01680  (47 it)
+   (a_r0) [1/k_wet 10] drying   K1 lambda 0.01: train 0.02686  cv 0.01683  (63 it)
+   (a_r0) [1/k_wet 10] drying: lowest cv K1, selected K1 (lambda 0.0001)
+=== (a_r0) 1/k_wet 2.5 min: drying K1; 1/k_dry 18.2 min (truth 15); K1 gain +0.00328 dB; FLIP ===
+=== (a_r0) 1/k_wet 5 min: drying K1; 1/k_dry 19.3 min (truth 15); K1 gain +0.00296 dB; FLIP ===
+=== (a_r0) 1/k_wet 10 min: drying K1; 1/k_dry 23.4 min (truth 15); K1 gain +0.00566 dB; FLIP ===
+=== (a_r0) done: 13.6 min wall, 50.0 min processor; peak memory 2.85 GB ===
+report: research/waa_ksurface/outputs/reports/s3d_kwet_fixed.md
+=== step 3d ended 2026-11-18 12:51:03 ===
+=== exit 1 at Wed 11/18/2026 12:51:04.28 === 
