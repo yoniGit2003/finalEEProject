@@ -186,3 +186,12 @@ s3b:                                            # step 3b: Deviations 12 (tail f
   min_free_start_gb: 4.0                        # the run does not start with less free memory
   min_free_gb: 2.0                              # below this a child is not started (or the largest peak so far, if larger)
   memory_log_minutes: 10
+
+s3c:                                            # step 3c: fake runs of the A7 procedure (Deviation 14, decisions.md, written before the code)
+  seed: 3800                                    # fresh: g_088 = seed, g_150 = seed + 1; detectability = seed + 10 + 10 x (position of a) + replicate
+  loss: L-dryhigh                               # the adopted loss; the margin is read from the S1 table
+  variant: current                              # Deviation 14: the 14 learning events only (margin 0.00291 dB)
+  detect_sizes: [0.25, 0.5, 1.0]                # ratio k(W = 2 dB) / k(W = 0) = 1 + 2a = 1.5, 2, 3
+  replicates: 5                                 # five per ratio, no early stop
+  min_free_start_gb: 4.0                        # the memory rules of step 3b
+  min_free_gb: 2.0

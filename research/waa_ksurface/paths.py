@@ -166,3 +166,12 @@ S3B_B3 = TABLES / "s3b_recovery_b3prime.csv"                   # B3': the statis
 S3B_DETECT = TABLES / "s3b_recovery_detectability.csv"         # per ratio: replicates run, hits, detected
 S3B_REPORT = REPORTS / "s3b_recovery.md"
 S3B_LOG = REPORTS / "s3b_terminal.log"                         # the terminal output of the detached run
+
+# ---- step 3c: fake runs of the A7 procedure (Deviation 14), s3c_a7_variant.py -------------------------------------------
+S3C_RUNS = TABLES / "s3c_a7_variant_runs.csv"                  # every run: seed, drying rung, K1 gain, recovery, events flagged, verdict
+S3C_CV = TABLES / "s3c_a7_variant_cv.csv"                      # every run, rung and lambda: train loss, held-out error
+S3C_FLAGS = TABLES / "s3c_a7_variant_flags.csv"                # every run and event: the tail flag on the fake data
+S3C_DETECT = TABLES / "s3c_a7_variant_detectability.csv"       # per ratio: replicates, hits, detected
+S3C_COVERAGE = TABLES / "s3c_a7_variant_flag_coverage.csv"     # the 14 learning events: short link-events with a tail, checkable
+S3C_REPORT = REPORTS / "s3c_a7_variant.md"
+S3C_LOG = REPORTS / "s3c_terminal.log"                         # the terminal output of the detached run
