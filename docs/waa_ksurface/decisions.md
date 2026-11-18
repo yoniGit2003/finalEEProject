@@ -2164,3 +2164,61 @@ low-memory log lines; `outputs/reports/s3c_a7_variant.md`). A7 procedure: learni
   at ratios 2 and 1.5: there the replicates stopped once decided (4 hits), so the fifth was never run.
 - **(c) Flag coverage:** 13 of 14 learning events checkable; E20150831_0455 is not (its 67 short-link link-events have no
   20 bins after the end of rain). Removal count on real data: not made (first number of A7, before any fit).
+
+## A7: pre-registration of the real fit (2026-11-18, written before any real fit; NOT run)
+
+**Question served.** Q2 (what is k_dry?), on the real TRAIN data of the 14 learning events. Everything below is fixed
+before any real attenuation is read for A7.
+
+**Order.**
+1. **The flag first.** The tail flag of Deviation 12 (`a6_recovery.tail_flags`, rule a0 ≥ 0.6 dB, fall < 0.15 dB, at
+   least 5 qualifying short-link link-events, share 0.5) on the real attenuation of the 14 learning events. Its removal
+   count (events checked: 13; events removed, with their ids) is the **first number A7 reports, before any fit**. The
+   link-events of removed events take no part in either stage or in the scored set.
+2. **The fit** (the procedure of step 3c, Deviation 14):
+   - Data: the unflagged learning events (S1 "current" variant); the 37 added events are not used (R6).
+   - Loss: whole-event output error, Huber 0.3 dB on the 5 min residuals, weak prior on ln a_link (A5); the measured
+     signal is never differentiated.
+   - F and P: measured parts fixed (F up to 3.2 mm/h, P up to 1.4 mm/h); free monotone extensions above (Deviation 7).
+   - k_wet: constant (wetting K0), not identified (R3): the fit is repeated with 1 / k_wet held at **2.5, 5 and 10 min**.
+   - k_dry: ladder **K0 vs K1 only**; K1 selected only if its gain over K0 on L-dryhigh (held-out, 5-fold leave-events-out
+     CV) is above **0.00291 dB** with a paired 90 % interval that excludes zero.
+   - The rung is selected at each of the three k_wet values. **Reading (written now, flagged for the review):** if the
+     three selections disagree, the result is "rung not determined over the k_wet range" and no rung reading below applies.
+3. **Report:**
+   - the flag's removal count (step 1);
+   - the selected rung at each k_wet value, the gain and its interval;
+   - **k_dry(W)** (K0: one constant; K1: k_dry as a function of W over the A4 domain) with an **event-bootstrap interval**
+     (200 draws over the unflagged learning events, seed 3900) **and** its spread across 1 / k_wet = 2.5–10 min (R3); the
+     reported interval is the union of the three bootstrap intervals;
+   - the extension knots of F and P above the measured ranges, labeled **effective** (R1).
+
+**Pre-registered readings (the only claims allowed).**
+- **K0** → "no dependence of the drying rate on W larger than a ratio k(W = 2 dB) / k(W = 0) of **2** is present"
+  (2 = the smallest ratio detected for this variant in step 3c; 1.5 was detected in 2 of 5 and is not excluded).
+- **K1** → "non-exponential drying: the drying rate falls as the antenna dries; the mechanism (W-dependent rate or a
+  second, slow store) is not claimed (R5); a spread of the baseline between links is excluded as its cause at the measured
+  size (0.088 dB, step 3c (a) PASS, also at 0.15 dB)".
+- No other claim is allowed: none on k_wet, on k(R), on F or P above the measured ranges, on the added events, or on a
+  second store.
+
+**Claims list in force for A7.**
+- **R1.** F and P above their measured ranges (3.2 / 1.4 mm/h) are EFFECTIVE quantities for this rain input; no physical
+  claim on them.
+- **R3 (revised).** k_wet is NOT IDENTIFIED; k_dry is reported as a function of an ASSUMED 1 / k_wet over 2.5–10 min,
+  plus the bootstrap. No claim on k_wet.
+- **R4.** No dependence of k on R is claimed; k_dry is the drying law after rain (R = 0). (R2 is superseded by R4.)
+- **R5.** A returned K1 does not separate a W-dependent rate from a second, slow store (B3' not separable, step 3b); no
+  second store is claimed or excluded; B3 retired.
+- **R6.** Unseen water in the 37 added events cannot be checked by the flag (caught 1 of 7 in step 3b; 10 of 51 events
+  not checkable at all), so they are not used.
+- **Flag coverage.** The flag can check 13 of the 14 learning events; **E20150831_0455 is not checkable** (no short-link
+  link-event with 20 bins after the end of rain), so unseen water in it, if any, would go undetected. It stays in the fit;
+  this is stated with every A7 result.
+
+**Not read in A7:** VAL and TEST. **A7 is not run until the review accepts this pre-registration.**
+
+**Two points for the review.** (i) The fake runs judged k_dry with k_wet at its gauge- and radar-input estimates (step 3b
+machinery); A7 holds 1 / k_wet at 2.5, 5, 10 min as R3 (revised) says. The fake runs bracket the truth (5 min) between
+3.3 and 6.5 min, inside 2.5–10, but the three fixed values were not run on fake data. (ii) The rule for disagreeing rungs
+across k_wet (step 2, last item) is this log's reading.
