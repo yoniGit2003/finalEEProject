@@ -2300,3 +2300,11 @@ count first; learning events only; the readings K0 / K1; claims R1, R3 (revised 
 
 **The step 3d wording.** The wrong STOP line of `s3d_kwet_fixed.md` ("rung not determined would be expected") is
 corrected in this log (step 3d result, above); the report file itself is left as written by the run.
+
+**Addendum to Deviation 15: the flag on real data (logged before the flag is run).** The flag rule (Deviation 12: a0 ≥
+0.6 dB, fall < 0.15 dB) is defined on the model's quantity A − c (the target of the fit, `ksurf.prepare`: y − c). It was
+only ever run on fake data, where c = 0 and every minute is valid. On real data c is the measured offset of each
+link-event (`offset_c_db`) and invalid minutes are NaN. So the flag code reads **y1 − c** and averages the **valid
+minutes** of each window (a0: the 10 min around the end of rain; a1: minutes 10–20 after it). A link-event with no valid
+minute in either window is not counted (like a link-event without the 20 bins). On fake data (c = 0, no NaN) the result
+is unchanged (unit test). Seen before writing this: nothing of the real attenuation; only the code of the data layer.
