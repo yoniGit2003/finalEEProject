@@ -2151,3 +2151,16 @@ logs which programs grew during it and stops cleanly; the run is then resumed fr
 is kept. Nothing of the procedure, the truths or the seeds changes. Also added to the report before launch: every fake
 truth so far already carried the measured link spread (0.088 dB, the default noise), so `g_088` is truth (a) on a fresh
 seed; it is still run first, with its STOP rule.
+
+## Step 3c: result (2026-11-18)
+
+Run detached 2026-11-18 11:02–12:26, exit 0, 17 runs, 1.3 h wall time, no child died (lowest free memory 0.76 GB, 8
+low-memory log lines; `outputs/reports/s3c_a7_variant.md`). A7 procedure: learning events only, margin 0.00291 dB.
+- **(a) Link spread:** `g_088` (0.088 dB, seed 3800) drying K0, 1 / k_dry 16.7 / 16.6 min (truth 15): **PASS**, no STOP;
+  `g_150` (0.15 dB, seed 3801) drying K0, 1 / k_dry 13.3 / 13.9 min: **PASS**. The per-link question is not reopened at the
+  measured spread (nor at the E4 threshold); the false K1 of step 3b's (g) appeared only at 0.24 dB.
+- **(b) Detectability (A7 variant):** ratio 1.5: 2 of 5 (not detected); ratio 2: 5 of 5; ratio 3: 5 of 5. **Smallest ratio
+  detected: 2** (step 3b's 1.5 was on the extended variant and does not carry over, as Deviation 14 said). Step 3b's 4 of 4
+  at ratios 2 and 1.5: there the replicates stopped once decided (4 hits), so the fifth was never run.
+- **(c) Flag coverage:** 13 of 14 learning events checkable; E20150831_0455 is not (its 67 short-link link-events have no
+  20 bins after the end of rain). Removal count on real data: not made (first number of A7, before any fit).

@@ -1,0 +1,4 @@
+size_a,ratio,replicates_run,hits (K1 returned),detected,runs
+0.25,1.5,5,2,False,"cw_0.25_r0, cw_0.25_r1, cw_0.25_r2, cw_0.25_r3, cw_0.25_r4"
+0.5,2.0,5,5,True,"cw_0.5_r0, cw_0.5_r1, cw_0.5_r2, cw_0.5_r3, cw_0.5_r4"
+1.0,3.0,5,5,True,"cw_1_r0, cw_1_r1, cw_1_r2, cw_1_r3, cw_1_r4"

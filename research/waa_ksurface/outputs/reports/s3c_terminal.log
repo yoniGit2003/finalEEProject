@@ -1,0 +1,227 @@
+=== launcher started Wed 11/18/2026 11:02:23.87 === 
+=== step 3c started 2026-11-18 11:02:34; free memory 2.3 GB ===
+=== keep-awake (ES_CONTINUOUS | ES_SYSTEM_REQUIRED): on ===
+=== (g_088) seed 3800 (free memory 2.4 GB) 11:02:40 ===
+   (g_088) wetting  K0 lambda 0.0001: train 0.02810  cv 0.02837  (85 it)
+=== memory watch 11:03: free 1.0 GB ===
+=== LOW MEMORY 11:03: free 1.00 GB; grew most since the start: python.exe 0.39 -> 2.48 GB (+2.09); backgroundTaskHost.exe 0.00 -> 0.02 GB (+0.02); CompatTelRunner.exe 0.05 -> 0.06 GB (+0.01); uihost.exe 0.02 -> 0.02 GB (+0.00); msedge.exe 0.18 -> 0.18 GB (+0.00) ===
+   (g_088) wetting  K0 lambda 0.001: train 0.02812  cv 0.02838  (60 it)
+   (g_088) wetting  K0 lambda 0.01: train 0.02813  cv 0.02838  (80 it)
+   (g_088) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (g_088) drying   K0 lambda 0.0001: train 0.02312  cv 0.01936  (54 it)
+   (g_088) drying   K1 lambda 0.0001: train 0.02311  cv 0.01937  (23 it)
+   (g_088) drying   K1 lambda 0.001: train 0.02311  cv 0.01933  (31 it)
+   (g_088) drying   K1 lambda 0.01: train 0.02311  cv 0.01932  (34 it)
+   (g_088) drying: lowest cv K1, selected K0 (lambda 0.0001)
+   (g_088) 1 / k_wet: gauge input 3.37 min, radar input 3.25 min
+=== (g_088): PASS; drying K0; 1 / k_dry 16.7 / 16.6 min, truth 15; flagged 0 of 13; 5.0 min wall, 16.6 min processor; peak memory 2.37 GB ===
+=== (g_150) seed 3801 (free memory 2.8 GB) 11:07:57 ===
+   (g_150) wetting  K0 lambda 0.0001: train 0.02919  cv 0.02943  (76 it)
+   (g_150) wetting  K0 lambda 0.001: train 0.02922  cv 0.02946  (62 it)
+   (g_150) wetting  K0 lambda 0.01: train 0.02923  cv 0.02947  (89 it)
+   (g_150) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (g_150) drying   K0 lambda 0.0001: train 0.03504  cv 0.01373  (46 it)
+   (g_150) drying   K1 lambda 0.0001: train 0.03499  cv 0.01347  (62 it)
+   (g_150) drying   K1 lambda 0.001: train 0.03499  cv 0.01348  (57 it)
+   (g_150) drying   K1 lambda 0.01: train 0.03499  cv 0.01348  (51 it)
+   (g_150) drying: lowest cv K1, selected K0 (lambda 0.0001)
+   (g_150) 1 / k_wet: gauge input 3.31 min, radar input 4.47 min
+=== (g_150): PASS; drying K0; 1 / k_dry 13.3 / 13.9 min, truth 15; flagged 0 of 13; 4.9 min wall, 17.7 min processor; peak memory 2.93 GB ===
+=== (cw_0.25_r0) seed 3810 (free memory 3.4 GB) 11:13:06 ===
+=== memory watch 11:13: free 2.3 GB ===
+   (cw_0.25_r0) wetting  K0 lambda 0.0001: train 0.02778  cv 0.02811  (88 it)
+   (cw_0.25_r0) wetting  K0 lambda 0.001: train 0.02782  cv 0.02815  (63 it)
+   (cw_0.25_r0) wetting  K0 lambda 0.01: train 0.02783  cv 0.02815  (91 it)
+   (cw_0.25_r0) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+=== LOW MEMORY 11:14: free 1.29 GB; grew most since the start: python.exe 0.39 -> 3.03 GB (+2.64); chrome.exe 1.94 -> 3.16 GB (+1.22); msedgewebview2.exe 0.74 -> 0.80 GB (+0.06); pycharm64.exe 1.38 -> 1.38 GB (+0.01); uihost.exe 0.02 -> 0.02 GB (+0.00) ===
+   (cw_0.25_r0) drying   K0 lambda 0.0001: train 0.02854  cv 0.01102  (57 it)
+   (cw_0.25_r0) drying   K1 lambda 0.0001: train 0.02853  cv 0.01077  (43 it)
+   (cw_0.25_r0) drying   K1 lambda 0.001: train 0.02853  cv 0.01078  (28 it)
+   (cw_0.25_r0) drying   K1 lambda 0.01: train 0.02853  cv 0.01078  (33 it)
+   (cw_0.25_r0) drying: lowest cv K1, selected K0 (lambda 0.0001)
+   (cw_0.25_r0) 1 / k_wet: gauge input 3.45 min, radar input 0.78 min
+=== (cw_0.25_r0): K0 returned; drying K0; 86 % / 93 % of the domain weight within 25 %; flagged 0 of 13; 5.0 min wall, 16.9 min processor; peak memory 2.93 GB ===
+=== (cw_0.25_r1) seed 3811 (free memory 3.5 GB) 11:18:21 ===
+   (cw_0.25_r1) wetting  K0 lambda 0.0001: train 0.02762  cv 0.02791  (79 it)
+   (cw_0.25_r1) wetting  K0 lambda 0.001: train 0.02766  cv 0.02795  (55 it)
+   (cw_0.25_r1) wetting  K0 lambda 0.01: train 0.02767  cv 0.02796  (85 it)
+   (cw_0.25_r1) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.25_r1) drying   K0 lambda 0.0001: train 0.03274  cv 0.01542  (29 it)
+   (cw_0.25_r1) drying   K1 lambda 0.0001: train 0.03273  cv 0.01512  (37 it)
+   (cw_0.25_r1) drying   K1 lambda 0.001: train 0.03273  cv 0.01512  (25 it)
+   (cw_0.25_r1) drying   K1 lambda 0.01: train 0.03274  cv 0.01512  (35 it)
+   (cw_0.25_r1) drying: lowest cv K1, selected K0 (lambda 0.0001)
+   (cw_0.25_r1) 1 / k_wet: gauge input 3.30 min, radar input 1.90 min
+=== (cw_0.25_r1): K0 returned; drying K0; 91 % / 93 % of the domain weight within 25 %; flagged 0 of 13; 3.6 min wall, 13.3 min processor; peak memory 2.93 GB ===
+=== (cw_0.25_r2) seed 3812 (free memory 4.1 GB) 11:22:10 ===
+   (cw_0.25_r2) wetting  K0 lambda 0.0001: train 0.02819  cv 0.02839  (87 it)
+   (cw_0.25_r2) wetting  K0 lambda 0.001: train 0.02824  cv 0.02844  (57 it)
+   (cw_0.25_r2) wetting  K0 lambda 0.01: train 0.02825  cv 0.02846  (89 it)
+   (cw_0.25_r2) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.25_r2) drying   K0 lambda 0.0001: train 0.03121  cv 0.01757  (46 it)
+=== memory watch 11:23: free 1.8 GB ===
+   (cw_0.25_r2) drying   K1 lambda 0.0001: train 0.03110  cv 0.01635  (63 it)
+=== LOW MEMORY 11:24: free 1.95 GB; grew most since the start: python.exe 0.39 -> 3.04 GB (+2.64); chrome.exe 1.94 -> 2.88 GB (+0.94); RuntimeBroker.exe 0.06 -> 0.07 GB (+0.01); pycharm64.exe 1.38 -> 1.38 GB (+0.00); servicehost.exe 0.03 -> 0.03 GB (+0.00) ===
+   (cw_0.25_r2) drying   K1 lambda 0.001: train 0.03110  cv 0.01637  (47 it)
+   (cw_0.25_r2) drying   K1 lambda 0.01: train 0.03110  cv 0.01638  (56 it)
+   (cw_0.25_r2) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_0.25_r2) 1 / k_wet: gauge input 3.37 min, radar input 6.03 min
+=== (cw_0.25_r2): K1 returned; drying K1; 95 % / 100 % of the domain weight within 25 %; flagged 0 of 13; 4.1 min wall, 15.1 min processor; peak memory 2.93 GB ===
+=== (cw_0.25_r3) seed 3813 (free memory 4.1 GB) 11:26:27 ===
+   (cw_0.25_r3) wetting  K0 lambda 0.0001: train 0.02733  cv 0.02758  (86 it)
+   (cw_0.25_r3) wetting  K0 lambda 0.001: train 0.02735  cv 0.02759  (59 it)
+   (cw_0.25_r3) wetting  K0 lambda 0.01: train 0.02735  cv 0.02760  (87 it)
+   (cw_0.25_r3) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.25_r3) drying   K0 lambda 0.0001: train 0.02642  cv 0.01631  (59 it)
+   (cw_0.25_r3) drying   K1 lambda 0.0001: train 0.02641  cv 0.01620  (48 it)
+   (cw_0.25_r3) drying   K1 lambda 0.001: train 0.02641  cv 0.01621  (27 it)
+   (cw_0.25_r3) drying   K1 lambda 0.01: train 0.02641  cv 0.01621  (30 it)
+   (cw_0.25_r3) drying: lowest cv K1, selected K0 (lambda 0.0001)
+   (cw_0.25_r3) 1 / k_wet: gauge input 3.52 min, radar input 2.79 min
+=== (cw_0.25_r3): K0 returned; drying K0; 95 % / 97 % of the domain weight within 25 %; flagged 0 of 13; 4.2 min wall, 15.4 min processor; peak memory 2.93 GB ===
+=== (cw_0.25_r4) seed 3814 (free memory 3.9 GB) 11:30:50 ===
+   (cw_0.25_r4) wetting  K0 lambda 0.0001: train 0.02738  cv 0.02767  (89 it)
+   (cw_0.25_r4) wetting  K0 lambda 0.001: train 0.02741  cv 0.02768  (61 it)
+   (cw_0.25_r4) wetting  K0 lambda 0.01: train 0.02742  cv 0.02769  (84 it)
+   (cw_0.25_r4) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.25_r4) drying   K0 lambda 0.0001: train 0.02613  cv 0.01951  (72 it)
+   (cw_0.25_r4) drying   K1 lambda 0.0001: train 0.02606  cv 0.01863  (66 it)
+=== memory watch 11:33: free 1.6 GB ===
+   (cw_0.25_r4) drying   K1 lambda 0.001: train 0.02606  cv 0.01866  (63 it)
+=== LOW MEMORY 11:34: free 1.68 GB; grew most since the start: python.exe 0.39 -> 3.04 GB (+2.64); chrome.exe 1.94 -> 2.82 GB (+0.88); LogonUI.exe 0.00 -> 0.05 GB (+0.05); mcafee-security.exe 0.00 -> 0.04 GB (+0.04); svchost.exe 0.76 -> 0.78 GB (+0.02) ===
+   (cw_0.25_r4) drying   K1 lambda 0.01: train 0.02606  cv 0.01866  (85 it)
+   (cw_0.25_r4) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_0.25_r4) 1 / k_wet: gauge input 3.53 min, radar input 3.68 min
+=== (cw_0.25_r4): K1 returned; drying K1; 100 % / 100 % of the domain weight within 25 %; flagged 0 of 13; 4.1 min wall, 15.8 min processor; peak memory 2.93 GB ===
+=== (cw_0.5_r0) seed 3820 (free memory 4.0 GB) 11:35:08 ===
+   (cw_0.5_r0) wetting  K0 lambda 0.0001: train 0.02745  cv 0.02777  (86 it)
+   (cw_0.5_r0) wetting  K0 lambda 0.001: train 0.02749  cv 0.02780  (55 it)
+   (cw_0.5_r0) wetting  K0 lambda 0.01: train 0.02749  cv 0.02780  (84 it)
+   (cw_0.5_r0) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.5_r0) drying   K0 lambda 0.0001: train 0.03106  cv 0.02176  (55 it)
+   (cw_0.5_r0) drying   K1 lambda 0.0001: train 0.03085  cv 0.01963  (87 it)
+   (cw_0.5_r0) drying   K1 lambda 0.001: train 0.03086  cv 0.01965  (64 it)
+   (cw_0.5_r0) drying   K1 lambda 0.01: train 0.03086  cv 0.01965  (108 it)
+   (cw_0.5_r0) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_0.5_r0) 1 / k_wet: gauge input 3.43 min, radar input 4.06 min
+=== (cw_0.5_r0): K1 returned; drying K1; 100 % / 100 % of the domain weight within 25 %; flagged 0 of 13; 4.2 min wall, 16.4 min processor; peak memory 2.92 GB ===
+=== (cw_0.5_r1) seed 3821 (free memory 4.3 GB) 11:39:32 ===
+   (cw_0.5_r1) wetting  K0 lambda 0.0001: train 0.02893  cv 0.02918  (73 it)
+   (cw_0.5_r1) wetting  K0 lambda 0.001: train 0.02899  cv 0.02924  (55 it)
+   (cw_0.5_r1) wetting  K0 lambda 0.01: train 0.02901  cv 0.02927  (85 it)
+   (cw_0.5_r1) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.5_r1) drying   K0 lambda 0.0001: train 0.03197  cv 0.02882  (31 it)
+   (cw_0.5_r1) drying   K1 lambda 0.0001: train 0.03150  cv 0.02433  (58 it)
+   (cw_0.5_r1) drying   K1 lambda 0.001: train 0.03151  cv 0.02442  (54 it)
+   (cw_0.5_r1) drying   K1 lambda 0.01: train 0.03151  cv 0.02444  (68 it)
+   (cw_0.5_r1) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_0.5_r1) 1 / k_wet: gauge input 3.30 min, radar input 4.81 min
+=== (cw_0.5_r1): K1 returned; drying K1; 91 % / 94 % of the domain weight within 25 %; flagged 0 of 13; 3.9 min wall, 14.7 min processor; peak memory 2.93 GB ===
+=== (cw_0.5_r2) seed 3822 (free memory 4.3 GB) 11:43:32 ===
+=== memory watch 11:43: free 3.0 GB ===
+   (cw_0.5_r2) wetting  K0 lambda 0.0001: train 0.02846  cv 0.02869  (90 it)
+   (cw_0.5_r2) wetting  K0 lambda 0.001: train 0.02849  cv 0.02872  (64 it)
+   (cw_0.5_r2) wetting  K0 lambda 0.01: train 0.02849  cv 0.02872  (87 it)
+   (cw_0.5_r2) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+=== LOW MEMORY 11:44: free 1.97 GB; grew most since the start: python.exe 0.39 -> 3.04 GB (+2.65); chrome.exe 1.94 -> 2.95 GB (+1.01); LogonUI.exe 0.00 -> 0.05 GB (+0.05); mcafee-security.exe 0.00 -> 0.04 GB (+0.04); svchost.exe 0.76 -> 0.78 GB (+0.02) ===
+   (cw_0.5_r2) drying   K0 lambda 0.0001: train 0.03361  cv 0.01232  (50 it)
+   (cw_0.5_r2) drying   K1 lambda 0.0001: train 0.03334  cv 0.01045  (85 it)
+   (cw_0.5_r2) drying   K1 lambda 0.001: train 0.03336  cv 0.01038  (74 it)
+   (cw_0.5_r2) drying   K1 lambda 0.01: train 0.03337  cv 0.01037  (100 it)
+   (cw_0.5_r2) drying: lowest cv K1, selected K1 (lambda 0.01)
+   (cw_0.5_r2) 1 / k_wet: gauge input 3.55 min, radar input 1.69 min
+=== (cw_0.5_r2): K1 returned; drying K1; 100 % / 100 % of the domain weight within 25 %; flagged 0 of 13; 5.7 min wall, 19.7 min processor; peak memory 2.93 GB ===
+=== (cw_0.5_r3) seed 3823 (free memory 4.1 GB) 11:49:25 ===
+   (cw_0.5_r3) wetting  K0 lambda 0.0001: train 0.02812  cv 0.02837  (90 it)
+   (cw_0.5_r3) wetting  K0 lambda 0.001: train 0.02818  cv 0.02842  (58 it)
+   (cw_0.5_r3) wetting  K0 lambda 0.01: train 0.02819  cv 0.02845  (89 it)
+   (cw_0.5_r3) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.5_r3) drying   K0 lambda 0.0001: train 0.03320  cv 0.01899  (57 it)
+   (cw_0.5_r3) drying   K1 lambda 0.0001: train 0.03310  cv 0.01773  (56 it)
+   (cw_0.5_r3) drying   K1 lambda 0.001: train 0.03310  cv 0.01765  (63 it)
+=== memory watch 11:53: free 1.9 GB ===
+=== LOW MEMORY 11:54: free 1.89 GB; grew most since the start: python.exe 0.39 -> 3.04 GB (+2.64); Taskmgr.exe 0.00 -> 0.11 GB (+0.11); chrome.exe 1.94 -> 2.04 GB (+0.10); dwm.exe 0.14 -> 0.19 GB (+0.06); RuntimeBroker.exe 0.06 -> 0.11 GB (+0.05) ===
+   (cw_0.5_r3) drying   K1 lambda 0.01: train 0.03310  cv 0.01763  (92 it)
+   (cw_0.5_r3) drying: lowest cv K1, selected K1 (lambda 0.01)
+   (cw_0.5_r3) 1 / k_wet: gauge input 3.40 min, radar input 3.12 min
+=== (cw_0.5_r3): K1 returned; drying K1; 100 % / 100 % of the domain weight within 25 %; flagged 0 of 13; 5.6 min wall, 20.0 min processor; peak memory 2.93 GB ===
+=== (cw_0.5_r4) seed 3824 (free memory 4.1 GB) 11:55:17 ===
+   (cw_0.5_r4) wetting  K0 lambda 0.0001: train 0.02687  cv 0.02713  (78 it)
+   (cw_0.5_r4) wetting  K0 lambda 0.001: train 0.02691  cv 0.02715  (71 it)
+   (cw_0.5_r4) wetting  K0 lambda 0.01: train 0.02691  cv 0.02716  (93 it)
+   (cw_0.5_r4) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_0.5_r4) drying   K0 lambda 0.0001: train 0.02817  cv 0.01312  (37 it)
+   (cw_0.5_r4) drying   K1 lambda 0.0001: train 0.02796  cv 0.01196  (76 it)
+   (cw_0.5_r4) drying   K1 lambda 0.001: train 0.02797  cv 0.01201  (58 it)
+   (cw_0.5_r4) drying   K1 lambda 0.01: train 0.02797  cv 0.01201  (71 it)
+   (cw_0.5_r4) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_0.5_r4) 1 / k_wet: gauge input 3.55 min, radar input 3.37 min
+=== (cw_0.5_r4): K1 returned; drying K1; 100 % / 100 % of the domain weight within 25 %; flagged 0 of 13; 4.9 min wall, 17.6 min processor; peak memory 2.93 GB ===
+=== (cw_1_r0) seed 3830 (free memory 4.3 GB) 12:00:21 ===
+   (cw_1_r0) wetting  K0 lambda 0.0001: train 0.02748  cv 0.02773  (81 it)
+   (cw_1_r0) wetting  K0 lambda 0.001: train 0.02754  cv 0.02780  (58 it)
+   (cw_1_r0) wetting  K0 lambda 0.01: train 0.02756  cv 0.02783  (83 it)
+   (cw_1_r0) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_1_r0) drying   K0 lambda 0.0001: train 0.02566  cv 0.02033  (42 it)
+   (cw_1_r0) drying   K1 lambda 0.0001: train 0.02508  cv 0.01568  (91 it)
+=== memory watch 12:03: free 2.2 GB ===
+   (cw_1_r0) drying   K1 lambda 0.001: train 0.02508  cv 0.01567  (66 it)
+   (cw_1_r0) drying   K1 lambda 0.01: train 0.02508  cv 0.01567  (115 it)
+   (cw_1_r0) drying: lowest cv K1, selected K1 (lambda 0.01)
+   (cw_1_r0) 1 / k_wet: gauge input 3.48 min, radar input 4.15 min
+=== (cw_1_r0): K1 returned; drying K1; 100 % / 100 % of the domain weight within 25 %; flagged 0 of 13; 5.4 min wall, 19.5 min processor; peak memory 2.94 GB ===
+=== (cw_1_r1) seed 3831 (free memory 4.3 GB) 12:05:56 ===
+   (cw_1_r1) wetting  K0 lambda 0.0001: train 0.02693  cv 0.02716  (74 it)
+   (cw_1_r1) wetting  K0 lambda 0.001: train 0.02697  cv 0.02721  (59 it)
+   (cw_1_r1) wetting  K0 lambda 0.01: train 0.02698  cv 0.02722  (83 it)
+   (cw_1_r1) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_1_r1) drying   K0 lambda 0.0001: train 0.02857  cv 0.01795  (52 it)
+=== LOW MEMORY 12:07: free 1.96 GB; grew most since the start: python.exe 0.39 -> 3.04 GB (+2.65); chrome.exe 1.94 -> 2.16 GB (+0.22); Taskmgr.exe 0.00 -> 0.12 GB (+0.12); dwm.exe 0.14 -> 0.19 GB (+0.05); RuntimeBroker.exe 0.06 -> 0.11 GB (+0.05) ===
+   (cw_1_r1) drying   K1 lambda 0.0001: train 0.02845  cv 0.01580  (44 it)
+   (cw_1_r1) drying   K1 lambda 0.001: train 0.02845  cv 0.01585  (33 it)
+   (cw_1_r1) drying   K1 lambda 0.01: train 0.02845  cv 0.01587  (40 it)
+   (cw_1_r1) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_1_r1) 1 / k_wet: gauge input 3.60 min, radar input 1.90 min
+=== (cw_1_r1): K1 returned; drying K1; 91 % / 94 % of the domain weight within 25 %; flagged 0 of 13; 4.8 min wall, 17.1 min processor; peak memory 2.93 GB ===
+=== (cw_1_r2) seed 3832 (free memory 4.4 GB) 12:10:54 ===
+   (cw_1_r2) wetting  K0 lambda 0.0001: train 0.02724  cv 0.02747  (74 it)
+   (cw_1_r2) wetting  K0 lambda 0.001: train 0.02731  cv 0.02755  (58 it)
+   (cw_1_r2) wetting  K0 lambda 0.01: train 0.02734  cv 0.02758  (95 it)
+   (cw_1_r2) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_1_r2) drying   K0 lambda 0.0001: train 0.03108  cv 0.02571  (33 it)
+   (cw_1_r2) drying   K1 lambda 0.0001: train 0.03056  cv 0.02136  (52 it)
+=== memory watch 12:13: free 1.8 GB ===
+   (cw_1_r2) drying   K1 lambda 0.001: train 0.03056  cv 0.02139  (41 it)
+   (cw_1_r2) drying   K1 lambda 0.01: train 0.03056  cv 0.02140  (63 it)
+   (cw_1_r2) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_1_r2) 1 / k_wet: gauge input 3.55 min, radar input 4.42 min
+=== (cw_1_r2): K1 returned; drying K1; 100 % / 100 % of the domain weight within 25 %; flagged 0 of 13; 5.2 min wall, 18.0 min processor; peak memory 2.93 GB ===
+=== (cw_1_r3) seed 3833 (free memory 4.3 GB) 12:16:18 ===
+   (cw_1_r3) wetting  K0 lambda 0.0001: train 0.02781  cv 0.02804  (75 it)
+   (cw_1_r3) wetting  K0 lambda 0.001: train 0.02787  cv 0.02809  (59 it)
+   (cw_1_r3) wetting  K0 lambda 0.01: train 0.02788  cv 0.02811  (86 it)
+   (cw_1_r3) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_1_r3) drying   K0 lambda 0.0001: train 0.03661  cv 0.02592  (27 it)
+=== LOW MEMORY 12:17: free 1.97 GB; grew most since the start: python.exe 0.39 -> 3.04 GB (+2.64); msedge.exe 0.18 -> 0.80 GB (+0.62); Taskmgr.exe 0.00 -> 0.12 GB (+0.12); dwm.exe 0.14 -> 0.19 GB (+0.05); RuntimeBroker.exe 0.06 -> 0.11 GB (+0.05) ===
+   (cw_1_r3) drying   K1 lambda 0.0001: train 0.03605  cv 0.02218  (59 it)
+   (cw_1_r3) drying   K1 lambda 0.001: train 0.03605  cv 0.02221  (44 it)
+   (cw_1_r3) drying   K1 lambda 0.01: train 0.03605  cv 0.02221  (49 it)
+   (cw_1_r3) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_1_r3) 1 / k_wet: gauge input 3.52 min, radar input 5.47 min
+=== (cw_1_r3): K1 returned; drying K1; 91 % / 94 % of the domain weight within 25 %; flagged 0 of 13; 4.6 min wall, 16.9 min processor; peak memory 2.93 GB ===
+=== (cw_1_r4) seed 3834 (free memory 4.4 GB) 12:21:04 ===
+   (cw_1_r4) wetting  K0 lambda 0.0001: train 0.02752  cv 0.02774  (84 it)
+   (cw_1_r4) wetting  K0 lambda 0.001: train 0.02760  cv 0.02782  (68 it)
+   (cw_1_r4) wetting  K0 lambda 0.01: train 0.02763  cv 0.02786  (93 it)
+   (cw_1_r4) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (cw_1_r4) drying   K0 lambda 0.0001: train 0.02461  cv 0.02046  (69 it)
+=== memory watch 12:23: free 1.7 GB ===
+   (cw_1_r4) drying   K1 lambda 0.0001: train 0.02413  cv 0.01685  (77 it)
+   (cw_1_r4) drying   K1 lambda 0.001: train 0.02413  cv 0.01688  (74 it)
+   (cw_1_r4) drying   K1 lambda 0.01: train 0.02413  cv 0.01689  (65 it)
+   (cw_1_r4) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (cw_1_r4) 1 / k_wet: gauge input 3.56 min, radar input 3.88 min
+=== (cw_1_r4): K1 returned; drying K1; 100 % / 100 % of the domain weight within 25 %; flagged 0 of 13; 5.6 min wall, 20.0 min processor; peak memory 2.93 GB ===
+report: research/waa_ksurface/outputs/reports/s3c_a7_variant.md
+=== step 3c ended 2026-11-18 12:26:53 ===
+=== exit 0 at Wed 11/18/2026 12:26:55.26 === 

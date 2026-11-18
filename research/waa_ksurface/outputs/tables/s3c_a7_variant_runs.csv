@@ -1,0 +1,18 @@
+run,seed,true rung,drying rung,K1 gain on L-dryhigh (dB),interval,recovery (k_wet gauge / radar),events flagged,scored values,scored link-events,verdict,minutes,cpu minutes,peak memory (GB)
+g_088,3800,K0,K0,0.00016,-0.00024 to +0.00145,"1 / k_dry 16.7 / 16.6 min, truth 15",0 of 13,3092,139,PASS,5.0,16.6,2.37
+g_150,3801,K0,K0,0.00158,+0.00020 to +0.00410,"1 / k_dry 13.3 / 13.9 min, truth 15",0 of 13,2380,109,PASS,4.9,17.7,2.93
+cw_0.25_r0,3810,K1,K0,0.00168,+0.00110 to +0.00212,86 % / 93 % of the domain weight within 25 %,0 of 13,2160,99,K0 returned,5.0,16.9,2.93
+cw_0.25_r1,3811,K1,K0,0.0017,+0.00039 to +0.00338,91 % / 93 % of the domain weight within 25 %,0 of 13,2756,125,K0 returned,3.6,13.3,2.93
+cw_0.25_r2,3812,K1,K1,0.00665,+0.00469 to +0.00803,95 % / 100 % of the domain weight within 25 %,0 of 13,2266,104,K1 returned,4.1,15.1,2.93
+cw_0.25_r3,3813,K1,K0,0.0006,-0.00084 to +0.00232,95 % / 97 % of the domain weight within 25 %,0 of 13,2844,130,K0 returned,4.2,15.4,2.93
+cw_0.25_r4,3814,K1,K1,0.00454,+0.00203 to +0.00766,100 % / 100 % of the domain weight within 25 %,0 of 13,3139,141,K1 returned,4.1,15.8,2.93
+cw_0.5_r0,3820,K1,K1,0.01051,+0.00558 to +0.01454,100 % / 100 % of the domain weight within 25 %,0 of 13,2963,133,K1 returned,4.2,16.4,2.92
+cw_0.5_r1,3821,K1,K1,0.01949,+0.01063 to +0.02112,91 % / 94 % of the domain weight within 25 %,0 of 13,3060,139,K1 returned,3.9,14.7,2.93
+cw_0.5_r2,3822,K1,K1,0.01299,+0.01193 to +0.01547,100 % / 100 % of the domain weight within 25 %,0 of 13,2135,99,K1 returned,5.7,19.7,2.93
+cw_0.5_r3,3823,K1,K1,0.0071,+0.00577 to +0.00820,100 % / 100 % of the domain weight within 25 %,0 of 13,2035,95,K1 returned,5.6,20.0,2.93
+cw_0.5_r4,3824,K1,K1,0.00734,+0.00464 to +0.01376,100 % / 100 % of the domain weight within 25 %,0 of 13,2021,95,K1 returned,4.9,17.6,2.93
+cw_1_r0,3830,K1,K1,0.02462,+0.02313 to +0.02598,100 % / 100 % of the domain weight within 25 %,0 of 13,1682,81,K1 returned,5.4,19.5,2.94
+cw_1_r1,3831,K1,K1,0.01171,+0.00932 to +0.01310,91 % / 94 % of the domain weight within 25 %,0 of 13,2191,101,K1 returned,4.8,17.1,2.93
+cw_1_r2,3832,K1,K1,0.02011,+0.01727 to +0.02346,100 % / 100 % of the domain weight within 25 %,0 of 13,2983,133,K1 returned,5.2,18.0,2.93
+cw_1_r3,3833,K1,K1,0.01707,+0.01423 to +0.02357,91 % / 94 % of the domain weight within 25 %,0 of 13,2205,103,K1 returned,4.6,16.9,2.93
+cw_1_r4,3834,K1,K1,0.01871,+0.01703 to +0.02313,100 % / 100 % of the domain weight within 25 %,0 of 13,2532,115,K1 returned,5.6,20.0,2.93
