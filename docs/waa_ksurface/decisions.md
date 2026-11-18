@@ -2308,3 +2308,23 @@ link-event (`offset_c_db`) and invalid minutes are NaN. So the flag code reads *
 minutes** of each window (a0: the 10 min around the end of rain; a1: minutes 10–20 after it). A link-event with no valid
 minute in either window is not counted (like a link-event without the 20 bins). On fake data (c = 0, no NaN) the result
 is unchanged (unit test). Seen before writing this: nothing of the real attenuation; only the code of the data layer.
+
+## A7: result — STOP for review (2026-11-18)
+
+Run detached 19:52–21:52, exit 0 (`outputs/reports/a7_real_fit.md`, log `outputs/reports/a7_terminal.log`), procedure of
+Deviation 15. VAL and TEST not read.
+1. **Flag (before any fit):** 13 learning events checked, **0 removed**; E20150831_0455 not checkable.
+2. **k_wet (nuisance, no claim):** 1 / k_wet = 1.74 min (gauge input), 10.92 min (radar input).
+3. **Drying rung: K1**, gain over K0 +0.02013 dB (paired 90 % +0.01525 to +0.02419) against the margin 0.00291 dB; one
+   selection, valid at both estimates. 1 / k_dry (min), gauge / radar estimate, 5–95 % event bootstrap (200 of 200
+   converged at each), union in brackets: W = 0.5 dB 12.2 / 17.1 (8.7–25.0); W = 1 dB 5.4 / 8.4 (4.2–10.9); W = 2 dB
+   6.0 / 8.0 (4.4–11.8); W = 0 81.5 / 95.1 (37.1–278.9).
+4. **Reading (pre-registered, K1):** "non-exponential drying: the drying rate falls as the antenna dries; the mechanism
+   (W-dependent rate or a second, slow store) is not claimed (R5); a spread of the baseline between links is excluded as
+   its cause at the measured size (0.088 dB, step 3c (a) PASS, also at 0.15 dB)." With it: E20150831_0455 not checkable.
+
+**Points for the review (observations, not claims):** (i) both k_wet estimates (1.74, 10.92 min) lie outside the range the
+fake runs gave (3.3–6.5 min), so the real data sit outside the k_wet range where the procedure was validated; (ii) the
+fitted K1 curve is not monotone between W = 1 and 2 dB (5.4 → 6.0 and 8.4 → 8.0 min), within the bootstrap intervals;
+(iii) 1 / k_dry at W = 0 is poorly constrained (interval 37–279 min). Memory fell to 0.72 GB during the bootstraps
+(Discord and Chrome grew); no part died.

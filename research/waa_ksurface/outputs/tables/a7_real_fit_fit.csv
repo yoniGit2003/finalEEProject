@@ -1,0 +1,3 @@
+k_wet estimate,1/k_wet (min),1/k_dry at W = 0 dB (min),1/k_dry at W = 0.5 dB (min),1/k_dry at W = 1 dB (min),1/k_dry at W = 2 dB (min),bootstrap draws converged
+gauge,1.74,81.5 (37.1 to 252.7),12.2 (8.7 to 17.7),5.4 (4.2 to 7.3),6.0 (4.4 to 9.3),200 of 200
+radar,10.92,95.1 (45.3 to 278.9),17.1 (12.1 to 25.0),8.4 (6.6 to 10.9),8.0 (5.2 to 11.8),200 of 200

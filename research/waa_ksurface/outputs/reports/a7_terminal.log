@@ -1,3 +1,70 @@
 === launcher started Wed 11/18/2026 19:52:08.43 === 
 === A7 flag: 13 learning events checked; removed 0: none ===
 === exit 0 at Wed 11/18/2026 19:52:20.76 === 
+=== launcher started Wed 11/18/2026 19:52:34.95 === 
+=== A7 started 2026-11-18 19:52:42; free memory 2.7 GB ===
+=== keep-awake (ES_CONTINUOUS | ES_SYSTEM_REQUIRED): on ===
+=== (A7 fit) (free memory 2.7 GB) 19:52:42 ===
+   (A7) wetting  K0 lambda 0.0001: train 0.07461  cv 0.07519  (74 it)
+   (A7) wetting  K0 lambda 0.001: train 0.07555  cv 0.07613  (97 it)
+=== memory watch 19:53: free 2.5 GB ===
+   (A7) wetting  K0 lambda 0.01: train 0.07595  cv 0.07684  (128 it)
+   (A7) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+=== LOW MEMORY 19:54: free 1.93 GB; grew most since the start: python.exe 0.39 -> 2.45 GB (+2.06); svchost.exe 0.81 -> 0.83 GB (+0.02); ChatGPT.exe 0.78 -> 0.79 GB (+0.00); AvastSvc.exe 0.35 -> 0.35 GB (+0.00); msedgewebview2.exe 0.74 -> 0.74 GB (+0.00) ===
+   (A7) drying   K0 lambda 0.0001: train 0.10498  cv 0.08306  (84 it)
+   (A7) drying   K1 lambda 0.0001: train 0.10395  cv 0.07506  (99 it)
+   (A7) drying   K1 lambda 0.001: train 0.10432  cv 0.07646  (128 it)
+   (A7) drying   K1 lambda 0.01: train 0.10439  cv 0.07679  (180 it)
+   (A7) drying: lowest cv K1, selected K1 (lambda 0.0001)
+   (A7) 1 / k_wet: gauge input 1.74 min, radar input 10.92 min
+=== (A7) drying K1; K1 gain +0.02013 dB (+0.01525 to +0.02419); 1/k_wet gauge 1.74 / radar 10.92 min (nuisance) ===
+=== (A7) 1/k_dry at the gauge estimate: W 0: 81.5, W 0.5: 12.2, W 1: 5.4, W 2: 6.0 min ===
+=== (A7) 1/k_dry at the radar estimate: W 0: 95.1, W 0.5: 17.1, W 1: 8.4, W 2: 8.0 min ===
+=== (A7 fit) done: 7.9 min; peak memory 2.38 GB ===
+=== (A7 boot_gauge) (free memory 3.8 GB) 20:00:49 ===
+=== memory watch 20:03: free 2.5 GB ===
+   (A7) [k_wet gauge estimate] bootstrap 20 of 200 (3.8 min)
+   (A7) [k_wet gauge estimate] bootstrap 40 of 200 (8.0 min)
+   (A7) [k_wet gauge estimate] bootstrap 60 of 200 (12.3 min)
+=== memory watch 20:13: free 2.3 GB ===
+=== LOW MEMORY 20:15: free 1.36 GB; grew most since the start: python.exe 0.39 -> 1.80 GB (+1.41); Discord.exe 0.00 -> 0.97 GB (+0.97); PhoneExperienceHost.exe 0.00 -> 0.05 GB (+0.05); svchost.exe 0.81 -> 0.83 GB (+0.02); msedgewebview2.exe 0.74 -> 0.76 GB (+0.02) ===
+   (A7) [k_wet gauge estimate] bootstrap 80 of 200 (17.2 min)
+   (A7) [k_wet gauge estimate] bootstrap 100 of 200 (22.1 min)
+=== memory watch 20:23: free 1.1 GB ===
+=== LOW MEMORY 20:25: free 0.90 GB; grew most since the start: python.exe 0.39 -> 1.80 GB (+1.41); Discord.exe 0.00 -> 0.96 GB (+0.96); PanGpHipMp.exe 0.00 -> 0.18 GB (+0.18); audiodg.exe 0.01 -> 0.09 GB (+0.08); RuntimeBroker.exe 0.10 -> 0.15 GB (+0.05) ===
+   (A7) [k_wet gauge estimate] bootstrap 120 of 200 (27.1 min)
+   (A7) [k_wet gauge estimate] bootstrap 140 of 200 (32.3 min)
+=== memory watch 20:33: free 2.0 GB ===
+=== LOW MEMORY 20:35: free 0.79 GB; grew most since the start: python.exe 0.39 -> 1.80 GB (+1.41); Discord.exe 0.00 -> 1.34 GB (+1.34); chrome.exe 2.60 -> 3.04 GB (+0.44); audiodg.exe 0.01 -> 0.09 GB (+0.08); svchost.exe 0.81 -> 0.84 GB (+0.03) ===
+   (A7) [k_wet gauge estimate] bootstrap 160 of 200 (38.8 min)
+=== memory watch 20:43: free 1.2 GB ===
+=== LOW MEMORY 20:46: free 1.41 GB; grew most since the start: python.exe 0.39 -> 1.80 GB (+1.41); Discord.exe 0.00 -> 1.25 GB (+1.25); chrome.exe 2.60 -> 3.43 GB (+0.83); audiodg.exe 0.01 -> 0.09 GB (+0.08); PhoneExperienceHost.exe 0.00 -> 0.05 GB (+0.05) ===
+   (A7) [k_wet gauge estimate] bootstrap 180 of 200 (45.0 min)
+   (A7) [k_wet gauge estimate] bootstrap 200 of 200 (50.5 min)
+=== (A7 boot_gauge) done: 50.5 min; peak memory 1.70 GB ===
+=== (A7 boot_radar) (free memory 1.8 GB) 20:51:36 ===
+=== memory watch 20:54: free 0.8 GB ===
+=== LOW MEMORY 20:56: free 1.38 GB; grew most since the start: python.exe 0.39 -> 1.80 GB (+1.41); Discord.exe 0.00 -> 1.36 GB (+1.36); chrome.exe 2.60 -> 3.41 GB (+0.81); audiodg.exe 0.01 -> 0.09 GB (+0.08); msedgewebview2.exe 0.74 -> 0.80 GB (+0.06) ===
+   (A7) [k_wet radar estimate] bootstrap 20 of 200 (4.8 min)
+   (A7) [k_wet radar estimate] bootstrap 40 of 200 (9.4 min)
+=== memory watch 21:04: free 1.0 GB ===
+=== LOW MEMORY 21:06: free 1.17 GB; grew most since the start: python.exe 0.39 -> 1.80 GB (+1.41); Discord.exe 0.00 -> 1.28 GB (+1.28); chrome.exe 2.60 -> 3.76 GB (+1.16); audiodg.exe 0.01 -> 0.09 GB (+0.08); aswEngSrv.exe 0.20 -> 0.22 GB (+0.02) ===
+   (A7) [k_wet radar estimate] bootstrap 60 of 200 (14.8 min)
+   (A7) [k_wet radar estimate] bootstrap 80 of 200 (19.7 min)
+=== memory watch 21:14: free 1.0 GB ===
+=== LOW MEMORY 21:16: free 0.90 GB; grew most since the start: chrome.exe 2.60 -> 4.07 GB (+1.47); python.exe 0.39 -> 1.80 GB (+1.41); Discord.exe 0.00 -> 1.32 GB (+1.32); audiodg.exe 0.01 -> 0.09 GB (+0.08); PhoneExperienceHost.exe 0.00 -> 0.05 GB (+0.05) ===
+   (A7) [k_wet radar estimate] bootstrap 100 of 200 (24.9 min)
+   (A7) [k_wet radar estimate] bootstrap 120 of 200 (29.5 min)
+=== memory watch 21:24: free 1.5 GB ===
+=== LOW MEMORY 21:26: free 1.52 GB; grew most since the start: chrome.exe 2.60 -> 4.05 GB (+1.45); python.exe 0.39 -> 1.80 GB (+1.41); Discord.exe 0.00 -> 1.01 GB (+1.01); PanGpHipMp.exe 0.00 -> 0.18 GB (+0.18); svchost.exe 0.81 -> 0.87 GB (+0.06) ===
+   (A7) [k_wet radar estimate] bootstrap 140 of 200 (35.7 min)
+=== memory watch 21:34: free 2.5 GB ===
+   (A7) [k_wet radar estimate] bootstrap 160 of 200 (43.9 min)
+   (A7) [k_wet radar estimate] bootstrap 180 of 200 (52.2 min)
+=== memory watch 21:44: free 2.2 GB ===
+=== LOW MEMORY 21:46: free 1.98 GB; grew most since the start: python.exe 0.39 -> 1.80 GB (+1.41); chrome.exe 2.60 -> 3.86 GB (+1.26); Discord.exe 0.00 -> 0.87 GB (+0.87); LogonUI.exe 0.00 -> 0.05 GB (+0.05); PhoneExperienceHost.exe 0.00 -> 0.05 GB (+0.05) ===
+   (A7) [k_wet radar estimate] bootstrap 200 of 200 (60.1 min)
+=== (A7 boot_radar) done: 60.2 min; peak memory 1.70 GB ===
+report: research/waa_ksurface/outputs/reports/a7_real_fit.md
+=== A7 ended 2026-11-18 21:52:06 ===
+=== exit 0 at Wed 11/18/2026 21:52:08.15 === 
