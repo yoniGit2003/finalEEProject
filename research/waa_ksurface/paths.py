@@ -175,3 +175,9 @@ S3C_DETECT = TABLES / "s3c_a7_variant_detectability.csv"       # per ratio: repl
 S3C_COVERAGE = TABLES / "s3c_a7_variant_flag_coverage.csv"     # the 14 learning events: short link-events with a tail, checkable
 S3C_REPORT = REPORTS / "s3c_a7_variant.md"
 S3C_LOG = REPORTS / "s3c_terminal.log"                         # the terminal output of the detached run
+
+# ---- step 3d: the A7 procedure with 1 / k_wet fixed, s3d_kwet_fixed.py --------------------------------------------------
+S3D_RUNS = TABLES / "s3d_kwet_fixed_runs.csv"                  # every replicate and 1 / k_wet: drying rung, K1 gain, 1 / k_dry, verdict
+S3D_CV = TABLES / "s3d_kwet_fixed_cv.csv"                      # every replicate, 1 / k_wet, rung and lambda: train loss, held-out error
+S3D_REPORT = REPORTS / "s3d_kwet_fixed.md"
+S3D_LOG = REPORTS / "s3d_terminal.log"

@@ -196,3 +196,9 @@ s3c:                                            # step 3c: fake runs of the A7 p
   min_free_start_gb: 1.5                        # execution setting (user, 2026-11-18): the run does not start with less free memory
   min_free_gb: 1.5                              # execution setting (user, 2026-11-18): no child is started with less free memory
   memory_log_minutes: 10                        # the memory log, every 10 min
+
+s3d:                                            # step 3d: the A7 procedure with 1 / k_wet fixed (decisions.md, written before the code)
+  seed: 3840                                    # fresh: (a) r0, r1 = 3840, 3841; (c) r0, r1 = 3842, 3843
+  replicates: 2
+  tau_wet_min: [2.5, 5.0, 10.0]                 # 1 / k_wet held at these values (R3 revised); A7 uses the same list
+  min_free_gb: 1.5                              # execution setting of step 3c (user, 2026-11-18)
