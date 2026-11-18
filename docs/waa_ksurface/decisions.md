@@ -2093,3 +2093,52 @@ store not identifiable with this data", P5 becomes R5, B3's 0.10 dB threshold re
   01:55:23 ===", written by that regeneration, after the real end of the run (01:54:35, exit 0). The log is not edited.
 - The first launch (2026-11-16 14:27) did not start: free memory 3.8 GB, below the 4.0 GB rule (logged in the same file).
   During the run free memory fell to 0.48 GB once (other programs; they were closed); no run was affected.
+
+## Deviation 14: A7 uses the learning events only (2026-11-18, logged before any run of it)
+
+**Text of the review.** "From step 3b, the drying fit in A7 uses the 14 learning events only (S1 'current' variant,
+margin 0.00291 dB on L-dryhigh); the extended variant is dropped because the flag cannot see the added events (catch
+rate 1 of 7). Restrictions: R5 (a returned K1 does not separate a W-dependent rate from a second store; B3 retired), R6
+(unseen water in the added events is unchecked, so they are not used)."
+
+**Disclosure.** Made after seeing step 3b (`f_added`: unseen water in 7 added events, caught 1 of 7, drying K1 where the
+truth is K0; (g) at 0.24 dB: K1). Hence a deviation. The restriction itself was written before the run (addition to
+Deviation 12: "otherwise A7 falls back to the learning events"); this entry makes it the procedure.
+
+**What changes.**
+- **Variant:** S1 "current": the 14 TRAIN events with a gauge ratio. The 37 added events take no part in either stage
+  or in the scored set (`use` = learning and not flagged; stage-2 values = the counted values of those link-events;
+  scored = L-dryhigh of those link-events). Margin = the largest (a) gain on L-dryhigh, current variant, in S1:
+  **0.00291 dB** (it replaces 0.00195 dB, which belonged to the extended variant).
+- Everything else as in step 3b: tail flag before any fit (learning events), drying K0 vs K1 on L-dryhigh with a paired
+  90 % interval that excludes zero, wetting K0 not judged, extension free, k_wet as in step 3b.
+- **R5** (adopted, from step 3b B3'): a returned drying K1 does not separate a W-dependent rate from a second, slow
+  store; it is named "non-exponential drying: the drying rate falls as the antenna dries"; no second store is claimed or
+  excluded. B3 (and its 0.10 dB threshold) is retired.
+- **R6** (new): unseen water in the 37 added events cannot be checked by the flag (10 of 51 events are not checkable at
+  all, and on the added events it caught 1 of 7), so the added events are not used.
+- **The detectability of step 3b does not carry over:** it was measured on the extended variant (51 events in stage 2,
+  scored set about twice as large, margin 0.00195 dB); the current variant has fewer scored values and a larger margin
+  (0.00291 dB), so its smallest detectable ratio must be measured again (step 3c b).
+
+## Step 3c: fake runs of the A7 procedure (2026-11-18, written before the code)
+
+Script `s3c_a7_variant.py` (new; reuses `s3b_recovery.py` for the flag, the fits and the judging; only the variant
+changes). Fresh seeds from **3800**. Fake data only; no real attenuation is read. VAL and TEST are not opened.
+
+- **(a) Link spread, K0 truth** (k_wet = 1/5, k_dry = 1/15, truth (g) with its level shift per link): `g_088` at the
+  MEASURED between-link sd **0.088 dB** (E4; it is also the default noise, so this is truth (a) on a fresh seed), seed 3800,
+  run first; `g_150` at **0.15 dB** (the E4 threshold), seed 3801. **PASS** if drying returns K0 and 1 / k_dry is within
+  25 % of 15 min at both ends of the k_wet interval (gauge and radar estimates), at each spread. **STOP** if `g_088` returns
+  a false K1: the per-link question is then reopened by measurement, and nothing after it is run.
+- **(b) Detectability for the A7 variant:** k_dry = (1/15)·(1 + a·W) / (1 + a), k_wet = 1/5; ratio k(W = 2 dB) /
+  k(W = 0) = 1 + 2a = **1.5, 2, 3** (a = 0.25, 0.5, 1); **five replicates each, no early stop**; seed 3810 + 10·(position
+  of a in [0.25, 0.5, 1]) + replicate (3810–3814, 3820–3824, 3830–3834). Detected = drying K1 in at least 4 of 5. Reported:
+  the smallest ratio detected. Run only if (a) does not STOP.
+- **(c) The flag on the 14 learning events:** checkable = an event with at least 5 short-link link-events that have the
+  20 bins after the end of rain the flag needs (from the event timing only; no attenuation). **Removed on real data:**
+  the flag decides from the attenuation at the end of the rain (a0, a1), and real attenuation is not read before A7, so the
+  removal count on real data is NOT made in step 3c; it is the first number of A7, reported before any fit. Flagged for
+  the review.
+- **Execution** as step 3b: one detached process, one child per run, cached in `research/.cache/waa_ksurface/s3c_a7_variant/`,
+  log `outputs/reports/s3c_terminal.log`, keep-awake, the same memory rules.
