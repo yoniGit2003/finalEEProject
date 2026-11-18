@@ -156,6 +156,9 @@ def report(R, cov, state, stopped):
     sp = runs[runs.run.isin(list(SPREAD))]
     if len(sp):
         L += ["## (a) The link spread (truth K0, 1 / k_dry = 15 min)\n",
+              "Every fake truth of A6, S1, step 3 and step 3b already carried a level shift per link of sd 0.088 dB, the measured spread (E4), as part "
+              "of the default noise; so `g_088` is truth (a) on a fresh seed under the A7 procedure, and every truth that passed so far passed at the "
+              "measured link spread. It is run first because its STOP rule is new.\n",
               md_table(sp.assign(**{"link sd (dB)": sp.run.map(SPREAD)})[["run", "link sd (dB)", "seed", "drying rung", "K1 gain on L-dryhigh (dB)", "interval",
                                                                         "recovery (k_wet gauge / radar)", "events flagged", "scored values", "verdict"]]), ""]
     if stopped:
@@ -228,13 +231,21 @@ def main():
             if only_report or state["incomplete"]:
                 return None
             free = psutil.virtual_memory().available / GB
-            need = max(C["min_free_gb"], state["peak"])
+            need = C["min_free_gb"]                             # execution setting (decisions.md): no peak term; a run that dies resumes from the cache
             if free < need:
                 state["incomplete"] = f"free memory {free:.1f} GB is below the {need:.1f} GB a run needs: stopped before ({name})"
                 log("=== " + state["incomplete"] + " ===")
                 return None
             log(f"=== ({name}) seed {spec_seed(name)[1]} (free memory {free:.1f} GB) {time.strftime('%H:%M:%S')} ===")
-            subprocess.run([sys.executable, "-u", "-m", "research.waa_ksurface.s3c_a7_variant", "--one", name], check=True)
+            before = s3b.programs()
+            rc = subprocess.run([sys.executable, "-u", "-m", "research.waa_ksurface.s3c_a7_variant", "--one", name]).returncode
+            if rc != 0:                                         # the child died (e.g. out of memory): say which programs grew, stop cleanly
+                cur = s3b.programs()
+                grew = sorted(((cur[n] - before.get(n, 0.0), n) for n in cur), reverse=True)[:5]
+                state["incomplete"] = (f"({name}) died with exit code {rc}; free memory {psutil.virtual_memory().available / GB:.1f} GB; "
+                                       "grew most during it: " + "; ".join(f"{n} {g:+.2f} GB" for g, n in grew))
+                log("=== " + state["incomplete"] + " ===")
+                return None
         r = pickle.loads(f.read_bytes())
         state["peak"] = max(state["peak"], r.get("peak_gb", 0.0))
         R[name] = r

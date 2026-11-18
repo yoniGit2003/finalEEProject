@@ -193,5 +193,6 @@ s3c:                                            # step 3c: fake runs of the A7 p
   variant: current                              # Deviation 14: the 14 learning events only (margin 0.00291 dB)
   detect_sizes: [0.25, 0.5, 1.0]                # ratio k(W = 2 dB) / k(W = 0) = 1 + 2a = 1.5, 2, 3
   replicates: 5                                 # five per ratio, no early stop
-  min_free_start_gb: 4.0                        # the memory rules of step 3b
-  min_free_gb: 2.0
+  min_free_start_gb: 1.5                        # execution setting (user, 2026-11-18): the run does not start with less free memory
+  min_free_gb: 1.5                              # execution setting (user, 2026-11-18): no child is started with less free memory
+  memory_log_minutes: 10                        # the memory log, every 10 min

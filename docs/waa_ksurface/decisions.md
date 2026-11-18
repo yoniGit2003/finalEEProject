@@ -2142,3 +2142,12 @@ changes). Fresh seeds from **3800**. Fake data only; no real attenuation is read
   the review.
 - **Execution** as step 3b: one detached process, one child per run, cached in `research/.cache/waa_ksurface/s3c_a7_variant/`,
   log `outputs/reports/s3c_terminal.log`, keep-awake, the same memory rules.
+
+**Step 3c, execution setting (2026-11-18, before launch; not a scientific deviation).** By the user's decision the
+free-memory rules of step 3c are lowered: the run starts with at least **1.5 GB** free (was 4 GB), and a child run is
+started with at least 1.5 GB free (was max(2 GB, the largest peak so far)). Reason: the runs peak at about 3 GB and a run
+that dies resumes from the cache, so a low-memory failure costs at most one run (about 4 min). If a child dies, the parent
+logs which programs grew during it and stops cleanly; the run is then resumed from the cache. The memory log every 10 min
+is kept. Nothing of the procedure, the truths or the seeds changes. Also added to the report before launch: every fake
+truth so far already carried the measured link spread (0.088 dB, the default noise), so `g_088` is truth (a) on a fresh
+seed; it is still run first, with its STOP rule.
