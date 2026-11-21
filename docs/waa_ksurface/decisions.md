@@ -2460,3 +2460,16 @@ look like the measured slowing (ratio 0.23)? Fake data only; no fit of any kind 
   Otherwise "explained": then we stop to rethink. The real slowing counts as not explained only if both truths say so;
   if they differ, that is reported as it is.
 - Then STOP.
+
+### Result of the control (run 2026-11-22, exit 0; report `reports/a7_dryshape_control.md`)
+
+Fake K0 truths, no fit. Median ratio (90 %), offsets on: G (8.88 min) 0.296 (0.229-0.375), 413 windows; ≥ 1 dB 0.615
+(0.528-0.685, 42 windows); < 1 dB 0.254 (0.200-0.313, 371). R (13.22 min) 0.436 (0.309-0.578), 435; ≥ 1 dB 0.883
+(0.674-0.996, 38); < 1 dB 0.382 (0.284-0.450, 397). Offsets off: G 20 windows kept, 0.098 (−0.134 to 0.407); R 76 kept,
+0.721 (0.541-0.838).
+- Pre-registered reading: neither fake interval contains 1; the real medians lie below the fake intervals in both classes
+  for both truths, so **"not explained by offset and selection"** at both truths.
+- Stated with it: exponential drying alone, through this selection with offsets and the 0.3 dB grid, already gives a ratio
+  far below 1 (0.30 / 0.44), and the offsets are what puts most windows above 0.15 dB (480 / 562 kept with them, 20 / 76
+  without). Overall, the real 0.227 is just below the G interval (lower end 0.229); the clear separation is in the ≥ 1 dB
+  class (real 0.347 vs fake 0.53-0.68 and 0.67-1.00), which has far fewer fake windows (42 / 38) than real (199).
