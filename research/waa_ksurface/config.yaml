@@ -224,3 +224,7 @@ a7d:                                            # diagnostic of the dry-path con
   class_db: 1.0                                 # start-level classes: first dry bin >= / < this
   boot_reps: 1000
   boot_seed: 3901
+a7c:                                            # control for the within-window ratio (decisions.md, logged before the run)
+  truths:                                       # K0 truths: the two A7 K0 pairs (gauge / radar k_wet estimate)
+    G: {tau_dry_min: 8.88, tau_wet_min: 1.74, seed: 3920}
+    R: {tau_dry_min: 13.22, tau_wet_min: 10.92, seed: 3921}

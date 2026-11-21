@@ -200,3 +200,5 @@ A7R_LOG = REPORTS / "a7_review_terminal.log"
 A7D_WIN = TABLES / "a7_dryshape_windows.csv"                   # dry-path diagnostic: per window rates, ratios, levels (measured, K1, K0)
 A7D_SUM = TABLES / "a7_dryshape_summary.csv"                   # per estimate and class: median ratios, level and rate errors, intervals
 A7D_REPORT = REPORTS / "a7_dryshape.md"
+A7C_TABLE = TABLES / "a7_dryshape_control.csv"                 # control: fake K0 truths, offsets on / off: windows, median ratio, intervals
+A7C_REPORT = REPORTS / "a7_dryshape_control.md"
