@@ -2423,3 +2423,17 @@ Real TRAIN data of the 14 learning events (A7 flag, 0 removed). VAL and TEST are
   at the first dry bin; decay-rate error = median ratio(model) − median ratio(measured), the ratio of (1).
 - **(4)** 1 / k_dry of the K0 refit (min) at each estimate (K0 has one drying rate), with the A7 K1 values beside it.
 - Then STOP.
+
+### Result of the dry-path diagnostic (run 2026-11-22, exit 0; report `reports/a7_dryshape.md`)
+
+No refitting; nothing selected. 1073 windows (13 events) kept; 757 (gauge) / 752 (radar) with all three ratios. 310 dropped
+because the measured early rate is ≤ 0 (A − c not falling over 5-15 min).
+- (1) Median ratio rate(late)/rate(early): measured 0.227 (90 % 0.108-0.339); K1 0.653 (gauge) / 0.695 (radar); K0 1.000.
+  The measured drying slows within a window much more than K1 does; K0 is exponential by construction.
+- (2) ≥ 1 dB: 199 / 197 windows, measured ratio 0.347; < 1 dB: 558 / 555 windows, measured ratio 0.156-0.159.
+- (3) Level error at the first dry bin: K1 −0.28 / −0.29 dB, K0 −0.34 / −0.35 dB (≥ 1 dB class about −1.0 dB for both).
+  Rate error: K1 +0.43 / +0.47, K0 +0.77 (both classes the same order, K1 nearer). On these windows K1 is nearer in shape
+  and level; both start too low.
+- (4) K0 1/k_dry: 8.88 min (gauge), 13.22 min (radar). K1 (A7 fit.pkl): 81.5 / 12.2 / 5.4 / 6.0 min (gauge) and
+  95.1 / 17.1 / 8.4 / 8.0 min (radar) at W = 0 / 0.5 / 1 / 2 dB. The 95.1 vs 94.9 min of review table (2) at the radar
+  estimate at W = 0: A7's own radar refit vs the review's refit of the same rung.
