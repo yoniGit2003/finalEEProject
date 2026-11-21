@@ -2437,3 +2437,26 @@ because the measured early rate is ≤ 0 (A − c not falling over 5-15 min).
 - (4) K0 1/k_dry: 8.88 min (gauge), 13.22 min (radar). K1 (A7 fit.pkl): 81.5 / 12.2 / 5.4 / 6.0 min (gauge) and
   95.1 / 17.1 / 8.4 / 8.0 min (radar) at W = 0 / 0.5 / 1 / 2 dB. The 95.1 vs 94.9 min of review table (2) at the radar
   estimate at W = 0: A7's own radar refit vs the review's refit of the same rung.
+
+## Control for the within-window ratio (2026-11-22, logged before any run of it)
+
+Asked after the dry-path diagnostic: can baseline offsets plus the window selection alone make a plain exponential drying
+look like the measured slowing (ratio 0.23)? Fake data only; no fit of any kind (real or fake). Script `a7_dryshape_control.py`.
+
+- **Fake world.** The step 3c / A7 fake world (`fake6.make` as in `s3c_a7_variant.run_one`: the TRAIN links and storms, the
+  fake F and P, the radar scaling of the added events, radar and gauge inputs with their errors). Truth K0 (kind `const`),
+  two truths, each the A7 K0 pair it comes from: (G) 1/k_dry 8.88 min with 1/k_wet 1.74 min (gauge estimate), (R) 1/k_dry
+  13.22 min with 1/k_wet 10.92 min (radar estimate). One dataset per truth, seeds 3920 (G) and 3921 (R).
+- **Noise.** As in step 3c: an offset error per link-event, normal, sd 0.136 dB (measured in E3; median 0, 10-90 % −0.17 to
+  +0.17 dB), the link shift (sd 0.088 dB), white noise (0.072 dB per minute), the 0.3 dB grid. "Offsets off" = the same
+  dataset with the offset sd set to 0 (same random numbers drawn, so the same storms and truth); everything else unchanged.
+- **Windows and ratio: exactly the diagnostic's** (`a7_dryshape.windows`, `ratios`, the same config `a7d`): the learning
+  events (no flag: the A7 flag removed none), the dry-path rule of review check (5) on the radar input the fake gives,
+  A − c > 0.15 dB in all six bins 5-30 min, a ratio only where the early rate > 0. Median ratio with the 90 % event
+  bootstrap (1000 draws, seed 3901), all windows and per class (first dry bin ≥ 1 dB / < 1 dB), with n.
+- **Reading (pre-registered, from the request).** Per truth, with offsets on: "not explained by offset and selection" if the
+  fake K0 ratio's interval (all windows) contains 1, or if the real median lies below the fake interval in both classes
+  (real medians of the same class: 0.347 for ≥ 1 dB, 0.156 / 0.159 for < 1 dB, gauge / radar; the overall 0.227 shown beside).
+  Otherwise "explained": then we stop to rethink. The real slowing counts as not explained only if both truths say so;
+  if they differ, that is reported as it is.
+- Then STOP.
