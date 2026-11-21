@@ -1,0 +1,7 @@
+F curve,k_wet estimate,1/k_wet (min),drying rung,K1 gain (dB),paired 90 % interval,margin (dB),1/k_dry at W = 0 dB (min),1/k_dry at W = 0.5 dB (min),1/k_dry at W = 1 dB (min),1/k_dry at W = 2 dB (min)
+F as measured (A7),gauge,1.74,K1,0.02013,+0.01525 to +0.02419,0.00291,81.5,12.2,5.4,6.0
+F as measured (A7),radar,10.92,K1,0.01837,+0.01378 to +0.02293,0.00291,94.9,17.1,8.4,8.0
+F at the lower ends (I_lo),gauge,1.74,K1,0.02013,+0.01465 to +0.02551,0.00291,144.7,20.7,9.0,8.6
+F at the lower ends (I_lo),radar,6.84,K1,0.0186,+0.01329 to +0.02429,0.00291,163.5,24.5,11.0,9.8
+F at the upper ends (I_hi),gauge,1.75,K1,0.02144,+0.01677 to +0.02504,0.00291,73.7,7.8,3.0,3.5
+F at the upper ends (I_hi),radar,17.39,K1,0.01751,+0.01288 to +0.02152,0.00291,77.6,13.8,6.6,5.6

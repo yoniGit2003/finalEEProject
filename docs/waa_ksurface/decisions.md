@@ -2390,3 +2390,13 @@ drying K0 fit of (2) at the same k_wet estimate, all used data), on the same val
 blocks of 10 draws per estimate, each draw cached), cache `research/.cache/waa_ksurface/a7_review/`, log
 `outputs/reports/a7_review_terminal.log`, keep-awake, free-memory floor 1.5 GB, memory log every 10 min. Order: `sel_mid`
 (with its STOP rule), `dry`, `sel_flo`, `sel_fhi`, bootstrap gauge, bootstrap radar. Then STOP for the review.
+
+### Result of the A7 review (run 2026-11-21, exit 0; report `reports/a7_review.md`)
+
+The A7 result is unchanged; nothing below selects or alters it.
+- (1) No deviation (addendum committed 19:51:30 / 19:52:02, first real read 19:52:08).
+- (2) Code check REPRODUCED (2.2e-16). Rung K1 at the gauge estimate (gain +0.02013, 90 % +0.01525 to +0.02419) and K1 at the radar estimate (+0.01837, +0.01378 to +0.02293), margin 0.00291. Same rung, so "rung not determined" does not apply. The radar selection carries the Deviation 15 caveat.
+- (3) 50 draws per estimate (seed 3900): K1 in 50 of 50 at both (share 1.0). 1/k_dry 90 % intervals (A7, 200 draws) at W = 0.5 / 1 / 2 dB: gauge 8.7-17.7 / 4.2-7.3 / 4.4-9.3 min; radar 12.1-25.0 / 6.6-10.9 / 5.2-11.8 min.
+- (4) F at I_lo: K1 at both; 1/k_dry 20.7 / 9.0 / 8.6 (gauge), 24.5 / 11.0 / 9.8 (radar). F at I_hi: K1 at both; 7.8 / 3.0 / 3.5 (gauge), 13.8 / 6.6 / 5.6 (radar). The rung does not move; 1/k_dry moves by about a factor 2 across F.
+- (5) Dry-path check (not a selection): K1 is above the measured median by +0.06 to +0.12 dB at 5-30 min; the K0 refit is within 0.05 dB (−0.051 to +0.037). The check favours K0 although the CV selection picks K1. This is reported, not acted on.
+- Execution: lowest free memory 0.51 GB, 21 low-memory events; all parts completed and cached.
