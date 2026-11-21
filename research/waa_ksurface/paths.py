@@ -189,3 +189,11 @@ A7_CV = TABLES / "a7_real_fit_cv.csv"                           # the stage tabl
 A7_EXT = TABLES / "a7_real_fit_extension.csv"                   # the extension knots (EFFECTIVE, R1)
 A7_REPORT = REPORTS / "a7_real_fit.md"
 A7_LOG = REPORTS / "a7_terminal.log"
+
+# ---- review of A7, a7_review.py --------------------------------------------------------------------------------------------
+A7R_RUNGS = TABLES / "a7_review_rungs.csv"                      # (2), (4): per F curve and k_wet estimate: rung, K1 gain vs margin, 1 / k_dry
+A7R_CV = TABLES / "a7_review_cv.csv"                            # (2), (4): the stage-2 tables (every rung and lambda)
+A7R_BOOT = TABLES / "a7_review_boot.csv"                        # (3): every draw and estimate: selected rung, gain, 1 / k_dry
+A7R_DRY = TABLES / "a7_review_dry.csv"                          # (5): per estimate and lag: n, medians measured / K1 / K0, errors
+A7R_REPORT = REPORTS / "a7_review.md"
+A7R_LOG = REPORTS / "a7_review_terminal.log"
