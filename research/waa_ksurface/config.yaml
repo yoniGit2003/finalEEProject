@@ -216,3 +216,11 @@ a7r:                                            # review of A7 (decisions.md, "R
   dry_lags_min: [5, 10, 20, 30]                 # (5) the bin that ends this many minutes after the path went dry
   rain_before_min: 10                           # (5) at least this many minutes with radar input >= dry_below_mmh before
   min_free_gb: 1.5                              # execution setting of step 3c
+a7d:                                            # diagnostic of the dry-path conflict (decisions.md, logged before the run)
+  lags_min: [5, 10, 15, 20, 25, 30]             # the bins ending this many minutes after the path went dry
+  early_min: [5, 10, 15]                        # bins of the early-half fit of ln(A - c)
+  late_min: [15, 20, 25, 30]                    # bins of the late-half fit
+  min_level_db: 0.15                            # measured A - c above this in every bin of the window
+  class_db: 1.0                                 # start-level classes: first dry bin >= / < this
+  boot_reps: 1000
+  boot_seed: 3901
