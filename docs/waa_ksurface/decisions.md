@@ -2400,3 +2400,26 @@ The A7 result is unchanged; nothing below selects or alters it.
 - (4) F at I_lo: K1 at both; 1/k_dry 20.7 / 9.0 / 8.6 (gauge), 24.5 / 11.0 / 9.8 (radar). F at I_hi: K1 at both; 7.8 / 3.0 / 3.5 (gauge), 13.8 / 6.6 / 5.6 (radar). The rung does not move; 1/k_dry moves by about a factor 2 across F.
 - (5) Dry-path check (not a selection): K1 is above the measured median by +0.06 to +0.12 dB at 5-30 min; the K0 refit is within 0.05 dB (−0.051 to +0.037). The check favours K0 although the CV selection picks K1. This is reported, not acted on.
 - Execution: lowest free memory 0.51 GB, 21 low-memory events; all parts completed and cached.
+
+## Diagnostic of the dry-path conflict (2026-11-22, logged before any run of it)
+
+Asked after the A7 review: why the dry-path check favours K0 while the CV selection picks K1. A diagnostic only: no refitting,
+no selection, the A7 result and every fit are read from the caches (A7 `fit.pkl` for K1, the K0 refit of `a7_review/sel_mid.pkl`).
+Real TRAIN data of the 14 learning events (A7 flag, 0 removed). VAL and TEST are not opened. Script `a7_dryshape.py`.
+
+- **Windows.** The dry-path windows of review check (5), at the 5 min resolution of the model output: the path went dry at
+  the end of bin `le_last`, at least 10 wet minutes before, and the bins ending 5, 10, 15, 20, 25 and 30 min after are all
+  radar-dry, counted and finite. A window is kept if the measured A − c > 0.15 dB in all six bins. "The first dry minute" is
+  the bin ending 5 min after (the model has no 1 min output).
+- **(1) Decay rates.** Per window: rate = −(OLS slope of ln(A − c) against time), early half on the bins ending 5, 10, 15 min,
+  late half on 15, 20, 25, 30 min; ratio = rate(late) / rate(early). The same on the K1 and K0 predictions in the same windows.
+  A window whose early rate is ≤ 0, or whose prediction is ≤ 0 in any bin, has no ratio for that series. Each comparison uses
+  the windows where the measured ratio and both models' ratios exist (per k_wet estimate); the number dropped is reported.
+  Reported: the median ratio, with a 90 % event-bootstrap interval (events drawn with replacement, all windows of a drawn event
+  count once per copy; 1000 draws; seed 3901). Below 1 means drying slows within a window (the K1 shape); about 1 means exponential.
+- **(2) Classes.** By the measured A − c of the first dry bin: ≥ 1 dB and < 1 dB; every quantity is given for all windows and
+  per class, with n (windows and distinct events).
+- **(3) Errors**, per class, model and estimate, each with its bootstrap interval: level error = median(model) − median(measured)
+  at the first dry bin; decay-rate error = median ratio(model) − median ratio(measured), the ratio of (1).
+- **(4)** 1 / k_dry of the K0 refit (min) at each estimate (K0 has one drying rate), with the A7 K1 values beside it.
+- Then STOP.
