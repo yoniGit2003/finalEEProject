@@ -2328,3 +2328,65 @@ fake runs gave (3.3–6.5 min), so the real data sit outside the k_wet range whe
 fitted K1 curve is not monotone between W = 1 and 2 dB (5.4 → 6.0 and 8.4 → 8.0 min), within the bootstrap intervals;
 (iii) 1 / k_dry at W = 0 is poorly constrained (interval 37–279 min). Memory fell to 0.72 GB during the bootstraps
 (Discord and Chrome grew); no part died.
+
+## Review of A7: the five checks (2026-11-21, logged before any run of them)
+
+**Text of the review.** "Do not change the result. (1) Confirm the order of the Deviation 15 addendum against the first
+real read. (2) The selected rung at BOTH k_wet estimates separately, with the K1 gain vs margin at each; if they differ,
+the result is 'rung not determined' (pre-registered). (3) From the event bootstrap: share of draws that select K1; 90 %
+intervals of 1 / k_dry at W = 0.5, 1, 2 dB at each estimate. (4) Sensitivity to F: refit at F's lower and upper interval
+ends (rule A3f); the rung and 1 / k_dry at each. (5) Independent check, no rain input: on the dry-path windows of the
+learning events, the median measured A − c at 5, 10, 20, 30 min after the path went dry, against the fitted K1 and a K0
+refit; both errors. A check, not a selection." Script `a7_review.py` (new). The A7 result (`a7_real_fit.md`, the cache
+`research/.cache/waa_ksurface/a7_real_fit/`) is not changed or rerun; every number below is an addition. Real TRAIN data
+of the 14 learning events only (the A7 setting, the A7 flag: 0 removed). VAL and TEST are not opened.
+
+**(1) Order (no run; from the commit times and the session record).** f58a0f5 (addendum, 19:51:30 local) and a6e868a
+(flag code, 19:52:02) were committed before the flag launcher started (19:52:08, `a7_terminal.log`; `flag.pkl` written
+19:52:20). The session record has no command between the A7 pre-registration and 19:52:06 that loads the real data (the
+unit tests use toy data). The real TRAIN attenuation itself was read by earlier steps of this branch (A1–E4, from
+2026-11-11, by design: F and P are measured from it); that is not an A7 read. **No deviation.**
+
+**(2) The rung at each k_wet estimate.** Stage 1 exactly as in A7 (gauge input, wetting K0, k_wet estimated; it must give
+1 / k_wet = 1.74 min again). Stage 2, drying K0 against K1 (λ = 1e-4, 1e-3, 1e-2 for K1), L-dryhigh, margin 0.00291 dB,
+paired 90 % interval that excludes zero, is run as a SELECTION twice: with k_wet held at its gauge-input estimate (A7's own
+selection) and with k_wet held at its radar-input estimate (1 / k_wet from the radar-input K0 / K0 fit, as A7; must give
+10.92 min again). Both start from the stage-1 extension. **Code check first:** the stage-2 function of the review
+(`stage_w`, event weights, see (3)) run at the gauge estimate with every weight 1 must reproduce the committed A7 stage
+table (`a7_real_fit_cv.csv`, drying rows: train and held-out loss to 1e-9 relative); if not, **STOP**, nothing after it
+is run. **Reading (pre-registered in Deviation 15):** the same rung at both → that rung; different → "rung not
+determined", and no rung reading applies. Disclosed now: Deviation 15 called a selection at the radar estimate "the
+held-k_wet procedure of step 3d at one value, which is not validated" (step 3d: a false K1 at every held value on truth
+(a)). The review asks for it; it is run and reported, and that caveat goes with its result.
+
+**(3) Event bootstrap of the selection.** By the user's decision (2026-11-21; 200 draws with the full selection would take
+about 40 h): **50 draws per estimate**, the full stage-2 selection of (2) in every draw (K0, K1 at the three λ, 5 folds,
+margin 0.00291 dB, paired interval), at both k_wet estimates. The draws are the FIRST 50 of the A7 bootstrap (seed 3900,
+the same sequence); k_wet held at the full-data estimate, extension started from the full-data stage 1 (as A7's
+bootstrap). A drawn event counts as often as it is drawn: in the fits (weights, as A7), in the held-out score, and as
+separate events in the paired interval (each copy one event). Folds are dealt over the distinct drawn events as in
+`ladder.folds`. Reported: the share of the 50 draws that select K1 at each estimate. **The 90 % intervals of 1 / k_dry at
+W = 0.5, 1, 2 dB are those of the 200-draw A7 bootstrap** (5–95 %, already in `a7_real_fit.md`; restated, not recomputed);
+the 1 / k_dry of the selected rung in the 50 draws is reported besides.
+
+**(4) Sensitivity to F (rule A3f, plan.md: "Sensitivity refits use F at the lower and upper interval ends").** The
+interval = the 5–95 % event-bootstrap interval of each F-valid E4 cell (`I_lo`, `I_hi` of `e4_remeasure_cells.csv`); the
+curve F_low (F_high) is built exactly as `fp.measured` but through I_lo (I_hi), with the same monotone step and weights; P
+unchanged. At each end the whole of (2) is run (stage 1, k_wet re-estimated at both inputs, the selection at both
+estimates). Reported: 1 / k_wet, the rung at each estimate (gain vs margin), and 1 / k_dry at W = 0, 0.5, 1, 2 dB of the
+selected rung's fit. No bootstrap at the F ends.
+
+**(5) Dry-path check (no rain input in the measured side; a check, not a selection).** Link-events of the unflagged
+learning events, all lengths. "The path went dry" = the end of the last wet 5 min bin of the data layer (`le_last`), if
+the next bin is radar-dry (the reference rule of S1: the radar input as the fit sees it, 5 min mean, below 0.1 mm/h).
+"At least 10 min of rain before" = at least 10 minutes of the link-event before that time with the 1 min radar input at
+or above 0.1 mm/h. The value "at ℓ min" (ℓ = 5, 10, 20, 30) = the 5 min bin that ends ℓ min after the path went dry; it is
+used if every bin from the first dry one to it is radar-dry and it is counted (`w5`) with a finite A − c. Per ℓ: n, the
+median measured A − c, the median model output of the K1 fit (A7's fit at that estimate) and of a K0 refit (the stage-2
+drying K0 fit of (2) at the same k_wet estimate, all used data), on the same values. **Error = median(model) − median
+(measured)** (dB), for K1 and for K0, at each estimate. Nothing is selected or changed by it.
+
+**Execution.** One detached process, one child per part (`sel_mid`, `dry`, `sel_flo`, `sel_fhi`, then the bootstrap in
+blocks of 10 draws per estimate, each draw cached), cache `research/.cache/waa_ksurface/a7_review/`, log
+`outputs/reports/a7_review_terminal.log`, keep-awake, free-memory floor 1.5 GB, memory log every 10 min. Order: `sel_mid`
+(with its STOP rule), `dry`, `sel_flo`, `sel_fhi`, bootstrap gauge, bootstrap radar. Then STOP for the review.
