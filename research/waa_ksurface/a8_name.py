@@ -391,7 +391,8 @@ def report(R, state):
 
 # =================================================================================================== Block B freeze (no data, no fit)
 def sha256(path):
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    """SHA-256 of a text file with its line endings normalized to LF (git may write CRLF on checkout)."""
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
 def frozen_equation():
@@ -456,7 +457,7 @@ def freeze():
              "F and P measured (E4 cells)": P.E4_CELLS,
              "model code: ksurf.py": P.MODULE / "ksurf.py", "model code: a8_forms.py": P.MODULE / "a8_forms.py", "model code: fp.py": P.MODULE / "fp.py"}
     out = {"date": time.strftime("%Y-%m-%d %H:%M:%S"), "sha256": {k: {"path": rel(v), "sha256": sha256(v)} for k, v in files.items()},
-           "VAL": "not opened", "TEST": "not opened"}
+           "hash_rule": "SHA-256 of each file's bytes with CRLF replaced by LF", "VAL": "not opened", "TEST": "not opened"}
     save(json.dumps(out, indent=1) + "\n", P.B_FREEZE)
     for k, v in out["sha256"].items():
         log(f"   {v['sha256'][:16]}  {v['path']}  ({k})")
