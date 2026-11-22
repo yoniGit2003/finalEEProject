@@ -2613,3 +2613,19 @@ plug-backs are queued until step 8 has finished and at least 4 GB is free.
 
 **Execution.** One tool at a time, each a single light process at below-normal priority; free memory is checked before
 each and the process stops itself if it falls below 1.5 GB.
+
+### Result of the naming cross-check (run 2026-11-22 11:53-12:19, exit 0; report `reports/a8x_crosscheck.md`)
+
+- **Sparse (best subset, 63 subsets):** chosen k = c0 + c1·√W + c2·exp(−W) (p = 3; Delta_max 0 among the 63);
+  gauge c = 0.418, −0.134, −0.400, AICc −133.83; radar c = 0.248, −0.062, −0.240, AICc −163.17. (It reaches k = 0 near
+  W ≈ 9.7 dB at the gauge estimate, outside the domain.)
+- **BMS** (Bitbucket f4cf1e8, prior nv1.np5, size <= 10; 3000 samples after burn-in per estimate, 12 min each; no
+  fallback needed): gauge top 1 W²·(a1 + W)^a0 (probability 0.46); radar top 5 all the family a·W^(b^W) (0.16, 0.14,
+  0.10, 0.08, 0.04; redundant parameter products of one family). Chosen by the step 8 rule over the 10: a·W^(b^W)
+  (p = 2), AICc −126.20 / −175.65.
+- **Step 8's form** (read from the step 8 cache at report time; this is when its plug-back verdict was first seen):
+  pysr_gauge_c8, **accepted** in step 8; AICc −137.34 / −207.05, p = 3.
+- **Agreement:** none. Sparse vs step 8: not the same family, dAICc +3.5 (gauge) / +43.9 (radar); BMS vs step 8: +11.1 /
+  +31.4; sparse vs BMS: −7.6 / +12.5. Both tools' best forms are worse than step 8's at both estimates.
+- **Plug-back queue: 0** (no form with p <= 3 and AICc lower by more than 2 at both estimates). Step 8's verdict is
+  unchanged; nothing waits for step 8.

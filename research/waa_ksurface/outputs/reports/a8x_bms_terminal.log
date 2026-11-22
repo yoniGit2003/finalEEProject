@@ -1,0 +1,5 @@
+11:54:07 === bms started; free memory 2.7 GB ===
+12:05:54 bms gauge: 3000 samples after burn-in, 11.8 min; MDL model (W * (((_a1_ + W) ** _a0_) * W))
+12:18:28 bms radar: 3000 samples after burn-in, 12.6 min; MDL model (_a3_ * (W ** (_a1_ ** W)))
+12:18:28 === bms done; peak memory 0.26 GB ===
+exit 0

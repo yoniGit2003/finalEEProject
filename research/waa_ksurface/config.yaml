@@ -243,3 +243,14 @@ a8:                                             # step 8, naming the drying law 
   boot_block: 20                                # draws per child process
   reproduce_rtol: 1.0e-9                        # the code checks (references, band) against the stored A7 / review numbers
   min_free_gb: 1.5                              # execution setting of step 3c
+a8x:                                            # naming cross-check (decisions.md, logged before the run)
+  min_free_gb: 1.5
+  bms:
+    prior_file: nv1.np5.dat                     # the shipped prior nv1.np5 (2017-10-18), renamed: its name has ':' (not valid on Windows)
+    npar: 5                                     # a size-10 expression in one variable holds at most 5 constants
+    ops: {"+": 2, "*": 2, "/": 2, "**": 2, "exp": 1, "-": 1}   # BMS's '-' is unary: + and - give subtraction
+    max_size: 10
+    seed: 0
+    burnin: 1000
+    steps: 3000
+    top: 5
