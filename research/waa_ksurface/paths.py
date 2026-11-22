@@ -202,3 +202,17 @@ A7D_SUM = TABLES / "a7_dryshape_summary.csv"                   # per estimate an
 A7D_REPORT = REPORTS / "a7_dryshape.md"
 A7C_TABLE = TABLES / "a7_dryshape_control.csv"                 # control: fake K0 truths, offsets on / off: windows, median ratio, intervals
 A7C_REPORT = REPORTS / "a7_dryshape_control.md"
+
+# ---- step 8: naming the drying law, a8_name.py ------------------------------------------------------------------------------
+PRODUCTS = OUTPUTS / "products"
+A8_POINTS = TABLES / "a8_name_points.csv"                      # the A4 drying points: W, weight, ln k of the A7 K1 curve, band (both estimates)
+A8_PYSR = TABLES / "a8_name_pysr.csv"                          # every PySR equation (estimate, seed, complexity, loss), the front marked
+A8_CAND = TABLES / "a8_name_candidates.csv"                    # every candidate: p, AICc and Delta at both estimates, Delta_max, chosen, trial order
+A8_PLUG = TABLES / "a8_name_plugback.csv"                      # every plug-back trial and estimate: CV vs free K1 and K0, intervals, accepted
+A8_PARAMS = TABLES / "a8_name_params.csv"                      # the accepted form: parameters at both estimates with 90 % intervals
+A8_FIG = FIGURES / "a8_name_curves.png"
+A8_REPORT = REPORTS / "a8_name.md"
+A8_LOG = REPORTS / "a8_name_terminal.log"
+B_EQUATION = PRODUCTS / "a8_equation_frozen.json"              # Block B: the frozen equation (written by a8_name --freeze)
+B_FREEZE = PRODUCTS / "a8_block_b_freeze.json"                 # Block B: the SHA-256 of the equation, the competitor files and the rules
+B_PREREG = REPO / "docs" / "waa_ksurface" / "block_b_prereg.md"   # Block B: the pre-registered rules (written, not run)

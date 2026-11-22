@@ -228,3 +228,18 @@ a7c:                                            # control for the within-window 
   truths:                                       # K0 truths: the two A7 K0 pairs (gauge / radar k_wet estimate)
     G: {tau_dry_min: 8.88, tau_wet_min: 1.74, seed: 3920}
     R: {tau_dry_min: 13.22, tau_wet_min: 10.92, seed: 3921}
+a8:                                             # step 8, naming the drying law (decisions.md, logged before the run)
+  grid_lo_db: 0.01                              # the W grid of a tabulated form: 0 and grid_points geometric points lo .. hi
+  grid_hi_db: 9.0                               # = the A4 drying domain edge (held above, as K1)
+  grid_points: 60
+  grid_w0_db: 1.0e-6                            # the table value at W = 0 is the form here
+  fd_step: 1.0e-6                               # central difference step of the table in theta (times max(1, |theta|))
+  lsq_max_nfev: 5000
+  aicc_within: 2.0                              # "within 2 AICc of the best but with fewer parameters wins"
+  dmax_try: 10.0                                # candidates with Delta_max above this are not tried in the plug-back
+  max_trials: 6
+  pysr: {seeds: [0, 1, 2, 3, 4], maxsize: 10, niterations: 100, populations: 15, timeout_s: 1800}
+  boot_draws: 200                               # the A7 draws (seed 3900)
+  boot_block: 20                                # draws per child process
+  reproduce_rtol: 1.0e-9                        # the code checks (references, band) against the stored A7 / review numbers
+  min_free_gb: 1.5                              # execution setting of step 3c
