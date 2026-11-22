@@ -1,0 +1,527 @@
+=== launcher started Sun 11/22/2026 11:03:27.58 === 
+=== step 8 started 2026-11-22 11:03:50; free memory 3.8 GB ===
+=== keep-awake (ES_CONTINUOUS | ES_SYSTEM_REQUIRED): on ===
+=== (points)  (free memory 3.8 GB) 11:03:50 ===
+=== (a8 points) done: 0.0 min; peak memory 0.25 GB ===
+=== (pysr_gauge_0)  (free memory 3.9 GB) 11:04:19 ===
+=== memory watch 11:04: free 3.4 GB ===
+   (pysr gauge 0) 6 equations in 2.6 min
+=== (a8 pysr_gauge_0) done: 2.9 min; peak memory 1.03 GB ===
+=== (pysr_gauge_1)  (free memory 3.8 GB) 11:07:39 ===
+   (pysr gauge 1) 6 equations in 2.6 min
+=== (a8 pysr_gauge_1) done: 2.9 min; peak memory 1.05 GB ===
+=== (pysr_gauge_2)  (free memory 4.6 GB) 11:11:02 ===
+   (pysr gauge 2) 6 equations in 2.6 min
+=== (a8 pysr_gauge_2) done: 2.9 min; peak memory 1.04 GB ===
+=== (pysr_gauge_3)  (free memory 5.0 GB) 11:14:22 ===
+=== memory watch 11:14: free 4.5 GB ===
+   (pysr gauge 3) 6 equations in 2.5 min
+=== (a8 pysr_gauge_3) done: 2.8 min; peak memory 1.01 GB ===
+=== (pysr_gauge_4)  (free memory 4.7 GB) 11:17:37 ===
+   (pysr gauge 4) 7 equations in 2.4 min
+=== (a8 pysr_gauge_4) done: 2.7 min; peak memory 1.04 GB ===
+=== (pysr_radar_0)  (free memory 4.8 GB) 11:20:48 ===
+   (pysr radar 0) 6 equations in 2.4 min
+=== (a8 pysr_radar_0) done: 2.7 min; peak memory 1.05 GB ===
+=== (pysr_radar_1)  (free memory 4.9 GB) 11:23:54 ===
+=== memory watch 11:24: free 4.0 GB ===
+   (pysr radar 1) 8 equations in 2.3 min
+=== (a8 pysr_radar_1) done: 2.6 min; peak memory 1.01 GB ===
+=== (pysr_radar_2)  (free memory 4.9 GB) 11:26:49 ===
+   (pysr radar 2) 6 equations in 2.5 min
+=== (a8 pysr_radar_2) done: 2.8 min; peak memory 1.05 GB ===
+=== (pysr_radar_3)  (free memory 5.0 GB) 11:29:58 ===
+   (pysr radar 3) 6 equations in 2.3 min
+=== (a8 pysr_radar_3) done: 2.6 min; peak memory 1.06 GB ===
+=== (pysr_radar_4)  (free memory 4.7 GB) 11:33:01 ===
+=== memory watch 11:34: free 3.8 GB ===
+   (pysr radar 4) 6 equations in 2.5 min
+=== (a8 pysr_radar_4) done: 2.8 min; peak memory 1.02 GB ===
+=== (rank)  (free memory 4.6 GB) 11:36:14 ===
+=== (a8 rank) done: 0.1 min; peak memory 0.25 GB ===
+=== (refs)  (free memory 4.7 GB) 11:36:42 ===
+   (refs) gauge K0 (lambda 0.0001): CV 0.407585 dB; relative difference to the review table 2.2e-16
+   (refs) gauge K1 (lambda 0.0001): CV 0.387458 dB; relative difference to the review table 0.0e+00
+   (refs) radar K0 (lambda 0.0001): CV 0.404895 dB; relative difference to the review table 0.0e+00
+=== memory watch: 6 min since the last look (the machine was asleep or suspended) ===
+=== memory watch 11:45: free 2.9 GB ===
+   (refs) radar K1 (lambda 0.0001): CV 0.386526 dB; relative difference to the review table 2.2e-16
+=== (refs) code check against a7_review_cv.csv: REPRODUCED (largest 2.2e-16) ===
+=== (a8 refs) done: 9.8 min; peak memory 1.73 GB ===
+=== (plug_0)  (free memory 4.0 GB) 11:46:51 ===
+   (plug 0 pysr_gauge_c8 gauge) CV 0.388030 dB; form - K1 +0.00057 (-0.00342 to +0.00356); K0 - form +0.01956 (+0.01631 to +0.02529); margin 0.00291: pass (2.2 min)
+   (plug 0 pysr_gauge_c8 radar) CV 0.388077 dB; form - K1 +0.00155 (-0.00335 to +0.00512); K0 - form +0.01682 (+0.01360 to +0.02324); margin 0.00291: pass (3.3 min)
+=== (a8 plug_0) done: 5.6 min; peak memory 1.74 GB ===
+=== (boot_gauge_0)  (free memory 3.9 GB) 11:52:49 ===
+   (boot gauge draw 0) K1 check 0.0e+00; form converged (0.5 min in this block)
+   (boot gauge draw 1) K1 check 0.0e+00; form converged (1.7 min in this block)
+=== memory watch 11:55: free 2.6 GB ===
+   (boot gauge draw 2) K1 check 0.0e+00; form converged (2.8 min in this block)
+   (boot gauge draw 3) K1 check 0.0e+00; form converged (3.7 min in this block)
+   (boot gauge draw 4) K1 check 0.0e+00; form converged (4.7 min in this block)
+   (boot gauge draw 5) K1 check 0.0e+00; form converged (5.9 min in this block)
+   (boot gauge draw 6) K1 check 0.0e+00; form converged (6.8 min in this block)
+   (boot gauge draw 7) K1 check 0.0e+00; form converged (7.5 min in this block)
+   (boot gauge draw 8) K1 check 0.0e+00; form converged (8.3 min in this block)
+   (boot gauge draw 9) K1 check 0.0e+00; form converged (9.2 min in this block)
+   (boot gauge draw 10) K1 check 0.0e+00; form NOT converged (11.9 min in this block)
+=== memory watch 12:05: free 4.6 GB ===
+   (boot gauge draw 11) K1 check 0.0e+00; form converged (12.5 min in this block)
+   (boot gauge draw 12) K1 check 0.0e+00; form converged (13.8 min in this block)
+   (boot gauge draw 13) K1 check 0.0e+00; form converged (14.5 min in this block)
+   (boot gauge draw 14) K1 check 0.0e+00; form converged (16.4 min in this block)
+   (boot gauge draw 15) K1 check 0.0e+00; form converged (17.8 min in this block)
+   (boot gauge draw 16) K1 check 0.0e+00; form converged (19.3 min in this block)
+   (boot gauge draw 17) K1 check 0.0e+00; form converged (20.5 min in this block)
+   (boot gauge draw 18) K1 check 0.0e+00; form converged (21.6 min in this block)
+=== memory watch 12:15: free 4.1 GB ===
+   (boot gauge draw 19) K1 check 0.0e+00; form converged (22.4 min in this block)
+=== (a8 boot_gauge_0) done: 22.7 min; peak memory 2.02 GB ===
+=== (boot_gauge_1)  (free memory 4.6 GB) 12:16:02 ===
+   (boot gauge draw 20) K1 check 0.0e+00; form converged (0.9 min in this block)
+   (boot gauge draw 21) K1 check 0.0e+00; form converged (3.1 min in this block)
+   (boot gauge draw 22) K1 check 0.0e+00; form converged (4.4 min in this block)
+   (boot gauge draw 23) K1 check 0.0e+00; form converged (5.1 min in this block)
+   (boot gauge draw 24) K1 check 0.0e+00; form converged (7.6 min in this block)
+=== memory watch 12:25: free 4.0 GB ===
+   (boot gauge draw 25) K1 check 0.0e+00; form converged (9.5 min in this block)
+   (boot gauge draw 26) K1 check 0.0e+00; form converged (10.2 min in this block)
+   (boot gauge draw 27) K1 check 0.0e+00; form converged (10.8 min in this block)
+   (boot gauge draw 28) K1 check 0.0e+00; form converged (13.6 min in this block)
+   (boot gauge draw 29) K1 check 0.0e+00; form converged (14.7 min in this block)
+   (boot gauge draw 30) K1 check 0.0e+00; form converged (15.7 min in this block)
+   (boot gauge draw 31) K1 check 0.0e+00; form converged (17.1 min in this block)
+   (boot gauge draw 32) K1 check 0.0e+00; form converged (18.4 min in this block)
+   (boot gauge draw 33) K1 check 0.0e+00; form converged (19.1 min in this block)
+=== memory watch 12:35: free 4.3 GB ===
+   (boot gauge draw 34) K1 check 0.0e+00; form converged (20.4 min in this block)
+   (boot gauge draw 35) K1 check 0.0e+00; form converged (21.1 min in this block)
+   (boot gauge draw 36) K1 check 0.0e+00; form converged (21.9 min in this block)
+   (boot gauge draw 37) K1 check 0.0e+00; form converged (22.8 min in this block)
+   (boot gauge draw 38) K1 check 0.0e+00; form converged (24.3 min in this block)
+   (boot gauge draw 39) K1 check 0.0e+00; form converged (25.5 min in this block)
+=== (a8 boot_gauge_1) done: 25.8 min; peak memory 2.02 GB ===
+=== (boot_gauge_2)  (free memory 5.0 GB) 12:42:19 ===
+   (boot gauge draw 40) K1 check 0.0e+00; form converged (0.6 min in this block)
+   (boot gauge draw 41) K1 check 0.0e+00; form converged (1.2 min in this block)
+   (boot gauge draw 42) K1 check 0.0e+00; form converged (1.9 min in this block)
+=== memory watch 12:45: free 3.7 GB ===
+   (boot gauge draw 43) K1 check 0.0e+00; form NOT converged (4.4 min in this block)
+   (boot gauge draw 44) K1 check 0.0e+00; form converged (5.1 min in this block)
+   (boot gauge draw 45) K1 check 0.0e+00; form NOT converged (7.9 min in this block)
+   (boot gauge draw 46) K1 check 0.0e+00; form converged (8.7 min in this block)
+   (boot gauge draw 47) K1 check 0.0e+00; form converged (9.2 min in this block)
+   (boot gauge draw 48) K1 check 0.0e+00; form converged (10.3 min in this block)
+   (boot gauge draw 49) K1 check 0.0e+00; form converged (11.1 min in this block)
+   (boot gauge draw 50) K1 check 0.0e+00; form converged (11.7 min in this block)
+   (boot gauge draw 51) K1 check 0.0e+00; form converged (12.9 min in this block)
+=== memory watch 12:55: free 4.7 GB ===
+   (boot gauge draw 52) K1 check 0.0e+00; form converged (13.7 min in this block)
+   (boot gauge draw 53) K1 check 0.0e+00; form converged (14.6 min in this block)
+   (boot gauge draw 54) K1 check 0.0e+00; form converged (15.1 min in this block)
+   (boot gauge draw 55) K1 check 0.0e+00; form converged (15.9 min in this block)
+   (boot gauge draw 56) K1 check 0.0e+00; form converged (17.1 min in this block)
+   (boot gauge draw 57) K1 check 0.0e+00; form converged (19.5 min in this block)
+   (boot gauge draw 58) K1 check 0.0e+00; form converged (20.6 min in this block)
+   (boot gauge draw 59) K1 check 0.0e+00; form converged (21.3 min in this block)
+=== (a8 boot_gauge_2) done: 21.6 min; peak memory 2.02 GB ===
+=== (boot_gauge_3)  (free memory 4.0 GB) 13:04:21 ===
+   (boot gauge draw 60) K1 check 0.0e+00; form converged (0.5 min in this block)
+=== memory watch 13:05: free 2.7 GB ===
+   (boot gauge draw 61) K1 check 0.0e+00; form NOT converged (1.1 min in this block)
+   (boot gauge draw 62) K1 check 0.0e+00; form converged (1.9 min in this block)
+=== LOW MEMORY 13:07: free 1.69 GB; grew most since the start: python.exe 0.42 -> 1.87 GB (+1.45); claude.exe 1.81 -> 2.81 GB (+1.00); msedgewebview2.exe 0.66 -> 1.25 GB (+0.59); svchost.exe 0.57 -> 0.97 GB (+0.41); Photos.exe 0.00 -> 0.32 GB (+0.32) ===
+   (boot gauge draw 63) K1 check 0.0e+00; form converged (2.8 min in this block)
+   (boot gauge draw 64) K1 check 0.0e+00; form converged (3.5 min in this block)
+   (boot gauge draw 65) K1 check 0.0e+00; form converged (4.0 min in this block)
+   (boot gauge draw 66) K1 check 0.0e+00; form converged (4.4 min in this block)
+   (boot gauge draw 67) K1 check 0.0e+00; form converged (4.9 min in this block)
+   (boot gauge draw 68) K1 check 0.0e+00; form converged (5.4 min in this block)
+   (boot gauge draw 69) K1 check 0.0e+00; form converged (5.6 min in this block)
+   (boot gauge draw 70) K1 check 0.0e+00; form converged (5.9 min in this block)
+   (boot gauge draw 71) K1 check 0.0e+00; form converged (6.4 min in this block)
+   (boot gauge draw 72) K1 check 0.0e+00; form converged (7.3 min in this block)
+   (boot gauge draw 73) K1 check 0.0e+00; form converged (7.7 min in this block)
+   (boot gauge draw 74) K1 check 0.0e+00; form converged (7.9 min in this block)
+   (boot gauge draw 75) K1 check 0.0e+00; form converged (8.2 min in this block)
+   (boot gauge draw 76) K1 check 0.0e+00; form converged (8.6 min in this block)
+   (boot gauge draw 77) K1 check 0.0e+00; form converged (9.0 min in this block)
+   (boot gauge draw 78) K1 check 0.0e+00; form converged (9.5 min in this block)
+=== memory watch 13:16: free 4.4 GB ===
+   (boot gauge draw 79) K1 check 0.0e+00; form NOT converged (11.0 min in this block)
+=== (a8 boot_gauge_3) done: 11.4 min; peak memory 2.02 GB ===
+=== (boot_gauge_4)  (free memory 4.9 GB) 13:16:11 ===
+   (boot gauge draw 80) K1 check 0.0e+00; form converged (0.6 min in this block)
+   (boot gauge draw 81) K1 check 0.0e+00; form converged (1.0 min in this block)
+   (boot gauge draw 82) K1 check 0.0e+00; form converged (1.3 min in this block)
+   (boot gauge draw 83) K1 check 0.0e+00; form converged (1.7 min in this block)
+   (boot gauge draw 84) K1 check 0.0e+00; form converged (2.0 min in this block)
+   (boot gauge draw 85) K1 check 0.0e+00; form converged (2.3 min in this block)
+   (boot gauge draw 86) K1 check 0.0e+00; form converged (3.1 min in this block)
+   (boot gauge draw 87) K1 check 0.0e+00; form converged (3.4 min in this block)
+   (boot gauge draw 88) K1 check 0.0e+00; form converged (3.7 min in this block)
+   (boot gauge draw 89) K1 check 0.0e+00; form NOT converged (4.6 min in this block)
+   (boot gauge draw 90) K1 check 0.0e+00; form converged (5.0 min in this block)
+   (boot gauge draw 91) K1 check 0.0e+00; form converged (5.5 min in this block)
+   (boot gauge draw 92) K1 check 0.0e+00; form NOT converged (6.8 min in this block)
+   (boot gauge draw 93) K1 check 0.0e+00; form converged (7.0 min in this block)
+   (boot gauge draw 94) K1 check 0.0e+00; form converged (7.9 min in this block)
+   (boot gauge draw 95) K1 check 0.0e+00; form converged (8.4 min in this block)
+   (boot gauge draw 96) K1 check 0.0e+00; form converged (8.8 min in this block)
+=== memory watch 13:26: free 4.7 GB ===
+   (boot gauge draw 97) K1 check 0.0e+00; form converged (9.8 min in this block)
+   (boot gauge draw 98) K1 check 0.0e+00; form converged (10.4 min in this block)
+   (boot gauge draw 99) K1 check 0.0e+00; form converged (10.9 min in this block)
+=== (a8 boot_gauge_4) done: 11.0 min; peak memory 2.02 GB ===
+=== (boot_gauge_5)  (free memory 5.2 GB) 13:27:21 ===
+   (boot gauge draw 100) K1 check 0.0e+00; form converged (0.3 min in this block)
+   (boot gauge draw 101) K1 check 0.0e+00; form converged (0.5 min in this block)
+   (boot gauge draw 102) K1 check 0.0e+00; form converged (0.9 min in this block)
+   (boot gauge draw 103) K1 check 0.0e+00; form converged (1.8 min in this block)
+   (boot gauge draw 104) K1 check 0.0e+00; form NOT converged (2.9 min in this block)
+   (boot gauge draw 105) K1 check 0.0e+00; form converged (3.6 min in this block)
+   (boot gauge draw 106) K1 check 0.0e+00; form converged (3.9 min in this block)
+   (boot gauge draw 107) K1 check 0.0e+00; form NOT converged (5.1 min in this block)
+   (boot gauge draw 108) K1 check 0.0e+00; form converged (5.4 min in this block)
+   (boot gauge draw 109) K1 check 0.0e+00; form converged (5.6 min in this block)
+   (boot gauge draw 110) K1 check 0.0e+00; form converged (5.9 min in this block)
+   (boot gauge draw 111) K1 check 0.0e+00; form NOT converged (7.1 min in this block)
+   (boot gauge draw 112) K1 check 0.0e+00; form converged (7.4 min in this block)
+   (boot gauge draw 113) K1 check 0.0e+00; form NOT converged (8.3 min in this block)
+=== memory watch 13:36: free 3.6 GB ===
+   (boot gauge draw 114) K1 check 0.0e+00; form converged (8.6 min in this block)
+   (boot gauge draw 115) K1 check 0.0e+00; form converged (9.1 min in this block)
+   (boot gauge draw 116) K1 check 0.0e+00; form converged (9.5 min in this block)
+   (boot gauge draw 117) K1 check 0.0e+00; form converged (9.9 min in this block)
+   (boot gauge draw 118) K1 check 0.0e+00; form converged (10.3 min in this block)
+   (boot gauge draw 119) K1 check 0.0e+00; form converged (10.8 min in this block)
+=== (a8 boot_gauge_5) done: 10.9 min; peak memory 2.02 GB ===
+=== (boot_gauge_6)  (free memory 3.8 GB) 13:38:26 ===
+   (boot gauge draw 120) K1 check 0.0e+00; form NOT converged (1.1 min in this block)
+   (boot gauge draw 121) K1 check 0.0e+00; form converged (1.7 min in this block)
+   (boot gauge draw 122) K1 check 0.0e+00; form converged (2.3 min in this block)
+   (boot gauge draw 123) K1 check 0.0e+00; form converged (2.9 min in this block)
+   (boot gauge draw 124) K1 check 0.0e+00; form converged (3.9 min in this block)
+   (boot gauge draw 125) K1 check 0.0e+00; form converged (4.6 min in this block)
+   (boot gauge draw 126) K1 check 0.0e+00; form converged (5.3 min in this block)
+   (boot gauge draw 127) K1 check 0.0e+00; form converged (6.0 min in this block)
+   (boot gauge draw 128) K1 check 0.0e+00; form converged (6.5 min in this block)
+   (boot gauge draw 129) K1 check 0.0e+00; form converged (7.4 min in this block)
+=== memory watch 13:46: free 3.8 GB ===
+   (boot gauge draw 130) K1 check 0.0e+00; form NOT converged (8.1 min in this block)
+   (boot gauge draw 131) K1 check 0.0e+00; form NOT converged (9.9 min in this block)
+   (boot gauge draw 132) K1 check 0.0e+00; form converged (10.8 min in this block)
+   (boot gauge draw 133) K1 check 0.0e+00; form converged (11.9 min in this block)
+   (boot gauge draw 134) K1 check 0.0e+00; form converged (12.3 min in this block)
+   (boot gauge draw 135) K1 check 0.0e+00; form converged (12.8 min in this block)
+   (boot gauge draw 136) K1 check 0.0e+00; form converged (13.5 min in this block)
+   (boot gauge draw 137) K1 check 0.0e+00; form converged (14.2 min in this block)
+   (boot gauge draw 138) K1 check 0.0e+00; form converged (14.7 min in this block)
+   (boot gauge draw 139) K1 check 0.0e+00; form converged (15.1 min in this block)
+=== (a8 boot_gauge_6) done: 15.2 min; peak memory 2.02 GB ===
+=== (boot_gauge_7)  (free memory 4.2 GB) 13:53:49 ===
+   (boot gauge draw 140) K1 check 0.0e+00; form converged (0.2 min in this block)
+   (boot gauge draw 141) K1 check 0.0e+00; form converged (0.6 min in this block)
+   (boot gauge draw 142) K1 check 0.0e+00; form converged (1.1 min in this block)
+=== memory watch 13:56: free 3.1 GB ===
+   (boot gauge draw 143) K1 check 0.0e+00; form converged (1.9 min in this block)
+   (boot gauge draw 144) K1 check 0.0e+00; form converged (2.4 min in this block)
+   (boot gauge draw 145) K1 check 0.0e+00; form converged (2.8 min in this block)
+   (boot gauge draw 146) K1 check 0.0e+00; form converged (3.3 min in this block)
+   (boot gauge draw 147) K1 check 0.0e+00; form converged (3.6 min in this block)
+   (boot gauge draw 148) K1 check 0.0e+00; form converged (4.1 min in this block)
+   (boot gauge draw 149) K1 check 0.0e+00; form converged (4.4 min in this block)
+   (boot gauge draw 150) K1 check 0.0e+00; form converged (4.9 min in this block)
+   (boot gauge draw 151) K1 check 0.0e+00; form converged (5.3 min in this block)
+   (boot gauge draw 152) K1 check 0.0e+00; form converged (5.8 min in this block)
+   (boot gauge draw 153) K1 check 0.0e+00; form converged (6.2 min in this block)
+   (boot gauge draw 154) K1 check 0.0e+00; form converged (6.7 min in this block)
+   (boot gauge draw 155) K1 check 0.0e+00; form converged (7.0 min in this block)
+   (boot gauge draw 156) K1 check 0.0e+00; form converged (7.5 min in this block)
+   (boot gauge draw 157) K1 check 0.0e+00; form converged (8.2 min in this block)
+   (boot gauge draw 158) K1 check 0.0e+00; form converged (8.9 min in this block)
+   (boot gauge draw 159) K1 check 0.0e+00; form converged (9.7 min in this block)
+=== (a8 boot_gauge_7) done: 9.8 min; peak memory 2.02 GB ===
+=== (boot_gauge_8)  (free memory 4.0 GB) 14:03:50 ===
+   (boot gauge draw 160) K1 check 0.0e+00; form converged (0.3 min in this block)
+   (boot gauge draw 161) K1 check 0.0e+00; form converged (0.8 min in this block)
+   (boot gauge draw 162) K1 check 0.0e+00; form converged (1.1 min in this block)
+   (boot gauge draw 163) K1 check 0.0e+00; form converged (1.8 min in this block)
+=== memory watch 14:06: free 3.0 GB ===
+   (boot gauge draw 164) K1 check 0.0e+00; form converged (2.3 min in this block)
+   (boot gauge draw 165) K1 check 0.0e+00; form converged (3.1 min in this block)
+   (boot gauge draw 166) K1 check 0.0e+00; form converged (3.9 min in this block)
+   (boot gauge draw 167) K1 check 0.0e+00; form converged (5.3 min in this block)
+   (boot gauge draw 168) K1 check 0.0e+00; form converged (5.8 min in this block)
+   (boot gauge draw 169) K1 check 0.0e+00; form converged (6.3 min in this block)
+   (boot gauge draw 170) K1 check 0.0e+00; form converged (6.8 min in this block)
+   (boot gauge draw 171) K1 check 0.0e+00; form converged (7.1 min in this block)
+   (boot gauge draw 172) K1 check 0.0e+00; form converged (7.6 min in this block)
+   (boot gauge draw 173) K1 check 0.0e+00; form converged (8.1 min in this block)
+   (boot gauge draw 174) K1 check 0.0e+00; form converged (8.7 min in this block)
+   (boot gauge draw 175) K1 check 0.0e+00; form converged (9.4 min in this block)
+   (boot gauge draw 176) K1 check 0.0e+00; form converged (9.8 min in this block)
+   (boot gauge draw 177) K1 check 0.0e+00; form converged (10.1 min in this block)
+   (boot gauge draw 178) K1 check 0.0e+00; form converged (10.4 min in this block)
+   (boot gauge draw 179) K1 check 0.0e+00; form converged (11.0 min in this block)
+=== (a8 boot_gauge_8) done: 11.2 min; peak memory 2.02 GB ===
+=== (boot_gauge_9)  (free memory 3.8 GB) 14:15:10 ===
+=== memory watch 14:16: free 2.9 GB ===
+   (boot gauge draw 180) K1 check 0.0e+00; form converged (0.6 min in this block)
+   (boot gauge draw 181) K1 check 0.0e+00; form converged (1.2 min in this block)
+   (boot gauge draw 182) K1 check 0.0e+00; form converged (2.1 min in this block)
+   (boot gauge draw 183) K1 check 0.0e+00; form NOT converged (3.2 min in this block)
+   (boot gauge draw 184) K1 check 0.0e+00; form converged (3.4 min in this block)
+   (boot gauge draw 185) K1 check 0.0e+00; form converged (4.1 min in this block)
+   (boot gauge draw 186) K1 check 0.0e+00; form converged (4.4 min in this block)
+   (boot gauge draw 187) K1 check 0.0e+00; form converged (4.8 min in this block)
+   (boot gauge draw 188) K1 check 0.0e+00; form converged (5.3 min in this block)
+   (boot gauge draw 189) K1 check 0.0e+00; form NOT converged (6.4 min in this block)
+   (boot gauge draw 190) K1 check 0.0e+00; form converged (6.8 min in this block)
+   (boot gauge draw 191) K1 check 0.0e+00; form converged (7.0 min in this block)
+   (boot gauge draw 192) K1 check 0.0e+00; form converged (7.4 min in this block)
+   (boot gauge draw 193) K1 check 0.0e+00; form converged (7.9 min in this block)
+   (boot gauge draw 194) K1 check 0.0e+00; form NOT converged (9.5 min in this block)
+=== memory watch 14:26: free 2.5 GB ===
+   (boot gauge draw 195) K1 check 0.0e+00; form NOT converged (10.9 min in this block)
+   (boot gauge draw 196) K1 check 0.0e+00; form NOT converged (12.0 min in this block)
+   (boot gauge draw 197) K1 check 0.0e+00; form converged (12.9 min in this block)
+   (boot gauge draw 198) K1 check 0.0e+00; form converged (13.7 min in this block)
+   (boot gauge draw 199) K1 check 0.0e+00; form converged (14.0 min in this block)
+=== (a8 boot_gauge_9) done: 14.1 min; peak memory 2.02 GB ===
+=== (boot_radar_0)  (free memory 3.2 GB) 14:29:26 ===
+   (boot radar draw 0) K1 check 0.0e+00; form converged (0.4 min in this block)
+   (boot radar draw 1) K1 check 0.0e+00; form converged (0.9 min in this block)
+   (boot radar draw 2) K1 check 0.0e+00; form converged (1.8 min in this block)
+   (boot radar draw 3) K1 check 0.0e+00; form converged (2.2 min in this block)
+   (boot radar draw 4) K1 check 0.0e+00; form converged (2.6 min in this block)
+   (boot radar draw 5) K1 check 0.0e+00; form converged (3.0 min in this block)
+   (boot radar draw 6) K1 check 0.0e+00; form NOT converged (3.6 min in this block)
+   (boot radar draw 7) K1 check 0.0e+00; form converged (4.0 min in this block)
+   (boot radar draw 8) K1 check 0.0e+00; form converged (4.4 min in this block)
+   (boot radar draw 9) K1 check 0.0e+00; form converged (4.8 min in this block)
+   (boot radar draw 10) K1 check 0.0e+00; form converged (5.5 min in this block)
+   (boot radar draw 11) K1 check 0.0e+00; form converged (6.1 min in this block)
+=== memory watch 14:36: free 2.1 GB ===
+   (boot radar draw 12) K1 check 0.0e+00; form converged (6.6 min in this block)
+   (boot radar draw 13) K1 check 0.0e+00; form converged (7.3 min in this block)
+=== LOW MEMORY 14:37: free 1.24 GB; grew most since the start: chrome.exe 1.68 -> 3.56 GB (+1.87); python.exe 0.42 -> 1.87 GB (+1.45); claude.exe 1.81 -> 3.19 GB (+1.37); msedge.exe 0.18 -> 1.00 GB (+0.82); msedgewebview2.exe 0.66 -> 1.28 GB (+0.62) ===
+   (boot radar draw 14) K1 check 0.0e+00; form converged (8.7 min in this block)
+   (boot radar draw 15) K1 check 0.0e+00; form converged (9.2 min in this block)
+   (boot radar draw 16) K1 check 0.0e+00; form converged (9.9 min in this block)
+   (boot radar draw 17) K1 check 0.0e+00; form converged (10.5 min in this block)
+   (boot radar draw 18) K1 check 0.0e+00; form converged (11.0 min in this block)
+   (boot radar draw 19) K1 check 0.0e+00; form converged (11.7 min in this block)
+=== (a8 boot_radar_0) done: 11.9 min; peak memory 2.02 GB ===
+=== (boot_radar_1)  (free memory 2.6 GB) 14:41:30 ===
+   (boot radar draw 20) K1 check 0.0e+00; form converged (0.9 min in this block)
+   (boot radar draw 21) K1 check 0.0e+00; form converged (1.6 min in this block)
+   (boot radar draw 22) K1 check 0.0e+00; form converged (2.2 min in this block)
+   (boot radar draw 23) K1 check 0.0e+00; form NOT converged (3.0 min in this block)
+   (boot radar draw 24) K1 check 0.0e+00; form converged (3.4 min in this block)
+   (boot radar draw 25) K1 check 0.0e+00; form converged (3.8 min in this block)
+=== memory watch 14:46: free 2.5 GB ===
+   (boot radar draw 26) K1 check 0.0e+00; form converged (4.2 min in this block)
+   (boot radar draw 27) K1 check 0.0e+00; form converged (4.7 min in this block)
+   (boot radar draw 28) K1 check 0.0e+00; form converged (5.3 min in this block)
+   (boot radar draw 29) K1 check 0.0e+00; form converged (5.9 min in this block)
+   (boot radar draw 30) K1 check 0.0e+00; form converged (6.5 min in this block)
+   (boot radar draw 31) K1 check 0.0e+00; form converged (6.9 min in this block)
+   (boot radar draw 32) K1 check 0.0e+00; form converged (7.2 min in this block)
+   (boot radar draw 33) K1 check 0.0e+00; form converged (7.5 min in this block)
+   (boot radar draw 34) K1 check 0.0e+00; form converged (8.2 min in this block)
+   (boot radar draw 35) K1 check 0.0e+00; form converged (8.5 min in this block)
+   (boot radar draw 36) K1 check 0.0e+00; form converged (8.8 min in this block)
+   (boot radar draw 37) K1 check 0.0e+00; form converged (9.2 min in this block)
+   (boot radar draw 38) K1 check 0.0e+00; form converged (9.8 min in this block)
+   (boot radar draw 39) K1 check 0.0e+00; form converged (10.3 min in this block)
+=== (a8 boot_radar_1) done: 10.5 min; peak memory 2.02 GB ===
+=== (boot_radar_2)  (free memory 3.4 GB) 14:52:20 ===
+   (boot radar draw 40) K1 check 0.0e+00; form converged (0.4 min in this block)
+=== LOW MEMORY 14:53: free 1.66 GB; grew most since the start: chrome.exe 1.68 -> 3.27 GB (+1.59); python.exe 0.42 -> 1.87 GB (+1.45); claude.exe 1.81 -> 3.10 GB (+1.28); msedge.exe 0.18 -> 0.97 GB (+0.79); msedgewebview2.exe 0.66 -> 1.28 GB (+0.62) ===
+   (boot radar draw 41) K1 check 0.0e+00; form converged (1.0 min in this block)
+   (boot radar draw 42) K1 check 0.0e+00; form converged (1.4 min in this block)
+   (boot radar draw 43) K1 check 0.0e+00; form converged (1.9 min in this block)
+   (boot radar draw 44) K1 check 0.0e+00; form converged (2.3 min in this block)
+   (boot radar draw 45) K1 check 0.0e+00; form converged (2.8 min in this block)
+   (boot radar draw 46) K1 check 0.0e+00; form converged (3.2 min in this block)
+=== memory watch 14:56: free 2.7 GB ===
+   (boot radar draw 47) K1 check 0.0e+00; form converged (3.7 min in this block)
+   (boot radar draw 48) K1 check 0.0e+00; form converged (4.0 min in this block)
+   (boot radar draw 49) K1 check 0.0e+00; form converged (4.2 min in this block)
+   (boot radar draw 50) K1 check 0.0e+00; form converged (4.6 min in this block)
+   (boot radar draw 51) K1 check 0.0e+00; form converged (5.4 min in this block)
+   (boot radar draw 52) K1 check 0.0e+00; form converged (5.9 min in this block)
+   (boot radar draw 53) K1 check 0.0e+00; form converged (6.2 min in this block)
+   (boot radar draw 54) K1 check 0.0e+00; form converged (6.5 min in this block)
+   (boot radar draw 55) K1 check 0.0e+00; form converged (7.0 min in this block)
+   (boot radar draw 56) K1 check 0.0e+00; form converged (7.3 min in this block)
+   (boot radar draw 57) K1 check 0.0e+00; form converged (7.7 min in this block)
+   (boot radar draw 58) K1 check 0.0e+00; form converged (8.0 min in this block)
+   (boot radar draw 59) K1 check 0.0e+00; form converged (8.5 min in this block)
+=== (a8 boot_radar_2) done: 8.6 min; peak memory 2.02 GB ===
+=== (boot_radar_3)  (free memory 3.1 GB) 15:01:06 ===
+   (boot radar draw 60) K1 check 0.0e+00; form converged (0.3 min in this block)
+   (boot radar draw 61) K1 check 0.0e+00; form converged (0.8 min in this block)
+   (boot radar draw 62) K1 check 0.0e+00; form converged (1.2 min in this block)
+   (boot radar draw 63) K1 check 0.0e+00; form converged (1.8 min in this block)
+=== LOW MEMORY 15:03: free 1.78 GB; grew most since the start: chrome.exe 1.68 -> 3.34 GB (+1.65); python.exe 0.42 -> 1.87 GB (+1.45); claude.exe 1.81 -> 3.09 GB (+1.27); msedge.exe 0.18 -> 0.95 GB (+0.77); msedgewebview2.exe 0.66 -> 1.28 GB (+0.62) ===
+   (boot radar draw 64) K1 check 0.0e+00; form converged (2.5 min in this block)
+   (boot radar draw 65) K1 check 0.0e+00; form converged (2.8 min in this block)
+   (boot radar draw 66) K1 check 0.0e+00; form converged (3.2 min in this block)
+   (boot radar draw 67) K1 check 0.0e+00; form converged (4.0 min in this block)
+   (boot radar draw 68) K1 check 0.0e+00; form converged (4.3 min in this block)
+   (boot radar draw 69) K1 check 0.0e+00; form converged (4.8 min in this block)
+=== memory watch 15:06: free 2.7 GB ===
+   (boot radar draw 70) K1 check 0.0e+00; form converged (5.0 min in this block)
+   (boot radar draw 71) K1 check 0.0e+00; form converged (5.3 min in this block)
+   (boot radar draw 72) K1 check 0.0e+00; form converged (6.0 min in this block)
+   (boot radar draw 73) K1 check 0.0e+00; form converged (6.4 min in this block)
+   (boot radar draw 74) K1 check 0.0e+00; form converged (6.7 min in this block)
+   (boot radar draw 75) K1 check 0.0e+00; form converged (7.0 min in this block)
+   (boot radar draw 76) K1 check 0.0e+00; form converged (7.3 min in this block)
+   (boot radar draw 77) K1 check 0.0e+00; form converged (7.6 min in this block)
+   (boot radar draw 78) K1 check 0.0e+00; form converged (7.9 min in this block)
+   (boot radar draw 79) K1 check 0.0e+00; form converged (8.2 min in this block)
+=== (a8 boot_radar_3) done: 8.3 min; peak memory 2.02 GB ===
+=== (boot_radar_4)  (free memory 3.1 GB) 15:09:35 ===
+   (boot radar draw 80) K1 check 0.0e+00; form converged (0.7 min in this block)
+   (boot radar draw 81) K1 check 0.0e+00; form converged (0.9 min in this block)
+   (boot radar draw 82) K1 check 0.0e+00; form converged (1.2 min in this block)
+   (boot radar draw 83) K1 check 0.0e+00; form converged (1.8 min in this block)
+   (boot radar draw 84) K1 check 0.0e+00; form converged (2.1 min in this block)
+   (boot radar draw 85) K1 check 0.0e+00; form converged (2.8 min in this block)
+   (boot radar draw 86) K1 check 0.0e+00; form converged (3.1 min in this block)
+   (boot radar draw 87) K1 check 0.0e+00; form converged (3.5 min in this block)
+   (boot radar draw 88) K1 check 0.0e+00; form converged (4.2 min in this block)
+   (boot radar draw 89) K1 check 0.0e+00; form converged (4.7 min in this block)
+   (boot radar draw 90) K1 check 0.0e+00; form converged (5.0 min in this block)
+   (boot radar draw 91) K1 check 0.0e+00; form converged (5.7 min in this block)
+   (boot radar draw 92) K1 check 0.0e+00; form converged (6.1 min in this block)
+=== memory watch 15:16: free 2.8 GB ===
+   (boot radar draw 93) K1 check 0.0e+00; form converged (6.3 min in this block)
+   (boot radar draw 94) K1 check 0.0e+00; form converged (6.7 min in this block)
+   (boot radar draw 95) K1 check 0.0e+00; form converged (7.0 min in this block)
+   (boot radar draw 96) K1 check 0.0e+00; form converged (7.3 min in this block)
+   (boot radar draw 97) K1 check 0.0e+00; form converged (7.6 min in this block)
+   (boot radar draw 98) K1 check 0.0e+00; form converged (8.1 min in this block)
+   (boot radar draw 99) K1 check 0.0e+00; form converged (8.4 min in this block)
+=== (a8 boot_radar_4) done: 8.5 min; peak memory 2.02 GB ===
+=== (boot_radar_5)  (free memory 3.0 GB) 15:18:15 ===
+   (boot radar draw 100) K1 check 0.0e+00; form converged (0.3 min in this block)
+   (boot radar draw 101) K1 check 0.0e+00; form converged (0.6 min in this block)
+   (boot radar draw 102) K1 check 0.0e+00; form converged (1.0 min in this block)
+   (boot radar draw 103) K1 check 0.0e+00; form converged (1.7 min in this block)
+   (boot radar draw 104) K1 check 0.0e+00; form converged (2.6 min in this block)
+   (boot radar draw 105) K1 check 0.0e+00; form converged (3.0 min in this block)
+   (boot radar draw 106) K1 check 0.0e+00; form converged (3.3 min in this block)
+   (boot radar draw 107) K1 check 0.0e+00; form converged (3.9 min in this block)
+   (boot radar draw 108) K1 check 0.0e+00; form converged (4.2 min in this block)
+   (boot radar draw 109) K1 check 0.0e+00; form converged (4.4 min in this block)
+   (boot radar draw 110) K1 check 0.0e+00; form converged (4.7 min in this block)
+   (boot radar draw 111) K1 check 0.0e+00; form converged (5.1 min in this block)
+   (boot radar draw 112) K1 check 0.0e+00; form converged (5.4 min in this block)
+   (boot radar draw 113) K1 check 0.0e+00; form converged (5.7 min in this block)
+   (boot radar draw 114) K1 check 0.0e+00; form converged (6.2 min in this block)
+   (boot radar draw 115) K1 check 0.0e+00; form converged (6.5 min in this block)
+   (boot radar draw 116) K1 check 0.0e+00; form converged (6.7 min in this block)
+   (boot radar draw 117) K1 check 0.0e+00; form converged (7.0 min in this block)
+   (boot radar draw 118) K1 check 0.0e+00; form converged (7.4 min in this block)
+=== memory watch 15:26: free 2.8 GB ===
+   (boot radar draw 119) K1 check 0.0e+00; form converged (7.9 min in this block)
+=== (a8 boot_radar_5) done: 8.1 min; peak memory 2.02 GB ===
+=== (boot_radar_6)  (free memory 3.3 GB) 15:26:29 ===
+   (boot radar draw 120) K1 check 0.0e+00; form converged (0.6 min in this block)
+   (boot radar draw 121) K1 check 0.0e+00; form converged (1.1 min in this block)
+   (boot radar draw 122) K1 check 0.0e+00; form converged (1.5 min in this block)
+   (boot radar draw 123) K1 check 0.0e+00; form converged (1.9 min in this block)
+   (boot radar draw 124) K1 check 0.0e+00; form converged (2.4 min in this block)
+   (boot radar draw 125) K1 check 0.0e+00; form converged (2.7 min in this block)
+   (boot radar draw 126) K1 check 0.0e+00; form converged (3.0 min in this block)
+   (boot radar draw 127) K1 check 0.0e+00; form converged (3.3 min in this block)
+   (boot radar draw 128) K1 check 0.0e+00; form converged (3.6 min in this block)
+   (boot radar draw 129) K1 check 0.0e+00; form converged (4.3 min in this block)
+   (boot radar draw 130) K1 check 0.0e+00; form converged (4.6 min in this block)
+   (boot radar draw 131) K1 check 0.0e+00; form converged (4.9 min in this block)
+   (boot radar draw 132) K1 check 0.0e+00; form converged (5.3 min in this block)
+   (boot radar draw 133) K1 check 0.0e+00; form converged (5.6 min in this block)
+   (boot radar draw 134) K1 check 0.0e+00; form converged (5.8 min in this block)
+   (boot radar draw 135) K1 check 0.0e+00; form converged (6.2 min in this block)
+   (boot radar draw 136) K1 check 0.0e+00; form converged (6.9 min in this block)
+   (boot radar draw 137) K1 check 0.0e+00; form converged (7.3 min in this block)
+   (boot radar draw 138) K1 check 0.0e+00; form converged (7.5 min in this block)
+   (boot radar draw 139) K1 check 0.0e+00; form converged (7.8 min in this block)
+=== (a8 boot_radar_6) done: 7.9 min; peak memory 2.02 GB ===
+=== (boot_radar_7)  (free memory 3.3 GB) 15:34:34 ===
+   (boot radar draw 140) K1 check 0.0e+00; form converged (0.2 min in this block)
+   (boot radar draw 141) K1 check 0.0e+00; form converged (0.7 min in this block)
+   (boot radar draw 142) K1 check 0.0e+00; form converged (1.0 min in this block)
+=== memory watch 15:36: free 2.3 GB ===
+   (boot radar draw 143) K1 check 0.0e+00; form converged (1.8 min in this block)
+   (boot radar draw 144) K1 check 0.0e+00; form converged (2.1 min in this block)
+   (boot radar draw 145) K1 check 0.0e+00; form NOT converged (2.4 min in this block)
+   (boot radar draw 146) K1 check 0.0e+00; form converged (2.8 min in this block)
+   (boot radar draw 147) K1 check 0.0e+00; form converged (3.0 min in this block)
+   (boot radar draw 148) K1 check 0.0e+00; form converged (3.5 min in this block)
+   (boot radar draw 149) K1 check 0.0e+00; form converged (3.8 min in this block)
+   (boot radar draw 150) K1 check 0.0e+00; form converged (4.2 min in this block)
+   (boot radar draw 151) K1 check 0.0e+00; form converged (4.6 min in this block)
+   (boot radar draw 152) K1 check 0.0e+00; form converged (5.0 min in this block)
+   (boot radar draw 153) K1 check 0.0e+00; form converged (5.4 min in this block)
+   (boot radar draw 154) K1 check 0.0e+00; form converged (5.6 min in this block)
+   (boot radar draw 155) K1 check 0.0e+00; form converged (6.0 min in this block)
+   (boot radar draw 156) K1 check 0.0e+00; form converged (6.4 min in this block)
+   (boot radar draw 157) K1 check 0.0e+00; form NOT converged (6.8 min in this block)
+   (boot radar draw 158) K1 check 0.0e+00; form converged (7.2 min in this block)
+   (boot radar draw 159) K1 check 0.0e+00; form converged (7.6 min in this block)
+=== (a8 boot_radar_7) done: 7.8 min; peak memory 2.02 GB ===
+=== (boot_radar_8)  (free memory 3.2 GB) 15:42:28 ===
+   (boot radar draw 160) K1 check 0.0e+00; form converged (0.3 min in this block)
+   (boot radar draw 161) K1 check 0.0e+00; form converged (0.7 min in this block)
+   (boot radar draw 162) K1 check 0.0e+00; form converged (1.3 min in this block)
+   (boot radar draw 163) K1 check 0.0e+00; form converged (1.7 min in this block)
+   (boot radar draw 164) K1 check 0.0e+00; form converged (2.5 min in this block)
+   (boot radar draw 165) K1 check 0.0e+00; form converged (3.0 min in this block)
+=== memory watch 15:46: free 2.7 GB ===
+   (boot radar draw 166) K1 check 0.0e+00; form converged (3.6 min in this block)
+   (boot radar draw 167) K1 check 0.0e+00; form converged (4.1 min in this block)
+   (boot radar draw 168) K1 check 0.0e+00; form converged (4.4 min in this block)
+   (boot radar draw 169) K1 check 0.0e+00; form converged (4.7 min in this block)
+   (boot radar draw 170) K1 check 0.0e+00; form converged (5.0 min in this block)
+   (boot radar draw 171) K1 check 0.0e+00; form converged (5.4 min in this block)
+   (boot radar draw 172) K1 check 0.0e+00; form converged (5.6 min in this block)
+   (boot radar draw 173) K1 check 0.0e+00; form converged (6.2 min in this block)
+   (boot radar draw 174) K1 check 0.0e+00; form converged (6.7 min in this block)
+   (boot radar draw 175) K1 check 0.0e+00; form converged (7.2 min in this block)
+   (boot radar draw 176) K1 check 0.0e+00; form converged (7.4 min in this block)
+   (boot radar draw 177) K1 check 0.0e+00; form converged (7.7 min in this block)
+   (boot radar draw 178) K1 check 0.0e+00; form converged (8.0 min in this block)
+   (boot radar draw 179) K1 check 0.0e+00; form converged (8.3 min in this block)
+=== (a8 boot_radar_8) done: 8.5 min; peak memory 2.02 GB ===
+=== (boot_radar_9)  (free memory 3.7 GB) 15:51:05 ===
+   (boot radar draw 180) K1 check 0.0e+00; form converged (0.8 min in this block)
+   (boot radar draw 181) K1 check 0.0e+00; form converged (1.2 min in this block)
+   (boot radar draw 182) K1 check 0.0e+00; form converged (1.6 min in this block)
+=== LOW MEMORY 15:53: free 1.43 GB; grew most since the start: python.exe 0.42 -> 1.87 GB (+1.45); chrome.exe 1.68 -> 3.12 GB (+1.43); claude.exe 1.81 -> 3.11 GB (+1.29); msedge.exe 0.18 -> 0.91 GB (+0.73); msedgewebview2.exe 0.66 -> 1.28 GB (+0.62) ===
+   (boot radar draw 183) K1 check 0.0e+00; form converged (2.3 min in this block)
+   (boot radar draw 184) K1 check 0.0e+00; form converged (2.5 min in this block)
+   (boot radar draw 185) K1 check 0.0e+00; form converged (3.0 min in this block)
+   (boot radar draw 186) K1 check 0.0e+00; form converged (3.2 min in this block)
+   (boot radar draw 187) K1 check 0.0e+00; form converged (3.5 min in this block)
+   (boot radar draw 188) K1 check 0.0e+00; form converged (4.1 min in this block)
+   (boot radar draw 189) K1 check 0.0e+00; form NOT converged (4.7 min in this block)
+=== memory watch 15:56: free 1.5 GB ===
+   (boot radar draw 190) K1 check 0.0e+00; form converged (5.1 min in this block)
+   (boot radar draw 191) K1 check 0.0e+00; form converged (5.4 min in this block)
+   (boot radar draw 192) K1 check 0.0e+00; form converged (5.9 min in this block)
+   (boot radar draw 193) K1 check 0.0e+00; form converged (6.1 min in this block)
+   (boot radar draw 194) K1 check 0.0e+00; form converged (6.6 min in this block)
+   (boot radar draw 195) K1 check 0.0e+00; form converged (7.3 min in this block)
+   (boot radar draw 196) K1 check 0.0e+00; form converged (7.7 min in this block)
+   (boot radar draw 197) K1 check 0.0e+00; form converged (8.1 min in this block)
+   (boot radar draw 198) K1 check 0.0e+00; form converged (8.5 min in this block)
+   (boot radar draw 199) K1 check 0.0e+00; form converged (8.8 min in this block)
+=== (a8 boot_radar_9) done: 8.9 min; peak memory 2.02 GB ===
+report: research/waa_ksurface/outputs/reports/a8_name.md
+=== step 8 ended 2026-11-22 16:00:07 ===
+=== exit 0 at Sun 11/22/2026 16:00:07.90 === 

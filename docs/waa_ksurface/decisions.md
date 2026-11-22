@@ -2629,3 +2629,71 @@ each and the process stops itself if it falls below 1.5 GB.
   +31.4; sparse vs BMS: −7.6 / +12.5. Both tools' best forms are worse than step 8's at both estimates.
 - **Plug-back queue: 0** (no form with p <= 3 and AICc lower by more than 2 at both estimates). Step 8's verdict is
   unchanged; nothing waits for step 8.
+
+### Result of step 8 (run 2026-11-22 11:03-16:00, exit 0; report `reports/a8_name.md`, log `reports/a8_name_terminal.log`)
+
+**(1) Input.** 30 A4 points, the 0-0.3 dB bin carries 17.3 of 30 weight. Band: 400 K1 refits (200 per estimate, seed
+3900); code check against the stored A7 draws REPRODUCED (largest relative difference 0.0e+00).
+
+**(2) Candidates.** 4 physics forms + 11 distinct PySR expressions (63 equations from 10 searches, 14 on the fronts).
+Physics forms: Delta_max 92.5 (sat, k_max 0.229 /min, W_h 1.724 dB), 95.1 (sat_floor, k_0 → 0), 122.6 (power), 137.8
+(linear). Best Delta_max: **pysr_gauge_c8, k = c2 / (c1 − exp(c0·W))**, p = 3, AICc −137.34 / −207.05 (Delta 30.68 at
+the gauge estimate, 2.56 at the radar estimate; at each estimate a different PySR form is lowest: radar_c9 at the gauge
+estimate, radar_c10 at the radar estimate). No candidate with fewer parameters within 2 of it, so it is chosen; no other
+candidate has Delta_max <= 10, so the trial order is this form only.
+
+**(3) Plug-back (CV on L-dryhigh, dB).**
+
+| estimate | form | free K1 | K0 | form − K1 (≤ 0.00291) | K0 − form (> 0.00291) | full fit converged |
+|---|---|---|---|---|---|---|
+| gauge | 0.38803 | 0.38746 | 0.40759 | +0.00057 (90 %: −0.00342 to +0.00356) | 0.01956 (0.01631 to 0.02529) | **no** (L-BFGS-B stopped at 261 iterations without success) |
+| radar | 0.38808 | 0.38653 | 0.40490 | +0.00155 (−0.00335 to +0.00512) | 0.01682 (0.01360 to 0.02324) | yes (146) |
+
+**Accepted by the logged rule at both estimates.** The rule has no convergence clause; the non-converged gauge full fit
+is recorded, not acted on (its fold refits start from it, as for every model).
+
+**(4) The accepted law, refitted through the kernel.** The refit changed the shape, not only the numbers: c0 went from
+−4.54 (curve fit, radar) to −18.13 / −20.49. Read as a logistic switch (for c1, c2 < 0, all full fits and 199 / 196 of
+200 draws):
+
+    k_dry(W) = k_inf / (1 + exp(−(W − W_half) / s)),   k_inf = c2 / c1,  W_half = ln(−c1) / c0,  s = −1 / c0
+
+| estimate | c0 | c1 | c2 | 1 / k_inf (min) | W_half (dB) | s (dB) | 1 / k_dry at W → 0 (min) |
+|---|---|---|---|---|---|---|---|
+| gauge | −18.132 (−18.218 to −18.119) | −0.00400 (−0.01102 to −0.00141) | −0.00061 (−0.00191 to −0.00022) | **6.60 (5.11 to 8.97)** | **0.30 (0.25 to 0.36)** | 0.055 (0.055 to 0.055) | 1655 (527 to 4581) |
+| radar | −20.485 (−20.495 to −20.470) | −0.00384 (−0.01241 to −0.00094) | −0.00040 (−0.00136 to −0.00009) | **9.69 (7.61 to 12.51)** | **0.27 (0.21 to 0.34)** | 0.049 (0.049 to 0.049) | 2537 (603 to 7983) |
+
+Intervals: 90 % (5-95 %), 200 event-bootstrap draws per estimate, all draws (form converged in 181 / 195; the
+converged-only intervals differ in the second digit at most). W_half over the draws with c1, c2 < 0 (199 / 196); in the
+other 1 / 4 draws both signs flip, which is the same switch with a hard edge (k ≤ 0 below the pole → the kernel's slowest
+rate).
+
+**Caveats (recorded, not acted on).**
+- **c0 (and s) is not identified by the bootstrap.** It moves by < 0.6 % across draws because every refit starts from
+  the full fit and the loss is flat in it; its interval is not an uncertainty. The switch width s ≈ 0.05 dB is far below
+  the 0.3 dB RSL quantization and comparable to the table spacing there (≈ 0.035 dB): the POSITION of the switch
+  (W_half) and the plateau are constrained, its SHARPNESS is not.
+- **The accepted curve leaves the free-K1 band** at W ≈ 0.25-0.4 dB (faster than K1, 1 / k 13.8 vs ≈ 25 min at 0.3 dB,
+  gauge) and below ≈ 0.15 dB (slower: 275 vs ≈ 56 min at 0.1 dB); above 0.5 dB it is inside the band at both estimates.
+  The held-out loss cannot tell the two shapes apart (difference within the margin, interval across zero). So the
+  stated law is "a constant rate above ≈ 0.3 dB that stops below it"; how abruptly it stops is not determined.
+- The point fit preferred the form at the radar estimate (Delta 2.6) and not at the gauge estimate (Delta 30.7).
+
+**The equations.** After rain (F = 0): **dW/dt = −k_dry(W)·W**, k_dry as above: exponential decay with 1 / k_inf =
+6.6 min (gauge estimate) / 9.7 min (radar estimate) while W is above ≈ 0.3 dB, then a residual of ≈ 0.3 dB that decays
+over hours to days. The full model, per link-event, per minute, W = 0 at the start of the window:
+
+    dW/dt = k(R, W)·(F(R) − W),   k = k_wet (K0; 1 / k_wet 1.74 / 10.92 min at the gauge / radar estimate) if F(R) > W,
+                                  k = k_dry(W) (the switch above) otherwise
+    A − c = W + L·P(R(t − d))
+
+F, P = the E4 curves as measured, with the fitted effective extensions (R1). Integrated exactly per minute
+(W ← F + (W − F)·e^(−k)).
+
+**Physical meaning (one line).** Above ≈ 0.3 dB the antenna dries with one time constant (≈ 7-10 min); the last ≈ 0.3
+dB of excess attenuation is not removed on that time scale.
+
+**R5 restated.** This curve does not separate a W-dependent rate from a second, slow store: a residual that persists
+below 0.3 dB is what a slow second store would also produce. No mechanism (film, droplets, a second store) is claimed
+or excluded. R1, R3 (revised), R4, R6 and the E20150831_0455 caveat stand. The cross-check (above) found no form that
+beats this one; its verdict is unchanged.
