@@ -263,3 +263,12 @@ a8o:                                            # offset check (decisions.md, "O
   w_half_range_db: [0.2, 0.4]                   # reading: floor if K1 in >= 3 of 5 and the median W_half (K1 seeds) is in this range
   k1_min: 3
   k0_min: 4                                     # the non-exponential claim stands if K0 in >= 4 of 5
+b_val:                                          # Block B (docs/waa_ksurface/block_b_prereg.md, frozen in 37470fa)
+  seed: 4100                                    # M1 / M2: the paired event bootstrap, the same draws for every model
+  boot_reps: 1000
+  interval: [5, 95]
+  m2_lags_min: [5, 10, 20]                      # M2: the bin ending 5 / 10 / 20 min after the path went dry
+  m2_rain_before_min: 10                        # M2: at least 10 wet minutes before (review check (5))
+  recipe_maxiter: 1000                          # the two recipes: L-BFGS-B
+  reproduce_rtol: 1.0e-9                        # pre-VAL check: ours reproduces its step 8 training loss on TRAIN
+  p1_rmse_tol_db: 0.0005                        # pre-VAL check: the Part 1 wrappers reproduce Part 1's TRAIN RMSE table (rounded to 4 decimals)

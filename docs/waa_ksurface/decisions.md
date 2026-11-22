@@ -2750,3 +2750,34 @@ c2 = −0.0104). W_half = ln(−c1) / c0 when c1, c2 < 0 (if both > 0: the pole 
 **Execution.** One detached process, one child per seed (cached in `research/.cache/waa_ksurface/a8o_offset/`, log
 `outputs/reports/a8o_offset_terminal.log`), keep-awake, free-memory floor 1.5 GB, memory log every 10 min. Expected time:
 about 5 min per seed for the procedure (step 3c: 4.6 min per run) plus 2-5 min for the switch fit, about 40-50 min in all.
+
+## Block B, execution note (2026-11-22, logged before any Block B code is run; the rules of 37470fa unchanged)
+
+Code `b_val.py` (with `b_val_test.py`, 5 unit tests on synthetic data, pass). The points the frozen rules leave open,
+fixed now, before any run:
+1. **Pre-VAL code checks (STOP before VAL if any fails).** (a) Our frozen equation, run through the unchanged kernel on
+   TRAIN stage 2, reproduces the step 8 plug-back training loss at the radar estimate to 1e-9 relative. (b) The Part 1
+   wrappers (Part 1's own `literature_s8c.Set.predict` and `WAAEquation.run`, read only) reproduce Part 1's TRAIN rows of
+   `literature_s8c_rmse.csv` (Schleiss b, Pastorek b, and Part 1's equation, called "ours" there; all links and L < 1 km)
+   within 0.0005 dB and with the same number of bins; on TRAIN a link without an a_link gets 1, as Part 1 did.
+2. **Definitions kept per model:** the Part 1 models keep their 1 min lag; ours and the recipes have d = 0. Missing rain
+   minutes are 0 for ours, the recipes and the Part 1 equation (as the kernel); Part 1's `Set` is used unchanged. A value
+   is scored only if every model's prediction is finite (the same values for every model).
+3. **Drop rule:** a VAL link-event whose link has no stored a_link in Schleiss b, Pastorek b or the Part 1 equation is
+   dropped for all models (count reported).
+4. **g_e of VAL:** `g_path` of the Part 1 table if `path_used`, else 1. S-ratio = the VAL events with `path_used`.
+5. **M1:** RMSE of the 5 min A − c; the 1000 event draws (seed 4100) are made once and used for every set, link group
+   and model; RMSE of a draw = sqrt(Σ m_e S_e / Σ m_e N_e).
+6. **M2:** the review check (5) windows on all kept VAL link-events (radar input / g_e, dry below 0.1 mm/h, at least
+   10 wet minutes before), lags 5, 10, 20 min, both sets; interval from the same draws (each value repeated as often as
+   its event is drawn).
+7. **M3:** E4's measurement (`e4_remeasure.measure` steps: area-mean selection, the adopted rule and n_short of the E3
+   table, the line per band and class, the bootstrap settings of the length test) on the kept VAL link-events of each set;
+   cells = the E4 cells that are also eligible on the VAL measurements; a model is "inside" a cell if both its intercept and
+   slope lie inside the measured 90 % interval.
+8. **Second freeze record** `a8_block_b_freeze2.json`: the recipe fits (`b_val_recipes.json`, with the code-check
+   numbers), `b_val.py`, and the first freeze record; committed before `--val`. `--val` re-checks every hash of both
+   records (line endings normalized) and stops on any change; it refuses to run a second time.
+9. **Order and time:** `--recipes` (TRAIN only; about 10-20 min) → commit → `--freeze` → commit → `--val` detached when at
+   least 4 GB is free after the offset check (VAL build by the Part 1 builder 10-30 min, predictions and metrics about
+   10 min: about 20-40 min in all).
