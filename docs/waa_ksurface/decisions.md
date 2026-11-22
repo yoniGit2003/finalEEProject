@@ -2473,3 +2473,84 @@ Fake K0 truths, no fit. Median ratio (90 %), offsets on: G (8.88 min) 0.296 (0.2
   far below 1 (0.30 / 0.44), and the offsets are what puts most windows above 0.15 dB (480 / 562 kept with them, 20 / 76
   without). Overall, the real 0.227 is just below the G interval (lower end 0.229); the clear separation is in the ≥ 1 dB
   class (real 0.347 vs fake 0.53-0.68 and 0.67-1.00), which has far fewer fake windows (42 / 38) than real (199).
+
+## Step 8: naming the drying law (2026-11-22, logged before any run of it)
+
+**Question served.** Q2 (what is k?): give the A7 drying curve k_dry(W) a closed form, and accept it only if it does the
+job of the free curve inside the model. Script `a8_name.py` (new), library `a8_forms.py` (new), tests `a8_test.py`.
+Real TRAIN data of the 14 learning events (the A7 setting, the A7 flag: 0 removed). VAL and TEST are not opened.
+
+**(1) Input: the curve and its points.**
+- The curve: the A7 K1 fit (`a7_real_fit/fit.pkl`), k_dry(W) = `Model.k(x_e, "drying", 0, W)` at e = gauge and radar
+  (the A7 parameter vectors x and x_alt). Nothing is refitted to make the points.
+- The points: the W bins of the frozen A4 drying domain, pooled over the bands (`a4_coverage_domain.csv`: band pooled,
+  regime drying, in_domain), one point per bin at its centre (0.15, 0.45, ..., 8.85 dB; n = 30). **Weight** = the A4
+  count of the bin (`minutes_L2` summed over its in-domain R classes, the count A4 froze), scaled to mean 1.
+- The quantity fitted: **y = ln k_dry** (1 / min). Reason: ln k is the model's own parameter, and the error of a rate is
+  relative (the A7 interval at W = 0 is 37-279 min, symmetric in ln k, not in k).
+- **The band:** the 200-draw event bootstrap of A7 (seed 3900, the same draws), rerun with the whole parameter vector
+  saved (A7 saved 1 / k_dry at W = 0, 0.5, 1, 2 dB only, so the band above 2 dB cannot be rebuilt from it). **Code check:**
+  every draw of the rerun must give the stored A7 values at W = 0, 0.5, 1, 2 dB to 1e-9 relative, else **STOP** (the band
+  is not reported). The band (5-95 % per point) is reported and drawn; it does not enter the AICc.
+- Point for the review (an observation, not a change): with these weights the 0-0.3 dB bin carries 58 % of the weight
+  (17.3 of 30), where the A7 curve is least constrained (1 / k_dry at W = 0: 37-279 min). The rule is applied as asked.
+
+**(2) Candidates, all on the same weighted points, at both estimates.**
+- Physics forms (k in 1 / min, W in dB): linear k = a + b·W; saturating k = k_max·W / (W + W_h); power k = a·W^p;
+  saturating with floor k = k_0 + k_max·W / (W + W_h). Positive parameters through their logarithm (a of the linear form,
+  k_max, W_h, a of the power form, k_0); b and p real. Fit = weighted least squares of ln k(form) − y (scipy
+  `least_squares`, a fixed grid of starts per form, the best kept). A form with k ≤ 0 at a point gets ln k = ln 1e-12
+  there (so it loses).
+- PySR (2.7.2): target k_dry at the points, weights as above, loss = weighted (ln k̂ − ln k)² (k̂ ≤ 0: penalty
+  100 + |k̂|), i.e. the same objective as the physics forms. Operators + − × / ^ and exp; complexity limit 10 (`maxsize`);
+  `^` with a simple exponent (constraint (−1, 1)); no exp inside exp; 64-bit; 100 iterations, 15 populations;
+  deterministic, serial; **seeds 0-4 at each estimate** (10 searches), each in its own process. **Kept:** at each estimate,
+  the Pareto front of complexity against loss pooled over its 5 seeds (per complexity the lowest loss; kept if its loss is
+  below that of every lower complexity); the union of the two fronts, duplicates of the same expression removed.
+- Every kept PySR expression is a form: its numbers are its parameters (p = the number of floating constants in its
+  sympy expression), refitted at each estimate by the same least squares from PySR's values.
+- **AICc** (Gaussian, weighted; σ counted): K = p + 1, AICc = n·ln(Σ w·r² / n) + 2K + 2K(K + 1) / (n − K − 1), n = 30.
+  ΔAICc_e = AICc_e − the lowest AICc_e of all candidates. **One form for both estimates:** Δmax = max(ΔAICc_gauge,
+  ΔAICc_radar). The best = the lowest Δmax (tie: the lower summed AICc). **The rule "within 2 AICc of the best but with
+  fewer parameters wins"**: among the candidates with Δmax ≤ Δmax(best) + 2, the one with the fewest parameters (tie:
+  the lower Δmax) is the chosen form.
+- **The trial order of (3):** the chosen form, then the other candidates on the Pareto front of (p, Δmax) (no candidate
+  with no more parameters and a lower Δmax), by ascending Δmax (tie: fewer parameters). Candidates with Δmax > 10 are not
+  tried; at most 6 are tried.
+
+**(3) Plug-back, the acceptance rule.**
+- The model: the A7 model with the drying rate k_dry = form(W; θ) in place of the K1 spline (no dependence on R, as K1);
+  wetting K0 held at the estimate (the A7 parameter vector's own gw: 1 / k_wet 1.74 / 10.92 min); F and P measured parts
+  fixed, extensions free; the same 5 min values (`stage2_w5` of A7 = counted and used), the same Huber 0.3 dB loss, no
+  smoothness penalty (a form has no knots). Fitted on the unflagged learning events from θ of (2) at that estimate and the
+  extension of the A7 fit at that estimate (L-BFGS-B, maxiter 300 as A5).
+- How the form enters the kernel: ln k(W; θ) is tabulated on a geometric W grid (0 and 60 points from 0.01 to 9 dB;
+  the value at W = 0 is the form at 1e-6 dB), clipped to the kernel's bounds of ln k, and the unchanged `ksurf` kernel
+  reads it as K1 knots (piecewise linear in W, held above 9 dB as K1 is). The gradient in θ is the kernel's exact
+  gradient in the knot values times the derivative of the table in θ. Unit tests: the table is within 0.002 in ln k of
+  each physics form between the grid points at A7-like parameters; the loss equals the plain `ksurf.Model` loss with
+  the same knots; the gradient matches finite differences.
+- **CV**: the 5 folds of A7 grouped by event (`ladder.folds`), each fold refitted from the full fit (maxiter 150), the
+  held-out Huber loss on the L-dryhigh values only (`high & used`), per event; CV error = sqrt(2 × mean).
+- **The references, the free K1 and K0 at each estimate**, are the stage-2 fits of the review (`a7_review/sel_mid.pkl`,
+  F as measured: at the gauge estimate this is A7's own selection, reproduced in the review to 2.2e-16) with their
+  held-out sums recomputed by the same fold code. **Code check:** their CV losses must equal `a7_review_cv.csv` (F mid)
+  to 1e-9 relative, else **STOP**. At the radar estimate the free K1 is thus the review's radar selection (it carries the
+  Deviation 15 caveat), not A7's x_alt refit; this is the only K1 at the radar estimate with a held-out loss.
+- **Accept** the form only if, at BOTH estimates: CV(form) − CV(free K1) ≤ **0.00291 dB** AND CV(K0) − CV(form) >
+  **0.00291 dB**. The paired 90 % event-bootstrap intervals of both differences (`ladder.paired_interval`, 1000 draws,
+  seed 905) are reported beside; they are not part of the rule. If the form fails, the next form of the trial order is
+  tried; **if none passes, the free K1 curve remains the stated law and no closed form is claimed.**
+
+**(4) Report.**
+- The accepted formula and its parameters at both estimates, each with a 90 % (5-95 %) event-bootstrap interval: 200
+  draws (seed 3900, the A7 draws), in each draw the plugged-back form refitted with k_wet held at that estimate,
+  extension free, from its full fit (the draw's events count as often as drawn, as A7). The same draws also give the
+  band of (1).
+- The drying equation written out: after rain dW/dt = −k_dry(W)·W; and the full W(t) model (wetting K0, drying, the target
+  F, the path term). One line of physical meaning; R5 restated (no mechanism claimed). Claims R1, R3 (revised), R4, R5, R6
+  and the E20150831_0455 caveat stand.
+- Execution: one detached process, one child per part (`curve`, the PySR searches, `refs`, the plug-back trials, the
+  bootstrap in blocks of 20 draws per estimate), cache `research/.cache/waa_ksurface/a8_name/`, log
+  `outputs/reports/a8_name_terminal.log`, keep-awake, free-memory floor 1.5 GB, memory log every 10 min. The expected run
+  time is reported before the launch. Then Part 2 (the Block B pre-registration, written, not run) and STOP.
