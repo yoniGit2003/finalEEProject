@@ -2697,3 +2697,56 @@ dB of excess attenuation is not removed on that time scale.
 below 0.3 dB is what a slow second store would also produce. No mechanism (film, droplets, a second store) is claimed
 or excluded. R1, R3 (revised), R4, R6 and the E20150831_0455 caveat stand. The cross-check (above) found no form that
 beats this one; its verdict is unchanged.
+
+## Offset check: can a plain exponential drying plus offsets and the 0.3 dB grid make the step 8 switch? (2026-11-22, logged before any run of it)
+
+**Question served.** Q2: is the step 8 switch (drying stops below W_half ≈ 0.3 dB) a property of the drying, or of the
+instrument floor (baseline offsets + quantization)? Fake data only. Script `a8o_offset.py` (new). VAL and TEST are not
+opened. The step 8 result and the Block B freeze (37470fa) are known when these rules are written.
+
+**Answer first: did the earlier fake gates carry per-event baseline offset errors? Yes.** Every fake truth of A6, A6
+final, S1, step 3, step 3b, step 3c and step 3d (and the dry-shape control) was made by `fake6.make` with an offset error
+per link-event drawn from a NORMAL distribution of sd 0.136 dB (E3), plus the link shift (sd 0.088 dB), white noise
+(0.072 dB per minute) and the 0.3 dB grid with a random phase. In particular step 3c `g_088` (K0 truth, 1 / k_dry 15 min,
+A7 procedure, these offsets) returned K0. What was NOT tested: offsets drawn from the MEASURED distribution itself (it
+has a positive mean and a heavier right tail than the normal), and a K0 truth at the fast real drying time (9.7 min).
+
+**The measured offset distribution.** The E3 quantity, per link-event of the 14 learning events: the mean of A − c over
+the counted dry 5 min bins of the 30 min before the first wet bin (at least 3 such bins), from the TRAIN data layer
+(pre-rain windows only; no drying tail is read). Measured now: 4 547 link-events, sd 0.136 dB (= E3), mean +0.015 dB,
+10-90 % −0.115 to +0.149 dB. (The request quoted about −0.2 to +0.2 dB; the measured spread is used, not the quoted one.)
+Each fake link-event gets one value drawn with replacement from these 4 547, uncentred.
+
+**The truth.** Plain exponential drying, K0 / K0: 1 / k_dry = **9.7 min** (step 8's plateau at the radar estimate),
+1 / k_wet = **10.92 min** (the radar-input estimate, as the control's truth R). Everything else of the step 3c fake world
+unchanged (true rain, F_true, P_true, link shift 0.088 dB, white noise, the 0.3 dB grid, missing values, the 37 added
+events' radar factor). **How the offsets enter:** `fake6.make` with the normal offset sd set to 0 (the same random numbers
+drawn, as the control did), then the drawn measured offset added to every minute of its link-event. Adding a constant
+after the rounding equals rounding the shifted series with a shifted phase, and the phase is uniform and independent, so
+this is the same as adding the offset before the grid (unit test).
+
+**Seeds.** Fresh: **4200-4204** (5 replicates); the offset draw of replicate r uses its own stream seeded (seed, 1).
+
+**Procedure.** The full A7 procedure exactly as step 3c (`s3c_a7_variant.procedure`): the tail flag on the fake data
+before any fit, the 14 learning events only, stage 1 wetting, stage 2 drying K0 vs K1 on L-dryhigh with margin 0.00291 dB
+and the paired 90 % interval excluding zero, k_wet at both estimates. Reported per seed: the drying rung, the K1 gain with
+its interval, 1 / k_dry at both estimates.
+
+**The switch fit.** In every seed (whatever the rung): the step 8 form k = c2 / (c1 − exp(c0·W)) plugged back exactly as
+in step 8 (`a8_forms.FormModel`, the unchanged kernel, the same table, L-BFGS-B, maxiter 300) at the **radar-input
+estimate** of that seed's k_wet (the estimate of the frozen equation), on that seed's stage-2 values, extension free from
+the seed's `x_alt`, θ started at step 8's curve-fit values at the radar estimate (c0 = −4.541, c1 = −0.0849,
+c2 = −0.0104). W_half = ln(−c1) / c0 when c1, c2 < 0 (if both > 0: the pole ln(c1) / c0; otherwise undefined). Reported:
+θ, W_half, 1 / k_inf, convergence.
+
+**Reading (from the request, written now).**
+- "**Consistent with an instrument floor**" if drying K1 is selected in **at least 3 of 5** seeds AND the median W_half
+  over the K1 seeds lies within **0.2-0.4 dB**. The claim then becomes: "drying is exponential with 1 / k_dry ≈ 7-10 min
+  down to ~0.3 dB; below that the data cannot resolve it", recorded as new restriction **R7**.
+- "**The non-exponential claim stands**" if K0 is selected in **at least 4 of 5**.
+- Otherwise **undecided** (reported as such; no R7).
+- One truth, 5 replicates; the reading rests on these draws.
+
+**Execution.** One detached process, one child per seed (cached in `research/.cache/waa_ksurface/a8o_offset/`, log
+`outputs/reports/a8o_offset_terminal.log`), keep-awake, free-memory floor 1.5 GB, memory log every 10 min. Expected time:
+about 5 min per seed for the procedure (step 3c: 4.6 min per run) plus 2-5 min for the switch fit, about 40-50 min in all.

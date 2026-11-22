@@ -254,3 +254,12 @@ a8x:                                            # naming cross-check (decisions.
     burnin: 1000
     steps: 3000
     top: 5
+a8o:                                            # offset check (decisions.md, "Offset check", logged before the run)
+  seed: 4200                                    # fresh: r0..r4 = 4200..4204; the offset draw of a seed uses the stream (seed, 1)
+  replicates: 5
+  tau_dry_min: 9.7                              # truth K0: step 8's plateau at the radar estimate
+  tau_wet_min: 10.92                            # the radar-input estimate of 1 / k_wet (as the control's truth R)
+  form_name: pysr_gauge_c8                      # step 8's accepted form, from the step 8 rank cache (read only)
+  w_half_range_db: [0.2, 0.4]                   # reading: floor if K1 in >= 3 of 5 and the median W_half (K1 seeds) is in this range
+  k1_min: 3
+  k0_min: 4                                     # the non-exponential claim stands if K0 in >= 4 of 5

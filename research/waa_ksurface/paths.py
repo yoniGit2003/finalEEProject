@@ -216,3 +216,6 @@ A8_LOG = REPORTS / "a8_name_terminal.log"
 B_EQUATION = PRODUCTS / "a8_equation_frozen.json"              # Block B: the frozen equation (written by a8_name --freeze)
 B_FREEZE = PRODUCTS / "a8_block_b_freeze.json"                 # Block B: the SHA-256 of the equation, the competitor files and the rules
 B_PREREG = REPO / "docs" / "waa_ksurface" / "block_b_prereg.md"   # Block B: the pre-registered rules (written, not run)
+A8O_RUNS = TABLES / "a8o_offset_runs.csv"                       # offset check: per seed the rung, the gain, the switch fit, W_half
+A8O_REPORT = REPORTS / "a8o_offset.md"
+A8O_LOG = REPORTS / "a8o_offset_terminal.log"                   # the terminal output of the detached run
