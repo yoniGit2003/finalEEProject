@@ -2554,3 +2554,14 @@ Real TRAIN data of the 14 learning events (the A7 setting, the A7 flag: 0 remove
   bootstrap in blocks of 20 draws per estimate), cache `research/.cache/waa_ksurface/a8_name/`, log
   `outputs/reports/a8_name_terminal.log`, keep-awake, free-memory floor 1.5 GB, memory log every 10 min. The expected run
   time is reported before the launch. Then Part 2 (the Block B pre-registration, written, not run) and STOP.
+
+**Step 8, execution note (2026-11-22, before launch; not a scientific deviation).** PySR could not start in the `cmlpipe`
+env: (i) with the shell's `CONDA_PREFIX` at the base install, juliacall used the base `miniconda3\julia_env`; the
+launcher now sets `CONDA_PREFIX` to the env (as `conda activate` does), and juliapkg installed Julia 1.13.4 into
+`envs\cmlpipe\julia_env`; (ii) Julia's Windows TLS (schannel) fails on every HTTPS request on this machine ("the
+certificate chain is incomplete"; Python reaches the same hosts), so three binary artifacts could not be downloaded by
+Julia: OpenSpecFun, micromamba, pixi. Each was downloaded with Python from the URL in its package's `Artifacts.toml`,
+its sha256 checked against that file, and unpacked into the Julia depot by Julia's own `create_artifact`, whose git
+tree hash was checked against the file (all three matched). No TLS check was switched off. Smoke test on SYNTHETIC
+points (k = 0.01 + 0.2·W / (W + 0.5), no real data) with the settings of (2): 164 s per search, front of 6 equations.
+Unit tests (`a8_test.py`, 7) pass; timing probe: the tabulated form costs 1.27 times a K1 loss evaluation.
