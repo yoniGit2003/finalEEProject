@@ -2565,3 +2565,51 @@ its sha256 checked against that file, and unpacked into the Julia depot by Julia
 tree hash was checked against the file (all three matched). No TLS check was switched off. Smoke test on SYNTHETIC
 points (k = 0.01 + 0.2·W / (W + 0.5), no real data) with the settings of (2): 164 s per search, front of 6 equations.
 Unit tests (`a8_test.py`, 7) pass; timing probe: the tabulated form costs 1.27 times a K1 loss evaluation.
+
+## Naming cross-check: two independent tools (2026-11-22, logged before any run of them; step 8 still running)
+
+**Question served.** Q2: does an independent search on the same input name the drying curve differently from step 8?
+Script `a8x_crosscheck.py` (new). It reads only the step 8 input (the A7 K1 fit, the A4 table) and, at the end, the
+step 8 cache; it does not touch the step 8 run. VAL and TEST are not opened.
+
+**Disclosure (corrected from the request).** The request asked to state that the step 8 result has NOT been seen. That is
+not true in full: the step 8 AICc ranking (`a8_name/rank.pkl`, read 11:37) was seen and reported: chosen form
+k = c2 / (c1 − exp(c0·W)) (PySR, p = 3, Delta_max 30.7), the physics forms at Delta_max 92-138, no other candidate with
+Delta_max <= 10. **Not seen:** the step 8 plug-back (accepted or not) and its bootstrap. These rules are written after
+seeing that ranking.
+
+**Input (exactly that of step 8 (1)).** The 30 A4 drying points, the density weights (mean 1), y = ln k_dry of the A7
+K1 fit at the gauge and the radar estimate (`a8_forms.points`, `a8_forms.k1_lnk`). Every formula of both tools is scored
+as in step 8: weighted least squares of ln k(form) − y (`a8_forms.fit_curve`), AICc with K = p + 1, n = 30, Delta_max
+over the two estimates, and the step 8 choice rule (`a8_forms.rank`: the fewest parameters within 2 of the best
+Delta_max).
+
+**Tool 1, sparse regression (best subset).** k = sum of c_j·theta_j(W) over a subset of the library {1, W, W², 1/W,
+√W, exp(−W), W/(1 + W)}; every subset of 1, 2 or 3 terms (63 subsets), p = the number of terms. Each subset fitted by the
+step 8 least squares, started from the weighted linear least squares of k on the terms with weights w / k² (the
+first-order equivalent of the ln k loss). The chosen subset by the step 8 rule over the 63.
+
+**Tool 2, the Bayesian Machine Scientist (BMS).** The given GitHub address does not exist; the code is taken from the
+authors' repository https://bitbucket.org/rguimera/machine-scientist, pinned at commit f4cf1e8, cloned into
+`research/.cache/waa_ksurface/a8x/` (git-ignored). Operators as PySR: + − × / and exp, power; expression size at most 10
+(`max_size`); its own prior file for one variable (the one shipped closest to nv = 1, recorded in the report); parallel
+tempering as shipped; seed 0; at each estimate one run of 3000 MCMC steps after 1000 burn-in on x = W, y = k_dry (BMS's
+own likelihood: unweighted, on k; it cannot take weights). **Top 5** per estimate = the five expressions visited most
+often after burn-in, with that share as their posterior probability. Each is then refitted and scored by the step 8
+objective above (weighted, ln k). **Fallback:** if BMS is not running within 30 min of the start of its install, Operon
+(pyoperon); if that fails too, gplearn; same operators, size limit 10; then the Pareto front (size vs loss) is reported.
+
+**Agreement.** The two tools "agree" if their chosen forms are the same family (the same expression with the constants
+renamed, `a8_name.structure`; for the sparse tool, its sum of terms written out) or within 2 AICc of each other at both
+estimates. The same test against step 8's form is reported.
+
+**Plug-back queue.** A form of either tool goes to plug-back if it has no more parameters than step 8's form and an AICc
+lower by more than 2 at BOTH estimates. Step 8's form = its accepted form; **if step 8 accepts none, its chosen (tried)
+form** (this case is not covered by the request; flagged for the review). The plug-back is step 8's own `plug_part` code
+and rule (CV within 0.00291 dB of the free K1 and better than K0 by more than 0.00291 dB, at both estimates). All
+plug-backs are queued until step 8 has finished and at least 4 GB is free.
+
+**Effect on step 8.** None, except through that plug-back rule.
+
+**Execution.** One tool at a time, each a single light process at below-normal priority; free memory is checked before
+each and the process stops itself if it falls below 1.5 GB.
