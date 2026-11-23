@@ -2781,3 +2781,24 @@ fixed now, before any run:
 9. **Order and time:** `--recipes` (TRAIN only; about 10-20 min) → commit → `--freeze` → commit → `--val` detached when at
    least 4 GB is free after the offset check (VAL build by the Part 1 builder 10-30 min, predictions and metrics about
    10 min: about 20-40 min in all).
+
+### Result of the offset check (run 2026-11-22 21:06 - 2026-11-23 10:43, exit 0; report `reports/a8o_offset.md`)
+
+The machine slept from about 21:45 to 10:38 inside r4 (r4 wall time 785 min; about 6-10 min of work per seed); the run
+resumed and finished on its own. Lowest free memory 0.49 GB, 5 low-memory log lines, no child died.
+
+| seed | drying | K1 gain (90 %) | 1 / k_dry gauge / radar (min; truth 9.7) | switch W_half (dB) | switch 1 / k_inf (min) | switch converged |
+|---|---|---|---|---|---|---|
+| 4200 | K0 | −0.00145 (−0.00425 to +0.00071) | 13.3 / 13.7 | 0.048 | 13.6 | yes |
+| 4201 | K0 | +0.00134 (+0.00092 to +0.00223) | 8.7 / 10.4 | 0.060 | 10.2 | no |
+| 4202 | K0 | −0.00048 (−0.00072 to −0.00019) | 10.7 / 11.7 | 0.047 | 11.5 | no |
+| 4203 | K0 | +0.00096 (+0.00063 to +0.00174) | 10.2 / 11.6 | 0.053 | 11.5 | yes |
+| 4204 | K0 | −0.00038 (−0.00112 to +0.00150) | 10.7 / 11.3 | 0.047 | 11.2 | yes |
+
+**Reading (as logged): the non-exponential claim stands** (K0 in 5 of 5). R7 is NOT adopted. Stated with it: a plain
+exponential drying seen through the measured offsets and the 0.3 dB grid gives no K1 (every gain below the 0.00291 dB
+margin), and the step 8 form fitted to it puts its switch at W_half ≈ 0.05 dB, not ≈ 0.3 dB as on real data. So the real
+switch at ≈ 0.3 dB is not reproduced by the offsets and the grid of this fake world. R5 still applies (the slow residual
+below 0.3 dB may be a W-dependent rate or a second, slow store). The 1 / k_dry recovered (8.7-13.7 min for 9.7) is
+reported, not judged (no recovery criterion was set for this check). Naming cross-check: restated in the report (sparse
+1 + √W + exp(−W); BMS a·W^(b^W); neither agrees with step 8; queue 0).

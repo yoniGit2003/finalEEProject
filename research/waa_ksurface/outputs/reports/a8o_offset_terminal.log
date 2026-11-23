@@ -1,0 +1,87 @@
+=== launcher started Sun 11/22/2026 21:06:43.77 === 
+=== offset check started 2026-11-22 21:06:51; free memory 2.4 GB ===
+=== keep-awake (ES_CONTINUOUS | ES_SYSTEM_REQUIRED): on ===
+=== (r0) seed 4200 (free memory 2.4 GB) 21:06:52 ===
+   (r0) wetting  K0 lambda 0.0001: train 0.02523  cv 0.02563  (76 it)
+=== memory watch 21:07: free 1.0 GB ===
+=== LOW MEMORY 21:07: free 0.98 GB; grew most since the start: python.exe 0.42 -> 2.37 GB (+1.95); chrome.exe 2.43 -> 2.61 GB (+0.19); msedge.exe 1.27 -> 1.42 GB (+0.15); ChatGPT.exe 0.79 -> 0.80 GB (+0.00); TabTip.exe 0.09 -> 0.09 GB (+0.00) ===
+   (r0) wetting  K0 lambda 0.001: train 0.02528  cv 0.02567  (60 it)
+   (r0) wetting  K0 lambda 0.01: train 0.02529  cv 0.02569  (75 it)
+   (r0) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (r0) drying   K0 lambda 0.0001: train 0.02733  cv 0.05112  (30 it)
+   (r0) drying   K1 lambda 0.0001: train 0.02730  cv 0.05167  (39 it)
+   (r0) drying   K1 lambda 0.001: train 0.02732  cv 0.05160  (25 it)
+   (r0) drying   K1 lambda 0.01: train 0.02732  cv 0.05159  (30 it)
+   (r0) drying: lowest cv K0, selected K0 (lambda 0.0001)
+   (r0) 1 / k_wet: gauge input 4.02 min, radar input 4.68 min
+   (r0) procedure: drying K0; 1 / k_dry 13.3 / 13.7 min, truth 10 (5.2 min)
+   (r0) switch fit: theta [-52.14703, -0.08313, -0.00612]; W_half 0.048 dB; 1/k_inf 13.58 min; converged True (1.3 min)
+=== (a8o r0) done: 6.5 min; peak memory 2.75 GB ===
+=== (r1) seed 4201 (free memory 3.7 GB) 21:13:39 ===
+   (r1) wetting  K0 lambda 0.0001: train 0.02489  cv 0.02530  (85 it)
+   (r1) wetting  K0 lambda 0.001: train 0.02491  cv 0.02532  (65 it)
+   (r1) wetting  K0 lambda 0.01: train 0.02491  cv 0.02532  (81 it)
+   (r1) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (r1) drying   K0 lambda 0.0001: train 0.02451  cv 0.03914  (43 it)
+   (r1) drying   K1 lambda 0.0001: train 0.02447  cv 0.03877  (39 it)
+   (r1) drying   K1 lambda 0.001: train 0.02448  cv 0.03878  (50 it)
+=== memory watch 21:17: free 2.7 GB ===
+   (r1) drying   K1 lambda 0.01: train 0.02448  cv 0.03879  (39 it)
+   (r1) drying: lowest cv K1, selected K0 (lambda 0.0001)
+   (r1) 1 / k_wet: gauge input 4.14 min, radar input 8.58 min
+   (r1) procedure: drying K0; 1 / k_dry 8.7 / 10.4 min, truth 10 (4.7 min)
+   (r1) switch fit: theta [-53.89114, -0.03895, -0.00382]; W_half 0.060 dB; 1/k_inf 10.19 min; converged False (1.6 min)
+=== (a8o r1) done: 6.3 min; peak memory 2.83 GB ===
+=== (r2) seed 4202 (free memory 4.0 GB) 21:20:16 ===
+   (r2) wetting  K0 lambda 0.0001: train 0.02454  cv 0.02493  (85 it)
+   (r2) wetting  K0 lambda 0.001: train 0.02455  cv 0.02493  (66 it)
+   (r2) wetting  K0 lambda 0.01: train 0.02456  cv 0.02494  (87 it)
+   (r2) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (r2) drying   K0 lambda 0.0001: train 0.02241  cv 0.04183  (50 it)
+=== LOW MEMORY 21:22: free 1.67 GB; grew most since the start: python.exe 0.42 -> 2.93 GB (+2.51); chrome.exe 2.43 -> 2.57 GB (+0.14); bash.exe 0.00 -> 0.01 GB (+0.01); audiodg.exe 0.00 -> 0.01 GB (+0.01); OneDrive.exe 0.07 -> 0.08 GB (+0.00) ===
+   (r2) drying   K1 lambda 0.0001: train 0.02239  cv 0.04207  (46 it)
+   (r2) drying   K1 lambda 0.001: train 0.02241  cv 0.04198  (29 it)
+   (r2) drying   K1 lambda 0.01: train 0.02241  cv 0.04197  (32 it)
+   (r2) drying: lowest cv K0, selected K0 (lambda 0.0001)
+   (r2) 1 / k_wet: gauge input 4.11 min, radar input 6.12 min
+   (r2) procedure: drying K0; 1 / k_dry 10.7 / 11.7 min, truth 10 (4.8 min)
+   (r2) switch fit: theta [-31.36656, -0.22766, -0.01975]; W_half 0.047 dB; 1/k_inf 11.53 min; converged False (2.0 min)
+=== (a8o r2) done: 6.8 min; peak memory 2.83 GB ===
+=== (r3) seed 4203 (free memory 3.9 GB) 21:27:18 ===
+=== memory watch 21:28: free 2.5 GB ===
+   (r3) wetting  K0 lambda 0.0001: train 0.02504  cv 0.02540  (77 it)
+   (r3) wetting  K0 lambda 0.001: train 0.02506  cv 0.02541  (66 it)
+   (r3) wetting  K0 lambda 0.01: train 0.02506  cv 0.02541  (93 it)
+   (r3) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+   (r3) drying   K0 lambda 0.0001: train 0.02541  cv 0.06591  (32 it)
+=== LOW MEMORY 21:32: free 1.89 GB; grew most since the start: python.exe 0.42 -> 2.92 GB (+2.50); msedgewebview2.exe 1.28 -> 1.34 GB (+0.06); NVIDIA Share.exe 0.12 -> 0.17 GB (+0.05); PhoneExperienceHost.exe 0.00 -> 0.05 GB (+0.05); chrome.exe 2.43 -> 2.47 GB (+0.04) ===
+   (r3) drying   K1 lambda 0.0001: train 0.02538  cv 0.06556  (39 it)
+   (r3) drying   K1 lambda 0.001: train 0.02540  cv 0.06575  (27 it)
+   (r3) drying   K1 lambda 0.01: train 0.02541  cv 0.06579  (29 it)
+   (r3) drying: lowest cv K1, selected K0 (lambda 0.0001)
+   (r3) 1 / k_wet: gauge input 4.33 min, radar input 7.34 min
+   (r3) procedure: drying K0; 1 / k_dry 10.2 / 11.6 min, truth 10 (8.4 min)
+   (r3) switch fit: theta [-80.21055, -0.01439, -0.00125]; W_half 0.053 dB; 1/k_inf 11.51 min; converged True (1.7 min)
+=== (a8o r3) done: 10.1 min; peak memory 3.11 GB ===
+=== (r4) seed 4204 (free memory 3.8 GB) 21:38:01 ===
+=== memory watch 21:38: free 3.8 GB ===
+   (r4) wetting  K0 lambda 0.0001: train 0.02633  cv 0.02671  (85 it)
+   (r4) wetting  K0 lambda 0.001: train 0.02636  cv 0.02674  (65 it)
+   (r4) wetting  K0 lambda 0.01: train 0.02637  cv 0.02675  (98 it)
+   (r4) wetting: lowest cv K0, selected K0 (lambda 0.0001)
+=== LOW MEMORY 01:41: free 1.59 GB; grew most since the start: python.exe 0.42 -> 3.00 GB (+2.58); PhoneExperienceHost.exe 0.00 -> 0.05 GB (+0.05); svchost.exe 0.60 -> 0.64 GB (+0.04); NVIDIA Share.exe 0.12 -> 0.16 GB (+0.04); LogonUI.exe 0.00 -> 0.03 GB (+0.03) ===
+   (r4) drying   K0 lambda 0.0001: train 0.03324  cv 0.03975  (32 it)
+=== memory watch: 777 min since the last look (the machine was asleep or suspended) ===
+=== memory watch 10:38: free 0.5 GB ===
+=== LOW MEMORY 10:38: free 0.49 GB; grew most since the start: python.exe 0.42 -> 2.93 GB (+2.51); chrome.exe 2.43 -> 2.65 GB (+0.22); copilotapp.exe 0.37 -> 0.56 GB (+0.19); PanGpHip.exe 0.00 -> 0.15 GB (+0.15); svchost.exe 0.60 -> 0.68 GB (+0.08) ===
+   (r4) drying   K1 lambda 0.0001: train 0.03323  cv 0.03986  (19 it)
+   (r4) drying   K1 lambda 0.001: train 0.03324  cv 0.03994  (24 it)
+   (r4) drying   K1 lambda 0.01: train 0.03324  cv 0.03996  (26 it)
+   (r4) drying: lowest cv K0, selected K0 (lambda 0.0001)
+   (r4) 1 / k_wet: gauge input 4.11 min, radar input 5.30 min
+   (r4) procedure: drying K0; 1 / k_dry 10.7 / 11.3 min, truth 10 (783.6 min)
+   (r4) switch fit: theta [-71.95597, -0.03347, -0.00299]; W_half 0.047 dB; 1/k_inf 11.18 min; converged True (1.3 min)
+=== (a8o r4) done: 784.9 min; peak memory 2.83 GB ===
+report: research/waa_ksurface/outputs/reports/a8o_offset.md
+=== offset check ended 2026-11-23 10:43:34 ===
+=== exit 0 at Mon 11/23/2026 10:43:36.93 === 

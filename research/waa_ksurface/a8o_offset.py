@@ -172,6 +172,14 @@ def report(R, state):
          f"**Reading: {verdict}.** K1 in {n1} of {len(R)}, K0 in {n0} of {len(R)}; median W_half over the K1 seeds: "
          f"{'n/a' if not np.isfinite(med) else f'{med:.3f} dB'} (floor if K1 >= {CO['k1_min']} and median W_half in {CO['w_half_range_db']}; "
          f"stands if K0 >= {CO['k0_min']}).\n"]
+    xc = P.REPORTS / "a8x_crosscheck.md"                        # the naming cross-check (its own report), restated here
+    if xc.exists():
+        t8 = xc.read_text(encoding="utf-8")
+        chosen = [ln for ln in t8.splitlines() if ln.startswith("Chosen:") or ln.startswith("MDL models:")]
+        L += ["## The naming cross-check (run 2026-11-22 11:53-12:19; report `reports/a8x_crosscheck.md`)\n",
+              "Sparse regression (best subset of up to 3 terms over {1, W, W^2, 1/W, sqrt(W), exp(-W), W/(1+W)}) and the Bayesian Machine Scientist "
+              "(no fallback needed), scored by the step 8 objective and rule.\n", *[c + "\n" for c in chosen],
+              t8[t8.index("## Agreement"):] if "## Agreement" in t8 else ""]
     if state:
         L.append(f"Lowest free memory {state['min_free']:.2f} GB; low-memory events {len(state['low'])}." +
                  (f" **NOT COMPLETE: {state['incomplete']}**" if state.get("incomplete") else "") + "\n")
