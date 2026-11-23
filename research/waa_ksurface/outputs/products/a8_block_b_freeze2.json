@@ -1,0 +1,18 @@
+{
+ "date": "2026-11-23 10:49:48",
+ "note": "second freeze record of Block B (block_b_prereg.md, section 3); written before VAL is read",
+ "sha256": {
+  "recipe fits": {
+   "path": "research/waa_ksurface/outputs/products/b_val_recipes.json",
+   "sha256": "108e6d95d937c8788e369ff5a1a8e072cfc673d8bf9459c27fa9e5649feaf653"
+  },
+  "Block B code": {
+   "path": "research/waa_ksurface/b_val.py",
+   "sha256": "1fc30842043f5978410de263c7f800cbe0208da86d65a9c5f5deffaaa20495ec"
+  },
+  "first freeze record": {
+   "path": "research/waa_ksurface/outputs/products/a8_block_b_freeze.json",
+   "sha256": "5bc9352f0dab01b1df22886b37189c966cd1e225743f7d13ccd5d4897ac52bf5"
+  }
+ }
+}
