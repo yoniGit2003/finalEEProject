@@ -272,3 +272,21 @@ b_val:                                          # Block B (docs/waa_ksurface/blo
   recipe_maxiter: 1000                          # the two recipes: L-BFGS-B
   reproduce_rtol: 1.0e-9                        # pre-VAL check: ours reproduces its step 8 training loss on TRAIN
   p1_rmse_tol_db: 0.0005                        # pre-VAL check: the Part 1 wrappers reproduce Part 1's TRAIN RMSE table (rounded to 4 decimals)
+w_cv:                                           # WAA-only comparison (decisions.md, logged before any code was run)
+  seed: 4400                                    # the paired event bootstrap over the 14 events, the same draws everywhere
+  boot_reps: 1000
+  interval: [5, 95]
+  maxiter: 300                                  # L-BFGS-B of Part 1, Schleiss, Pastorek (finite-difference gradients)
+  path_b_c_band: {"28 GHz": 0.10485503549708686, "38 GHz": 0.1943952690537487}   # Part 1's c_band (waa_equation_final.json)
+  ours: {tau_wet_min: 10.922991180720075, form_name: pysr_gauge_c8}             # k_wet held at the frozen radar-input value
+  part1: {phi: 0.72, tau_s_min: 240.0}          # held (not identified in Part 1)
+  schleiss: {wet_mmh: 0.1}
+  pastorek: {d: 0.1}
+  a_prior_sd: 0.5                               # the a_link ridge of Part 1
+  log_a_bounds: [-3.0, 3.0]
+  after_lags_min: [5, 10, 20]
+  rain_before_min: 10
+  peak_min_db: 2.0
+  dry_min_bins: 6                               # figures: at least 30 min after the last wet bin
+  wet_mmh: 0.1                                  # figures: shading where R > 0.1 mm/h
+  min_free_gb: 1.5

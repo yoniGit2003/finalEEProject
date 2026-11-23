@@ -2989,3 +2989,9 @@ for links > 3 km. Title "TRAIN cross-validation, same path law". PNG 300 dpi and
 **Execution.** One detached process, every fit cached per (path, model, fold), log `outputs/reports/w_cv_terminal.log`,
 free-memory floor 1.5 GB. Expected time: ours about 1-2 min per fold (28 fits), the others about 0.5 min per fold (112
 fits), the a_link fits and metrics about 15 min: **about 1-1.5 h**.
+
+**WAA-only comparison, execution note (2026-11-23, before launch; not a rule change).** Unit tests (`w_cv_test.py`: the
+numba two-store kernel equals `WAAEquation` exactly) pass; a smoke run (fold 0 of every model and path, 3 iterations,
+scratch cache) fits and predicts every model. Its timing corrects the logged estimate: about 1 s per loss evaluation of
+Part 1 / Schleiss / Pastorek (finite-difference gradients), so about 3-5 min per converged fold fit; **expected run time
+about 4-6 h** (was 1-1.5 h). Nothing else changes.
