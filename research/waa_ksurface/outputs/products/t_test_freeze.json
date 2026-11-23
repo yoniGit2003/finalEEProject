@@ -1,0 +1,74 @@
+{
+ "date": "2026-11-23 11:28:22",
+ "note": "TEST freeze record (test_prereg.md); written and committed before TEST is read",
+ "sha256": {
+  "TEST rules": {
+   "path": "docs/waa_ksurface/test_prereg.md",
+   "sha256": "7e1d74c344111a71b28ba7ba3442e0794305f0a98e1a6df6e3d4f14244233075"
+  },
+  "TEST code": {
+   "path": "research/waa_ksurface/t_test.py",
+   "sha256": "714b85cfe8465b3727d99643af51804aecc8892063b91a72a30d3d9d197174a0"
+  },
+  "Block B code": {
+   "path": "research/waa_ksurface/b_val.py",
+   "sha256": "11d38bedf4b6d716b2d4915542e33d53c2f7470cd2226f10b510473f274e5479"
+  },
+  "frozen equation": {
+   "path": "research/waa_ksurface/outputs/products/a8_equation_frozen.json",
+   "sha256": "8eea374da6a9c2772656d16b881899ff983b83a6c6d5f54473380c52d9ba8715"
+  },
+  "recipe fits": {
+   "path": "research/waa_ksurface/outputs/products/b_val_recipes.json",
+   "sha256": "108e6d95d937c8788e369ff5a1a8e072cfc673d8bf9459c27fa9e5649feaf653"
+  },
+  "Block B record 1": {
+   "path": "research/waa_ksurface/outputs/products/a8_block_b_freeze.json",
+   "sha256": "5bc9352f0dab01b1df22886b37189c966cd1e225743f7d13ccd5d4897ac52bf5"
+  },
+  "Block B record 2": {
+   "path": "research/waa_ksurface/outputs/products/a8_block_b_freeze2.json",
+   "sha256": "87b714a8aadf7363fcb518c055654bc9181f225d05a3b49d2f81ebaea8ef3916"
+  },
+  "Block B record 3": {
+   "path": "research/waa_ksurface/outputs/products/a8_block_b_freeze3.json",
+   "sha256": "4eee0bc5b6c42bc48b236eb6eb7693c2ae8f29c386e563e4e918a35d1854146c"
+  },
+  "Block B record 4": {
+   "path": "research/waa_ksurface/outputs/products/a8_block_b_freeze4.json",
+   "sha256": "c99ae4ef1623ec5e0872cb4ad8ff3b7a721bbd63a52fa2ae982ed4915f2a5256"
+  },
+  "Part 1 equation": {
+   "path": "research/wet_antenna/outputs/products/waa_equation_final.json",
+   "sha256": "836369ec04122d57a10ac1b08fa3308eed0b3f5094b318e5413f938bef2bf9c2"
+  },
+  "Part 1 literature fits": {
+   "path": "research/wet_antenna/outputs/products/literature_s8c_fits.json",
+   "sha256": "3df4abf9de6294ca8b84d4b9276190575d0e5bd0c290757b99e94b730402ddaa"
+  },
+  "Part 1 TEST baselines": {
+   "path": "research/wet_antenna/outputs/products/test_s8_baselines.csv",
+   "sha256": "a169f4695e67a5f11a02aa52cfc37574815908b28b8eb4b11e7c44f419a779e6"
+  },
+  "Part 1 TEST g_e": {
+   "path": "research/wet_antenna/outputs/tables/test_s8_g_e.csv",
+   "sha256": "9608f5ffe59bb9f9d31321dc740d1bfa385f6198799fb05152775139e4bfd0de"
+  },
+  "ksurf.py": {
+   "path": "research/waa_ksurface/ksurf.py",
+   "sha256": "ea4078d5e2902c1af2ee363ea1baaf6df63358d0c27bf8f1b8803aa893bfe667"
+  },
+  "a8_forms.py": {
+   "path": "research/waa_ksurface/a8_forms.py",
+   "sha256": "2f21f6a6c259299e14451019b3659668b4f3f2d19cab1831fed7b1c38b025f76"
+  },
+  "fp.py": {
+   "path": "research/waa_ksurface/fp.py",
+   "sha256": "fe8341c3552112d5f6636b4ae2c182d8c4f9f6892dfadc008fb5d2520f5626f6"
+  },
+  "E4 cells": {
+   "path": "research/waa_ksurface/outputs/tables/e4_remeasure_cells.csv",
+   "sha256": "eea71f74abf60e0c1149757f341ef013782f0bfa889dfe72837d9123505679f4"
+  }
+ }
+}
