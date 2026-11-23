@@ -1,0 +1,28 @@
+=== launcher started Mon 11/23/2026 11:21:32.59 === 
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\yonic\PycharmProjects\finalEEProject\research\waa_ksurface\t_test.py", line 274, in <module>
+    main()
+  File "C:\Users\yonic\PycharmProjects\finalEEProject\research\waa_ksurface\t_test.py", line 253, in main
+    r = run("train")
+        ^^^^^^^^^^^^
+  File "C:\Users\yonic\PycharmProjects\finalEEProject\research\waa_ksurface\t_test.py", line 199, in run
+    sets, drops, info, ratio = load(split)                     # ===== TEST is read here, once (split "test") =====
+                               ^^^^^^^^^^^
+  File "C:\Users\yonic\PycharmProjects\finalEEProject\research\waa_ksurface\t_test.py", line 71, in load
+    keep &= B.predictable(le)                           # Block B drop rule: a link without a stored a_link
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: output array is read-only
+=== exit 1 at Mon 11/23/2026 11:22:06.41 === 
+=== launcher started Mon 11/23/2026 11:22:36.40 === 
+=== TRAIN read: known: {'built': 7895, 'at_28_38': 7084, 'dropped_no_a_link': 0, 'kept': 7084, 'links': 149, 'events': 51}; new: {'built': 1885, 'at_28_38': 1752, 'dropped_no_a_link': 0, 'kept': 1752, 'links': 38, 'events': 49} (0.1 min) ===
+=== every model predicted and saved (2.3 min) ===
+=== M1, M2 done (2.9 min) ===
+   (M3) known links: 10 eligible cells
+   (M3) new links: 5 eligible cells
+   (M3) gauge-ratio events: 10 eligible cells
+=== M3 done (3.9 min) ===
+report: research/.cache/waa_ksurface/t_test/dryrun/t_test.md
+=== dry run on TRAIN ended (3.9 min); written to C:\Users\yonic\PycharmProjects\finalEEProject\research\.cache\waa_ksurface\t_test\dryrun ===
+=== exit 0 at Mon 11/23/2026 11:27:01.39 === 

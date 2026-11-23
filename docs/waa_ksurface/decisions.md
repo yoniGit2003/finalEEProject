@@ -2853,3 +2853,14 @@ Paired 90 % intervals of RMSE(X) − RMSE(ours) are in `tables/b_val_m1_paired.c
 information from it reached any decision. The second read stands as the Block B result. A fourth freeze record
 (`a8_block_b_freeze4.json`) hashes `b_val.py` as it now stands (its report writer fixed after the second read), the
 recipe fits and the three earlier records, so every Block B file matches a recorded hash.
+
+## The final TEST read: pre-registration (2026-11-23, written before TEST is opened by this branch)
+
+The rules are in `docs/waa_ksurface/test_prereg.md` (hashed in `outputs/products/t_test_freeze.json`). In short:
+disclosure (TEST read a second time overall; the first read was Part 1's, for its own model; this branch knew Part 1's
+verdicts but never TEST data; our equation frozen as in the VAL run, unchanged after it); the Block B models, metrics,
+paired 1000-draw bootstrap (seed 4100) and readings; three sets: known links (TEST events, TRAIN links), new links (the
+never-fitted TEST links; Part 1 models with a_link = 1), gauge-ratio events (TRAIN links); each on all links and < 1 km.
+Code `t_test.py` (Block B functions unchanged), unit tests (`t_test_test.py`) pass; a dry run of the whole path on TRAIN
+(new links played by 20 % of the TRAIN links) passed after one fix found by it (a read-only array in the drop rule).
+TEST is read ONCE; if the run crashes: STOP and report before any rerun.
