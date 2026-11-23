@@ -2908,3 +2908,15 @@ that link-event); PNG 300 dpi and PDF, `outputs/figures/waa_compare_<rule>_<even
 **Summary figure:** all TEST link-events on links < 1 km (known and new) with at least 60 min after the last wet bin
 (so the whole +60 min is covered), aligned at the end of the last wet bin (−60 to +60 min, 5 min bins): median of the
 measured A − c with its 25-75 % band, and the median of each model.
+
+## TEST comparison figures replaced (2026-11-23, logged before the change; a VISUALIZATION ONLY)
+
+No fitting, no metric, no decision follows. Every earlier `waa_compare_*` figure (rules 1, 2, 4 and the median summary)
+is deleted. Only two are made again, the SAME link-events as before (rule 1: E20150828_0630, sub-link 10031_1; rule 2:
+E20150628_2200, sub-link 10210_2), same layout, colours and y limits rule. **Added: the radar rain R = radar path mean /
+g_e (the model input)** for these two link-events only, reloaded from the TEST rain input: the data-layer store
+`radar_along_links_5min` (R_mean) of the link over the window's 5 min bins (window_start, n_bins, as the builder reads
+it; missing values 0, as the model input) divided by the event's g_e (`test_s8_g_e.csv`). No attenuation and no
+prediction is read from it or recomputed; measured A − c and the predictions still come from the saved TEST outputs.
+Panel 1: R as light blue bars on a secondary axis (mm/h); every panel: light grey shading where R > 0.1 mm/h. The old
+"grey span" note goes; the footnote keeps only what is still not shown (the WAA part of each model, not saved).
