@@ -2920,3 +2920,72 @@ it; missing values 0, as the model input) divided by the event's g_e (`test_s8_g
 prediction is read from it or recomputed; measured A − c and the predictions still come from the saved TEST outputs.
 Panel 1: R as light blue bars on a secondary axis (mm/h); every panel: light grey shading where R > 0.1 mm/h. The old
 "grey span" note goes; the footnote keeps only what is still not shown (the WAA part of each model, not saved).
+
+## WAA-only comparison: the same path law for every model, leave-one-event-out on TRAIN (2026-11-23, logged before any code is run)
+
+**Question served.** Q3 on the WAA law alone: with the path term fixed and identical for every model, which WAA law
+predicts held-out storms best? Script `w_cv.py` (new). **VAL and TEST stay closed** (used up); TRAIN only.
+
+**Disclosure.** Our equation's FORM (the switch drying law, K0 wetting) was chosen on these same 14 events (A7, step 8);
+Part 1's form on TRAIN + VAL; the literature forms are published. Form choice is NOT cross-validated for any model; only
+the parameters are refitted per fold. The results of Block B and TEST are known when these rules are written.
+
+**Data.** The 14 gauge-ratio (learning) TRAIN events, 28 and 38 GHz, every learning link-event (the A7 flag removed none);
+rain input R = radar / g_e (the data layer, 1 min, held over 5 min). Scored and fitted values: the counted 5 min bins with
+a finite A − c, the same for every model. **Leave-one-event-out:** 14 folds; each model is fitted on 13 events and
+predicts the 14th; every reported number uses held-out predictions only.
+
+**Path law (fixed, never refitted, identical for every model; lag d = 0 for path and WAA in every model):**
+- **Path A (main):** L·P_full(R): the measured P of E4 (`fp.measured`) with the effective extension of the frozen
+  equation (its P increments in `a8_equation_frozen.json`).
+- **Path B (sensitivity):** L·c_band·R with Part 1's c_band (`waa_equation_final.json`: 28 GHz 0.10486, 38 GHz 0.19440
+  dB/km per mm/h).
+- Every model fits its WAA part W to (A − c) − path, with the same loss: mean Huber 0.3 dB of the 5 min values (this is
+  the WAA + path fit with the path held). A model's total = W + path.
+
+**Models and their refitted WAA parameters (own structure; no per-link factor in the main run):**
+- **ours:** dW/dt = k·(F_full(R) − W); wetting k_wet held at 1 / 10.92 min (the frozen radar-input value; R3: not
+  identified); drying the step 8 switch k = c2 / (c1 − exp(c0·W)) through the unchanged kernel and table
+  (`a8_forms.FormModel`); refitted: c0, c1, c2 and the F extension increments (3 per band); start: the frozen values;
+  L-BFGS-B, exact gradient, maxiter 300.
+- **Part 1:** two stores, u = A_band·(R/5)^b, W_f → φu with τ_f_wet / τ_f_dry, W_s → (1 − φ)u with τ_s (per-minute exact
+  steps as `WAAEquation`); refitted: A_band (2), b, τ_f_wet, τ_f_dry; φ = 0.72 and τ_s = 240 min held (not identified in
+  Part 1); start: Part 1's values.
+- **Schleiss:** wet flag R > 0.1 mm/h; W rises toward W_max with 3·dt / τ_wet while wet, decays with 3·dt / τ_dry while
+  dry (Part 1's implementation); refitted: W_max per band (2), τ_wet, τ_dry (3-600 min); start: Schleiss (b).
+- **Pastorek:** W = C_band·(1 − exp(−0.1·R^ζ)); refitted: C_band (2), ζ (0.1-2); start: Pastorek (b).
+- **no memory:** W = F_full(R); refitted: the F extension increments (3 per band); start: the frozen values.
+- **no WAA:** W = 0; nothing fitted.
+- Parameters that must be positive are fitted through their logarithm; Part 1, Schleiss and Pastorek by L-BFGS-B with
+  finite-difference gradients (maxiter 300); no memory by L-BFGS-B with its exact (linear) gradient.
+
+**Sensitivity with a_link (path A):** Part 1, Schleiss and Pastorek get a per-link factor on W, fitted per fold on the 13
+training events with Part 1's ridge (penalty 0.5·(0.3 / 0.5)²·(ln a)² per link, summed Huber, ln a in [−3, 3]), one
+link at a time, on top of that fold's main fit (shape and amplitudes held; one round, not a joint refit). A held-out
+link not present in the 13 training events gets a = 1. Ours, no memory and no WAA without it.
+
+**Metrics (held-out only; paired event bootstrap over the 14 events, 1000 draws, seed 4400, the same draws for every
+model, metric and path; 90 % = 5-95 %):**
+- **RMSE** of the 5 min A − c, all links and links < 1 km; paired RMSE(model) − RMSE(ours); "X better than ours" if the
+  interval lies below zero, "ours better than X" if above, else "tie". For path A, path B and the a_link sensitivity.
+- **After-rain error** (path A): the review check (5) dry-path windows on the learning link-events (at least 10 wet
+  minutes before; every bin up to the one used radar-dry), at 5, 10, 20 min: median(model) − median(measured) with its
+  interval; paired |e(model)| − |e(ours)|: "closer than ours" / "ours closer" only if that interval excludes zero.
+- **Peak error** (path A): per link-event whose measured A − c peak (largest scored value) is ≥ 2 dB, model − measured
+  at that bin; the median over link-events of links < 1 km and of links > 3 km, with its interval; paired as above.
+- **Ranking:** the order of the 6 models by held-out RMSE (all links); "same under A and B" only if the order is
+  identical; every changed reading is listed.
+
+**Saved:** per path, model and held-out link-event, the TOTAL and the WAA part per 5 min bin (`research/.cache/
+waa_ksurface/w_cv/preds_<path>.npz`; too large to commit) and the fitted parameters per fold (`tables/w_cv_params.csv`).
+
+**Figures (path A, held-out predictions only):** the TEST figure layout (panel 1 measured A − c with the radar rain R as
+bars on a secondary axis; panels 2-7 ours, Part 1, Schleiss, Pastorek, no memory, no WAA; measured grey dashed; grey
+shading where R > 0.1 mm/h; the same y limits; the same colours) plus each model's WAA part as a thin dotted line.
+Selection, written before any curve is seen: dry path after the rain = at least 6 bins (30 min) after the last wet bin;
+**short:** links < 1 km, our held-out RMSE closest to the median of those (tie: first in table order); **long:** the same
+for links > 3 km. Title "TRAIN cross-validation, same path law". PNG 300 dpi and PDF, `figures/w_cv_<rule>_<event>_<sublink>`.
+
+**Execution.** One detached process, every fit cached per (path, model, fold), log `outputs/reports/w_cv_terminal.log`,
+free-memory floor 1.5 GB. Expected time: ours about 1-2 min per fold (28 fits), the others about 0.5 min per fold (112
+fits), the a_link fits and metrics about 15 min: **about 1-1.5 h**.
