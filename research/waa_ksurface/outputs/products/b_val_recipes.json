@@ -1,0 +1,121 @@
+{
+ "written_by": "research/waa_ksurface/b_val.py --recipes",
+ "date": "2026-11-23 10:48:57",
+ "fitted_on": "TRAIN, stage 2 of A7 (unflagged learning events, stage2_w5, radar input / g_e), mean Huber 0.3 dB, L-BFGS-B from the A6 extension starts",
+ "recipes": {
+  "no WAA": {
+   "increments": [
+    0.6938766557236764,
+    0.4604098495576323,
+    0.5111124820472778,
+    1.0483908030592368,
+    1.3202266131459788,
+    0.8182784822775104,
+    0.810749489433087,
+    1.5373782105755072
+   ],
+   "names": [
+    "P band 0 inc 0",
+    "P band 0 inc 1",
+    "P band 0 inc 2",
+    "P band 0 inc 3",
+    "P band 1 inc 0",
+    "P band 1 inc 1",
+    "P band 1 inc 2",
+    "P band 1 inc 3"
+   ],
+   "train_loss": 0.13328337942456975,
+   "converged": true,
+   "iterations": 30,
+   "form": "A - c = L P_full(R(t)), W = 0"
+  },
+  "no memory": {
+   "increments": [
+    0.45350676267954615,
+    0.0,
+    0.7556383792053533,
+    0.4379023673224726,
+    0.0,
+    0.9313456584358196,
+    0.08033547254815483,
+    0.3259381701259451,
+    0.46459505465041623,
+    0.6714751461070796,
+    0.21814915159525974,
+    0.7092801277073408,
+    0.6255865643655025,
+    1.2744892296987567
+   ],
+   "names": [
+    "F band 0 inc 0",
+    "F band 0 inc 1",
+    "F band 0 inc 2",
+    "F band 1 inc 0",
+    "F band 1 inc 1",
+    "F band 1 inc 2",
+    "P band 0 inc 0",
+    "P band 0 inc 1",
+    "P band 0 inc 2",
+    "P band 0 inc 3",
+    "P band 1 inc 0",
+    "P band 1 inc 1",
+    "P band 1 inc 2",
+    "P band 1 inc 3"
+   ],
+   "train_loss": 0.11137605456325979,
+   "converged": true,
+   "iterations": 99,
+   "form": "A - c = F_full(R(t)) + L P_full(R(t)) (W = its target every minute)"
+  }
+ },
+ "code_checks": {
+  "ours TRAIN loss": {
+   "value": 0.10067755398494839,
+   "reference": 0.10067755398494839,
+   "rel_dev": 0.0,
+   "ok": true
+  },
+  "Part 1 Schleiss b TRAIN all": {
+   "value": 0.8517112344055132,
+   "reference": 0.8517,
+   "bins": 1892910,
+   "bins_ref": 1892910,
+   "ok": true
+  },
+  "Part 1 Schleiss b TRAIN L < 1 km": {
+   "value": 0.6992955138003102,
+   "reference": 0.6993,
+   "bins": 367190,
+   "bins_ref": 367190,
+   "ok": true
+  },
+  "Part 1 Pastorek b TRAIN all": {
+   "value": 0.8432489559306361,
+   "reference": 0.8432,
+   "bins": 1892910,
+   "bins_ref": 1892910,
+   "ok": true
+  },
+  "Part 1 Pastorek b TRAIN L < 1 km": {
+   "value": 0.6818185928015723,
+   "reference": 0.6818,
+   "bins": 367190,
+   "bins_ref": 367190,
+   "ok": true
+  },
+  "Part 1 ours TRAIN all": {
+   "value": 0.8126601623106255,
+   "reference": 0.8127,
+   "bins": 1892910,
+   "bins_ref": 1892910,
+   "ok": true
+  },
+  "Part 1 ours TRAIN L < 1 km": {
+   "value": 0.6480085208142987,
+   "reference": 0.648,
+   "bins": 367190,
+   "bins_ref": 367190,
+   "ok": true
+  }
+ }
+}
