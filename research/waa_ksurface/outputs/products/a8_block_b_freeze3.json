@@ -1,0 +1,22 @@
+{
+ "date": "2026-11-23 10:58:11",
+ "note": "third freeze record of Block B (Deviation 16); written before VAL is read again",
+ "sha256": {
+  "recipe fits": {
+   "path": "research/waa_ksurface/outputs/products/b_val_recipes.json",
+   "sha256": "108e6d95d937c8788e369ff5a1a8e072cfc673d8bf9459c27fa9e5649feaf653"
+  },
+  "Block B code (Deviation 16 fix)": {
+   "path": "research/waa_ksurface/b_val.py",
+   "sha256": "95bdae6b78abc1ca54095434a749519319edf9cbbe467c482cf230bcd64c8156"
+  },
+  "first freeze record": {
+   "path": "research/waa_ksurface/outputs/products/a8_block_b_freeze.json",
+   "sha256": "5bc9352f0dab01b1df22886b37189c966cd1e225743f7d13ccd5d4897ac52bf5"
+  },
+  "second freeze record": {
+   "path": "research/waa_ksurface/outputs/products/a8_block_b_freeze2.json",
+   "sha256": "87b714a8aadf7363fcb518c055654bc9181f225d05a3b49d2f81ebaea8ef3916"
+  }
+ }
+}
