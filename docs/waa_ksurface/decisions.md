@@ -2864,3 +2864,18 @@ never-fitted TEST links; Part 1 models with a_link = 1), gauge-ratio events (TRA
 Code `t_test.py` (Block B functions unchanged), unit tests (`t_test_test.py`) pass; a dry run of the whole path on TRAIN
 (new links played by 20 % of the TRAIN links) passed after one fix found by it (a read-only array in the drop rule).
 TEST is read ONCE; if the run crashes: STOP and report before any rerun.
+
+### Result of the final TEST read (2026-11-23 11:29-11:30, exit 0, read once; report `reports/t_test.md`)
+
+Hashes of `t_test_freeze.json` checked unchanged before the read. Known links: 3 050 link-events at 28 / 38 GHz (187
+links, 18 events, 0 dropped). New links: 923 link-events (53 of the 59 never-fitted links are at 28 / 38 GHz; 17 events).
+Gauge-ratio events: 4 (1 335 link-events). **M1 readings** (paired 90 %, RMSE(X) − RMSE(ours)):
+- **No WAA, no memory:** ours better in all 6 set / link cells.
+- **Part 1 equation:** better than ours on known links < 1 km (−0.022, −0.034 to −0.001) and on gauge-ratio events, all
+  links (−0.027, −0.036 to −0.006); tie in the other 4 (including both new-link cells).
+- **Schleiss b:** tie in 5; ours better on new links < 1 km (+0.028, +0.007 to +0.050).
+- **Pastorek b:** tie in 5; ours better on new links, all links (+0.028, +0.017 to +0.034).
+- Stated with it: the gauge-ratio set has 4 events; TEST was read before by Part 1 (for its own model).
+- **M2 (check, no claim):** at 20 min ours −0.10 to +0.02 dB, the Part 1 equation −0.04 to −0.13, Schleiss b −0.07 to
+  −0.20; Pastorek b, no WAA and no memory −0.17 to −0.28 (the measured median).
+- **M3:** no eligible cell in any set (as on VAL).

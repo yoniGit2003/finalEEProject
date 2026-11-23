@@ -26,3 +26,15 @@ ValueError: output array is read-only
 report: research/.cache/waa_ksurface/t_test/dryrun/t_test.md
 === dry run on TRAIN ended (3.9 min); written to C:\Users\yonic\PycharmProjects\finalEEProject\research\.cache\waa_ksurface\t_test\dryrun ===
 === exit 0 at Mon 11/23/2026 11:27:01.39 === 
+=== launcher started Mon 11/23/2026 11:28:44.31 === 
+=== every hash of t_test_freeze.json checked: unchanged ===
+=== TEST read: known: {'built': 3355, 'at_28_38': 3050, 'dropped_no_a_link': 0, 'kept': 3050, 'links': 187, 'events': 18}; new: {'built': 1010, 'at_28_38': 923, 'dropped_no_a_link': 0, 'kept': 923, 'links': 53, 'events': 17} (0.4 min) ===
+=== every model predicted and saved (1.2 min) ===
+=== M1, M2 done (1.6 min) ===
+   (M3) known links: 0 eligible cells
+   (M3) new links: 0 eligible cells
+   (M3) gauge-ratio events: 0 eligible cells
+=== M3 done (1.6 min) ===
+report: research/waa_ksurface/outputs/reports/t_test.md
+=== TEST ended 2026-11-23 11:30:51 ===
+=== exit 0 at Mon 11/23/2026 11:30:52.71 === 
