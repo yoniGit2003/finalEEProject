@@ -1,0 +1,21 @@
+set,links,model,RMSE(model) - RMSE(ours) (dB),90 % lo,90 % hi,reading
+S-all,all links,Schleiss b,0.02432,0.01641,0.03546,ours better than Schleiss b
+S-all,all links,Pastorek b,-0.007,-0.01435,0.00291,tie
+S-all,all links,Part 1 equation,-0.01119,-0.02055,-0.00094,Part 1 equation better than ours
+S-all,all links,no WAA,0.10494,0.06291,0.14337,ours better than no WAA
+S-all,all links,no memory,0.01695,0.00557,0.02831,ours better than no memory
+S-all,links < 1 km,Schleiss b,0.05065,0.02574,0.07209,ours better than Schleiss b
+S-all,links < 1 km,Pastorek b,-0.00037,-0.0136,0.0141,tie
+S-all,links < 1 km,Part 1 equation,-0.0114,-0.02152,-0.00039,Part 1 equation better than ours
+S-all,links < 1 km,no WAA,0.14011,0.07117,0.19917,ours better than no WAA
+S-all,links < 1 km,no memory,0.02374,0.00618,0.03928,ours better than no memory
+S-ratio,all links,Schleiss b,0.0247,0.01692,0.03681,ours better than Schleiss b
+S-ratio,all links,Pastorek b,-0.00749,-0.01776,0.00424,tie
+S-ratio,all links,Part 1 equation,-0.01531,-0.0277,-0.00445,Part 1 equation better than ours
+S-ratio,all links,no WAA,0.12228,0.07462,0.17001,ours better than no WAA
+S-ratio,all links,no memory,0.0218,0.01099,0.03435,ours better than no memory
+S-ratio,links < 1 km,Schleiss b,0.0608,0.03524,0.08522,ours better than Schleiss b
+S-ratio,links < 1 km,Pastorek b,0.00208,-0.01337,0.01945,tie
+S-ratio,links < 1 km,Part 1 equation,-0.0123,-0.02575,0.0015,tie
+S-ratio,links < 1 km,no WAA,0.16451,0.08875,0.23591,ours better than no WAA
+S-ratio,links < 1 km,no memory,0.03058,0.01368,0.04806,ours better than no memory

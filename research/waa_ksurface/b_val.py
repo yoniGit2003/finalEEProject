@@ -425,10 +425,15 @@ def report(r):
     save(r["m1p"].round(5), P.B_M1P, index=False)
     save(r["m2"], P.B_M2, index=False)
     save(r["m3"].round(5), P.B_M3, index=False)
-    m3s = r["m3"].groupby(["set", "model"]).inside.agg(["sum", "size"]).reset_index().rename(columns={"sum": "cells inside", "size": "cells"})
+    if len(r["m3"]):
+        m3s = r["m3"].groupby(["set", "model"]).inside.agg(["sum", "size"]).reset_index().rename(columns={"sum": "cells inside", "size": "cells"})
+    else:                                                       # Deviation 16 addendum: no eligible cell on VAL
+        m3s = pd.DataFrame([{"set": "S-all and S-ratio", "result": "no cell is both an E4 cell and eligible on the VAL measurements: M3 has nothing to test"}])
     L = ["# Block B: the frozen equation against the existing models on VAL\n",
          "Written by `research/waa_ksurface/b_val.py` under `docs/waa_ksurface/block_b_prereg.md` (frozen in 37470fa; recipe fits frozen in the second "
-         "record `a8_block_b_freeze2.json`). VAL read once; TEST not opened.\n",
+         "record `a8_block_b_freeze2.json`, re-hashed after the fix of Deviation 16 in `a8_block_b_freeze3.json`). **VAL was read twice** "
+         "(Deviation 16: the first run stopped in M3 before any result was saved or seen; the results below are from the second run, computed "
+         "once; this report is written from its saved results). TEST not opened.\n",
          f"VAL link-events at 28 / 38 GHz scored: {r['n_le']} of {r['events']} events ({r['ratio_events']} with a gauge ratio); dropped because a model "
          f"cannot predict them (no stored a_link): {r['dropped']}. Run time {r['minutes']:.1f} min.\n",
          "## M1: RMSE of the 5 min A - c (paired event bootstrap, 1000 draws, seed 4100)\n", md_table(r["m1"].round(4)), "",
@@ -440,7 +445,7 @@ def report(r):
          md_table(r["m2"]), "",
          f"## M3: the length test (E4 candidate (ii), rule {r['rule']}) on every model's predictions\n",
          "Cells: eligible in E4 and on the VAL measurements. A model's cell is inside if both its intercept and slope lie in the measured 90 % "
-         "event-bootstrap interval. No claim.\n", md_table(m3s), "", md_table(r["m3"].round(4)), ""]
+         "event-bootstrap interval. No claim.\n", md_table(m3s), "", md_table(r["m3"].round(4)) if len(r["m3"]) else "", ""]
     save("\n".join(L) + "\n", P.B_REPORT)
     log(f"report: {rel(P.B_REPORT)}")
 

@@ -1,0 +1,25 @@
+set,links,model,RMSE (dB),values,events,90 % (dB)
+S-all,all links,ours,0.63847,391024,18,0.5186 to 0.7170
+S-all,all links,Schleiss b,0.66279,391024,18,0.5503 to 0.7391
+S-all,all links,Pastorek b,0.63147,391024,18,0.5156 to 0.7088
+S-all,all links,Part 1 equation,0.62728,391024,18,0.5110 to 0.7016
+S-all,all links,no WAA,0.74341,391024,18,0.5954 to 0.8525
+S-all,all links,no memory,0.65542,391024,18,0.5329 to 0.7372
+S-all,links < 1 km,ours,0.49533,78881,14,0.4408 to 0.5321
+S-all,links < 1 km,Schleiss b,0.54597,78881,14,0.4800 to 0.5943
+S-all,links < 1 km,Pastorek b,0.49496,78881,14,0.4309 to 0.5340
+S-all,links < 1 km,Part 1 equation,0.48392,78881,14,0.4276 to 0.5202
+S-all,links < 1 km,no WAA,0.63543,78881,14,0.5289 to 0.7217
+S-all,links < 1 km,no memory,0.51907,78881,14,0.4528 to 0.5631
+S-ratio,all links,ours,0.70549,282587,5,0.5795 to 0.8027
+S-ratio,all links,Schleiss b,0.73019,282587,5,0.6124 to 0.8203
+S-ratio,all links,Pastorek b,0.69799,282587,5,0.5790 to 0.7917
+S-ratio,all links,Part 1 equation,0.69018,282587,5,0.5698 to 0.7833
+S-ratio,all links,no WAA,0.82777,282587,5,0.6797 to 0.9521
+S-ratio,all links,no memory,0.72729,282587,5,0.6079 to 0.8357
+S-ratio,links < 1 km,ours,0.52818,61015,5,0.4845 to 0.5681
+S-ratio,links < 1 km,Schleiss b,0.58898,61015,5,0.5373 to 0.6458
+S-ratio,links < 1 km,Pastorek b,0.53026,61015,5,0.4798 to 0.5679
+S-ratio,links < 1 km,Part 1 equation,0.51588,61015,5,0.4713 to 0.5557
+S-ratio,links < 1 km,no WAA,0.69269,61015,5,0.5919 to 0.7898
+S-ratio,links < 1 km,no memory,0.55876,61015,5,0.5077 to 0.6049

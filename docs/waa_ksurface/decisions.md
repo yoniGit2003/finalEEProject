@@ -2820,3 +2820,31 @@ record (`a8_block_b_freeze3.json`, which also re-hashes the first two records an
 **Disclosure.** VAL is read a second time, by the same builder, with the same rules; nothing about the models, the
 metrics or the readings changes, and no VAL number influenced the fix. The rule "VAL is read once" of
 `block_b_prereg.md` §4 is broken in the letter (two reads), not in substance (one set of results, computed once).
+
+**Deviation 16, addendum (2026-11-23 11:00).** The second `--val` run (10:58; first and third freeze records checked
+unchanged) read VAL, computed M1-M3 and **saved them** (`b_val/val.pkl`), then the report writer failed because M3 had no
+cell (empty table). The report-writing part of `b_val.py` was fixed (empty M3 handled; header states the two reads) and
+the report written with `--report` from the saved results: VAL was NOT read a third time and no number was recomputed.
+`b_val.py` now differs from its hash in the third record only in `report()` (text and the empty-table case).
+
+### Result of Block B (VAL, second read 2026-11-23 10:58; report `reports/b_val.md`)
+
+VAL: 3 250 link-events built, 2 944 at 28 / 38 GHz, 18 events (5 with a gauge ratio); 0 dropped by the a_link rule;
+391 024 scored 5 min values (78 881 on links < 1 km). **M1, RMSE (dB), ours first; readings as pre-registered:**
+
+| set / links | ours | Schleiss b | Pastorek b | Part 1 eq. | no WAA | no memory |
+|---|---|---|---|---|---|---|
+| S-all / all | 0.6385 | 0.6628 (ours better) | 0.6315 (tie) | 0.6273 (**Part 1 better**) | 0.7434 (ours better) | 0.6554 (ours better) |
+| S-all / < 1 km | 0.4953 | 0.5460 (ours better) | 0.4950 (tie) | 0.4839 (**Part 1 better**) | 0.6354 (ours better) | 0.5191 (ours better) |
+| S-ratio / all | 0.7055 | 0.7302 (ours better) | 0.6980 (tie) | 0.6902 (**Part 1 better**) | 0.8278 (ours better) | 0.7273 (ours better) |
+| S-ratio / < 1 km | 0.5282 | 0.5890 (ours better) | 0.5303 (tie) | 0.5159 (tie) | 0.6927 (ours better) | 0.5588 (ours better) |
+
+Paired 90 % intervals of RMSE(X) − RMSE(ours) are in `tables/b_val_m1_paired.csv` (e.g. Part 1 equation, S-all / all:
+−0.0112, −0.0206 to −0.0009; Pastorek b, S-all / all: −0.0070, −0.0144 to +0.0029).
+- **Stated with it:** S-ratio rests on 5 events. VAL was "used (optimistic)" in Part 1 (its own reports name it so), so
+  the Part 1 equation and Part 1's literature fits had VAL in their development; this branch's equation did not.
+- **M2 (check, no claim):** ours over-predicts the after-rain attenuation at 20 min (S-all +0.124 dB, 0.053 to 0.176;
+  S-ratio +0.083, −0.027 to +0.174); the Part 1 equation +0.054 / +0.026; Schleiss b +0.026 / −0.014; Pastorek b, no WAA
+  and no memory under-predict (−0.06 / −0.10). With the dry-shape caveat.
+- **M3:** no cell is both an E4 cell and eligible on the VAL measurements (18 events; a cell needs values from at least
+  5 events and enough short and long links): the length test has nothing to test on VAL, for any model.
