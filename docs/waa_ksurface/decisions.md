@@ -2848,3 +2848,8 @@ Paired 90 % intervals of RMSE(X) − RMSE(ours) are in `tables/b_val_m1_paired.c
   and no memory under-predict (−0.06 / −0.10). With the dry-shape caveat.
 - **M3:** no cell is both an E4 cell and eligible on the VAL measurements (18 events; a cell needs values from at least
   5 events and enough short and long links): the length test has nothing to test on VAL, for any model.
+
+**Deviation 16, accepted (user, 2026-11-23).** The first `--val` run crashed before any number was saved or shown; no
+information from it reached any decision. The second read stands as the Block B result. A fourth freeze record
+(`a8_block_b_freeze4.json`) hashes `b_val.py` as it now stands (its report writer fixed after the second read), the
+recipe fits and the three earlier records, so every Block B file matches a recorded hash.
