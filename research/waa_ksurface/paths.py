@@ -229,3 +229,5 @@ B_M3 = TABLES / "b_val_m3_length_test.csv"                       # Block B M3: t
 B_REPORT = REPORTS / "b_val.md"
 B_LOG = REPORTS / "b_val_terminal.log"
 B_FREEZE3 = PRODUCTS / "a8_block_b_freeze3.json"                 # Block B: the third freeze record (Deviation 16: b_val.py fixed, re-hashed)
+TF_SELECTION = TABLES / "t_figures_selection.csv"                # TEST comparison figures: the selected link-events and why
+TF_REPORT = REPORTS / "t_figures.md"
