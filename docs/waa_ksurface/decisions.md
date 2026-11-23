@@ -2879,3 +2879,32 @@ Gauge-ratio events: 4 (1 335 link-events). **M1 readings** (paired 90 %, RMSE(X)
 - **M2 (check, no claim):** at 20 min ours −0.10 to +0.02 dB, the Part 1 equation −0.04 to −0.13, Schleiss b −0.07 to
   −0.20; Pastorek b, no WAA and no memory −0.17 to −0.28 (the measured median).
 - **M3:** no eligible cell in any set (as on VAL).
+
+## TEST comparison figures (2026-11-23, logged before any figure is made; a VISUALIZATION ONLY)
+
+No fitting, no metric, no decision follows from these figures. Script `t_figures.py` (new).
+
+**Data: only the saved outputs of the TEST run** (`research/.cache/waa_ksurface/t_test/predictions_test.pkl`, written
+before any metric): per set (known links, new links) the link-event table, the measured y5 and offset c (A − c = y5 − c),
+the counted flag w5, and the total 5 min prediction of every model. No model is rerun and TEST is not read again.
+**Not saved, so not plotted (and not recomputed on TEST):** the radar rain series (no rain bars, no shading of wet
+minutes, no peak rain rate), the WAA part of every model (no dotted WAA line), the dry-path windows. In place of the
+rain shading, each panel shades the span from the link-event's first to its last wet 5 min bin (`first_bin`,
+`last_bin` of the data layer, saved in the table), labelled as such; dry bins inside that span are not visible.
+
+**Selection rules (written before looking at any curve):**
+- Dry path after the rain = the bins of the window after `last_bin` (the last wet bin of the link): at least 6 bins
+  (30 min). Per-link-event RMSE of a model = over its counted, finite values (the M1 values of that link-event).
+- (1) typical short link: known links, L < 1 km, ≥ 30 min after the last wet bin; the link-event whose RMSE for OUR model
+  is closest to the median of those RMSEs (tie: the first in table order). (2) typical long link: the same for L > 3 km.
+  (3) strong storm: **cannot be applied** (the peak rain rate was not saved); not plotted, reported. (4) new link: rule
+  (1) on the new links (53 of the 59 never-fitted links are at 28 / 38 GHz; the 32 GHz ones were never built).
+- The log prints, per rule: the number of candidates, the median RMSE, the selected link-event, its RMSE and rank.
+
+**Layout** as requested: 7 panels, shared time axis (minutes from the window start), the same y limits in all panels;
+panel 1 measured A − c (black); panels 2-7 ours, Part 1 equation, Schleiss (b), Pastorek (b), no memory, no WAA (measured
+in grey dashed behind; prediction solid in the model's colour, Okabe-Ito palette, titles with the model and its RMSE on
+that link-event); PNG 300 dpi and PDF, `outputs/figures/waa_compare_<rule>_<event>_<sublink>`.
+**Summary figure:** all TEST link-events on links < 1 km (known and new) with at least 60 min after the last wet bin
+(so the whole +60 min is covered), aligned at the end of the last wet bin (−60 to +60 min, 5 min bins): median of the
+measured A − c with its 25-75 % band, and the median of each model.
