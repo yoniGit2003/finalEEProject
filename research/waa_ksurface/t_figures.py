@@ -3,10 +3,11 @@ no fitting, no metric, no decision follows from it.
 
     python -m research.waa_ksurface.t_figures
 
-Reads ONLY the saved outputs of the TEST run (research/.cache/waa_ksurface/t_test/predictions_test.pkl: the link-event
-table, measured y5 and offset c, the counted flag w5, every model's total 5 min prediction). No model is rerun; TEST is not
-read again. Not saved by the TEST run, so not shown: the radar rain series, the WAA part of each model, the peak rain rate
-(rule 3 cannot be applied).
+Measured A - c and the predictions: ONLY the saved outputs of the TEST run (research/.cache/waa_ksurface/t_test/
+predictions_test.pkl). No model is rerun. The radar rain input R = radar path mean / g_e of the two plotted link-events is
+reloaded from the TEST rain input (data-layer store radar_along_links_5min, R_mean; g_e of test_s8_g_e.csv); no attenuation
+is read from it. Two figures: rule 1 (typical short link) and rule 2 (typical long link), decisions.md "TEST comparison
+figures replaced". Not saved by the TEST run, so not shown: the WAA part of each model.
 """
 import pickle
 
@@ -18,7 +19,8 @@ import matplotlib.pyplot as plt
 
 from research.common.report import md_table, rel
 from research.common.save import save
-from research.waa_ksurface import paths as P
+from research.waa_ksurface import data, paths as P
+from research.wet_antenna import paths as WP
 
 SRC = P.CACHE / "t_test" / "predictions_test.pkl"
 MODELS = ["ours", "Part 1 equation", "Schleiss b", "Pastorek b", "no memory", "no WAA"]
@@ -27,8 +29,21 @@ LABEL = {"ours": "ours (frozen equation)", "Part 1 equation": "Part 1 equation",
 COLOR = {"ours": "#0072B2", "Part 1 equation": "#D55E00", "Schleiss b": "#009E73", "Pastorek b": "#CC79A7",   # Okabe-Ito, validated
          "no memory": "#E69F00", "no WAA": "#56B4E9"}
 GREY, SPAN = "#8c8c8c", "#e3e3e3"
-DRY_MIN_BINS, SUMMARY_BINS = 6, 12                             # 30 min after the last wet bin; the summary covers -60..+60 min
-NOT_SAVED = "Not saved by the TEST run, so not shown: radar rain (bars and wet-minute shading), the WAA part of each model."
+DRY_MIN_BINS = 6                                               # 30 min after the last wet bin
+NOT_SAVED = "Not saved by the TEST run, so not shown: the WAA part of each model (only the total prediction was saved)."
+WET_MMH = 0.1                                                  # shading: radar rain input above the wet threshold of the data layer
+EXPECTED = {"rule1_short": ("E20150828_0630", "10031_1"), "rule2_long": ("E20150628_2200", "10210_2")}   # the figures made before
+
+
+def rain_input(row):
+    """R = radar path mean / g_e of one link-event over its window's 5 min bins (the model input; missing = 0)."""
+    ra = data.open_release().store("radar_along_links_5min").R_mean
+    T5 = pd.DatetimeIndex(ra.time.values)
+    i0 = T5.get_loc(pd.Timestamp(row.window_start))
+    r = ra.sel(cml_id=int(row.cml_id)).isel(time=slice(i0, i0 + int(row.n_bins))).load().to_numpy().astype(float)
+    g = pd.read_csv(WP.S8_G_E).set_index("event_id")
+    ge = float(g.g_path[row.event_id]) if (row.event_id in g.index and bool(g.path_used[row.event_id])) else 1.0
+    return np.nan_to_num(r) / ge, ge, int(np.isnan(r).sum())
 
 
 def load():
@@ -90,7 +105,7 @@ def style(ax):
     ax.tick_params(labelsize=8)
 
 
-def event_figure(s, e, rule, known):
+def event_figure(s, e, rule, known, R):
     le = s["le"]
     sl = slice(s["off"][e], s["off"][e + 1])
     n = int(le.n_bins[e])
@@ -99,24 +114,37 @@ def event_figure(s, e, rule, known):
     pred = {m: np.where(np.isfinite(s["preds"][m][sl]), s["preds"][m][sl], np.nan) for m in MODELS}
     sc = s["scored"][sl]
     yl = ylims([meas] + list(pred.values()))
-    a, b = int(le.first_bin[e]) * 5, (int(le.last_bin[e]) + 1) * 5
+    wet = R > WET_MMH
     fig, axes = plt.subplots(7, 1, figsize=(8.5, 13), sharex=True)
     for i, ax in enumerate(axes):
-        ax.axvspan(a, b, color=SPAN, lw=0, zorder=0)
+        if i > 0:                                               # panel 1: the shading goes on the rain axis, behind the bars
+            for k in np.nonzero(wet)[0]:
+                ax.axvspan(k * 5, k * 5 + 5, color=SPAN, lw=0, zorder=0)
         style(ax)
         ax.set_ylim(*yl)
         ax.set_ylabel("dB", fontsize=8)
+    ax2 = axes[0].twinx()                                       # requested: the rain input on a secondary axis, panel 1 only
+    for k in np.nonzero(wet)[0]:
+        ax2.axvspan(k * 5, k * 5 + 5, color=SPAN, lw=0, zorder=0)
+    ax2.bar(t, R, width=4.6, color="#6baed6", alpha=0.8, lw=0, zorder=1, label="radar rain R = radar / g_e (mm/h)")
+    ax2.set_ylabel("R (mm/h)", fontsize=8, color="#4a7fa8")
+    ax2.tick_params(labelsize=8, colors="#4a7fa8")
+    ax2.spines["top"].set_visible(False)
+    ax2.set_ylim(0, max(1.0, 1.15 * float(np.max(R))))
+    axes[0].set_zorder(ax2.get_zorder() + 1)
+    axes[0].patch.set_visible(False)
     axes[0].plot(t, meas, color="black", lw=1.6, label="measured A - c (5 min)")
-    axes[0].set_title("measured A - c", fontsize=9, loc="left")
-    axes[0].text(0.99, 0.95, "grey span: first to last wet 5 min bin of the link (data layer)", transform=axes[0].transAxes,
-                 ha="right", va="top", fontsize=7, color="#555555")
+    axes[0].set_title("measured A - c, with the radar rain input", fontsize=9, loc="left")
+    h1, l1 = axes[0].get_legend_handles_labels()
+    h2, l2 = ax2.get_legend_handles_labels()
+    axes[0].legend(h1 + h2, l1 + l2, fontsize=7, loc="upper right", frameon=False)
     for ax, m in zip(axes[1:], MODELS):
         ax.plot(t, meas, color=GREY, lw=1.0, ls="--", label="measured")
         ax.plot(t, pred[m], color=COLOR[m], lw=1.8, label=f"{LABEL[m]}: total (WAA + path)")
         r = np.sqrt(np.mean((pred[m][sc] - meas[sc]) ** 2)) if sc.any() else np.nan
         ax.set_title(f"{LABEL[m]}  -  RMSE {r:.3f} dB on this link-event", fontsize=9, loc="left")
     axes[1].legend(fontsize=7, loc="upper right", frameon=False)
-    axes[-1].set_xlabel("minutes from the start of the link-event window", fontsize=9)
+    axes[-1].set_xlabel(f"minutes from the start of the link-event window (grey: radar rain input R > {WET_MMH} mm/h)", fontsize=9)
     fig.suptitle(f"{le.event_id[e]}   sub-link {le.sublink_id[e]}   L = {le.L_km[e]:.2f} km   {le.band_name[e]}   "
                  f"{'known link' if known else 'NEW link (never fitted; Part 1 models with a_link = 1)'}\n"
                  f"rule {rule}   (TEST; visualization only)", fontsize=10)
@@ -129,82 +157,29 @@ def event_figure(s, e, rule, known):
     return stem
 
 
-def summary_figure(sets):
-    """All TEST link-events on links < 1 km with >= 60 min after the last wet bin, aligned at the end of that bin."""
-    k = np.arange(-SUMMARY_BINS, SUMMARY_BINS)
-    rows_m, rows_p, n_le, links = [], {m: [] for m in MODELS}, 0, set()
-    for name, s in sets.items():
-        le = s["le"]
-        dry_after = le.n_bins.to_numpy() - le.last_bin.to_numpy() - 1
-        for e in np.nonzero((le.L_km.to_numpy() < 1.0) & (dry_after >= SUMMARY_BINS))[0]:
-            end = int(le.last_bin[e]) + 1                       # first bin after the last wet bin
-            idx = end + k
-            ok = (idx >= 0) & (idx < le.n_bins[e])
-            g = s["off"][e] + np.clip(idx, 0, le.n_bins[e] - 1)
-            rows_m.append(np.where(ok & s["counted"][g], s["target"][g], np.nan))
-            for m in MODELS:
-                rows_p[m].append(np.where(ok & s["scored"][g], s["preds"][m][g], np.nan))
-            n_le += 1
-            links.add((name, le.cml_id[e]))
-    M = np.array(rows_m)
-    t = k * 5 + 2.5
-    with np.errstate(all="ignore"):
-        q25, med, q75 = np.nanpercentile(M, [25, 50, 75], axis=0)
-        pm = {m: np.nanmedian(np.array(rows_p[m]), axis=0) for m in MODELS}
-    yl = ylims([q25, q75] + list(pm.values()))
-    fig, axes = plt.subplots(7, 1, figsize=(8.5, 13), sharex=True)
-    for ax in axes:
-        ax.axvspan(t[0] - 2.5, 0, color=SPAN, lw=0, zorder=0)
-        ax.axvline(0, color="#555555", lw=0.8)
-        style(ax)
-        ax.set_ylim(*yl)
-        ax.set_ylabel("dB", fontsize=8)
-    axes[0].fill_between(t, q25, q75, color="#bdbdbd", lw=0, label="measured 25-75 %")
-    axes[0].plot(t, med, color="black", lw=1.6, label="measured median")
-    axes[0].set_title("measured A - c: median and 25-75 % band", fontsize=9, loc="left")
-    axes[0].legend(fontsize=7, loc="upper right", frameon=False)
-    for ax, m in zip(axes[1:], MODELS):
-        ax.plot(t, med, color=GREY, lw=1.0, ls="--", label="measured median")
-        ax.plot(t, pm[m], color=COLOR[m], lw=1.8, label=f"{LABEL[m]}: median total")
-        ax.set_title(f"{LABEL[m]}: median of the predicted total (WAA + path)", fontsize=9, loc="left")
-    axes[1].legend(fontsize=7, loc="upper right", frameon=False)
-    axes[-1].set_xlabel("minutes from the end of the last wet 5 min bin (grey: before it)", fontsize=9)
-    fig.suptitle(f"TEST, links < 1 km: {n_le} link-events of {len(links)} links (known and new), at least 60 min after the last wet bin\n"
-                 "aligned at the end of the last wet bin (typical behaviour; visualization only)", fontsize=10)
-    fig.text(0.01, 0.005, NOT_SAVED, fontsize=7, color="#555555")
-    fig.tight_layout(rect=(0, 0.015, 1, 0.97))
-    stem = P.FIGURES / "waa_compare_summary_short_links"
-    save(fig, stem.with_suffix(".png"), dpi=300)
-    save(fig, stem.with_suffix(".pdf"))
-    plt.close(fig)
-    return stem, n_le, len(links)
-
-
 def main():
     sets = load()
-    rows, files = [], []
-    kn, nw = sets["known"], sets["new"]
-    rk, rn = rmse_per_le(kn, "ours"), rmse_per_le(nw, "ours")
-    Lk, Ln = kn["le"].L_km.to_numpy(), nw["le"].L_km.to_numpy()
-    for rule, s, Lmask, rm, known in (("rule1_short", kn, Lk < 1.0, rk, True), ("rule2_long", kn, Lk > 3.0, rk, True),
-                                      ("rule4_new", nw, Ln < 1.0, rn, False)):
-        e, row = select(s, rule, Lmask, rm)
-        files.append(event_figure(s, e, rule, known))
-        row["figure"] = rel(files[-1].with_suffix(".png"))
+    rows = []
+    kn = sets["known"]
+    rk = rmse_per_le(kn, "ours")
+    Lk = kn["le"].L_km.to_numpy()
+    for rule, Lmask in (("rule1_short", Lk < 1.0), ("rule2_long", Lk > 3.0)):
+        e, row = select(kn, rule, Lmask, rk)
+        assert (row["event"], row["sublink"]) == EXPECTED[rule], "the rule no longer picks the link-event of the first figures"
+        R, ge, n_nan = rain_input(kn["le"].iloc[e])
+        print(f"   ({rule}) rain input: g_e {ge:.4f}; peak R {R.max():.2f} mm/h; {int((R > WET_MMH).sum())} bins above {WET_MMH} mm/h; "
+              f"{n_nan} missing radar bins (0 in the input)", flush=True)
+        stem = event_figure(kn, e, rule, True, R)
+        row.update({"g_e": ge, "peak R (mm/h)": float(R.max()), "figure": rel(stem.with_suffix(".png"))})
         rows.append(row)
-    print("   (rule3_storm) not applied: the peak rain rate (radar series) was not saved by the TEST run", flush=True)
-    stem, n_le, n_links = summary_figure(sets)
     sel = pd.DataFrame(rows)
     save(sel.round(4), P.TF_SELECTION, index=False)
     L = ["# TEST comparison figures (a visualization only)\n",
-         "Written by `research/waa_ksurface/t_figures.py` (decisions.md, \"TEST comparison figures\", logged before the figures). Data: only the saved "
-         "outputs of the TEST run (`predictions_test.pkl`); no model rerun, TEST not read again. No fitting, no metric, no decision follows.\n",
-         "## Selected link-events (rules written before any curve was seen)\n", md_table(sel.round(4)), "",
-         "**Rule 3 (strong storm) not applied:** the peak rain rate needs the radar series, which the TEST run did not save.\n",
-         f"## Summary figure\n\n`{rel(stem.with_suffix('.png'))}`: {n_le} link-events of {n_links} links < 1 km (known and new) with at least 60 min "
-         "after the last wet bin, aligned at the end of that bin.\n",
-         "## Not plotted\n", NOT_SAVED + " The grey span in the per-event figures marks the first to the last wet 5 min bin of the link (data layer); "
-         "dry bins inside it are not visible.\n"]
+         "Written by `research/waa_ksurface/t_figures.py` (decisions.md, \"TEST comparison figures replaced\"). Measured A - c and predictions: only the "
+         "saved outputs of the TEST run; no model rerun. Radar rain input R = radar / g_e of the two link-events reloaded from the TEST rain input (no "
+         "attenuation read). No fitting, no metric, no decision follows.\n",
+         "## The two link-events (the rules of the first figures, unchanged)\n", md_table(sel.round(4)), "",
+         "## Not plotted\n", NOT_SAVED + "\n"]
     save("\n".join(L) + "\n", P.TF_REPORT)
     print(f"report: {rel(P.TF_REPORT)}", flush=True)
 
