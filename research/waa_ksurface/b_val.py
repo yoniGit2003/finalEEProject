@@ -232,6 +232,17 @@ def write_recipes(r):
     save(json.dumps(doc, indent=1, default=float), P.B_RECIPES)
 
 
+def freeze3():
+    """Deviation 16: b_val.py changed (one-line fix); hash it again with the two earlier records and the recipe fits."""
+    files = {"recipe fits": P.B_RECIPES, "Block B code (Deviation 16 fix)": P.REPO / "research" / "waa_ksurface" / "b_val.py",
+             "first freeze record": P.B_FREEZE, "second freeze record": P.B_FREEZE2}
+    rec = {"date": time.strftime("%Y-%m-%d %H:%M:%S"), "note": "third freeze record of Block B (Deviation 16); written before VAL is read again",
+           "sha256": {k: {"path": rel(v), "sha256": sha(v)} for k, v in files.items()}}
+    save(json.dumps(rec, indent=1), P.B_FREEZE3)
+    for k, v in rec["sha256"].items():
+        log(f"   {v['sha256'][:16]}  {v['path']}  ({k})")
+
+
 def freeze_recipes():
     files = {"recipe fits": P.B_RECIPES, "Block B code": P.REPO / "research" / "waa_ksurface" / "b_val.py",
              "first freeze record": P.B_FREEZE}
@@ -243,15 +254,19 @@ def freeze_recipes():
 
 
 # =================================================================================================== VAL
-def val_data():
-    """VAL read once by the Part 1 builder (W1): event_split val, the TRAIN-link rules, the data-layer offset c; 28 and 38 GHz."""
-    d = data.open_release()
-    bands_cfg = sid.merged_bands(d, data.DATA)[0]
-    D, le, drops = sid.build_dataset(d, {**data.DATA, "bands_ghz": bands_cfg, "max_length_km": data.S3["data"]["max_length_km_all"]}, event_split="val")
+def val_data(split="val"):
+    """VAL read once by the Part 1 builder (W1): event_split val, the TRAIN-link rules, the data-layer offset c; 28 and 38 GHz.
+    split = "train": the dry run of Deviation 16 (the TRAIN link-events from the data-layer cache, TRAIN g_e); not a result."""
+    if split == "train":
+        D, _, le, drops, _ = data.train()
+    else:
+        d = data.open_release()
+        bands_cfg = sid.merged_bands(d, data.DATA)[0]
+        D, le, drops = sid.build_dataset(d, {**data.DATA, "bands_ghz": bands_cfg, "max_length_km": data.S3["data"]["max_length_km_all"]}, event_split="val")
     le = le.reset_index(drop=True)
     keep = le.band_name.isin(data.BRANCH_BANDS).to_numpy()
     g = pd.read_csv(P.P1_G_E)
-    g = g[g.set == "VAL"]
+    g = g[g.set == split.upper()]
     gmap = {r.event_id: (r.g_path if r.path_used else 1.0) for r in g.itertuples()}
     ratio_events = set(g[g.path_used].event_id)
     return D, le, drops, keep, gmap, ratio_events
@@ -268,7 +283,8 @@ def m3_cells(D, le, preds, rule, n_short, e4_cells):
     mult = ltest.multiplicities(int(D["le_event"].max()) + 1, LTC["boot_reps"], LTC["seed"])
     meas, _ = ltest.cell_fits(t_meas, LTC, n_short, mult, LTC["interval"], r_stat="mean")
     keys = set(zip(e4_cells.band, e4_cells.cls))
-    meas = meas[meas.eligible & [k in keys for k in zip(meas.band, meas.cls)]].reset_index(drop=True)
+    ok = meas.eligible.to_numpy(bool) & np.array([k in keys for k in zip(meas.band, meas.cls)], bool)     # Deviation 16: numpy masks
+    meas = meas[ok].reset_index(drop=True)
     c5 = D["le_c"][D["bin_le"]]
     rows = []
     for name, pr in preds.items():
@@ -285,9 +301,9 @@ def m3_cells(D, le, preds, rule, n_short, e4_cells):
     return pd.DataFrame(rows), len(meas)
 
 
-def val_part():
+def val_part(split="val"):
     t0 = time.time()
-    bad = check_freeze(P.B_FREEZE) + check_freeze(P.B_FREEZE2)
+    bad = [] if split == "train" else check_freeze(P.B_FREEZE) + check_freeze(P.B_FREEZE3)     # Deviation 16: the first and the third record
     if bad:
         log("=== STOP: a frozen file changed: " + "; ".join(bad) + " ===")
         return {"stop": bad}
@@ -295,7 +311,7 @@ def val_part():
     rec = json.loads(P.B_RECIPES.read_text(encoding="utf-8"))
     assert all(c["ok"] for c in rec["code_checks"].values()), "the pre-VAL code checks did not pass"
 
-    D0, le0, drops, keep, gmap, ratio_events = val_data()       # ===== VAL is read here, once =====
+    D0, le0, drops, keep, gmap, ratio_events = val_data(split)       # ===== VAL is read here, once =====
     log(f"=== VAL read: {len(le0)} link-events ({int(keep.sum())} at 28 / 38 GHz) of {le0.event_id.nunique()} events ({(time.time() - t0) / 60:.1f} min) ===")
     can = predictable(le0)
     keep_all = keep & can
@@ -439,6 +455,18 @@ def main():
         sys.exit(0 if r["ok"] else 1)
     if "--freeze" in sys.argv:
         freeze_recipes()
+        return
+    if "--freeze3" in sys.argv:
+        freeze3()
+        return
+    if "--dryrun-train" in sys.argv:                            # Deviation 16: the whole --val path on TRAIN, to scratch; not a result
+        out = CACHE / "dryrun"
+        out.mkdir(parents=True, exist_ok=True)
+        for k in ("B_M1", "B_M1P", "B_M2", "B_M3", "B_REPORT"):
+            setattr(P, k, out / getattr(P, k).name)
+        r = val_part("train")
+        report(r)
+        log(f"=== dry run on TRAIN ended ({r['minutes']:.1f} min); written to {out} ===")
         return
     if "--val" in sys.argv:
         f = CACHE / "val.pkl"

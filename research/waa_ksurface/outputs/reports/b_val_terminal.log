@@ -10,3 +10,48 @@
    (check) Part 1 ours on TRAIN L < 1 km: RMSE 0.6480 (table 0.6480); bins 367190 (table 367190): ok
 === recipes and code checks: ALL OK ===
 === exit 0 at Mon 11/23/2026 10:48:58.83 === 
+=== launcher started Mon 11/23/2026 10:50:04.71 === 
+=== every frozen hash checked (both freeze records): unchanged ===
+=== VAL read: 3250 link-events (2944 at 28 / 38 GHz) of 18 events (0.3 min) ===
+=== every model predicted (0.9 min) ===
+=== M1 done (0.9 min) ===
+=== M2 done (1.1 min) ===
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\yonic\PycharmProjects\finalEEProject\research\waa_ksurface\b_val.py", line 460, in <module>
+    main()
+  File "C:\Users\yonic\PycharmProjects\finalEEProject\research\waa_ksurface\b_val.py", line 448, in main
+    r = val_part()
+        ^^^^^^^^^^
+  File "C:\Users\yonic\PycharmProjects\finalEEProject\research\waa_ksurface\b_val.py", line 396, in val_part
+    tab, ncell = m3_cells(Ds, les, ps, rule, n_short, e4[e4.eligible] if "eligible" in e4 else e4)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yonic\PycharmProjects\finalEEProject\research\waa_ksurface\b_val.py", line 271, in m3_cells
+    meas = meas[meas.eligible & [k in keys for k in zip(meas.band, meas.cls)]].reset_index(drop=True)
+                ~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  File "C:\Users\yonic\miniconda3\envs\cmlpipe\Lib\site-packages\pandas\core\ops\common.py", line 140, in new_method
+    return method(self, other)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yonic\miniconda3\envs\cmlpipe\Lib\site-packages\pandas\core\arraylike.py", line 80, in __and__
+    return self._logical_method(other, operator.and_)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yonic\miniconda3\envs\cmlpipe\Lib\site-packages\pandas\core\series.py", line 7383, in _logical_method
+    res_values = ops.logical_op(lvalues, rvalues, op)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\yonic\miniconda3\envs\cmlpipe\Lib\site-packages\pandas\core\ops\array_ops.py", line 441, in logical_op
+    raise TypeError(
+TypeError: Logical ops (and, or, xor) between Pandas objects and dtype-less sequences (e.g. list, tuple) are no longer supported. Wrap the object in a Series, Index, or np.array before operating instead.
+=== exit 1 at Mon 11/23/2026 10:51:42.77 === 
+=== launcher started Mon 11/23/2026 10:53:02.03 === 
+=== every frozen hash checked (both freeze records): unchanged ===
+=== VAL read: 9780 link-events (8836 at 28 / 38 GHz) of 51 events (0.1 min) ===
+=== every model predicted (2.2 min) ===
+=== M1 done (2.2 min) ===
+=== M2 done (2.7 min) ===
+   (M3) S-all: 10 eligible cells
+   (M3) S-ratio: 10 eligible cells
+=== M3 done (3.5 min) ===
+report: research/.cache/waa_ksurface/b_val/dryrun/b_val.md
+=== dry run on TRAIN ended (3.5 min); written to C:\Users\yonic\PycharmProjects\finalEEProject\research\.cache\waa_ksurface\b_val\dryrun ===
+=== exit 0 at Mon 11/23/2026 10:57:01.72 === 
