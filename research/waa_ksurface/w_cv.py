@@ -487,6 +487,9 @@ def main():
         log("=== smoke ended (fold 0, 3 iterations): every model fits and predicts ===")
         return
     CACHE.mkdir(parents=True, exist_ok=True)
+    if "--report" not in sys.argv:
+        from research.waa_ksurface import s3b_recovery as s3b
+        log(f"=== keep-awake: {'on' if s3b.keep_awake() else 'NOT accepted'} ===")
     fits = run_all(st, ctx, CACHE) if "--report" not in sys.argv else {
         (p, m, k): pickle.loads((CACHE / f"{p}_{m.replace(' ', '_')}_{k:02d}.pkl").read_bytes()) for p in PATHS for m in MODELS for k in range(len(st["events"]))}
     log(f"=== every fit done ({(time.time() - t0) / 60:.1f} min) ===")
