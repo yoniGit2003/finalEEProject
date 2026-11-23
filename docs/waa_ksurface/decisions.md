@@ -2802,3 +2802,21 @@ switch at ≈ 0.3 dB is not reproduced by the offsets and the grid of this fake 
 below 0.3 dB may be a W-dependent rate or a second, slow store). The 1 / k_dry recovered (8.7-13.7 min for 9.7) is
 reported, not judged (no recovery criterion was set for this check). Naming cross-check: restated in the report (sparse
 1 + √W + exp(−W); BMS a·W^(b^W); neither agrees with step 8; queue 0).
+
+## Deviation 16: Block B crashed after reading VAL; one-line fix and a second read (2026-11-23, logged before the fix)
+
+**What happened.** The `--val` run (10:50, after both freeze records were checked unchanged) read VAL (3 250 link-events,
+2 944 at 28 / 38 GHz, 18 events), predicted every model and computed M1 and M2 in memory, then stopped in M3 with a
+pandas TypeError (`meas.eligible & [list]`: a boolean Series combined with a plain list, which this pandas version
+refuses). Nothing was saved or printed except those counts and the timings: **no M1, M2 or M3 number was seen.**
+
+**The fix (code only, no rule changes).** In `m3_cells` the mask is built as two numpy boolean arrays. To make sure no
+other code path fails after VAL is read, a dry run of the whole `--val` path (predictions, M1, M2, M3, report) is added
+(`--dryrun-train`): it runs on the TRAIN link-events at 28 / 38 GHz (TRAIN g_e), writes only to the scratch cache
+(`research/.cache/waa_ksurface/b_val/dryrun/`), and is not a result. Then `b_val.py` is hashed again into a third freeze
+record (`a8_block_b_freeze3.json`, which also re-hashes the first two records and the recipe fits), committed, and
+`--val` is run again; it checks the first record and the third.
+
+**Disclosure.** VAL is read a second time, by the same builder, with the same rules; nothing about the models, the
+metrics or the readings changes, and no VAL number influenced the fix. The rule "VAL is read once" of
+`block_b_prereg.md` §4 is broken in the letter (two reads), not in substance (one set of results, computed once).
