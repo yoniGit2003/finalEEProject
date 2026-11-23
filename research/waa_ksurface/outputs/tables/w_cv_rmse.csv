@@ -1,0 +1,37 @@
+path,links,model,RMSE (dB),values,90 % (dB)
+A,all links,ours,0.92761,1354791,0.7623 to 1.0737
+A,all links,Part 1 equation,0.9232,1354791,0.7610 to 1.0674
+A,all links,Schleiss,1.00072,1354791,0.8379 to 1.1361
+A,all links,Pastorek,0.97654,1354791,0.8068 to 1.1246
+A,all links,no memory,0.97906,1354791,0.8125 to 1.1260
+A,all links,no WAA,1.23272,1354791,1.0545 to 1.3953
+A,links < 1 km,ours,0.71667,299593,0.5958 to 0.8279
+A,links < 1 km,Part 1 equation,0.71367,299593,0.5918 to 0.8250
+A,links < 1 km,Schleiss,0.80198,299593,0.6773 to 0.9121
+A,links < 1 km,Pastorek,0.76757,299593,0.6405 to 0.8784
+A,links < 1 km,no memory,0.76883,299593,0.6430 to 0.8798
+A,links < 1 km,no WAA,1.06174,299593,0.9133 to 1.1990
+B,all links,ours,0.93532,1354791,0.7658 to 1.0857
+B,all links,Part 1 equation,0.92498,1354791,0.7587 to 1.0717
+B,all links,Schleiss,0.99084,1354791,0.8315 to 1.1265
+B,all links,Pastorek,0.9816,1354791,0.8098 to 1.1323
+B,all links,no memory,0.98209,1354791,0.8130 to 1.1301
+B,all links,no WAA,1.22698,1354791,1.0508 to 1.3901
+B,links < 1 km,ours,0.71805,299593,0.5967 to 0.8305
+B,links < 1 km,Part 1 equation,0.71272,299593,0.5916 to 0.8246
+B,links < 1 km,Schleiss,0.79363,299593,0.6711 to 0.9020
+B,links < 1 km,Pastorek,0.76781,299593,0.6417 to 0.8796
+B,links < 1 km,no memory,0.76848,299593,0.6446 to 0.8778
+B,links < 1 km,no WAA,1.05654,299593,0.9087 to 1.1938
+A+a,all links,ours,0.92761,1354791,0.7623 to 1.0737
+A+a,all links,Part 1 equation,0.9195,1354791,0.7555 to 1.0662
+A+a,all links,Schleiss,0.99551,1354791,0.8337 to 1.1299
+A+a,all links,Pastorek,0.97252,1354791,0.8012 to 1.1233
+A+a,all links,no memory,0.97906,1354791,0.8125 to 1.1260
+A+a,all links,no WAA,1.23272,1354791,1.0545 to 1.3953
+A+a,links < 1 km,ours,0.71667,299593,0.5958 to 0.8279
+A+a,links < 1 km,Part 1 equation,0.70782,299593,0.5827 to 0.8184
+A+a,links < 1 km,Schleiss,0.79673,299593,0.6727 to 0.9086
+A+a,links < 1 km,Pastorek,0.7626,299593,0.6344 to 0.8749
+A+a,links < 1 km,no memory,0.76883,299593,0.6430 to 0.8798
+A+a,links < 1 km,no WAA,1.06174,299593,0.9133 to 1.1990

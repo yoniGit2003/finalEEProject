@@ -1,0 +1,31 @@
+path,links,model,RMSE(model) - RMSE(ours) (dB),90 % lo,90 % hi,reading
+A,all links,Part 1 equation,-0.00441,-0.01131,0.00184,tie
+A,all links,Schleiss,0.07312,0.03772,0.1102,ours better than Schleiss
+A,all links,Pastorek,0.04894,0.03652,0.06322,ours better than Pastorek
+A,all links,no memory,0.05145,0.03864,0.06569,ours better than no memory
+A,all links,no WAA,0.30512,0.22032,0.40855,ours better than no WAA
+A,links < 1 km,Part 1 equation,-0.00299,-0.00976,0.00257,tie
+A,links < 1 km,Schleiss,0.08531,0.0643,0.10987,ours better than Schleiss
+A,links < 1 km,Pastorek,0.0509,0.03675,0.06608,ours better than Pastorek
+A,links < 1 km,no memory,0.05216,0.03781,0.06762,ours better than no memory
+A,links < 1 km,no WAA,0.34508,0.26571,0.4407,ours better than no WAA
+B,all links,Part 1 equation,-0.01034,-0.01811,-0.00262,Part 1 equation better than ours
+B,all links,Schleiss,0.05552,0.02424,0.08872,ours better than Schleiss
+B,all links,Pastorek,0.04628,0.03303,0.06023,ours better than Pastorek
+B,all links,no memory,0.04677,0.03334,0.06054,ours better than no memory
+B,all links,no WAA,0.29166,0.20775,0.39354,ours better than no WAA
+B,links < 1 km,Part 1 equation,-0.00533,-0.01191,0.00093,tie
+B,links < 1 km,Schleiss,0.07558,0.05675,0.09828,ours better than Schleiss
+B,links < 1 km,Pastorek,0.04976,0.03577,0.06496,ours better than Pastorek
+B,links < 1 km,no memory,0.05043,0.03631,0.06639,ours better than no memory
+B,links < 1 km,no WAA,0.33849,0.26165,0.43193,ours better than no WAA
+A+a,all links,Part 1 equation,-0.0081,-0.01476,-0.00236,Part 1 equation better than ours
+A+a,all links,Schleiss,0.0679,0.0343,0.10276,ours better than Schleiss
+A+a,all links,Pastorek,0.04492,0.03329,0.05727,ours better than Pastorek
+A+a,all links,no memory,0.05145,0.03864,0.06569,ours better than no memory
+A+a,all links,no WAA,0.30512,0.22032,0.40855,ours better than no WAA
+A+a,links < 1 km,Part 1 equation,-0.00885,-0.01783,-0.00074,Part 1 equation better than ours
+A+a,links < 1 km,Schleiss,0.08006,0.05957,0.10191,ours better than Schleiss
+A+a,links < 1 km,Pastorek,0.04593,0.03093,0.06211,ours better than Pastorek
+A+a,links < 1 km,no memory,0.05216,0.03781,0.06762,ours better than no memory
+A+a,links < 1 km,no WAA,0.34508,0.26571,0.4407,ours better than no WAA
