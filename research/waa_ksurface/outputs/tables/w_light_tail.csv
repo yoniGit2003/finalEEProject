@@ -1,0 +1,3 @@
+group,bins,minutes,ours residual (dB),ours lo,ours hi,Part 1 equation residual (dB),Part 1 equation lo,Part 1 equation hi,our WAA part (dB),WAA lo,WAA hi,minutes W < 0.3 dB,share W < 0.3 dB,share lo,share hi
+(i) within 60 min after R >= 2,54136,270680,-0.0614,-0.1668,0.0415,0.0255,-0.0682,0.1189,0.8905,0.8577,0.9369,10490,0.0388,0.0298,0.0461
+(ii) no R >= 2 in the previous 60 min,147455,737275,-0.0029,-0.0942,0.0828,0.0697,-0.0054,0.1493,0.4032,0.3774,0.4325,204785,0.2778,0.2422,0.3123

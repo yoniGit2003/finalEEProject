@@ -1,0 +1,12 @@
+17:03:15 setting: 4563 link-events, 14 events, 1354791 scored bins; 314570 scored bins during rain in the 5 classes
+17:04:17    (1) ours: done
+17:04:47    (1) Part 1 equation: done
+17:05:41    (1) Schleiss: done
+17:06:41    (1) Pastorek: done
+17:07:31    (1) no memory: done
+17:07:51    (1) no WAA: done
+17:07:51 === (1) residual length test done (4.8 min) ===
+17:08:31 === (2)-(4) done (5.4 min) ===
+17:08:37 report: research/waa_ksurface/outputs/reports/w_light.md
+17:08:37 === light-rain diagnostic ended (5.5 min) ===
+exit 0

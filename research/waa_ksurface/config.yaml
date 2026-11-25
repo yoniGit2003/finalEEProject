@@ -290,3 +290,17 @@ w_cv:                                           # WAA-only comparison (decisions
   dry_min_bins: 6                               # figures: at least 30 min after the last wet bin
   wet_mmh: 0.1                                  # figures: shading where R > 0.1 mm/h
   min_free_gb: 1.5
+w_light:                                        # light-rain overestimate diagnostic (decisions.md, logged before any code was run)
+  seed: 4500
+  boot_reps: 1000
+  interval: [5, 95]
+  classes_mmh: [[0.1, 0.2], [0.2, 0.5], [0.5, 1.0], [1.0, 2.0], [2.0, 5.0]]   # half-open [lo, hi)
+  light_max_mmh: 1.0
+  min_bins_per_le: 3                            # (1) a link-event enters a class with at least 3 scored bins in it
+  huber_c: 1.345                                # (1) robust line: Huber tuning x MAD scale
+  huber_iter: 50
+  heavy_mmh: 2.0                                # (2) heavy rain
+  tail_bins: 12                                 # (2) 60 min before
+  w_low_db: 0.3                                 # (2) our WAA part below this
+  short_km: 1.0                                 # (4)
+  gauge_dry_mmh: 0.1                            # (4) gauge shows no rain

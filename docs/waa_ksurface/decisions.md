@@ -3036,3 +3036,11 @@ Reading: "input" if our difference (radar-only − others) lies above 0, i.e. th
 **Final reading.** One sentence per check: antenna, path or input, and which, taken only from the reading rules above.
 
 **Outputs.** `tables/w_light_length.csv`, `w_light_tail.csv`, `w_light_classes.csv`, `w_light_gauge.csv`; `reports/w_light.md`; the figure; the terminal log `reports/w_light_terminal.log`. Expected run time: about 5–15 min (the TRAIN setting 1 min, the bootstrap of 30 robust lines 1000 times).
+
+**Light-rain overestimate, result (2026-11-25).** The diagnostic ran as logged: 5.5 min, exit 0, no fit; VAL and TEST were not opened. Pooled over every scored bin, ours shows no light-rain overestimate. Its median residual per class is +0.02, −0.02 and −0.08 dB, and the 0.5–1 mm/h class is below 0. Part 1 overestimates at 0.1–0.2 mm/h (+0.08 dB) and Schleiss at 0.1–0.5 mm/h (+0.12 dB). Readings from the logged rules:
+- (1) "path" at 0.1–0.2 mm/h for all six models: b ≈ +0.02 to +0.03 dB/km, a contains 0. "Neither" in the other light classes.
+- (2) "Not a tail": our (i) − (ii) is −0.06 [−0.19, +0.06] dB.
+- (3) "Mixed" in every class.
+- (4) "Input": 80 % [77, 82] of the light-rain bins on short gauge links are radar-only, and our residual there is +0.59 [+0.46, +0.81] dB above the other bins.
+
+Interpretation note, not a rule change: a 5 min gauge rate from 0.1 mm (weighing) or 0.2 mm (tipping) steps is either 0 or ≥ 1.2 mm/h. A light-rain bin with gauge "< 0.1 mm/h" therefore often means "no step yet", not "no rain". Part of the (4) contrast can come from the gauge resolution rather than from the radar.
