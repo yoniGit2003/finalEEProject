@@ -2997,3 +2997,42 @@ Part 1 / Schleiss / Pastorek (finite-difference gradients), so about 3-5 min per
 about 4-6 h** (was 1-1.5 h). Nothing else changes.
 
 **WAA-only comparison, result (2026-11-23).** The run went as the rules set out: one detached run, 168 of 168 fold fits converged, 73.8 min (12:51 to 14:05), exit 0; VAL and TEST were not opened. The one difference from the rules: the saved predictions (total and WAA part) are in a single cache file, `research/.cache/waa_ksurface/w_cv/preds.npz`, with all paths together, not one `preds_<path>.npz` per path. Nothing else changed. Held-out RMSE on all links: path A, ours 0.928 dB, Part 1 0.923, Pastorek 0.977, no memory 0.979, Schleiss 1.001, no WAA 1.233. The order is the same under path B. Ours is better than Schleiss, Pastorek, no memory and no WAA in every cell (A, B and A+a; all links and links < 1 km). Part 1 against ours: tie under path A (both link sets) and under path B for links < 1 km; Part 1 is better under path B on all links (−0.010 dB, 90 % −0.018 to −0.003) and under A+a on both link sets. After rain, ours is closer than no memory and no WAA at 5 min; Part 1 and Schleiss are closer than ours at 20 min (ours +0.08 dB too high). Peak error: ours is closer than Part 1, Schleiss and no WAA on links < 1 km; Pastorek and no memory are closer than ours on links > 3 km. Figures: short E20150826_1620 10026_1 (rank 430 of 859), long E20150826_0520 10146_2 (rank 488 of 975). Report: `research/waa_ksurface/outputs/reports/w_cv.md`.
+
+## Light-rain overestimate: diagnostic (2026-11-25, logged before any code is run)
+
+**What it is.** A diagnostic of why the models predict too much A − c in light rain. It reads only the saved held-out predictions of the WAA-only comparison (`research/.cache/waa_ksurface/w_cv/preds.npz`, path A: the total and the WAA part of each of the 6 models), the measured 5 min A − c, the radar rain input R = radar / g_e and the City gauge 1 min series that the TRAIN setting of `w_cv.setting()` already carries. TRAIN only: the 14 learning events, 4563 link-events, 28 / 38 GHz. No fitting of any model and no refitting; VAL and TEST stay closed. Script `research/waa_ksurface/w_light.py`; seed 4500; 1000 event-bootstrap draws (the 14 events resampled with replacement; 90 % = 5–95 %).
+
+**Definitions.** Bins are 5 min. R of a bin = the mean of its 5 one-minute radar inputs. Residual = model total − measured A − c, on scored bins only (the w_cv mask). "During rain" means R > 0.1 mm/h. Rain classes (mm/h, half-open [lo, hi)): 0.1–0.2, 0.2–0.5, 0.5–1, 1–2, 2–5; bins with R ≥ 5 mm/h are not used. "Light rain" = 0.1 ≤ R < 1 mm/h. "Minutes" = bins × 5.
+
+**1. Residual length test (6 models × 5 classes).** For each link-event with at least 3 scored bins in the class, take the median residual. Then fit a robust line, median residual = a + b·L (L in km), over all lengths. The line is a Huber M-estimate (IRLS; tuning 1.345 × the MAD scale of the residuals; 50 iterations). Interval: event bootstrap (refit on the link-events of the drawn events). Reported: a (the antenna share, dB) and b (the path share, dB/km). Reading per class, from the intervals: "antenna" if a > 0 and the interval of b contains 0 or lies below it; "path" if b > 0 and the interval of a contains 0 or lies below it; "both" if both lie above 0; otherwise "neither".
+
+**2. Tail split (ours and Part 1, light rain).** Each light-rain bin goes into one group:
+- (i) at least one bin with R ≥ 2 mm/h among the 12 previous bins (60 min) of the same link-event window;
+- (ii) no such bin, and all 12 previous bins inside the window. A bin with fewer than 12 previous bins and no R ≥ 2 is in neither group.
+
+Per group, reported with event-bootstrap 90 % intervals:
+- the median residual of ours and of Part 1;
+- the median of our WAA part;
+- the minutes and the share of bins in which our WAA part W < 0.3 dB.
+
+The difference of medians, (i) − (ii), has its own event-bootstrap interval. Reading: "tail" if our (i) − (ii) lies above 0, which means the overestimate is carried over from heavy rain and points to the antenna drying. If the group (ii) residual of ours is also above 0, the overestimate is present without heavy rain before it.
+
+**3. Shared or ours only.** Median residual per model and class over the pooled scored bins during rain, with an event-bootstrap interval. "Overestimate" = the interval lies above 0. Reading per light class:
+- "shared by all" if every model overestimates, including no WAA. A model without a WAA part then also overestimates, which points to the path law or the input.
+- "shared by the WAA models" if ours and at least 3 of the other 4 WAA models overestimate, but no WAA does not.
+- "ours only" if ours and at most 1 other model overestimate.
+- "mixed" otherwise.
+
+**4. Gauge check.** Link-events of links < 1 km with a City gauge (the data layer pairing: within 1 km of the path; `gauge_id` set). Light-rain bins in which the gauge 5 min rate is valid (all 5 one-minute values present; their mean, mm/h). Reported:
+- the share of these bins where the gauge is < 0.1 mm/h while the radar is > 0.1 mm/h ("radar-only rain");
+- per model, the median residual in the radar-only bins and in the others, and the difference with an event-bootstrap interval.
+
+Reading: "input" if our difference (radar-only − others) lies above 0, i.e. the overestimate sits where the radar sees rain the gauge does not.
+
+**5. Figure.** `figures/w_light_classes.png/.pdf`, two panels sharing the class axis:
+- (left) the median residual per class, one line per model, with the w_cv colours, distinct markers and line styles, and a legend;
+- (right) the antenna share a with its 90 % interval per class and model (offset points with error bars), and a zero line.
+
+**Final reading.** One sentence per check: antenna, path or input, and which, taken only from the reading rules above.
+
+**Outputs.** `tables/w_light_length.csv`, `w_light_tail.csv`, `w_light_classes.csv`, `w_light_gauge.csv`; `reports/w_light.md`; the figure; the terminal log `reports/w_light_terminal.log`. Expected run time: about 5–15 min (the TRAIN setting 1 min, the bootstrap of 30 robust lines 1000 times).
